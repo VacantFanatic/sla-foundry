@@ -1,0 +1,236 @@
+/* ==========================================
+   1. GLOBAL VARIABLES & WINDOW
+   ========================================== */
+:root {
+    --sla-bg-dark: #333e4d;
+    --sla-bg-panel: #2a2a35;
+    --sla-border: #1a1a25;
+    --sla-text-light: #e0e0e0;
+    --sla-accent: #39ff14;
+    --sla-font-mono: "Roboto Condensed", "Arial Narrow", sans-serif;
+}
+
+/* SCOPE EVERYTHING TO .sla-sheet */
+.sla-sheet.window-content {
+    background: var(--sla-bg-dark);
+    color: var(--sla-text-light);
+    font-family: var(--sla-font-mono);
+    font-size: 13px;
+    padding: 5px;
+    overflow: hidden; /* Fix double scrollbars */
+}
+
+.sla-sheet form {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Allow internal scrolling */
+}
+
+/* ==========================================
+   2. INPUTS (Scoped to avoid breaking Chat)
+   ========================================== */
+.sla-sheet input[type="text"],
+.sla-sheet input[type="number"] {
+    background: #d0d3d8; /* The SLA "Paper" Grey */
+    border: 1px solid #555;
+    border-radius: 0;
+    color: #000;
+    height: 24px;
+    padding: 1px 5px;
+    font-family: var(--sla-font-mono);
+}
+
+.sla-sheet input:focus {
+    box-shadow: 0 0 5px var(--sla-accent);
+    background: #fff;
+}
+
+/* ==========================================
+   3. HEADERS & GRIDS
+   ========================================== */
+.sla-sheet .sla-header-bar {
+    background-color: var(--sla-bg-panel);
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-bottom: 2px solid var(--sla-border);
+    margin-bottom: 2px;
+    font-size: 0.9em;
+}
+
+.sla-sheet .header-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 130px 1fr; /* Name | Image | Finance */
+    gap: 10px;
+    height: 180px;
+    margin-bottom: 10px;
+}
+
+/* ==========================================
+   4. UTILITIES (Renamed to avoid conflict)
+   ========================================== */
+.sla-sheet .sla-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.sla-sheet .sla-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+.sla-sheet .flexcol { display: flex; flex-direction: column; gap: 2px; }
+.sla-sheet .flexrow { display: flex; flex-direction: row; gap: 5px; align-items: center; }
+
+/* ==========================================
+   5. BIO & FINANCE
+   ========================================== */
+.sla-sheet .profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 2px solid var(--sla-bg-panel);
+    background: #fff;
+}
+
+.sla-sheet .bio-field {
+    display: grid;
+    grid-template-columns: 70px auto;
+    align-items: center;
+    margin-bottom: 2px;
+    background: #d0d3d8;
+    padding-left: 5px;
+    color: #000;
+    font-weight: bold;
+}
+.sla-sheet .bio-field label { font-size: 0.8em; }
+.sla-sheet .bio-field input { border: none; background: transparent !important; }
+
+.sla-sheet .finance-box { background: var(--sla-bg-panel); padding: 5px; height: 100%; }
+.sla-sheet .finance-box .logo-placeholder { 
+    height: 40px; background: #111; color: #555; 
+    display: flex; align-items: center; justify-content: center; margin-bottom: 5px;
+}
+.sla-sheet .finance-field label { display: block; color: #ccc; font-size: 0.8em; }
+.sla-sheet .finance-field input { width: 100%; margin-bottom: 5px; }
+
+/* ==========================================
+   6. STATS (Reorganized for Body/Str/Dex stack)
+   ========================================== */
+   
+.sla-sheet .stats-grid {
+    display: grid;
+    /* Col 1: Label Text (100px)
+       Col 2: Body Group (140px)
+       Col 3: Brains Group (140px)
+       Col 4: Bravado Group (140px)
+       Col 5: Extras (Remaining)
+    */
+    grid-template-columns: 100px 140px 140px 140px 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-bottom: 2px solid var(--sla-bg-panel);
+    background: rgba(0,0,0,0.1);
+    min-height: 140px;
+}
+
+.sla-sheet .stats-grid .flexcol {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    height: 100%;
+    /* Ensure content doesn't spill out */
+    overflow: hidden; 
+}
+
+/* THE ROWS */
+.sla-sheet .stat-block { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+    height: 30px; 
+    width: 100%; /* Fill the column width */
+}
+
+/* THE BLACK LABELS (STR, DEX, etc) */
+.sla-sheet .stat-label {
+    background: var(--sla-bg-panel);
+    color: #fff;
+    /* STRICT WIDTH CONTROL */
+    flex: 0 0 70px; /* Don't grow, don't shrink, stay 70px */
+    width: 70px;
+    height: 100%;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    font-weight: bold;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    border: 1px solid #111;
+}
+
+/* THE INPUTS */
+.sla-sheet .stat-input { 
+    /* Fill remaining space in the block */
+    flex: 1; 
+    text-align: center; 
+    font-size: 1.2em; 
+    font-weight: bold;
+    height: 100%;
+    border-radius: 0;
+    min-width: 0; /* Prevents flex items from overflowing */
+}
+
+/* SPECIAL FIX FOR RATINGS HEADER */
+.ratings-header {
+    color: #888;
+    font-size: 0.75em; 
+    font-weight: bold; 
+    text-transform: uppercase;
+    white-space: nowrap; /* Don't wrap text */
+}
+
+/* SECONDARY BOXES (Bravado / Luck) */
+.sla-sheet .secondary-stat-box { 
+    background: #445; 
+    text-align: center; 
+    padding: 2px;
+    border: 1px solid #555;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+/* ==========================================
+   7. MAIN BODY & LISTS
+   ========================================== */
+.sla-sheet .main-split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; min-height: 300px; }
+
+.sla-sheet .sla-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+.sla-sheet .sla-table thead th { background-color: var(--sla-bg-panel); color: #fff; padding: 2px 5px; text-align: left; }
+.sla-sheet .sla-table tbody tr:nth-child(even) { background-color: rgba(0,0,0,0.2); }
+.sla-sheet .sla-table td { border-bottom: 1px solid #444; }
+.sla-sheet .sla-table input { width: 100%; background: transparent; border: none; color: #eee; }
+
+/* Scrolling container for lists */
+.sla-sheet .scroll-list {
+    flex-grow: 1;          /* Fill the remaining height of the box */
+    height: 100%;          /* Ensure it takes up space */
+    overflow-y: auto;      /* Scroll if too many items */
+    display: block;        /* FORCE STANDARD LAYOUT (Fixes the gap) */
+    background: transparent; 
+    border-top: 1px solid #444;
+}
+
+/* ==========================================
+   8. SECONDARY DATA
+   ========================================== */
+.sla-sheet .secondary-grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 5px; }
+.sla-sheet .data-box { border: 1px solid #555; background: rgba(0,0,0,0.2); }
+.sla-sheet .data-header { background: #444; color: #ccc; text-align: center; font-size: 0.8em; padding: 2px; }
+.sla-sheet .wound-grid { display: grid; grid-template-columns: auto auto auto 1fr; gap: 5px 10px; align-items: center; font-size: 0.9em; }
+
+/* Rollable Hover Effects */
+.sla-sheet .rollable:hover {
+    color: var(--sla-accent);
+    cursor: pointer;
+    text-shadow: 0 0 5px var(--sla-accent);
+}

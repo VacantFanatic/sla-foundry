@@ -1,0 +1,54 @@
+<div class="secondary-grid-row">
+    <div class="data-box">
+        <div class="data-header">MOVEMENT</div>
+        <div class="data-body grid-2col" style="padding: 0;">
+            <div style="border-right: 1px solid #555; padding: 2px;">
+                <label style="font-size: 0.8em;">Closing</label>
+                <input type="number" name="system.move.closing" value="{{system.move.closing}}" style="width: 100%;"/>
+            </div>
+             <div style="padding: 2px;">
+                <label style="font-size: 0.8em;">Rushing</label>
+                <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" style="width: 100%;"/>
+            </div>
+        </div>
+    </div>
+     <div class="data-box">
+        <div class="data-header">ENCUMBRANCE</div>
+        <div class="data-body slash-input">
+             {{!-- ADDED: readonly and dark background --}}
+             <input type="number" name="system.encumbrance.value" value="{{system.encumbrance.value}}" readonly style="background: #222; color: #aaa; border: none;"/>
+             
+             /
+             
+             {{!-- Max Encumbrance is also calculated from STR, so lock this too --}}
+             <input type="number" name="system.encumbrance.max" value="{{system.encumbrance.max}}" readonly style="background: #222; color: #aaa; border: none;"/>
+        </div>
+    </div>
+</div>
+
+<div class="secondary-grid-row">
+    <div class="data-box">
+        <div class="data-header">HIT POINTS</div>
+        <div class="data-body slash-input">
+             <input type="number" name="system.hp.value" value="{{system.hp.value}}"/>
+             /
+             <input type="number" name="system.hp.max" value="{{system.hp.max}}"/>
+        </div>
+    </div>
+     <div class="data-box">
+        <div class="data-header">EXPERIENCE POINTS</div>
+        <div class="data-body slash-input">
+             <input type="number" name="system.xp.value" value="{{system.xp.value}}"/>
+        </div>
+    </div>
+</div>
+
+{{!-- Row 3: Armor (New) --}}
+<div class="secondary-grid-row">
+    <div class="data-box" style="grid-column: span 2;">
+        <div class="data-header">ARMOR (PV)</div>
+        <div class="data-body slash-input">
+             <input type="number" name="system.armor.pv" value="{{system.armor.pv}}" readonly style="background: #222; color: #39ff14; border: none; font-size: 1.5em;"/>
+        </div>
+    </div>
+</div>

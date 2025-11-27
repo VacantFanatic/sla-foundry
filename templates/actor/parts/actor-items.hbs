@@ -1,0 +1,63 @@
+<section class="inventory">
+
+    <div class="inventory-header flexrow">
+        <div class="item-image"></div>
+        <div class="item-name">WEAPON NAME</div>
+        <div class="item-prop">DMG</div>
+        <div class="item-prop">AMMO</div>
+        <div class="item-controls">
+            <a class="item-control item-create" title="Create Weapon" data-type="weapon"><i class="fas fa-plus"></i> Add</a>
+        </div>
+    </div>
+
+    <ol class="items-list">
+        {{#each gear as |item id|}}
+            {{#if (eq item.type "weapon")}}
+            <li class="item flexrow" data-item-id="{{item._id}}">
+                <div class="item-image">
+                    <a class="rollable" data-roll-type="item">
+                        <img src="{{item.img}}" title="{{item.name}}" width="24" height="24"/>
+                    </a>
+                </div>
+                <h4 class="item-name">{{item.name}}</h4>
+                <div class="item-prop">{{item.system.damage}}</div>
+                <div class="item-prop">
+                    {{item.system.ammo.value}} / {{item.system.ammo.max}}
+                </div>
+                <div class="item-controls">
+                    <a class="item-control item-edit" title="Edit Item"><i class="fas fa-edit"></i></a>
+                    <a class="item-control item-delete" title="Delete Item"><i class="fas fa-trash"></i></a>
+                </div>
+            </li>
+            {{/if}}
+        {{/each}}
+    </ol>
+
+    <br>
+
+    <div class="inventory-header flexrow">
+        <div class="item-image"></div>
+        <div class="item-name">EQUIPMENT</div>
+        <div class="item-prop">QTY</div>
+        <div class="item-controls">
+            <a class="item-control item-create" title="Create Item" data-type="item"><i class="fas fa-plus"></i> Add</a>
+        </div>
+    </div>
+
+    <ol class="items-list">
+        {{#each gear as |item id|}}
+            {{#if (ne item.type "weapon")}}
+            <li class="item flexrow" data-item-id="{{item._id}}">
+                <div class="item-image"><img src="{{item.img}}" title="{{item.name}}" width="24" height="24"/></div>
+                <h4 class="item-name">{{item.name}}</h4>
+                <div class="item-prop">{{item.system.quantity}}</div>
+                <div class="item-controls">
+                    <a class="item-control item-edit" title="Edit Item"><i class="fas fa-edit"></i></a>
+                    <a class="item-control item-delete" title="Delete Item"><i class="fas fa-trash"></i></a>
+                </div>
+            </li>
+            {{/if}}
+        {{/each}}
+    </ol>
+
+</section>

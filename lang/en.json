@@ -1,0 +1,18 @@
+{
+  "SLA.StatStr": "Strength",
+  "SLA.StatDex": "Dexterity",
+  "SLA.StatKnow": "Knowledge",
+  "SLA.StatConc": "Concentration",
+  "SLA.StatCha": "Charisma",
+  "SLA.StatCool": "Cool",
+
+  "TYPES.Item.item": "Item",
+  "TYPES.Item.skill": "Skill",
+  "TYPES.Item.trait": "Trait",
+  "TYPES.Item.weapon": "Weapon",
+  "TYPES.Item.armor": "Armor",
+  "TYPES.Item.ebb": "Ebb Power",
+
+  "TYPES.Actor.character": "Operative",
+  "TYPES.Actor.npc": "Threat"
+}

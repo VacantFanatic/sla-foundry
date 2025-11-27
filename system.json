@@ -1,0 +1,37 @@
+{
+  "id": "sla-industries",
+  "title": "SLA Industries",
+  "description": "A system for SLA Industries 2nd Edition.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "10",
+    "verified": "12"
+  },
+  "esmodules": [
+    "module/sla-industries.mjs"
+  ],
+  "styles": [
+    "css/sla-industries.css"
+  ],
+  "scripts": [],
+  "packs": [],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "background": "systems/sla-industries/assets/background.webp",
+  "template": "template.json",
+  "grid": {
+    "distance": 1.5,
+    "units": "m",
+    "type": 1
+  },
+  "primaryTokenAttribute": "attributes.hp",
+  "secondaryTokenAttribute": "attributes.flux",
+  "url": "",
+  "manifest": "",
+  "download": ""
+}

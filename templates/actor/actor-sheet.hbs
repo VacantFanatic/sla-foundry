@@ -1,0 +1,29 @@
+<form class="{{cssClass}} sla-sheet" autocomplete="off">
+
+    {{!-- 1. HEADER --}}
+    {{> "systems/sla-industries/templates/partials/header.hbs"}}
+
+    {{!-- 2. STATS --}}
+    {{> "systems/sla-industries/templates/partials/stats.hbs"}}
+	
+	{{!-- MAIN BODY SPLIT --}}
+    <div class="main-split">
+        
+        {{!-- Left Column: Skills --}}
+        <div class="left-col flexcol full-height">
+            {{> "systems/sla-industries/templates/partials/skills.hbs"}}
+        </div> {{!-- <--- MAKE SURE THIS CLOSING TAG IS HERE --}}
+
+        {{!-- Right Column: Traits, Secondary, Wounds --}}
+        <div class="right-col flexcol">
+             {{> "systems/sla-industries/templates/partials/traits.hbs"}}
+             {{> "systems/sla-industries/templates/partials/secondary.hbs"}}
+             {{> "systems/sla-industries/templates/partials/wounds.hbs"}}
+        </div> {{!-- <--- AND THIS ONE --}}
+        
+    </div>
+
+    {{!-- 4. FOOTER --}}
+    {{> "systems/sla-industries/templates/partials/inventory.hbs"}}
+
+</form>

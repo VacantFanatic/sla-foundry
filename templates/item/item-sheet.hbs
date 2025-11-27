@@ -1,0 +1,127 @@
+<form class="{{cssClass}} sla-sheet item" autocomplete="off">
+    
+    {{!-- HEADER --}}
+    <div class="header-grid" style="height: 100px; grid-template-columns: 80px 1fr; margin-bottom: 5px;">
+        <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}"/>
+        <div class="flexcol">
+            <div class="sla-header-bar">{{item.type}} DATA</div>
+            <div class="bio-field">
+                <label>NAME:</label>
+                <input type="text" name="name" value="{{item.name}}" placeholder="Item Name"/>
+            </div>
+        </div>
+    </div>
+
+    {{!-- TABS --}}
+    <nav class="sheet-tabs tabs" data-group="primary" style="margin-bottom: 10px; border-bottom: 2px solid #39ff14;">
+        <a class="item" data-tab="attributes" style="color: #fff; background: #2a2a35; padding: 5px 10px; margin-right: 2px;">DETAILS</a>
+        <a class="item" data-tab="description" style="color: #fff; background: #2a2a35; padding: 5px 10px;">DESCRIPTION</a>
+    </nav>
+
+    {{!-- BODY --}}
+    <section class="sheet-body" style="height: 300px; overflow-y: auto;">
+
+        {{!-- TAB 1: ATTRIBUTES --}}
+        <div class="tab attributes" data-group="primary" data-tab="attributes">
+            
+            <div class="sla-header-bar">Specifications</div>
+            <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; min-height: 0; display: grid;">
+                
+                {{!-- === SKILL FIELDS === --}}
+                {{#if (eq item.type "skill")}}
+                <div class="stat-block">
+                    <div class="stat-label">RANK:</div>
+                    <input class="stat-input" type="number" name="system.rank" value="{{system.rank}}"/>
+                </div>
+                <div class="stat-block">
+                    <div class="stat-label">BONUS:</div>
+                    <input class="stat-input" type="number" name="system.bonus" value="{{system.bonus}}"/>
+                </div>
+                <div class="stat-block">
+                    <div class="stat-label">STAT:</div>
+                    <select class="stat-input" name="system.stat" style="font-size: 0.8em;">
+                        {{selectOptions config.stats selected=system.stat}}
+                    </select>
+                </div>
+                {{/if}}
+
+                {{!-- === TRAIT FIELDS === --}}
+                {{#if (eq item.type "trait")}}
+                <div class="stat-block">
+                    <div class="stat-label">RANK:</div>
+                    <input class="stat-input" type="number" name="system.rank" value="{{system.rank}}"/>
+                </div>
+                <div class="stat-block">
+                    <div class="stat-label">XP COST:</div>
+                    <input class="stat-input" type="number" name="system.xpCost" value="{{system.xpCost}}"/>
+                </div>
+                {{/if}}
+
+                {{!-- === WEAPON FIELDS === --}}
+                {{#if (eq item.type "weapon")}}
+                
+                {{!-- NEW SKILL DROPDOWN --}}
+                <div class="stat-block" style="grid-column: span 2;">
+                     <div class="stat-label" style="width: 100px;">LINKED SKILL:</div>
+                     <select class="stat-input" name="system.skill" style="font-size: 0.8em; text-align: left;">
+                        {{!-- Using the 'selectOptions' helper provided by Foundry --}}
+                        {{selectOptions config.combatSkills selected=system.skill blank="None (Stat Only)"}}
+                     </select>
+                </div>
+
+                <div class="stat-block">
+                     <div class="stat-label">DAMAGE:</div>
+                     <input class="stat-input" type="text" name="system.damage" value="{{system.damage}}" placeholder="1d10"/>
+                </div>
+                <div class="stat-block">
+                     <div class="stat-label">RECOIL:</div>
+                     <input class="stat-input" type="number" name="system.recoil" value="{{system.recoil}}"/>
+                </div>
+                <div class="stat-block">
+                     <div class="stat-label">RANGE:</div>
+                     <input class="stat-input" type="text" name="system.range" value="{{system.range}}"/>
+                </div>
+                 <div class="stat-block">
+                     <div class="stat-label">AMMO:</div>
+                     <input class="stat-input" type="number" name="system.ammo" value="{{system.ammo}}"/>
+                </div>
+                {{/if}}
+
+                {{!-- === ARMOR FIELDS === --}}
+                {{#if (eq item.type "armor")}}
+                <div class="stat-block">
+                     <div class="stat-label">PV:</div>
+                     <input class="stat-input" type="number" name="system.pv" value="{{system.pv}}"/>
+                </div>
+                <div class="stat-block">
+                     <div class="stat-label">DURABILITY:</div>
+                     <input class="stat-input" type="number" name="system.durability" value="{{system.durability}}"/>
+                </div>
+                {{/if}}
+
+                {{!-- === GENERIC (WEAPON, ARMOR, ITEM) === --}}
+                {{#if (or (eq item.type "item") (or (eq item.type "weapon") (eq item.type "armor")))}}
+                <div class="stat-block">
+                     <div class="stat-label">WEIGHT:</div>
+                     <input class="stat-input" type="number" name="system.weight" value="{{system.weight}}"/>
+                </div>
+                <div class="stat-block">
+                     <div class="stat-label">COST:</div>
+                     <input class="stat-input" type="number" name="system.cost" value="{{system.cost}}"/>
+                </div>
+                 <div class="stat-block">
+                     <div class="stat-label">QTY:</div>
+                     <input class="stat-input" type="number" name="system.quantity" value="{{system.quantity}}"/>
+                </div>
+                {{/if}}
+
+            </div>
+        </div>
+
+        {{!-- TAB 2: DESCRIPTION --}}
+        <div class="tab description" data-group="primary" data-tab="description">
+            {{editor system.description target="system.description" rollData=rollData button=true owner=owner editable=editable}}
+        </div>
+
+    </section>
+</form>

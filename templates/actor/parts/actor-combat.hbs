@@ -1,0 +1,37 @@
+<section class="combat-section">
+    
+    <div class="grid grid-2col" style="grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px;">
+        
+
+        <div class="panel combat-panel flex-center">
+            <button class="roll-initiative">
+                <i class="fas fa-crosshairs"></i> ROLL INIT
+            </button>
+        </div>
+
+    </div>
+
+    <div class="panel armor-panel">
+        <h4 class="panel-header">Defensive Systems</h4>
+        
+        <div class="armor-grid grid grid-4col">
+            <div class="armor-loc">
+                <label>HEAD</label>
+                <input type="text" name="system.armor.head" value="{{system.armor.head}}" placeholder="0" data-dtype="Number"/>
+            </div>
+            <div class="armor-loc">
+                <label>TORSO</label>
+                <input type="text" name="system.armor.torso" value="{{system.armor.torso}}" placeholder="0" data-dtype="Number"/>
+            </div>
+            <div class="armor-loc">
+                <label>ARMS</label>
+                <input type="text" name="system.armor.arms" value="{{system.armor.arms}}" placeholder="0" data-dtype="Number"/>
+            </div>
+            <div class="armor-loc">
+                <label>LEGS</label>
+                <input type="text" name="system.armor.legs" value="{{system.armor.legs}}" placeholder="0" data-dtype="Number"/>
+            </div>
+        </div>
+    </div>
+
+</section>
