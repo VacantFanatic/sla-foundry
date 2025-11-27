@@ -33,5 +33,5 @@
   
   "url": "https://github.com/VacantFanatic/sla-foundry",
   "manifest": "https://github.com/VacantFanatic/sla-foundry/blob/main/system.json",
-  "download": "https://github.com/VacantFanatic/sla-foundry/blob/main/sla-industries.zip"
+  "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/beta/sla-industries.zip"
 }
