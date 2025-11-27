@@ -31,7 +31,7 @@
   "primaryTokenAttribute": "attributes.hp",
   "secondaryTokenAttribute": "attributes.flux",
   
-  "url": "",
-  "manifest": "",
+  "url": "https://github.com/VacantFanatic/sla-foundry",
+  "manifest": "https://github.com/VacantFanatic/sla-foundry/blob/main/system.json",
   "download": ""
 }
