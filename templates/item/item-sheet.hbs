@@ -57,14 +57,37 @@
                 </div>
                 {{/if}}
 
+                {{!-- === EBB POWER FIELDS === --}}
+                {{#if (eq item.type "ebb")}}
+                <div class="stat-block">
+                    <div class="stat-label">RANK:</div>
+                    <input class="stat-input" type="number" name="system.rank" value="{{system.rank}}"/>
+                </div>
+                <div class="stat-block">
+                    <div class="stat-label">COST:</div>
+                    <input class="stat-input" type="number" name="system.cost" value="{{system.cost}}"/>
+                </div>
+                <div class="stat-block">
+                    <div class="stat-label">MAINT:</div>
+                    <input class="stat-input" type="number" name="system.maintenance" value="{{system.maintenance}}"/>
+                </div>
+                <div class="stat-block">
+                    <div class="stat-label">RANGE:</div>
+                    <input class="stat-input" type="text" name="system.range" value="{{system.range}}"/>
+                </div>
+                <div class="stat-block" style="grid-column: span 2;">
+                    <div class="stat-label">DURATION:</div>
+                    <input class="stat-input" type="text" name="system.duration" value="{{system.duration}}" style="text-align: left; padding-left: 5px;"/>
+                </div>
+                {{/if}}
+
                 {{!-- === WEAPON FIELDS === --}}
                 {{#if (eq item.type "weapon")}}
                 
-                {{!-- NEW SKILL DROPDOWN --}}
+                {{!-- Linked Skill Dropdown --}}
                 <div class="stat-block" style="grid-column: span 2;">
                      <div class="stat-label" style="width: 100px;">LINKED SKILL:</div>
                      <select class="stat-input" name="system.skill" style="font-size: 0.8em; text-align: left;">
-                        {{!-- Using the 'selectOptions' helper provided by Foundry --}}
                         {{selectOptions config.combatSkills selected=system.skill blank="None (Stat Only)"}}
                      </select>
                 </div>
@@ -72,6 +95,10 @@
                 <div class="stat-block">
                      <div class="stat-label">DAMAGE:</div>
                      <input class="stat-input" type="text" name="system.damage" value="{{system.damage}}" placeholder="1d10"/>
+                </div>
+                <div class="stat-block">
+                     <div class="stat-label">AD:</div>
+                     <input class="stat-input" type="number" name="system.ad" value="{{system.ad}}"/>
                 </div>
                 <div class="stat-block">
                      <div class="stat-label">RECOIL:</div>
@@ -93,13 +120,25 @@
                      <div class="stat-label">PV:</div>
                      <input class="stat-input" type="number" name="system.pv" value="{{system.pv}}"/>
                 </div>
-                <div class="stat-block">
-                     <div class="stat-label">DURABILITY:</div>
-                     <input class="stat-input" type="number" name="system.durability" value="{{system.durability}}"/>
+                
+                <div class="stat-block" style="grid-column: span 2; display:flex; align-items:center;">
+                     <div class="stat-label" style="width:100px;">RESISTANCE:</div>
+                     <div class="slash-input" style="flex:1; display:flex;">
+                        <input type="number" name="system.resistance.value" value="{{system.resistance.value}}" style="width:50%"/>
+                        <span>/</span>
+                        <input type="number" name="system.resistance.max" value="{{system.resistance.max}}" style="width:50%"/>
+                     </div>
+                </div>
+
+                <div style="grid-column: span 2; text-align: center; margin-top: 5px;">
+                    <button class="repair-armor" style="background: #333; color: #39ff14; border: 1px solid #39ff14;">
+                        <i class="fas fa-hammer"></i> REPAIR ARMOR
+                    </button>
                 </div>
                 {{/if}}
 
                 {{!-- === GENERIC (WEAPON, ARMOR, ITEM) === --}}
+                {{!-- Only show Weight/Cost/Qty for physical items, NOT skills/traits/ebb --}}
                 {{#if (or (eq item.type "item") (or (eq item.type "weapon") (eq item.type "armor")))}}
                 <div class="stat-block">
                      <div class="stat-label">WEIGHT:</div>

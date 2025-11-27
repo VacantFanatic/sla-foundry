@@ -20,6 +20,13 @@
     overflow: hidden; /* Fix double scrollbars */
 }
 
+.sla-sheet {
+    background: #2a2a35; /* <-- Dark grey background */
+    color: #eee;
+    font-family: 'Roboto Condensed', sans-serif;
+    border: 2px solid #333;
+}
+
 .sla-sheet form {
     height: 100%;
     display: flex;
@@ -233,4 +240,36 @@
     color: var(--sla-accent);
     cursor: pointer;
     text-shadow: 0 0 5px var(--sla-accent);
+}
+
+/* Dialog Styling */
+.sla-dialog .window-content {
+    background: #1a1a1a;
+    color: #eee;
+    font-family: "Roboto Condensed", sans-serif;
+}
+
+.sla-dialog input[type="text"],
+.sla-dialog input[type="number"] {
+    background: #000;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+.sla-dialog h3 {
+    color: #39ff14; /* SLA Green */
+}
+
+.sla-dialog .dialog-buttons button {
+    background: #2a2a35;
+    border: 1px solid #39ff14;
+    color: #39ff14;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.sla-dialog .dialog-buttons button:hover {
+    background: #39ff14;
+    color: #000;
+    box-shadow: 0 0 10px #39ff14;
 }

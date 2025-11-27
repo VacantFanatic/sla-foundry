@@ -40,11 +40,13 @@
     },
     "weapon": {
       "weight": 0, "cost": 0, "quantity": 1, "description": "", "equipped": false,
-      "damage": "1d10", "recoil": 0, "range": "Close", "ammo": 0, "skill": ""
+      "damage": "1d10", "ad": 0, "recoil": 0, "range": "Close", "ammo": 0, "skill": ""
     },
     "armor": {
       "weight": 0, "cost": 0, "quantity": 1, "description": "", "equipped": false,
-      "pv": 0, "durability": 10
+      "pv": 0,
+      "durability": 10,
+      "resistance": { "value": 10, "max": 10 }
     },
     "skill": {
       "rank": 0, "bonus": 0, "stat": "dex", "description": ""

@@ -61,9 +61,12 @@
     {{!-- COLUMN 5: EXTRAS --}}
     <div class="flexcol" style="justify-content: flex-end; gap: 10px;">
         <div class="secondary-stat-box flexrow">
-            <label style="width: 60px; font-size: 0.8em; line-height: 1;">INITIATIVE BONUS</label>
-             {{!-- ADDED: readonly and dark background --}}
-             <input class="stat-input" type="number" name="system.stats.init.value" value="{{system.stats.init.value}}" readonly style="background: #222; color: #aaa; border: 1px solid #000;"/>
+            {{!-- ADDED: rollable class and data-roll-type="init" --}}
+            <label class="rollable" data-roll-type="init" style="width: 60px; font-size: 0.8em; line-height: 1; cursor: pointer;">
+                INITIATIVE <i class="fas fa-dice-d20"></i>
+            </label>
+            
+            <input class="stat-input" type="number" name="system.stats.init.value" value="{{system.stats.init.value}}" readonly style="background: #222; color: #aaa; border: 1px solid #000;"/>
         </div>
 
         <div class="secondary-stat-box flexrow" style="height: 50px;">

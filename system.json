@@ -1,8 +1,8 @@
 {
   "id": "sla-industries",
-  "title": "SLA Industries",
-  "description": "A system for SLA Industries 2nd Edition.",
-  "version": "1.0.0",
+  "title": "SLA Industries 2nd Edition",
+  "description": "A fully automated character sheet and combat system for SLA Industries 2nd Edition (S5S). Features include calculated derived stats, S5S dice rolling, species limits, and custom weapon/armor logic.",
+  "version": "2025-11-27",
   "compatibility": {
     "minimum": "10",
     "verified": "12"
@@ -13,8 +13,6 @@
   "styles": [
     "css/sla-industries.css"
   ],
-  "scripts": [],
-  "packs": [],
   "languages": [
     {
       "lang": "en",
@@ -22,15 +20,17 @@
       "path": "lang/en.json"
     }
   ],
-  "background": "systems/sla-industries/assets/background.webp",
   "template": "template.json",
+  
   "grid": {
     "distance": 1.5,
     "units": "m",
     "type": 1
   },
+  
   "primaryTokenAttribute": "attributes.hp",
   "secondaryTokenAttribute": "attributes.flux",
+  
   "url": "",
   "manifest": "",
   "download": ""
