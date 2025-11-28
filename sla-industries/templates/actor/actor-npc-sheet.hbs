@@ -1,0 +1,45 @@
+<form class="{{cssClass}} sla-sheet npc-sheet" autocomplete="off" style="border-color: #ff4400;">
+    
+    {{!-- NPC HEADER --}}
+    <div class="header-grid" style="height: 120px; grid-template-columns: 100px 1fr;">
+        <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
+        
+        <div class="flexcol">
+            <div class="sla-header-bar" style="background: #500;">SLA INDUSTRIES THREAT DATA</div>
+            <div class="bio-field">
+                <label style="color: #ff4400;">DESIGNATION:</label>
+                <input type="text" name="name" value="{{actor.name}}" style="color: #ff4400; font-weight: bold; font-size: 1.5em;"/>
+            </div>
+            <div class="grid-2col">
+                <div class="bio-field"><label>SPECIES:</label><input type="text" name="system.bio.species" value="{{system.bio.species}}"/></div>
+                <div class="bio-field"><label>RANK:</label><input type="text" name="system.bio.scl" value="{{system.bio.scl}}"/></div>
+            </div>
+        </div>
+    </div>
+
+    {{!-- NPC STATS (Compact) --}}
+    <div class="sla-header-bar" style="background: #500; margin-top: 5px;">Vital Statistics</div>
+    <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 10px;">
+        <div class="stat-block flexcol"><span class="stat-label" style="width:100%">STR</span><input class="stat-input" type="number" name="system.stats.str.value" value="{{system.stats.str.value}}"/></div>
+        <div class="stat-block flexcol"><span class="stat-label" style="width:100%">DEX</span><input class="stat-input" type="number" name="system.stats.dex.value" value="{{system.stats.dex.value}}"/></div>
+        <div class="stat-block flexcol"><span class="stat-label" style="width:100%">KILL</span><input class="stat-input" type="number" name="system.stats.know.value" value="{{system.stats.know.value}}"/></div>
+        <div class="stat-block flexcol"><span class="stat-label" style="width:100%">PROT</span><input class="stat-input" type="number" name="system.stats.conc.value" value="{{system.stats.conc.value}}"/></div>
+        <div class="stat-block flexcol"><span class="stat-label" style="width:100%">HP</span>
+            <div class="slash-input" style="background: #333;"><input type="number" name="system.hp.value" value="{{system.hp.value}}"/></div>
+        </div>
+    </div>
+
+    {{!-- NPC COMBAT ITEMS --}}
+    <div class="main-split">
+        <div class="left-col">
+             <div class="sla-header-bar" style="background: #500;">Attacks & Abilities</div>
+             <div style="height: 100%; overflow-y: auto;">
+                {{> "systems/sla-industries/templates/partials/skills.hbs"}}
+             </div>
+        </div>
+        <div class="right-col">
+            <div class="sla-header-bar" style="background: #500;">Notes / Tactics</div>
+            {{editor system.biography target="system.biography" button=true owner=owner editable=editable}}
+        </div>
+    </div>
+</form>

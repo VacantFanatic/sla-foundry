@@ -1,0 +1,376 @@
+/* ==========================================
+   1. GLOBAL VARIABLES & WINDOW
+   ========================================== */
+:root {
+    --sla-bg-dark: #333e4d;
+    --sla-bg-panel: #2a2a35;
+    --sla-border: #1a1a25;
+    --sla-text-light: #e0e0e0;
+    --sla-accent: #39ff14;
+    --sla-font-mono: "Roboto Condensed", "Arial Narrow", sans-serif;
+}
+
+/* SCOPE EVERYTHING TO .sla-sheet */
+.sla-sheet.window-content {
+    background: var(--sla-bg-dark);
+    color: var(--sla-text-light);
+    font-family: var(--sla-font-mono);
+    font-size: 13px;
+    padding: 5px;
+    overflow: hidden; /* Fix double scrollbars */
+}
+
+.sla-sheet {
+    background: #2a2a35; /* <-- Dark grey background */
+    color: #eee;
+    font-family: 'Roboto Condensed', sans-serif;
+    border: 2px solid #333;
+}
+
+.sla-sheet form {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Allow internal scrolling */
+}
+
+/* ==========================================
+   2. INPUTS (Scoped to avoid breaking Chat)
+   ========================================== */
+.sla-sheet input[type="text"],
+.sla-sheet input[type="number"] {
+    background: #d0d3d8; /* The SLA "Paper" Grey */
+    border: 1px solid #555;
+    border-radius: 0;
+    color: #000;
+    height: 24px;
+    padding: 1px 5px;
+    font-family: var(--sla-font-mono);
+}
+
+.sla-sheet input:focus {
+    box-shadow: 0 0 5px var(--sla-accent);
+    background: #fff;
+}
+
+/* ==========================================
+   3. HEADERS & GRIDS
+   ========================================== */
+.sla-sheet .sla-header-bar {
+    background-color: var(--sla-bg-panel);
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-bottom: 2px solid var(--sla-border);
+    margin-bottom: 2px;
+    font-size: 0.9em;
+}
+
+.sla-sheet .header-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 130px 1fr; /* Name | Image | Finance */
+    gap: 10px;
+    height: 180px;
+    margin-bottom: 10px;
+}
+
+/* ==========================================
+   4. UTILITIES (Renamed to avoid conflict)
+   ========================================== */
+.sla-sheet .sla-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.sla-sheet .sla-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+.sla-sheet .flexcol { display: flex; flex-direction: column; gap: 2px; }
+.sla-sheet .flexrow { display: flex; flex-direction: row; gap: 5px; align-items: center; }
+
+/* ==========================================
+   5. BIO & FINANCE
+   ========================================== */
+.sla-sheet .profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 2px solid var(--sla-bg-panel);
+    background: #fff;
+}
+
+.sla-sheet .bio-field {
+    display: grid;
+    grid-template-columns: 70px auto;
+    align-items: center;
+    margin-bottom: 2px;
+    background: #d0d3d8;
+    padding-left: 5px;
+    color: #000;
+    font-weight: bold;
+}
+.sla-sheet .bio-field label { font-size: 0.8em; }
+.sla-sheet .bio-field input { border: none; background: transparent !important; }
+
+.sla-sheet .finance-box { background: var(--sla-bg-panel); padding: 5px; height: 100%; }
+.sla-sheet .finance-box .logo-placeholder { 
+    height: 40px; background: #111; color: #555; 
+    display: flex; align-items: center; justify-content: center; margin-bottom: 5px;
+}
+.sla-sheet .finance-field label { display: block; color: #ccc; font-size: 0.8em; }
+.sla-sheet .finance-field input { width: 100%; margin-bottom: 5px; }
+
+/* ==========================================
+   6. STATS (Reorganized for Body/Str/Dex stack)
+   ========================================== */
+   
+.sla-sheet .stats-grid {
+    display: grid;
+    /* Col 1: Label Text (100px)
+       Col 2: Body Group (140px)
+       Col 3: Brains Group (140px)
+       Col 4: Bravado Group (140px)
+       Col 5: Extras (Remaining)
+    */
+    grid-template-columns: 100px 140px 140px 140px 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-bottom: 2px solid var(--sla-bg-panel);
+    background: rgba(0,0,0,0.1);
+    min-height: 140px;
+}
+
+.sla-sheet .stats-grid .flexcol {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    height: 100%;
+    /* Ensure content doesn't spill out */
+    overflow: hidden; 
+}
+
+/* THE ROWS */
+.sla-sheet .stat-block { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+    height: 30px; 
+    width: 100%; /* Fill the column width */
+}
+
+/* THE BLACK LABELS (STR, DEX, etc) */
+.sla-sheet .stat-label {
+    background: var(--sla-bg-panel);
+    color: #fff;
+    /* STRICT WIDTH CONTROL */
+    flex: 0 0 70px; /* Don't grow, don't shrink, stay 70px */
+    width: 70px;
+    height: 100%;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    font-weight: bold;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    border: 1px solid #111;
+}
+
+/* THE INPUTS */
+.sla-sheet .stat-input { 
+    /* Fill remaining space in the block */
+    flex: 1; 
+    text-align: center; 
+    font-size: 1.2em; 
+    font-weight: bold;
+    height: 100%;
+    border-radius: 0;
+    min-width: 0; /* Prevents flex items from overflowing */
+}
+
+/* SPECIAL FIX FOR RATINGS HEADER */
+.ratings-header {
+    color: #888;
+    font-size: 0.75em; 
+    font-weight: bold; 
+    text-transform: uppercase;
+    white-space: nowrap; /* Don't wrap text */
+}
+
+/* SECONDARY BOXES (Bravado / Luck) */
+.sla-sheet .secondary-stat-box { 
+    background: #445; 
+    text-align: center; 
+    padding: 2px;
+    border: 1px solid #555;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+/* ==========================================
+   7. MAIN BODY & LISTS
+   ========================================== */
+.sla-sheet .main-split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; min-height: 300px; }
+
+.sla-sheet .sla-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+.sla-sheet .sla-table thead th { background-color: var(--sla-bg-panel); color: #fff; padding: 2px 5px; text-align: left; }
+.sla-sheet .sla-table tbody tr:nth-child(even) { background-color: rgba(0,0,0,0.2); }
+.sla-sheet .sla-table td { border-bottom: 1px solid #444; }
+.sla-sheet .sla-table input { width: 100%; background: transparent; border: none; color: #eee; }
+
+/* Scrolling container for lists */
+.sla-sheet .scroll-list {
+    flex-grow: 1;          /* Fill the remaining height of the box */
+    height: 100%;          /* Ensure it takes up space */
+    overflow-y: auto;      /* Scroll if too many items */
+    display: block;        /* FORCE STANDARD LAYOUT (Fixes the gap) */
+    background: transparent; 
+    border-top: 1px solid #444;
+}
+
+/* ==========================================
+   8. SECONDARY DATA
+   ========================================== */
+.sla-sheet .secondary-grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 5px; }
+.sla-sheet .data-box { border: 1px solid #555; background: rgba(0,0,0,0.2); }
+.sla-sheet .data-header { background: #444; color: #ccc; text-align: center; font-size: 0.8em; padding: 2px; }
+.sla-sheet .wound-grid { display: grid; grid-template-columns: auto auto auto 1fr; gap: 5px 10px; align-items: center; font-size: 0.9em; }
+
+/* Rollable Hover Effects */
+.sla-sheet .rollable:hover {
+    color: var(--sla-accent);
+    cursor: pointer;
+    text-shadow: 0 0 5px var(--sla-accent);
+}
+
+/* Dialog Styling */
+.sla-dialog .window-content {
+    background: #1a1a1a;
+    color: #eee;
+    font-family: "Roboto Condensed", sans-serif;
+}
+
+.sla-dialog input[type="text"],
+.sla-dialog input[type="number"] {
+    background: #000;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+.sla-dialog h3 {
+    color: #39ff14; /* SLA Green */
+}
+
+.sla-dialog .dialog-buttons button {
+    background: #2a2a35;
+    border: 1px solid #39ff14;
+    color: #39ff14;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.sla-dialog .dialog-buttons button:hover {
+    background: #39ff14;
+    color: #000;
+    box-shadow: 0 0 10px #39ff14;
+}
+
+/* ==========================================
+   FIXES FOR SKILLS & EBB LAYOUT
+   ========================================== */
+
+/* 1. Remove the Gap between Header and List */
+.sla-sheet .sla-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;          /* Fill available vertical space */
+    min-height: 200px;     /* Minimum size */
+    background: rgba(0,0,0,0.2);
+    border: 1px solid #444;
+    overflow: hidden;      /* contain children */
+}
+
+.sla-sheet .sla-header-bar {
+    flex: 0 0 auto;        /* Don't stretch, stay tight at top */
+    margin: 0;
+    border-bottom: 1px solid #000;
+}
+
+/* 2. Fix the Scroll Container */
+.sla-sheet .scroll-list {
+    flex: 1;               /* Fill the rest of the panel */
+    overflow-y: auto;      /* Scroll if too long */
+    padding: 0;            /* Remove padding that creates gaps */
+    background: transparent;
+}
+
+/* 3. FIX THE LIST ITEMS (Remove Gold Gradient) */
+.sla-sheet .item {
+    background: transparent !important; /* Override defaults */
+    border-bottom: 1px solid #333;
+    display: table-row;    /* Ensure it behaves like a table row */
+}
+
+/* Alternating Row Colors (Striping) */
+.sla-sheet .item:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+.sla-sheet .item:nth-child(odd) {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Hover Effect */
+.sla-sheet .item:hover {
+    background-color: rgba(57, 255, 20, 0.1) !important; /* SLA Green tint */
+}
+
+/* 4. Table Header Styling */
+.sla-sheet .sla-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+.sla-sheet .sla-table thead tr {
+    background: #2a2a35;
+    position: sticky;      /* Keep header visible when scrolling */
+    top: 0;
+    z-index: 5;
+}
+
+.sla-sheet .sla-table th {
+    padding: 4px;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    color: #aaa;
+    border-bottom: 2px solid #111;
+}
+
+/* ==========================================
+   ITEM SHEET EDITOR FIX
+   ========================================== */
+.sla-sheet.item .sheet-body {
+    height: calc(100% - 140px); /* Fill remaining height minus header/tabs */
+    overflow-y: auto;
+    padding: 0 10px 10px 10px;
+}
+
+.sla-sheet.item .tab.description {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Force the Foundry Editor to fill the tab */
+.sla-sheet.item .editor {
+    height: 100%;
+    min-height: 200px; /* Prevent collapse */
+    border: 1px solid #444;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 5px;
+}
+
+.sla-sheet.item .editor-content {
+    height: 100%;
+    color: #eee;
+    font-family: var(--sla-font-mono);
+}

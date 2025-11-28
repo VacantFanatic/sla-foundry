@@ -1,0 +1,94 @@
+{
+  "Actor": {
+    "types": ["character", "npc"],
+    "character": {
+      "bio": { "species": "", "package": "", "squad": "", "scl": "", "ladAccount": false },
+      "finance": { "credits": 0, "unis": 0, "lad": 0 },
+      "ratings": {
+        "body": { "value": 0 }, "brains": { "value": 0 }, "bravado": { "value": 0 }
+      },
+      "stats": {
+        "str": { "value": 10 }, "dex": { "value": 10 }, "know": { "value": 10 },
+        "conc": { "value": 10 }, "cha": { "value": 10 }, "cool": { "value": 10 },
+        "init": { "value": 0 }, "luck": { "value": 0 }, "flux": { "value": 10, "max": 10 }
+      },
+      "move": { "closing": 0, "rushing": 0 },
+      "hp": { "value": 10, "max": 10 },
+      "xp": { "value": 0 },
+      "encumbrance": { "value": 0, "max": 10 },
+      "wounds": {
+        "head": false, "lArm": false, "rArm": false, "torso": false, "lLeg": false, "rLeg": false, "conditions": "", "penalty": 0
+      },
+      "armor": { "pv": 0, "resist": 0 }
+    },
+    "npc": {
+      "bio": { "species": "", "scl": "" },
+      "stats": {
+        "str": { "value": 10 }, "dex": { "value": 10 }, "know": { "value": 10 },
+        "conc": { "value": 10 }, "cha": { "value": 10 }, "cool": { "value": 10 },
+        "init": { "value": 0 }, "luck": { "value": 0 }, "flux": { "value": 0 }
+      },
+      "hp": { "value": 10, "max": 10 },
+      "wounds": { "penalty": 0 },
+      "armor": { "pv": 0, "resist": 0 }
+    }
+  },
+"Item": {
+    "types": ["item", "skill", "trait", "weapon", "armor", "ebbFormula", "discipline", "drug"],
+    "item": {
+      "weight": 0, "cost": 0, "quantity": 1, "description": "", "equipped": false
+    },
+    "weapon": {
+      "weight": 0, "cost": 0, "quantity": 1, "description": "", "equipped": false,
+      "damage": "1d10", "ad": 0, "recoil": 0, "range": "Close", "ammo": 0, "skill": ""
+    },
+    "armor": {
+      "weight": 0, "cost": 0, "quantity": 1, "description": "", "equipped": false,
+      "pv": 0,
+      "durability": 10,
+      "resistance": { "value": 10, "max": 10 }
+    },
+    "skill": {
+      "rank": 0, "bonus": 0, "stat": "dex", "description": ""
+    },
+    "trait": {
+      "rank": 0, "xpCost": 0, "description": ""
+    },
+    "ebbFormula": {
+      "rank": 0, 
+      "cost": 0, 
+      "maintenance": 0, 
+      "duration": "", 
+      "discipline": "", 
+      "formulaRating": 1, 
+      "formulaType": "Ebb",
+      "dmg": "1d10",     
+      "minDmg": 0,
+      "ad": 0,     
+      "rof": 1,           
+      "recoil": 0,
+      "range": "1m"
+    },
+	"discipline": {
+      "rank": 0,
+      "xpCost": 0,
+      "description": ""
+    },
+	"drug": {
+      "quantity": 1,
+      "weight": 0,
+      "cost": 0,
+      "addictionRating": 10,
+      "addictionDose": "Every 12 hours",
+      "detoxEffects": "",
+      "duration": "2 hours",
+      "active": false,
+      "damageReduction": 0,
+      "mods": {
+          "first": { "stat": "str", "value": 0 },
+          "second": { "stat": "dex", "value": 0 }
+      },
+      "description": ""
+    }
+  }
+}

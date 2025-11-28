@@ -1,0 +1,53 @@
+<div class="header-grid">
+    {{!-- Bio Section --}}
+    <div class="bio-section flexcol">
+        <div class="sla-header-bar">SLA Operative Security Clearance Card</div>
+        <div class="bio-field">
+            <label>NAME:</label>
+            <input type="text" name="name" value="{{actor.name}}"/>
+        </div>
+        <div class="bio-field">
+            <label>SPECIES:</label>
+            {{!-- REPLACED TEXT INPUT WITH SELECT --}}
+            <select name="system.bio.species" style="border:none; background:transparent; width:100%; height:100%;">
+                {{selectOptions speciesOptions selected=system.bio.species blank=""}}
+            </select>
+        </div>
+        <div class="bio-field">
+            <label>PACKAGE:</label>
+            <input type="text" name="system.bio.package" value="{{system.bio.package}}"/>
+        </div>
+        <div class="bio-field">
+            <label>SQUAD:</label>
+            <input type="text" name="system.bio.squad" value="{{system.bio.squad}}"/>
+        </div>
+        
+        <div class="flexrow" style="margin-top: auto; align-items: end;">
+            <label class="flexrow" style="white-space: nowrap; margin-right: 10px;">
+                <input type="checkbox" name="system.bio.ladAccount" {{checked system.bio.ladAccount}} style="margin-right:5px;"/>
+                LAD ACCOUNT
+            </label>
+            <h1 style="margin: 0; font-weight: bold; font-size: 3em; line-height: 0.8;">SCL</h1>
+            <input type="text" name="system.bio.scl" value="{{system.bio.scl}}" style="width: 50px; height: 40px; font-size: 2em; text-align: center; margin-left: 10px;"/>
+        </div>
+    </div>
+
+    {{!-- Profile Image --}}
+    <div>
+        <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
+    </div>
+
+    {{!-- Finance Section --}}
+    <div class="finance-box flexcol">
+        <div class="logo-placeholder">SLA INDUSTRIES</div>
+        <div class="sla-header-bar">Finance</div>
+        <div class="finance-field flexcol full-height">
+            <label>CREDITS:</label>
+            <input type="number" name="system.finance.credits" value="{{system.finance.credits}}"/>
+             <label>UNIS:</label>
+            <input type="number" name="system.finance.unis" value="{{system.finance.unis}}"/>
+             <label style="margin-top: auto;">LAD BALANCE:</label>
+            <input type="number" name="system.finance.lad" value="{{system.finance.lad}}"/>
+        </div>
+    </div>
+</div>

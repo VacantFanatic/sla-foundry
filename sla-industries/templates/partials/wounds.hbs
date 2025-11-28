@@ -1,0 +1,36 @@
+<div class="data-box">
+    <div class="data-header" style="display: flex; justify-content: space-between; padding: 2px 5px;">
+        <span>WOUNDS</span>
+        {{!-- Show penalty only if greater than 0 --}}
+        {{#if (gt system.wounds.penalty 0)}}
+            <span style="color: #f55; font-weight: bold;">PENALTY: -{{system.wounds.penalty}}</span>
+        {{/if}}
+    </div>
+    
+    <div style="padding: 10px;">
+        {{!-- Existing wound checkboxes --}}
+        <div class="wound-grid">
+            <label>Head</label>
+            <input class="wound-checkbox" type="checkbox" name="system.wounds.head" {{checked system.wounds.head}}/>
+            <label style="text-align: right;">Left Arm</label>
+            <div class="flexrow">
+                 <input class="wound-checkbox" type="checkbox" name="system.wounds.lArm" {{checked system.wounds.lArm}}/>
+                 <label style="margin-left: auto;">Right Arm</label>
+                  <input class="wound-checkbox" type="checkbox" name="system.wounds.rArm" {{checked system.wounds.rArm}}/>
+            </div>
+
+            <label>Torso</label>
+             <input class="wound-checkbox" type="checkbox" name="system.wounds.torso" {{checked system.wounds.torso}}/>
+             <label style="text-align: right;">Left Leg</label>
+             <div class="flexrow">
+                 <input class="wound-checkbox" type="checkbox" name="system.wounds.lLeg" {{checked system.wounds.lLeg}}/>
+                 <label style="margin-left: auto;">Right Leg</label>
+                  <input class="wound-checkbox" type="checkbox" name="system.wounds.rLeg" {{checked system.wounds.rLeg}}/>
+            </div>
+        </div>
+        <div class="flexrow" style="margin-top: 5px;">
+            <label>Conditions:</label>
+            <input type="text" name="system.wounds.conditions" value="{{system.wounds.conditions}}" style="flex-grow: 1; margin-left: 5px;"/>
+        </div>
+    </div>
+</div>

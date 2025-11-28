@@ -1,0 +1,19 @@
+<section class="stats-section">
+    <div class="grid grid-3col">
+        
+        {{#each system.stats as |stat key|}}
+        <div class="stat flex-group-center" data-stat="{{key}}">
+            
+            <label for="system.stats.{{key}}.value" class="resource-label rollable" data-roll="2d10+@stats.{{key}}.value" data-label="{{localize stat.label}}">
+                {{localize stat.label}} <i class="fas fa-dice-d20"></i>
+            </label>
+
+            <div class="resource-content flexrow flex-center flex-between">
+                <input type="text" name="system.stats.{{key}}.value" value="{{stat.value}}" data-dtype="Number"/>
+            </div>
+            
+        </div>
+        {{/each}}
+
+    </div>
+</section>

@@ -1,0 +1,61 @@
+{{!-- Row 1: Movement & Encumbrance --}}
+<div class="secondary-grid-row">
+    <div class="data-box">
+        <div class="data-header">MOVEMENT</div>
+        <div class="data-body grid-2col" style="padding: 0;">
+            <div style="border-right: 1px solid #555; padding: 2px;">
+                <label style="font-size: 0.8em;">Closing</label>
+                <input type="number" name="system.move.closing" value="{{system.move.closing}}" style="width: 100%;" readonly/>
+            </div>
+             <div style="padding: 2px;">
+                <label style="font-size: 0.8em;">Rushing</label>
+                <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" style="width: 100%;" readonly/>
+            </div>
+        </div>
+    </div>
+     <div class="data-box">
+        <div class="data-header">ENCUMBRANCE</div>
+        {{!-- Side-by-Side Layout --}}
+        <div class="data-body slash-input" style="display: flex; align-items: center; justify-content: center; height: 40px;">
+             <input type="number" name="system.encumbrance.value" value="{{system.encumbrance.value}}" readonly style="background: #222; color: #aaa; border: none; width: 40px; text-align: center;"/>
+             <span style="margin: 0 5px;">/</span>
+             <input type="number" name="system.encumbrance.max" value="{{system.encumbrance.max}}" readonly style="background: #222; color: #aaa; border: none; width: 40px; text-align: center;"/>
+        </div>
+    </div>
+</div>
+
+{{!-- Row 2: HP & Flux --}}
+<div class="secondary-grid-row">
+    <div class="data-box">
+        <div class="data-header">HIT POINTS</div>
+        <div class="data-body slash-input" style="display: flex; align-items: center; justify-content: center; height: 40px;">
+             <input type="number" name="system.hp.value" value="{{system.hp.value}}" style="width: 40px; text-align: center;"/>
+             <span style="margin: 0 5px;">/</span>
+             <input type="number" name="system.hp.max" value="{{system.hp.max}}" style="width: 40px; text-align: center;"/>
+        </div>
+    </div>
+     <div class="data-box">
+        <div class="data-header">LUCK / FLUX</div>
+        <div class="data-body slash-input" style="display: flex; align-items: center; justify-content: center; height: 40px;">
+             <input type="number" name="system.stats.flux.value" value="{{system.stats.flux.value}}" style="width: 40px; text-align: center; color: #8a2be2;"/>
+             <span style="margin: 0 5px;">/</span>
+             <input type="number" name="system.stats.flux.max" value="{{system.stats.flux.max}}" style="width: 40px; text-align: center; color: #8a2be2;"/>
+        </div>
+    </div>
+</div>
+
+{{!-- Row 3: XP & Armor --}}
+<div class="secondary-grid-row">
+    <div class="data-box">
+        <div class="data-header">EXPERIENCE POINTS</div>
+        <div class="data-body" style="text-align: center;">
+             <input type="number" name="system.xp.value" value="{{system.xp.value}}" style="width: 100%; text-align: center;"/>
+        </div>
+    </div>
+    <div class="data-box">
+        <div class="data-header">ARMOR (PV)</div>
+        <div class="data-body" style="text-align: center;">
+             <input type="number" name="system.armor.pv" value="{{system.armor.pv}}" readonly style="background: #222; color: #39ff14; border: none; font-size: 1.5em; text-align: center; width: 100%;"/>
+        </div>
+    </div>
+</div>
