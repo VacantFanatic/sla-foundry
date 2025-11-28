@@ -374,3 +374,170 @@
     color: #eee;
     font-family: var(--sla-font-mono);
 }
+
+/* ==========================================
+   THREAT SHEET (NPC) - STAT BLOCK STYLE
+   ========================================== */
+
+/* Override the global dark background for Threats */
+.sla-sheet.threat-sheet.window-content {
+    background: #e8e8e8; /* Light grey paper */
+    color: #000;
+    font-family: "Georgia", serif; /* Match the book font */
+    padding: 0;
+    border: 3px solid #800;
+}
+
+/* Header */
+/* Header Container */
+.threat-header {
+    background: #880000; /* Deep Red */
+    padding: 5px;
+    border-bottom: 2px solid #000;
+    display: flex;       /* Flexbox for layout */
+    align-items: center; /* Center vertically */
+    height: 90px;        /* Fixed height to fit image */
+}
+
+/* Name Field Area */
+.threat-header .header-name {
+    flex: 1;             /* Take up all remaining space */
+}
+
+.threat-header input {
+    background: transparent !important;
+    border: none !important;
+    color: #fff !important;
+    font-family: "Arial", sans-serif;
+    font-weight: bold;
+    font-size: 1.8em;    /* Make name huge */
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0;
+    width: 100%;
+}
+
+/* The Profile Image */
+.threat-img {
+    flex: 0 0 80px;      /* Fixed width */
+    height: 80px;        /* Fixed height */
+    width: 80px;
+    object-fit: cover;   /* Ensure image fills box */
+    border: 2px solid #000;
+    background: #fff;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+/* The Stat Grid Table */
+.threat-table {
+    background: #fff;
+    border-bottom: 2px solid #000;
+    margin-bottom: 10px;
+}
+
+.threat-row-label {
+    display: flex;
+    background: #222;
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    padding: 2px 0;
+}
+
+.threat-row-label div {
+    flex: 1;
+    padding-left: 5px;
+    border-right: 1px solid #555;
+}
+
+.threat-row-value {
+    display: flex;
+    background: #fff;
+    border-bottom: 1px solid #000;
+}
+
+/* Override inputs to look like printed text */
+.threat-sheet .threat-row-value input {
+    flex: 1;
+    background: transparent !important;
+    border: none !important; /* Remove box border */
+    border-right: 1px solid #ccc !important; /* Separator */
+    border-radius: 0;
+    color: #000 !important;
+    font-family: "Arial", sans-serif;
+    font-weight: normal;
+    height: 25px;
+    text-align: left;
+    padding-left: 5px;
+}
+
+/* Calculated values (Init) */
+.threat-sheet .read-only-val {
+    flex: 1;
+    padding: 4px 0 0 5px;
+    font-weight: bold;
+    border-right: 1px solid #ccc;
+}
+
+/* Section Headers (Skills, Equipment) */
+.threat-section-bar {
+    background: #333;
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-top: 1px solid #000;
+    font-family: "Arial", sans-serif;
+    font-size: 0.9em;
+}
+
+/* Content Boxes */
+.threat-content-box {
+    background: #fff;
+    padding: 5px;
+    min-height: 30px;
+    border-bottom: 1px solid #000;
+}
+
+/* Skill List Grid */
+.skill-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 columns */
+    gap: 2px 10px;
+}
+
+.threat-skill {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dotted #ccc;
+    cursor: pointer;
+}
+.threat-skill:hover { color: #800; }
+
+/* Equipment List */
+.threat-gear {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* THREAT SHEET EDITOR */
+.threat-sheet .editor {
+    height: 100%;
+    color: #000; /* Black text */
+    background: #fff; /* White paper */
+    font-family: "Georgia", serif;
+    padding: 5px;
+}
+
+.threat-sheet .editor-content {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.threat-sheet .editor-edit {
+    color: #800; /* Red edit button */
+}

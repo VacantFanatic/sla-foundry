@@ -44,7 +44,13 @@ export class SlaActorSheet extends ActorSheet {
     if (actorData.type == 'character' || actorData.type == 'npc') {
       this._prepareItems(context);
     }
-
+	
+	// --- ENRICH BIOGRAPHY (For Notes Tab & Threat Sheet) ---
+    context.enrichedBiography = await TextEditor.enrichHTML(this.actor.system.biography, {
+        async: true,
+        relativeTo: this.actor
+    });
+	
     context.rollData = context.actor.getRollData();
 
     const speciesList = CONFIG.SLA?.speciesStats || {};
