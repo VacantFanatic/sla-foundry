@@ -1,29 +1,47 @@
 <form class="{{cssClass}} sla-sheet" autocomplete="off">
 
-    {{!-- 1. HEADER --}}
+    {{!-- 1. HEADER (Bio, Image, Finance) --}}
     {{> "systems/sla-industries/templates/partials/header.hbs"}}
 
-    {{!-- 2. STATS --}}
+    {{!-- 2. STATS GRID (Attributes & Ratings) --}}
     {{> "systems/sla-industries/templates/partials/stats.hbs"}}
-	
-	{{!-- MAIN BODY SPLIT --}}
+
+    {{!-- 3. MAIN BODY SPLIT --}}
     <div class="main-split">
         
-        {{!-- Left Column: Skills --}}
-        <div class="left-col flexcol full-height">
-            {{> "systems/sla-industries/templates/partials/skills.hbs"}}
-        </div> {{!-- <--- MAKE SURE THIS CLOSING TAG IS HERE --}}
+        {{!-- LEFT COLUMN: Abilities Stack --}}
+        <div class="left-col flexcol full-height" style="gap: 5px; overflow: hidden;">
+            
+            {{!-- A. Standard Skills --}}
+            <div style="flex: 1; min-height: 200px;">
+                {{> "systems/sla-industries/templates/partials/skills.hbs"}}
+            </div>
 
-        {{!-- Right Column: Traits, Secondary, Wounds --}}
+            {{!-- B. Ebb Disciplines (The "Skill" for Magic) --}}
+            <div style="flex: 0 0 auto; min-height: 150px;">
+                {{> "systems/sla-industries/templates/partials/disciplines.hbs"}}
+            </div>
+            
+            {{!-- C. Ebb Formulas (The "Spells") --}}
+            <div style="flex: 1; min-height: 200px;">
+                {{> "systems/sla-industries/templates/partials/ebb.hbs"}}
+            </div>
+        </div>
+
+        {{!-- RIGHT COLUMN: Traits & vitals --}}
         <div class="right-col flexcol">
+             {{!-- Traits List --}}
              {{> "systems/sla-industries/templates/partials/traits.hbs"}}
+             
+             {{!-- Movement / Encumbrance / HP / Armor PV --}}
              {{> "systems/sla-industries/templates/partials/secondary.hbs"}}
+             
+             {{!-- Wounds & Penalties --}}
              {{> "systems/sla-industries/templates/partials/wounds.hbs"}}
-        </div> {{!-- <--- AND THIS ONE --}}
-        
+        </div>
     </div>
 
-    {{!-- 4. FOOTER --}}
+    {{!-- 4. FOOTER: Physical Inventory --}}
     {{> "systems/sla-industries/templates/partials/inventory.hbs"}}
 
 </form>

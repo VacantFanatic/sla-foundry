@@ -11,7 +11,9 @@ export const preloadHandlebarsTemplates = async function() {
     "systems/sla-industries/templates/partials/traits.hbs",
     "systems/sla-industries/templates/partials/secondary.hbs",
     "systems/sla-industries/templates/partials/wounds.hbs",
-    "systems/sla-industries/templates/partials/inventory.hbs"
+    "systems/sla-industries/templates/partials/inventory.hbs",
+	"systems/sla-industries/templates/partials/ebb.hbs",
+	"systems/sla-industries/templates/partials/disciplines.hbs"
   ];
 
   // Load the template parts

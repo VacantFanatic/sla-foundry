@@ -12,6 +12,9 @@
   "TYPES.Item.weapon": "Weapon",
   "TYPES.Item.armor": "Armor",
   "TYPES.Item.ebb": "Ebb Power",
+  "TYPES.Item.ebbFormula": "Ebb Formula",
+  "TYPES.Item.discipline": "Ebb Discipline",
+  "TYPES.Item.drug": "Combat Drug",
 
   "TYPES.Actor.character": "Operative",
   "TYPES.Actor.npc": "Threat"

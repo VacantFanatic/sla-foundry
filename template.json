@@ -17,7 +17,10 @@
       "xp": { "value": 0 },
       "encumbrance": { "value": 0, "max": 10 },
       "wounds": {
-        "head": false, "lArm": false, "rArm": false, "torso": false, "lLeg": false, "rLeg": false, "conditions": "", "penalty": 0
+        "head": false, "lArm": false, "rArm": false, "torso": false, "lLeg": false, "rLeg": false, "conditions": "", "penalty": 0, "damageReduction": 0
+      },
+      "conditions": {
+          "bleeding": false, "burning": false, "prone": false, "stunned": false, "immobile": false, "critical": false
       },
       "armor": { "pv": 0, "resist": 0 }
     },
@@ -34,19 +37,17 @@
     }
   },
   "Item": {
-    "types": ["item", "skill", "trait", "weapon", "armor", "ebb"],
+    "types": ["item", "skill", "trait", "weapon", "armor", "ebbFormula", "discipline", "drug"],
     "item": {
       "weight": 0, "cost": 0, "quantity": 1, "description": "", "equipped": false
     },
     "weapon": {
       "weight": 0, "cost": 0, "quantity": 1, "description": "", "equipped": false,
-      "damage": "1d10", "ad": 0, "recoil": 0, "range": "Close", "ammo": 0, "skill": ""
+      "damage": "1d10", "minDmg": 0, "ad": 0, "recoil": "0", "rof": "1", "range": "Close", "ammo": 0, "maxAmmo": 0, "skill": ""
     },
     "armor": {
       "weight": 0, "cost": 0, "quantity": 1, "description": "", "equipped": false,
-      "pv": 0,
-      "durability": 10,
-      "resistance": { "value": 10, "max": 10 }
+      "pv": 0, "durability": 10, "resistance": { "value": 10, "max": 10 }
     },
     "skill": {
       "rank": 0, "bonus": 0, "stat": "dex", "description": ""
@@ -54,8 +55,21 @@
     "trait": {
       "rank": 0, "xpCost": 0, "description": ""
     },
-    "ebb": {
-      "rank": 0, "cost": 0, "maintenance": 0, "duration": "", "range": "", "description": ""
+    "ebbFormula": {
+      "rank": 0, "cost": 0, "maintenance": 0, "duration": "", "discipline": "", "formulaRating": 7, 
+      "formulaType": "Ebb", "dmg": "1d10", "minDmg": 0, "ad": 0, "rof": 1, "recoil": 0, "range": "50m"
+    },
+    "discipline": {
+      "rank": 0, "xpCost": 0, "description": ""
+    },
+    "drug": {
+      "quantity": 1, "weight": 0, "cost": 0, "description": "", "active": false,
+      "addictionRating": 10, "addictionDose": "Every 12 hours", "detoxEffects": "", "duration": "2 hours",
+      "damageReduction": 0,
+      "mods": {
+          "first": { "stat": "str", "value": 0 },
+          "second": { "stat": "dex", "value": 0 }
+      }
     }
   }
 }

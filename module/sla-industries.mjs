@@ -7,7 +7,7 @@ import { SlaActorSheet } from "./sheets/actor-sheet.mjs";
 import { SlaItemSheet } from "./sheets/item-sheet.mjs";
 
 // Import ruler.
-import { SLARuler } from "./canvas/sla-ruler.mjs";
+import { SLATokenRuler } from "./canvas/sla-ruler.mjs";
 
 // Import helpers.
 import { preloadHandlebarsTemplates } from "./helpers/templates.mjs";
@@ -16,6 +16,7 @@ import { preloadHandlebarsTemplates } from "./helpers/templates.mjs";
 /* 1. DEFINE CONFIGURATION                      */
 /* -------------------------------------------- */
 const SLA_CONFIG = {
+    // SPECIES DATA
     speciesStats: {
         "human": { label: "Human", move: { closing: 2, rushing: 5 }, stats: { str: {min:1, max:3}, dex: {min:1, max:4}, know: {min:2, max:5}, conc: {min:1, max:5}, cha: {min:1, max:5}, cool: {min:1, max:5}, luck: {min:1, max:6} } },
         "frother": { label: "Frother", move: { closing: 2, rushing: 5 }, stats: { str: {min:2, max:4}, dex: {min:2, max:4}, know: {min:1, max:5}, conc: {min:1, max:3}, cha: {min:0, max:4}, cool: {min:1, max:5}, luck: {min:1, max:3} } },
@@ -27,8 +28,30 @@ const SLA_CONFIG = {
         "carrien": { label: "Adv. Carrien", move: { closing: 4, rushing: 7 }, stats: { str: {min:3, max:5}, dex: {min:1, max:5}, know: {min:0, max:2}, conc: {min:1, max:4}, cha: {min:0, max:3}, cool: {min:3, max:6}, luck: {min:0, max:3} } },
         "neophron": { label: "Neophron", move: { closing: 2, rushing: 5 }, stats: { str: {min:0, max:2}, dex: {min:0, max:3}, know: {min:2, max:6}, conc: {min:2, max:6}, cha: {min:3, max:6}, cool: {min:1, max:5}, luck: {min:0, max:3} } }
     },
+
+    // COMBAT SKILLS LIST
     combatSkills: {
-        "pistol": "Pistol", "rifle": "Rifle", "melee": "Melee", "unarmed": "Unarmed", "thrown": "Thrown", "heavy": "Heavy Weapons", "support": "Support Weapons"
+        "pistol": "Pistol",
+        "rifle": "Rifle",
+        "melee": "Melee",
+        "unarmed": "Unarmed",
+        "thrown": "Thrown",
+        "heavy": "Heavy Weapons",
+        "support": "Support Weapons"
+    },
+
+    // EBB DISCIPLINES
+    ebbDisciplines: {
+        "awareness": "Awareness",
+        "blast": "Blast",
+        "communicate": "Communicate",
+        "enhance": "Enhance",
+        "heal": "Heal",
+        "protect": "Protect",
+        "realityFolding": "Reality Folding",
+        "senses": "Senses",
+        "telekinesis": "Telekinesis",
+        "thermal": "Thermal"
     }
 };
 
@@ -38,42 +61,113 @@ const SLA_CONFIG = {
 Hooks.once('init', async function() {
   console.log("SLA INDUSTRIES | Initializing System...");
 
+  // 1. Make config global
   CONFIG.SLA = SLA_CONFIG; 
 
+  // 2. Register Classes
   game.boilerplate = { SlaActorSheet, SlaItemSheet, BoilerplateActor, BoilerplateItem };
   CONFIG.Actor.documentClass = BoilerplateActor;
   CONFIG.Item.documentClass = BoilerplateItem;
-  CONFIG.Canvas.rulerClass = SLARuler;
 
+  // 3. Register Custom Ruler
+  //CONFIG.Canvas.rulerClass = SLARuler;
+  CONFIG.Token.rulerClass = SLATokenRuler;
+
+  // 4. Combat Settings
   CONFIG.Combat.initiative = {
     formula: "1d10 + @stats.init.value",
     decimals: 2
   };
+
+  // 5. Trackable Attributes (Token Bars)
+  CONFIG.Actor.trackableAttributes = {
+    character: {
+      bar: ["attributes.hp", "attributes.flux"],
+      value: ["move.closing", "move.rushing", "encumbrance.value"]
+    },
+    npc: {
+      bar: ["attributes.hp"],
+      value: ["move.closing", "move.rushing"]
+    }
+  };
   
   // -----------------------------------------------------------
-  // NEW: CUSTOM STATUS EFFECTS (Conditions)
+  // 6. DEFINE CUSTOM STATUS EFFECTS
+  // These map icons to the boolean flags in your system.
   // -----------------------------------------------------------
   CONFIG.statusEffects = [
-    { id: "dead", label: "Dead", icon: "icons/svg/skull.svg" },
-    { id: "bleeding", label: "Bleeding", icon: "icons/svg/blood.svg" },
-    { id: "burning", label: "Burning", icon: "icons/svg/fire.svg" },
-    { id: "critical", label: "Critical", icon: "icons/svg/degen.svg" }, // Usually HP <= 0
-    { id: "prone", label: "Prone", icon: "icons/svg/falling.svg" },
-    { id: "stunned", label: "Stunned", icon: "icons/svg/daze.svg" },
-    { id: "immobile", label: "Immobile", icon: "icons/svg/net.svg" }
+    {
+      id: "dead",
+      label: "Dead",
+      icon: "icons/svg/skull.svg",
+      // Dead is usually handled by HP 0 logic, but this allows manual toggle
+      changes: [{ key: "system.conditions.dead", mode: 5, value: true }] 
+    },
+    {
+      id: "bleeding",
+      label: "Bleeding",
+      icon: "icons/svg/blood.svg",
+      changes: [{ key: "system.conditions.bleeding", mode: 5, value: true }]
+    },
+    {
+      id: "burning",
+      label: "Burning",
+      icon: "icons/svg/fire.svg",
+      changes: [{ key: "system.conditions.burning", mode: 5, value: true }]
+    },
+    {
+      id: "prone",
+      label: "Prone",
+      icon: "icons/svg/falling.svg",
+      changes: [{ key: "system.conditions.prone", mode: 5, value: true }]
+    },
+    {
+      id: "stunned",
+      label: "Stunned",
+      icon: "icons/svg/daze.svg",
+      changes: [{ key: "system.conditions.stunned", mode: 5, value: true }]
+    },
+    {
+      id: "immobile",
+      label: "Immobile",
+      icon: "icons/svg/net.svg",
+      changes: [{ key: "system.conditions.immobile", mode: 5, value: true }]
+    },
+    {
+      id: "critical",
+      label: "Critical",
+      icon: "icons/svg/degen.svg",
+      changes: [{ key: "system.conditions.critical", mode: 5, value: true }]
+    }
   ];
 
-  CONFIG.Actor.trackableAttributes = {
-    character: { bar: ["attributes.hp", "attributes.flux"], value: ["move.closing", "move.rushing", "encumbrance.value"] },
-    npc: { bar: ["attributes.hp"], value: ["move.closing", "move.rushing"] }
-  };
+  // 7. Item Type Labels (Fixes [object Object] error)
+	CONFIG.Item.typeLabels = {
+		"item": "Item", 
+		"skill": "Skill", 
+		"trait": "Trait", 
+		"weapon": "Weapon", 
+		"armor": "Armor", 
+		"ebbFormula": "Ebb Formula",
+		"discipline": "Discipline",
+		"drug": "Combat Drug" // <--- THIS LABEL IS CRITICAL
+	};
 
+  // 8. Register Sheets
   Actors.unregisterSheet("core", ActorSheet);
-  Actors.registerSheet("sla-industries", SlaActorSheet, { types: ["character", "npc"], makeDefault: true, label: "SLA Operative Sheet" });
+  Actors.registerSheet("sla-industries", SlaActorSheet, { 
+      types: ["character", "npc"], 
+      makeDefault: true, 
+      label: "SLA Operative Sheet" 
+  });
 
   Items.unregisterSheet("core", ItemSheet);
-  Items.registerSheet("sla-industries", SlaItemSheet, { makeDefault: true, label: "SLA Item Sheet" });
+  Items.registerSheet("sla-industries", SlaItemSheet, { 
+      makeDefault: true, 
+      label: "SLA Item Sheet" 
+  });
 
+  // 8. Load Templates
   return preloadHandlebarsTemplates();
 });
 
@@ -84,26 +178,25 @@ Handlebars.registerHelper('toLowerCase', function (str) { return str ? str.toLow
 Handlebars.registerHelper('eq', function (a, b) { return a === b; });
 Handlebars.registerHelper('or', function (a, b) { return a || b; });
 Handlebars.registerHelper('gt', function (a, b) { return a > b; });
+Handlebars.registerHelper('and', function (a, b) { return a && b; });
 
 /* -------------------------------------------- */
 /* Chat Listeners (Buttons)                    */
 /* -------------------------------------------- */
 Hooks.on('renderChatMessage', (message, html, data) => {
     
-    // 1. ROLL DAMAGE BUTTON
+    // 1. ROLL DAMAGE BUTTON (From the Attack Card)
     const damageButton = html.find('.roll-damage');
     if (damageButton.length > 0) {
         damageButton.click(async ev => {
             ev.preventDefault();
             const damageFormula = ev.currentTarget.dataset.damage;
             const weaponName = ev.currentTarget.dataset.weapon;
-            
-            // FIX: Get AD directly from the button attribute
             const ad = ev.currentTarget.dataset.ad || 0; 
-
             let roll = new Roll(damageFormula);
             await roll.evaluate();
             
+            // Output Damage Card (Content hides default summary)
             roll.toMessage({
                 speaker: message.speaker,
                 content: `
@@ -121,7 +214,7 @@ Hooks.on('renderChatMessage', (message, html, data) => {
         });
     }
 
-    // 2. APPLY DAMAGE & AD
+    // 2. APPLY DAMAGE BUTTON (Updates Targets)
     const applyButton = html.find('.apply-damage');
     if (applyButton.length > 0) {
         applyButton.click(async ev => {
@@ -130,66 +223,64 @@ Hooks.on('renderChatMessage', (message, html, data) => {
             const ad = parseInt(ev.currentTarget.dataset.ad) || 0;
             const targets = canvas.tokens.controlled;
 
-            if (targets.length === 0) return ui.notifications.warn("Select a token.");
+            if (targets.length === 0) {
+                ui.notifications.warn("Select a token on the map to apply damage.");
+                return;
+            }
 
+            // Iterate through selected tokens
             for (let token of targets) {
                 const actor = token.actor;
                 if (!actor) continue;
 
-                // --- A. APPLY ARMOR DAMAGE ---
+                // A. ARMOR DAMAGE (Degrade Resistance first)
                 let armorMsg = "";
                 const armors = actor.items.filter(i => i.type === 'armor' && i.system.equipped);
                 armors.sort((a, b) => (b.system.pv || 0) - (a.system.pv || 0));
 
-                if (armors.length > 0 && ad > 0) {
+                let highestPV = 0;
+
+                if (armors.length > 0) {
                     const mainArmor = armors[0];
                     const currentRes = mainArmor.system.resistance?.value || 0;
-                    const newRes = Math.max(0, currentRes - ad);
-                    if (currentRes !== newRes) {
-                        await mainArmor.update({ "system.resistance.value": newRes });
-                        armorMsg = `<br><em>${mainArmor.name} degraded by ${ad} AD.</em>`;
+                    
+                    // Apply AD to Resistance
+                    if (ad > 0 && currentRes > 0) {
+                        const newRes = Math.max(0, currentRes - ad);
+                        if (currentRes !== newRes) {
+                            await mainArmor.update({ "system.resistance.value": newRes });
+                            armorMsg = `<br><em>${mainArmor.name} degraded by ${ad} AD.</em>`;
+                        }
                     }
+
+                    // Recalculate PV based on NEW Resistance state
+                    // We read the value again to ensure we have the post-update data if available,
+                    // or we can calculate based on the variable we just set.
+                    const finalRes = (ad > 0) ? Math.max(0, currentRes - ad) : currentRes;
+                    const maxRes = mainArmor.system.resistance?.max || 1;
+                    const basePV = mainArmor.system.pv || 0;
+
+                    let effectivePV = basePV;
+                    if (finalRes <= 0) effectivePV = 0;
+                    else if (finalRes < (maxRes / 2)) effectivePV = Math.floor(basePV / 2);
+                    
+                    highestPV = effectivePV;
                 }
 
-                // --- B. RECALCULATE PV ---
-                const updatedArmor = actor.items.filter(i => i.type === 'armor' && i.system.equipped);
-                let highestPV = 0;
-                for (let arm of updatedArmor) {
-                    let pv = arm.system.pv || 0;
-                    let res = arm.system.resistance;
-                    if (res) {
-                        if (res.value <= 0) pv = 0;
-                        else if (res.value < (res.max / 2)) pv = Math.floor(pv / 2);
-                    }
-                    if (pv > highestPV) highestPV = pv;
-                }
-
-                // --- C. APPLY HP DAMAGE ---
+                // B. APPLY HP DAMAGE
                 const finalDamage = Math.max(0, rawDamage - highestPV);
                 const currentHP = actor.system.hp.value;
-                const newHP = currentHP - finalDamage;
-                await actor.update({ "system.hp.value": newHP });
+                await actor.update({ "system.hp.value": currentHP - finalDamage });
 
-                // --- D. CHECK WOUND THRESHOLD ---
-                // "Wounds are caused... from a single attack that causes a character to lose more than 50% of their remaining Hit Points."
-                let woundWarning = "";
-                if (finalDamage > (currentHP / 2)) {
-                    woundWarning = `<div style="color:#f55; font-weight:bold; margin-top:5px; border-top:1px solid #555;">⚠️ MASSIVE DAMAGE: Apply a Wound!</div>`;
-                }
-
-                // --- E. NOTIFY ---
+                // C. NOTIFY & WOUND CHECK
                 if (finalDamage > 0) {
-                    ui.notifications.info(`${actor.name} takes ${finalDamage} damage!`);
-                    
-                    // Create floating text
-                    if (canvas.interface?.createScrollingText) {
-                        canvas.interface.createScrollingText(token.center, `-${finalDamage}`, {
-                            anchor: CONST.TEXT_ANCHOR_POINTS.TOP,
-                            fill: "0xFF0000", stroke: "0x000000", strokeThickness: 4, jitter: 0.25
-                        });
+                    let woundWarning = "";
+                    if (finalDamage > (currentHP / 2)) {
+                        woundWarning = `<div style="color:#f55; font-weight:bold; margin-top:5px; border-top:1px solid #555;">⚠️ MASSIVE DAMAGE: Apply a Wound!</div>`;
                     }
-
-                    // Chat Confirmation
+                    
+                    ui.notifications.info(`${actor.name} takes ${finalDamage} damage! (PV ${highestPV})`);
+                    
                     ChatMessage.create({
                         content: `
                         <div style="background:#220000; color:#fff; padding:5px; border:1px solid #a00;">
@@ -197,11 +288,11 @@ Hooks.on('renderChatMessage', (message, html, data) => {
                             <br><span style="font-size:0.8em; color:#aaa;">(Roll ${rawDamage} - PV ${highestPV})</span>
                             ${armorMsg}
                             ${woundWarning}
-                        </div>`
+                        </div>`,
+                        speaker: message.speaker
                     });
-
                 } else {
-                    ui.notifications.info(`${actor.name} resisted all damage (PV ${highestPV}).`);
+                    ui.notifications.info(`${actor.name} resisted all damage (PV ${highestPV}).${armorMsg}`);
                 }
             }
         });

@@ -3,76 +3,96 @@
  * @extends {Item}
  */
 export class BoilerplateItem extends Item {
-  /**
-   * Augment the basic Item data model with additional dynamic data.
-   */
+
   prepareDerivedData() {
-    const itemData = this;
-    const system = itemData.system;
-    const flags = itemData.flags.boilerplate || {};
-
-    // Make sure you call super.prepareDerivedData() first!
     super.prepareDerivedData();
-
-    // Derived Data typically goes here
   }
 
-  /**
-   * Prepare a data object which is passed to any Roll formulas which are created related to this Item
-   * @private
-   */
   getRollData() {
-    // If present, return the actor's roll data.
     if ( !this.actor ) return null;
     const rollData = this.actor.getRollData();
-    
-    // Grab the item's system data as well.
     rollData.item = foundry.utils.deepClone(this.system);
-
     return rollData;
   }
 
   /**
-   * @override
-   * Triggered before an Item is updated in the database.
-   * We use this to enforce the Rank limits (Max 4, Max <= Stat).
+   * Toggle the Active state of a drug/item and create/delete Active Effects.
    */
+  async toggleActive() {
+      // 1. Toggle Boolean
+      const newState = !this.system.active;
+      await this.update({ "system.active": newState });
+
+      // 2. Handle Active Effect
+      if (!this.actor) return;
+
+      if (newState) {
+          // ENABLED: Create Effect
+          const effectData = {
+              name: this.name, // <--- FIXED: Changed 'label' to 'name' for V11+ compatibility
+              icon: this.img,
+              origin: this.uuid,
+              disabled: false,
+              duration: { seconds: this._getDurationSeconds(this.system.duration) },
+              changes: []
+          };
+
+          // Map Mods to Changes
+          if (this.type === 'drug') {
+              // Mod 1
+              const m1 = this.system.mods.first;
+              if (m1.value !== 0) {
+                  effectData.changes.push({
+                      key: `system.stats.${m1.stat}.value`,
+                      mode: 2, // ADD
+                      value: m1.value
+                  });
+              }
+              // Mod 2
+              const m2 = this.system.mods.second;
+              if (m2.value !== 0) {
+                  effectData.changes.push({
+                      key: `system.stats.${m2.stat}.value`,
+                      mode: 2, // ADD
+                      value: m2.value
+                  });
+              }
+              // Damage Reduction
+              if (this.system.damageReduction !== 0) {
+                   effectData.changes.push({
+                      key: `system.wounds.damageReduction`,
+                      mode: 2, // ADD
+                      value: this.system.damageReduction
+                  });                 
+              }
+          }
+
+          if (effectData.changes.length > 0) {
+              await this.actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
+              ui.notifications.info(`${this.name} applied.`);
+          }
+
+      } else {
+          // DISABLED: Find and Delete Effect
+          const effect = this.actor.effects.find(e => e.origin === this.uuid);
+          if (effect) {
+              await effect.delete();
+              ui.notifications.info(`${this.name} removed.`);
+          }
+      }
+  }
+
+  // Helper to guess seconds from string
+  _getDurationSeconds(str) {
+      if (!str) return null;
+      const s = str.toLowerCase();
+      if (s.includes("hour")) return parseInt(s) * 3600;
+      if (s.includes("min")) return parseInt(s) * 60;
+      return null;
+  }
+  
+  /** @override */
   async _preUpdate(changed, options, user) {
     await super._preUpdate(changed, options, user);
-
-    // Only apply logic if we are updating a SKILL's system data
-    if (this.type === 'skill' && changed.system) {
-        
-        // Check if Rank is being changed
-        if (changed.system.rank !== undefined) {
-            
-            // 1. HARD CAP: Max 4
-            let maxRank = 4;
-            let currentRank = changed.system.rank;
-
-            // 2. DYNAMIC CAP: Cannot exceed Associated Stat
-            // We can only check this if the item belongs to an Actor
-            if (this.actor) {
-                // Determine which stat to check (default to dex if not set)
-                const statKey = this.system.stat || "dex"; 
-                
-                // Retrieve the actor's stat value safely
-                const actorStat = this.actor.system.stats[statKey]?.value || 0;
-                
-                // The Limit is the LOWER of (4) or (Actor Stat)
-                maxRank = Math.min(4, actorStat);
-            }
-
-            // 3. Apply the Limit
-            if (currentRank > maxRank) {
-                changed.system.rank = maxRank;
-                
-                // Notify the user why it snapped back
-                if (this.actor) {
-                    ui.notifications.warn(`Skill Rank capped at ${maxRank} (Limited by Stat or Max 4).`);
-                }
-            }
-        }
-    }
   }
 }

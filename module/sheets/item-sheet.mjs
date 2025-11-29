@@ -20,23 +20,30 @@ export class SlaItemSheet extends ItemSheet {
     return `${path}/item-sheet.hbs`;
   }
 
-  /** @override */
+   /** @override */
   async getData() {
     const context = await super.getData();
     const item = this.item;
+
     context.system = item.system;
     context.flags = item.flags;
     context.item = item;
+
+    // 1. ENRICH DESCRIPTION (Converts raw text to HTML)
+    context.enrichedDescription = await TextEditor.enrichHTML(item.system.description, {
+        async: true,
+        relativeTo: this.actor
+    });
 
     context.rollData = {};
     if (this.object?.parent) {
       context.rollData = this.object.parent.getRollData();
     }
 
-    // Pass Stats and Skills from GLOBAL CONFIG
     context.config = {
         stats: { "str":"STR", "dex":"DEX", "know":"KNOW", "conc":"CONC", "cha":"CHA", "cool":"COOL" },
-        combatSkills: CONFIG.SLA?.combatSkills || {}
+        combatSkills: CONFIG.SLA?.combatSkills || {},
+        disciplineSkills: CONFIG.SLA?.ebbDisciplines || {}
     };
 
     return context;

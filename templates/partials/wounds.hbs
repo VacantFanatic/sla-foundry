@@ -1,15 +1,14 @@
 <div class="data-box">
     <div class="data-header" style="display: flex; justify-content: space-between; padding: 2px 5px;">
-        <span>WOUNDS</span>
-        {{!-- Show penalty only if greater than 0 --}}
+        <span>STATUS</span>
         {{#if (gt system.wounds.penalty 0)}}
-            <span style="color: #f55; font-weight: bold;">PENALTY: -{{system.wounds.penalty}}</span>
+            <span style="color: #f55; font-weight: bold;">WOUND PENALTY: -{{system.wounds.penalty}}</span>
         {{/if}}
     </div>
     
     <div style="padding: 10px;">
-        {{!-- Existing wound checkboxes --}}
-        <div class="wound-grid">
+        {{!-- Wounds Grid --}}
+        <div class="wound-grid" style="margin-bottom: 10px;">
             <label>Head</label>
             <input class="wound-checkbox" type="checkbox" name="system.wounds.head" {{checked system.wounds.head}}/>
             <label style="text-align: right;">Left Arm</label>
@@ -28,9 +27,42 @@
                   <input class="wound-checkbox" type="checkbox" name="system.wounds.rLeg" {{checked system.wounds.rLeg}}/>
             </div>
         </div>
-        <div class="flexrow" style="margin-top: 5px;">
-            <label>Conditions:</label>
-            <input type="text" name="system.wounds.conditions" value="{{system.wounds.conditions}}" style="flex-grow: 1; margin-left: 5px;"/>
+
+        {{!-- CONDITIONS BAR --}}
+        <div class="sla-header-bar" style="font-size: 0.8em; margin-bottom: 5px;">CONDITIONS</div>
+        
+        <div class="flexrow" style="justify-content: space-between;">
+            
+            {{!-- 1. BLEEDING (Toggleable) --}}
+            <a class="condition-toggle {{#if system.conditions.bleeding}}active{{/if}}" data-condition="bleeding" title="Bleeding: Lose 1 HP/20 mins">
+                <i class="fas fa-tint"></i>
+            </a>
+
+            {{!-- 2. BURNING (Toggleable) --}}
+            <a class="condition-toggle {{#if system.conditions.burning}}active{{/if}}" data-condition="burning" title="Burning: Damage per round">
+                <i class="fas fa-fire"></i>
+            </a>
+
+            {{!-- 3. PRONE (Toggleable) --}}
+            <a class="condition-toggle {{#if system.conditions.prone}}active{{/if}}" data-condition="prone" title="Prone: -1 All Rolls">
+                <i class="fas fa-user-injured"></i>
+            </a>
+
+            {{!-- 4. STUNNED (Toggleable) --}}
+            <a class="condition-toggle {{#if system.conditions.stunned}}active{{/if}}" data-condition="stunned" title="Stunned: -1 All Rolls, Initiative Last">
+                <i class="fas fa-dizzy"></i>
+            </a>
+
+            {{!-- 5. IMMOBILE (Toggleable) --}}
+            <a class="condition-toggle {{#if system.conditions.immobile}}active{{/if}}" data-condition="immobile" title="Immobile: Speed 0">
+                <i class="fas fa-anchor"></i>
+            </a>
+
+            {{!-- 6. CRITICAL (Read Only - Controlled by HP) --}}
+            <a class="condition-read-only {{#if system.conditions.critical}}active{{/if}}" title="Critical: HP < 6. -2 STR/DEX.">
+                <i class="fas fa-heartbeat"></i>
+            </a>
+
         </div>
     </div>
 </div>

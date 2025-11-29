@@ -1,7 +1,3 @@
-# SLA INDUSTRIES
-
-![Foundry v13](https://img.shields.io/badge/foundry-v13-green)
-
 SLA Industries 2nd Edition (Foundry VTT)
 A fully automated, fan-made system implementation for playing SLA Industries 2nd Edition on Foundry Virtual Tabletop. This system automates the S5S dice mechanics, combat math, flux management, and movement rules.
 
