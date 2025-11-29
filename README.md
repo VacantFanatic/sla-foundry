@@ -15,8 +15,8 @@ A fully automated, fan-made system implementation for playing SLA Industries 2nd
 *Tactical Attack Dialog: Apply modifiers for Cover, Aiming, Charging, Dual Wielding, and Firing Modes (Burst/Auto/Suppress).
 * Smart Damage: Auto-calculates damage bonuses based on Strength (Melee), Rate of Fire, and Ammo Type (HE/AP).
 * One-Click Application: Chat cards feature "Apply Damage" buttons that automatically:
-     * Deduct Armor Points (PV) via Degradation (AD).
-     * Apply remaining damage to Hit Points (HP).
+     * Deduct Resistance via Weapon armor damage (AD).
+     * Apply remaining damage (DMG-PV) to Hit Points (HP).
      * Warn the GM if Massive Damage (>50% HP) occurs.
 
 ## 🔮 The Ebb & Drugs
