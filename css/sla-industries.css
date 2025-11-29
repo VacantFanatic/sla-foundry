@@ -638,12 +638,26 @@
     text-transform: uppercase;
 }
 
-/* Weapon Card Inputs - strict sizing */
+/* 5. White Data Row Inputs (Force Black Text) */
 .sla-sheet.item.weapon .weapon-data-row input {
-    width: 100%;
-    text-align: center;
-    border: none;
-    background: transparent;
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+    background: transparent !important;
+    border: none !important;
+    height: auto;
+    padding: 2px;
+    opacity: 1;
+    font-weight: bold; /* Make it pop against white */
+}
+
+/* Fix for Ranged Data Row as well */
+.sla-sheet.item.weapon .weapon-ranged-data input {
+    color: #000 !important;
+    -webkit-text-fill-color: #000 !important;
+    background: transparent !important;
+    border: none !important;
+    opacity: 1;
+    font-weight: bold;
 }
 
 .sla-sheet.item.weapon .weapon-stats-bar div {
@@ -654,8 +668,9 @@
 
 /* 3. Sub-Header (Skill Name) */
 .weapon-skill-row {
-    background: #fff;
-    color: #000;
+	color: #000 !important;
+    background: #fff !important;
+    border: 1px solid #ccc;
     padding: 5px;
     font-weight: bold;
     font-family: "Arial", sans-serif;
@@ -795,4 +810,99 @@
 .sla-sheet.item.weapon .header-grid .bio-field input {
     color: #fff;             /* White text for input */
     font-size: 1.5em;        /* Large text */
+}
+
+/* ==========================================
+   FIX ITEM NAME VISIBILITY
+   ========================================== */
+
+/* Target the specific NAME input in the Item Header */
+.sla-sheet.item .header-grid .bio-field input[name="name"] {
+    color: #ffffff !important;       /* Force White Text */
+    background: transparent !important;
+    font-family: "Arial", sans-serif;
+    font-weight: bold;
+    font-size: 1.5em;                /* Make it nice and big */
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3); /* Subtle underline */
+    height: 40px;
+}
+
+/* Ensure the label "NAME:" is also visible */
+.sla-sheet.item .header-grid .bio-field label {
+    color: #aaa !important;          /* Light Grey Label */
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+/* ==========================================
+   FIX ITEM SHEET HEADER & DROPDOWNS
+   ========================================== */
+
+/* 1. Force Header to use Flexbox (Allows stretching) */
+.sla-sheet.item .header-grid {
+    display: flex !important;       /* Override Grid */
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    height: 110px;                  /* Fixed height container */
+    margin-bottom: 10px;
+    border-bottom: 2px solid var(--sla-border);
+    background: rgba(0,0,0,0.2);
+    padding: 5px;
+}
+
+/* 2. Constrain the Image Size */
+.sla-sheet.item .profile-img {
+    flex: 0 0 100px;               /* Fixed width 100px */
+    width: 100px;
+    height: 100px;                 /* Fixed height 100px */
+    object-fit: cover;             /* Don't stretch image, crop it */
+    border: 1px solid #fff;
+    margin: 0;                     /* Remove default margins */
+}
+
+/* 3. Allow Name Field to Grow */
+.sla-sheet.item .header-grid .flexcol {
+    flex: 1;                       /* Take all remaining width */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+.sla-sheet.item .header-grid .bio-field {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    background: transparent;
+    padding: 0;
+}
+
+.sla-sheet.item .header-grid .bio-field input {
+    width: 100%;
+    font-size: 1.5em;
+    height: 40px;
+}
+
+/* 4. FIX DROPDOWNS (Contrast Issue) */
+.sla-sheet select {
+    background-color: #000;        /* Black background */
+    color: #fff;                   /* White text */
+    border: 1px solid #555;
+    height: 24px;
+    font-family: var(--sla-font-mono);
+}
+
+/* Ensure options inside the dropdown are also dark */
+.sla-sheet select option {
+    background-color: #000;
+    color: #fff;
+}
+
+/* Special Rule for the Weapon Sheet (Light Theme) Dropdowns */
+.sla-sheet.item.weapon select {
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #ccc;
 }

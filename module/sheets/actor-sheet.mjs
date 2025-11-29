@@ -490,7 +490,7 @@ export class SlaActorSheet extends ActorSheet {
               </div>
               <div style="display:flex; justify-content:space-between; background:rgba(255,68,0,0.1); padding:5px; margin-bottom:5px; border:1px solid #ff4400;">
                   <span style="font-weight:bold; color:#ff4400;">SUCCESS DIE</span>
-                  <span style="font-size:1.5em; font-weight:bold; color:#fff;">${successTotal}</span>
+                  <span style="font-size:1.5em; font-weight:bold; color:${successTotal > 10 ? '#39ff14' : '#ff5555'};">${successTotal}</span>
               </div>
               <div style="margin-bottom:10px;">
                   <span style="font-size:0.8em; color:#aaa;">SKILL DICE</span>
@@ -581,8 +581,11 @@ export class SlaActorSheet extends ActorSheet {
       });
   }
 
-  // --- HELPER: EXECUTE EBB ROLL ---
+// -------------------------------------------------------------
+  // HELPER: EXECUTE EBB ROLL (Discipline Check)
+  // -------------------------------------------------------------
   async _executeEbbRoll(item) {
+      
       const formulaRating = item.system.formulaRating || 7;
       const currentFlux = this.actor.system.stats.flux?.value || 0;
       const fluxCost = 1;
@@ -616,7 +619,7 @@ export class SlaActorSheet extends ActorSheet {
       const rank = disciplineItem.system.rank || 0;
       const effectiveName = disciplineItem.name;
 
-      // Recalculate Global Mod
+      // Modifiers
       let globalMod = 0;
       if (this.actor.system.conditions?.prone) globalMod -= 1;
       if (this.actor.system.conditions?.stunned) globalMod -= 1;
@@ -624,6 +627,7 @@ export class SlaActorSheet extends ActorSheet {
       const penalty = this.actor.system.wounds.penalty || 0;
       const modifier = statValue + rank - penalty + globalMod;
 
+      // Formula: 1d10 + (Rank+1)d10
       const skillDiceCount = rank + 1;
       let formula = `1d10 + ${skillDiceCount}d10`;
 
@@ -632,6 +636,8 @@ export class SlaActorSheet extends ActorSheet {
 
       const successRaw = roll.terms[0].results[0].result;
       const successTotal = successRaw + modifier;
+      
+      // LOGIC: Check against Formula Rating (TN)
       const isBaseSuccess = successTotal >= formulaRating;
 
       let skillSuccesses = 0;
@@ -640,6 +646,7 @@ export class SlaActorSheet extends ActorSheet {
       if (roll.terms.length > 2) {
            roll.terms[2].results.forEach(r => {
                const val = r.result + modifier;
+               // Skill Dice also check against Formula Rating
                const isSuccess = val >= formulaRating;
                if (isSuccess) skillSuccesses++;
 
@@ -689,7 +696,10 @@ export class SlaActorSheet extends ActorSheet {
 
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:5px; border:1px solid ${isBaseSuccess ? '#8a2be2' : '#555'}; margin-bottom:5px;">
                     <span style="font-size:0.9em; font-weight:bold; color:#fff;">SUCCESS DIE</span>
-                    <span style="font-size:1.5em; font-weight:bold; color:${isBaseSuccess ? '#fff' : '#777'};">${successTotal}</span>
+                    <span style="font-size:1.5em; font-weight:bold; color:${isBaseSuccess ? '#39ff14' : '#ff5555'};">
+                        ${successTotal}
+                    </span>
+
                 </div>
 
                 <div style="margin-bottom:10px;">
