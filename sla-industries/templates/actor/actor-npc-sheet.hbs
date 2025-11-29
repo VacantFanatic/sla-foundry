@@ -24,14 +24,18 @@
 
         {{!-- Row 2: Secondary Stats --}}
         <div class="threat-row-label">
-            <div>CHA</div><div>COOL</div><div>LUCK</div><div>INITIATIVE</div>
+            <div>CHA</div>
+            <div>COOL</div>
+            <div>LUCK</div>
+            {{!-- Click Label to Roll --}}
+            <div class="rollable" data-roll-type="init" style="cursor: pointer; color: #a00;">INITIATIVE <i class="fas fa-dice-d20"></i></div>
         </div>
         <div class="threat-row-value">
             <input type="number" name="system.stats.cha.value" value="{{system.stats.cha.value}}"/>
             <input type="number" name="system.stats.cool.value" value="{{system.stats.cool.value}}"/>
             <input type="number" name="system.stats.luck.value" value="{{system.stats.luck.value}}"/>
-            {{!-- Initiative is calculated, so read-only --}}
-            <div class="read-only-val rollable" data-roll-type="init">{{numberFormat system.stats.init.value sign=true}}</div>
+            {{!-- Editable Input --}}
+            <input type="number" name="system.stats.init.value" value="{{system.stats.init.value}}"/>
         </div>
 
         {{!-- Row 3: Vitals (HP Wide, Movement) --}}
@@ -55,13 +59,26 @@
     <div class="threat-section-bar">SKILLS</div>
     <div class="threat-content-box skill-list">
         {{#each skills as |skill|}}
-        <div class="threat-skill rollable" data-roll-type="skill" data-item-id="{{skill._id}}">
-            <span class="skill-name">{{skill.name}}:</span>
-            <span class="skill-rank">{{skill.system.rank}}</span>
-            <a class="item-edit" style="margin-left:5px; color:#aaa;"><i class="fas fa-edit"></i></a>
+        {{!-- ADDED CLASS: 'item' so the JS knows this is an item row --}}
+        <div class="threat-skill item" data-item-id="{{skill._id}}">
+            
+            {{!-- Click Name to Roll --}}
+            <span class="skill-name rollable" data-roll-type="skill" style="flex: 1; cursor: pointer;">
+                <strong>{{skill.name}}:</strong> {{skill.system.rank}}
+            </span>
+
+            {{!-- Edit / Delete Buttons --}}
+            <div class="item-controls" style="display: flex; gap: 5px;">
+                <a class="item-edit" title="Edit Skill"><i class="fas fa-edit"></i></a>
+                <a class="item-delete" title="Delete Skill"><i class="fas fa-trash"></i></a>
+            </div>
+            
         </div>
         {{/each}}
-        {{#unless skills}}<div style="color:#aaa; font-style:italic;">No skills...</div>{{/unless}}
+        
+        {{#unless skills}}
+            <div style="color:#555; font-style:italic;">No skills...</div>
+        {{/unless}}
     </div>
 
     {{!-- 4. EQUIPMENT --}}

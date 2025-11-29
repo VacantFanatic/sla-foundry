@@ -2,7 +2,7 @@
   "id": "sla-industries",
   "title": "SLA Industries 2nd Edition",
   "description": "A fully automated character sheet and combat system for SLA Industries 2nd Edition (S5S). Features include calculated derived stats, S5S dice rolling, species limits, and custom weapon/armor logic.",
-  "version": "2025-11-28-2",
+  "version": "2025-11-29",
   "compatibility": {
     "minimum": "10",
     "verified": "13"

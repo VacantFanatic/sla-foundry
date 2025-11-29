@@ -501,20 +501,34 @@
     border-bottom: 1px solid #000;
 }
 
-/* Skill List Grid */
-.skill-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* 2 columns */
-    gap: 2px 10px;
-}
+/* FIX THREAT SHEET CONTRAST */
 
-.threat-skill {
+/* Skill Row Styling */
+.threat-sheet .threat-skill {
     display: flex;
     justify-content: space-between;
-    border-bottom: 1px dotted #ccc;
-    cursor: pointer;
+    align-items: center;
+    border-bottom: 1px dotted #888; /* Darker line */
+    padding: 2px 0;
+    color: #000; /* Force Black Text */
 }
-.threat-skill:hover { color: #800; }
+
+/* Rollable Hover Effect */
+.threat-sheet .threat-skill .skill-name:hover {
+    color: #a00; /* Dark Red on hover */
+    text-shadow: none; /* Remove the glowing green shadow from player sheet */
+}
+
+/* Edit/Delete Icons */
+.threat-sheet .item-controls a {
+    color: #444; /* Dark Grey icons */
+    font-size: 0.9em;
+}
+
+.threat-sheet .item-controls a:hover {
+    color: #d00; /* Bright Red on hover */
+    text-shadow: none;
+}
 
 /* Equipment List */
 .threat-gear {
@@ -540,4 +554,245 @@
 
 .threat-sheet .editor-edit {
     color: #800; /* Red edit button */
+}
+
+/* CONDITIONS BAR */
+.condition-toggle, .condition-read-only {
+    background: #111;
+    border: 1px solid #444;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    color: #555; /* Off state */
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.2em;
+}
+
+.condition-toggle:hover {
+    border-color: #fff;
+    color: #aaa;
+}
+
+/* ACTIVE STATES (Lit Up) */
+.condition-toggle.active[data-condition="bleeding"] { color: #ff0000; border-color: #ff0000; box-shadow: 0 0 5px #ff0000; }
+.condition-toggle.active[data-condition="burning"] { color: #ff8800; border-color: #ff8800; box-shadow: 0 0 5px #ff8800; }
+.condition-toggle.active[data-condition="prone"] { color: #ccc; border-color: #ccc; box-shadow: 0 0 5px #ccc; }
+.condition-toggle.active[data-condition="stunned"] { color: #ffff00; border-color: #ffff00; box-shadow: 0 0 5px #ffff00; }
+.condition-toggle.active[data-condition="immobile"] { color: #00aaff; border-color: #00aaff; box-shadow: 0 0 5px #00aaff; }
+
+/* Critical is special (flashing) */
+.condition-read-only.active { 
+    color: #ff0000; 
+    border-color: #ff0000; 
+    background: #300;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+    70% { box-shadow: 0 0 10px 10px rgba(255, 0, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+}
+
+/* ==========================================
+   WEAPON STAT CARD STYLING (Official Look)
+   ========================================== */
+
+/* 1. Container Override (White Paper Look) */
+.sla-sheet.item.weapon .window-content {
+    background: #f5f5f5; /* Off-white paper */
+    color: #000;
+    font-family: "Georgia", serif; /* Serif for body text */
+    padding: 0;
+    border: 2px solid #333;
+}
+
+/* 2. Header (Dark Red Bar) */
+.sla-sheet.item.weapon .header-grid {
+    background: #880000; /* Deep Red */
+    color: #fff;
+    height: auto;
+    min-height: 60px;
+    padding: 5px;
+    margin-bottom: 0;
+    border-bottom: none;
+    align-items: center;
+}
+
+.sla-sheet.item.weapon .header-grid .bio-field {
+    background: transparent;
+    color: #fff;
+}
+
+.sla-sheet.item.weapon input[type="text"] {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: "Arial", sans-serif;
+    font-weight: bold;
+    font-size: 1.4em;
+    text-transform: uppercase;
+}
+
+/* Weapon Card Inputs - strict sizing */
+.sla-sheet.item.weapon .weapon-data-row input {
+    width: 100%;
+    text-align: center;
+    border: none;
+    background: transparent;
+}
+
+.sla-sheet.item.weapon .weapon-stats-bar div {
+    text-align: center;
+    border-right: 1px solid #444;
+}
+.sla-sheet.item.weapon .weapon-stats-bar div:last-child { border-right: none; }
+
+/* 3. Sub-Header (Skill Name) */
+.weapon-skill-row {
+    background: #fff;
+    color: #000;
+    padding: 5px;
+    font-weight: bold;
+    font-family: "Arial", sans-serif;
+    border-bottom: 4px solid #333; /* Thick separator line */
+    display: flex;
+    align-items: center;
+}
+
+.weapon-skill-label {
+    text-transform: uppercase;
+    margin-right: 10px;
+    font-size: 0.8em;
+}
+
+/* 4. Black Stats Bar (DMG | AD | WEIGHT) */
+.weapon-stats-bar {
+    background: #222;
+    color: #fff;
+    display: grid;
+    grid-template-columns: 1fr 1fr 60px 80px; /* Adjust column widths */
+    padding: 2px 5px;
+    font-family: "Arial", sans-serif;
+    font-size: 0.8em;
+    text-transform: uppercase;
+}
+
+/* 5. White Data Row (Values) */
+.weapon-data-row {
+    background: #fff;
+    color: #000;
+    display: grid;
+    grid-template-columns: 1fr 1fr 60px 80px; /* Matches Stats Bar */
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+    font-family: "Georgia", serif;
+    font-size: 1.1em;
+}
+
+/* Input overrides for white data row */
+.weapon-data-row input {
+    color: #000 !important;
+    background: transparent !important;
+    border: none !important;
+    height: auto;
+    padding: 0;
+}
+
+/* 6. Ranged Stats Bar (ROF | RECOIL | RANGE | CLIP) */
+.weapon-ranged-bar {
+    background: #222;
+    color: #fff;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    padding: 2px 5px;
+    font-family: "Arial", sans-serif;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    margin-top: 10px; /* Gap between sections */
+}
+
+.weapon-ranged-data {
+    background: #fff;
+    color: #000;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+}
+
+.weapon-ranged-data input {
+    color: #000 !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+/* 7. Description Box */
+.weapon-rules-box {
+    background: #eee;
+    padding: 5px;
+    margin-top: 10px;
+    border-top: 1px solid #aaa;
+    font-size: 0.9em;
+    min-height: 100px;
+}
+
+/* Fix panel stacking */
+.sla-sheet .sla-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;         /* Force fill width */
+    min-height: 0;       /* Allow flex shrinking */
+    background: rgba(0,0,0,0.2);
+    border: 1px solid #444;
+    overflow: hidden;
+    box-sizing: border-box; /* Include padding in width */
+}
+
+/* ==========================================
+   FIX ITEM SHEET HEADER NAME WIDTH
+   ========================================== */
+
+/* 1. Reset the container to use the full width */
+.sla-sheet.item .header-grid .bio-field {
+    display: flex;          /* Use Flexbox instead of Grid */
+    align-items: center;    /* Vertically align label and input */
+    width: 100%;            /* Ensure container fills the header */
+    background: rgba(0,0,0,0.2); /* Subtle background */
+    padding: 0 5px;
+}
+
+/* 2. Fix the Label width */
+.sla-sheet.item .header-grid .bio-field label {
+    flex: 0 0 50px;         /* Fixed width for "NAME:" */
+    margin-right: 5px;
+    font-weight: bold;
+    color: #ccc;
+}
+
+/* 3. Force the Input to fill remaining space */
+.sla-sheet.item .header-grid .bio-field input {
+    flex: 1;                /* Grow to fill all remaining space */
+    width: 100%;            /* Force width */
+    min-width: 0;           /* Prevent flex overflow */
+    text-align: left;
+}
+
+/* 4. Special Tweaks for the WEAPON (Red) Header */
+.sla-sheet.item.weapon .header-grid .bio-field {
+    background: transparent; /* Remove background for the red header */
+}
+
+.sla-sheet.item.weapon .header-grid .bio-field label {
+    color: #ffcccc;          /* Lighter red text for label */
+}
+
+.sla-sheet.item.weapon .header-grid .bio-field input {
+    color: #fff;             /* White text for input */
+    font-size: 1.5em;        /* Large text */
 }
