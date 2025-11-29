@@ -1,82 +1,101 @@
-# Boilerplate System
+# SLA INDUSTRIES
 
-![Foundry v11](https://img.shields.io/badge/foundry-v11-green)
+![Foundry v13](https://img.shields.io/badge/foundry-v13-green)
 
-This system is a boilerplate system that you can use as a starting point for building your own custom systems. It's similar to Simple World-building, but has examples of creating attributes in code rather than dynamically through the UI.
+SLA Industries 2nd Edition (Foundry VTT)
+A fully automated, fan-made system implementation for playing SLA Industries 2nd Edition on Foundry Virtual Tabletop. This system automates the S5S dice mechanics, combat math, flux management, and movement rules.
 
-## Usage
+🌟 Key Features
+🗂️ Character & Threat Sheets
+Operative Sheet: Styled to look like a Security Clearance Card. Automatically calculates Ratings Points (2-1-0 rule), Initiative, Encumbrance, and Movement based on Stats.
 
-There are two ways to get started: using the Boilerplate system generator command or manually renaming and updating files.
+Threat Sheet: A high-contrast, red-header "Stat Block" design for NPCs and enemies, designed for quick GM reference.
 
-Regardless of which method you choose, think carefully about your system's name. Your system's package name when submitted to Foundry must be formatted like `alphanumeric-lowercase`, and it must be unique. Check the Foundry systems package list for conflicts before committing to a name!
+🎲 S5S Dice Engine
+Automatically rolls the Success Die (1d10 + Stat + Rank) and Skill Dice (Rank d10).
 
-> **Data Models**
->
-> If you would like to use DataModel classes instead of the older template.json configuration, you'll need to use the `npm run generate` command described below and choose to enable them when asked. DataModels are currently an optional feature, and are only availabe in the generator CLI due to that.
+Calculates margins of success and displays them in a custom Chat Card.
 
-### Generator
+Handles Wound Penalties and Global Modifiers (Prone, Stunned) automatically.
 
-This system includes a generator CLI in `package.json`. To use it, you must have [node.js](https://nodejs.org) installed, and it's recommended that you install node 20 or later.
+⚔️ Combat Automation
+Tactical Attack Dialog: Apply modifiers for Cover, Aiming, Charging, Dual Wielding, and Firing Modes (Burst/Auto/Suppress).
 
-> **Python Generator**
-> 
-> If you would rather use Python than node, there’s an excellent Python-based generator created by Cussa at https://github.com/Cussa/fvtt-boilerplate-initializator. Give it a shot!
+Smart Damage: Auto-calculates damage bonuses based on Strength (Melee), Rate of Fire, and Ammo Type (HE/AP).
 
-Once you have npm installed, you can run the following in your terminal or command prompt:
+One-Click Application: Chat cards feature "Apply Damage" buttons that automatically:
 
-```bash
-npm install
-npm run generate
-```
+Deduct Armor Points (PV) via Degradation (AD).
 
-Your terminal should prompt you to name your system. Read the instructions carefully, the letter case and special characters in each question matter for correct system generation.
+Apply remaining damage to Hit Points (HP).
 
-Once the generator completes, it will output your system to `build/<your-system-name>`, where `<your-system-name>` is the package name you supplied during the prompt.
+Warn the GM if Massive Damage (>50% HP) occurs.
 
-Copy this directory over to your Foundry systems directory and start coding!
+🔮 The Ebb & Drugs
+Ebb Formulas: Tracks Flux usage automatically. Rolls Calculation Tests based on the Linked Discipline's rank.
 
-### Manual Replacement
+Combat Drugs: Toggleable "Active" state that applies stat buffs/debuffs and tracks addiction ratings.
 
-Before installing this system, you should rename any files that have `boilerplate` in their filename to use whatever machine-safe name your system needs, such as `adnd2e` if you were building a system for 2nd edition Advanced Dungeons & Dragons. In addition, you should search through the files for `boilerplate` and `Boilerplate` and do the same for those, replacing them with appropriate names for your system.
+📏 Tactical Movement
+Includes a Custom Ruler that changes color based on the character's speed:
 
-The `name` property in your `system.json` file is your system's package name. This need to be formatted `alphanumeric-lowercase`, and it must also match the foldername you use for your system.
+Green: Closing Speed (Walk)
 
-### Vue 3 Boilerplate
+Yellow: Rushing Speed (Run)
 
-**NOTE: The Vue 3 version is currently outdated and considered an advanced usage of Foundry due to it being a custom renderer. Only try it out if you _really_ like Vue and are feeling dangerous!**
+Red: Maximum Range exceeded
 
-Alternatively, there's another build of this system that supports using Vue 3 components (ES module build target) for character sheet templates.
+📦 Installation
+Download the sla-industries.zip file.
 
-Head over to the [Vue3Boilerplate System](https://gitlab.com/asacolips-projects/foundry-mods/vue3boilerplate) repo if you're interested in using Vue!
+Extract the contents into your Foundry Data folder: .../FoundryVTT/Data/systems/sla-industries/.
 
-### Getting Help
+Restart Foundry VTT.
 
-Check out the [Official Foundry VTT Discord](https://discord.gg/foundryvtt)! The #system-development channel has helpful pins and is a good place to ask questions about any part of the foundry application.
+Create a new World and select SLA Industries 2nd Edition as the Game System.
 
-For more static references, the [Knowledge Base](https://foundryvtt.com/kb/) and [API Documentation](https://foundryvtt.com/api/) provide different levels of detail. For the most detail, you can find the client side code in your foundry installation location. Classes are documented in individual files under `resources/app/client` and `resources/app/common`, and the code is collated into a single file at `resources/app/public/scripts/foundry.js`.
+⚙️ Setup Guide
+1. Creating an Operative
+Create a new Actor (Type: Operative).
 
-#### Tutorial
+Select a Species from the dropdown in the header. This sets your Min/Max stats and Movement speeds.
 
-For much more information on how to use this system as a starting point for making your own, see the [full tutorial on the Foundry Wiki](https://foundryvtt.wiki/en/development/guides/SD-tutorial)!
+Enter your Base Stats (STR, DEX, etc.). Body, Brains, and Bravado will calculate automatically.
 
-Note: Tutorial may be out of date, so look out for the Foundry compatibility badge at the top of each page.
+Click the Inventory tab (bottom) to add Weapons, Armor, and Gear.
 
-## Sheet Layout
+2. Setting up Combat
+Armor: Create an Armor item, set the PV and Resistance. Click the Shield Icon in the inventory to Equip it (The icon will turn Green and your Total PV will update).
 
-This system includes a handful of helper CSS classes to help you lay out your sheets if you're not comfortable diving into CSS fully. Those are:
+Weapons: Create a Weapon.
 
-- `flexcol`: Included by Foundry itself, this lays out the child elements of whatever element you place this on vertically.
-- `flexrow`: Included by Foundry itself, this lays out the child elements of whatever element you place this on horizontally.
-- `flex-center`: When used on something that's using flexrow or flexcol, this will center the items and text.
-- `flex-between`: When used on something that's using flexrow or flexcol, this will attempt to place space between the items. Similar to "justify" in word processors.
-- `flex-group-center`: Add a border, padding, and center all items.
-- `flex-group-left`: Add a border, padding, and left align all items.
-- `flex-group-right`: Add a border, padding, and right align all items.
-- `grid`: When combined with the `grid-Ncol` classes, this will lay out child elements in a grid.
-- `grid-Ncol`: Replace `N` with any number from 1-12, such as `grid-3col`. When combined with `grid`, this will layout child elements in a grid with a number of columns equal to the number specified.
+Set the Linked Skill (e.g., Pistol) in the item details.
 
-## Compiling the CSS
+Ensure you have the corresponding Skill on your character sheet.
 
-This repo includes both CSS for the theme and SCSS source files. If you're new to CSS, it's probably easier to just work in those files directly and delete the SCSS directory. If you're interested in using a CSS preprocessor to add support for nesting, variables, and more, you can run `npm install` in this directory to install the dependencies for the scss compiler. After that, just run `npm run build` to compile the SCSS and start a process that watches for new changes.
+Attacking: Click the Weapon Name in your inventory. Select your modifiers in the dialog and click Roll.
 
-![image](http://mattsmith.in/images/boilerplate.png)
+Damage: Click the "Roll Damage" button in the chat card.
+
+3. Using Ebb Powers
+Create a Discipline item (e.g., "Telekinesis") and set your Rank.
+
+Create an Ebb Formula item (e.g., "Push").
+
+Edit the Formula and link it to the Discipline via the dropdown.
+
+Click the Formula in your inventory to cast. Flux will be deducted automatically.
+
+🛠️ Macros
+To quickly populate your world with standard gear and skills, create a Script Macro and paste the following code generators (provided in the system documentation):
+
+Armory Generator: Creates standard Weapons & Armor.
+
+Skill Database: Creates all core Skills.
+
+Drug Lab: Creates standard Combat Drugs.
+
+Ebb Library: Creates standard Disciplines and Formulas.
+
+⚖️ Legal & Credits
+Unofficial System: This system is a fan creation and is not endorsed by Nightfall Games. Copyright: SLA Industries is a registered trademark of Nightfall Games. All rights reserved. This system is intended for personal use only.
