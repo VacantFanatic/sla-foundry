@@ -37,7 +37,7 @@
     }
   },
   "Item": {
-    "types": ["item", "skill", "trait", "weapon", "armor", "ebbFormula", "discipline", "drug"],
+    "types": ["item", "skill", "trait", "weapon", "armor", "ebbFormula", "discipline", "drug", "species", "package"],
     "item": {
       "weight": 0, "cost": 0, "quantity": 1, "description": "", "equipped": false
     },
@@ -70,6 +70,29 @@
           "first": { "stat": "str", "value": 0 },
           "second": { "stat": "dex", "value": 0 }
       }
-    }
-  }
+    },
+	"species": {
+      "description": "",
+	  "hp": 14,
+      "move": { "closing": 2, "rushing": 5 },
+      "skills": "",
+      "stats": {
+        "str": { "min": 1, "max": 3 },
+        "dex": { "min": 1, "max": 4 },
+        "know": { "min": 1, "max": 4 },
+        "conc": { "min": 1, "max": 4 },
+        "cha": { "min": 1, "max": 4 },
+        "cool": { "min": 1, "max": 4 },
+        "luck": { "min": 0, "max": 5 }
+      }
+	},
+	
+	"package": {
+      "description": "",
+      "skills": "",
+      "requirements": {
+        "str": 0, "dex": 0, "know": 0, "conc": 0, "cha": 0, "cool": 0
+      }
+	}
+	}
 }

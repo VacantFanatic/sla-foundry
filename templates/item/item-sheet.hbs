@@ -47,7 +47,59 @@
             </div>
             <div style="height: 150px; padding: 10px;">{{editor enrichedDescription target="system.description" button=true owner=owner editable=editable}}</div>
         {{/if}}
+		
+		{{!-- === SPECIES FIELDS === --}}
+                {{#if (eq item.type "species")}}
+				<div class="sla-header-bar" style="grid-column: span 2;">Vitals</div>
+                <div class="stat-block"><div class="stat-label">BASE HP</div><input class="stat-input" type="number" name="system.hp" value="{{system.hp}}"/></div>
+				
+                <div class="sla-header-bar" style="grid-column: span 2;">Movement</div>
+                <div class="stat-block"><div class="stat-label">CLOSING</div><input class="stat-input" type="number" name="system.move.closing" value="{{system.move.closing}}"/></div>
+                <div class="stat-block"><div class="stat-label">RUSHING</div><input class="stat-input" type="number" name="system.move.rushing" value="{{system.move.rushing}}"/></div>
 
+                <div class="sla-header-bar" style="grid-column: span 2;">Attribute Limits (Min / Max)</div>
+                
+                {{!-- Helper Loop for Stats --}}
+                {{#each system.stats as |stat key|}}
+                <div class="stat-block" style="grid-column: span 2; display: flex; justify-content: space-between;">
+                    <div class="stat-label" style="width: 100px;">{{key}}</div>
+                    <div class="slash-input" style="flex:1; display:flex;">
+                        <input type="number" name="system.stats.{{key}}.min" value="{{stat.min}}" placeholder="Min" style="width:50%"/>
+                        <span>/</span>
+                        <input type="number" name="system.stats.{{key}}.max" value="{{stat.max}}" placeholder="Max" style="width:50%"/>
+                    </div>
+                </div>
+                {{/each}}
+
+                <div class="sla-header-bar" style="grid-column: span 2;">Starting Skills</div>
+                <div style="grid-column: span 2;">
+                    <input type="text" name="system.skills" value="{{system.skills}}" placeholder="e.g. Athletics, Pistol, Survival" style="width: 100%; text-align: left;"/>
+                    <p style="font-size: 0.8em; color: #aaa; margin-top: 2px;">Comma separated names. Must match Compendium items exactly.</p>
+                </div>
+                {{/if}}
+				
+		{{!-- === PACKAGE FIELDS === --}}
+                {{#if (eq item.type "package")}}
+                
+                <div class="sla-header-bar" style="grid-column: span 2;">Minimum Requirements</div>
+                <p style="grid-column: span 2; font-size: 0.8em; color: #aaa; margin: 0;">Actor must have these stats to take this package.</p>
+
+                <div class="stats-grid" style="grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+                    {{#each system.requirements as |val key|}}
+                    <div class="stat-block">
+                        <div class="stat-label">{{key}}</div>
+                        <input class="stat-input" type="number" name="system.requirements.{{key}}" value="{{val}}"/>
+                    </div>
+                    {{/each}}
+                </div>
+
+                <div class="sla-header-bar" style="grid-column: span 2;">Package Skills</div>
+                <div style="grid-column: span 2;">
+                    <input type="text" name="system.skills" value="{{system.skills}}" placeholder="e.g. Interrogation, Streetwise, Pistol" style="width: 100%; text-align: left;"/>
+                    <p style="font-size: 0.8em; color: #aaa; margin-top: 2px;">Comma separated names. Grants Rank 1.</p>
+                </div>
+                {{/if}}
+				
         {{!-- === EBB FORMULA FIELDS (Re-Added) === --}}
         {{#if (eq item.type "ebbFormula")}}
              <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">

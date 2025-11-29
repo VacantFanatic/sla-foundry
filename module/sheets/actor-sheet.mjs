@@ -23,17 +23,21 @@ export class SlaActorSheet extends ActorSheet {
   }
 
   /* -------------------------------------------- */
+  /* DATA PREPARATION                            */
+  /* -------------------------------------------- */
 
   /** @override */
   async getData() {
     const context = await super.getData();
     const actorData = context.data;
     
+    // CRITICAL: Data Safety Check
     if (!actorData || !actorData.system) return context; 
     
     context.system = actorData.system;
     context.flags = actorData.flags;
 
+    // Ensure Objects Exist
     context.system.stats = context.system.stats || {};
     context.system.ratings = context.system.ratings || {};
     context.system.wounds = context.system.wounds || {};
@@ -45,6 +49,7 @@ export class SlaActorSheet extends ActorSheet {
 
     context.rollData = context.actor.getRollData();
 
+    // Species Dropdown Config
     const speciesList = CONFIG.SLA?.speciesStats || {};
     context.speciesOptions = Object.keys(speciesList).reduce((acc, key) => {
         acc[key] = speciesList[key].label;
@@ -54,6 +59,7 @@ export class SlaActorSheet extends ActorSheet {
     return context;
   }
 
+  /** Organize Items */
   _prepareItems(context) {
     const gear = [];
     const skills = [];
@@ -85,13 +91,15 @@ export class SlaActorSheet extends ActorSheet {
   }
 
   /* -------------------------------------------- */
+  /* EVENT LISTENERS                             */
+  /* -------------------------------------------- */
 
   /** @override */
   activateListeners(html) {
     super.activateListeners(html);
     if (!this.isEditable) return;
 
-    // Item Management
+    // --- ITEM MANAGEMENT ---
     html.find('.item-edit').click(ev => {
       const li = $(ev.currentTarget).parents(".item");
       const item = this.actor.items.get(li.data("itemId"));
@@ -111,38 +119,73 @@ export class SlaActorSheet extends ActorSheet {
       }
     });
 
-    // Toggle Item (Drug Active / Gear Equipped)
+    html.find('.item-create').click(this._onItemCreate.bind(this));
+
+    // --- TOGGLES ---
     html.find('.item-toggle').click(ev => {
       const li = $(ev.currentTarget).parents(".item");
       const item = this.actor.items.get(li.data("itemId"));
       if (item.type === 'drug') {
-          // Assuming drug logic is handled via toggleActive in item class, 
-          // or simple boolean update if using the previous simple version.
-          // Using simple boolean update for stability:
-          item.update({ "system.active": !item.system.active });
+          // Drugs use 'active' and generate Effects
+          item.toggleActive();
       } else {
+          // Gear uses 'equipped'
           item.update({ "system.equipped": !item.system.equipped });
       }
     });
-    
-    // Condition Toggles
+
     html.find('.condition-toggle').click(ev => {
       const conditionKey = ev.currentTarget.dataset.condition;
       const currentState = this.actor.system.conditions[conditionKey];
       this.actor.update({ [`system.conditions.${conditionKey}`]: !currentState });
     });
-
-    html.find('.item-create').click(this._onItemCreate.bind(this));
-    html.find('.rollable').click(this._onRoll.bind(this));
     
-    // Reload Weapon
+    // --- WEAPON RELOAD ---
     html.find('.item-reload').click(ev => {
       const li = $(ev.currentTarget).parents(".item");
       const item = this.actor.items.get(li.data("itemId"));
       const max = item.system.maxAmmo || 0;
       item.update({ "system.ammo": max });
     });
+
+    // --- HEADER DELETIONS ---
+    html.find('.species-delete').click(async ev => {
+        const speciesItem = this.actor.items.find(i => i.type === "species");
+        if (!speciesItem) return;
+        Dialog.confirm({
+            title: "Remove Species?",
+            content: `<p>Remove <strong>${speciesItem.name}</strong>? This deletes associated skills.</p>`,
+            yes: async () => {
+                const skillsToDelete = this.actor.items.filter(i => i.getFlag("sla-industries", "fromSpecies")).map(i => i.id);
+                await this.actor.deleteEmbeddedDocuments("Item", [speciesItem.id, ...skillsToDelete]);
+                const resets = { "system.bio.species": "" };
+                ["str","dex","know","conc","cha","cool"].forEach(k => resets[`system.stats.${k}.value`] = 1);
+                await this.actor.update(resets);
+            }
+        });
+    });
+
+    html.find('.package-delete').click(async ev => {
+        const packageItem = this.actor.items.find(i => i.type === "package");
+        if (!packageItem) return;
+        Dialog.confirm({
+            title: "Remove Package?",
+            content: `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
+            yes: async () => {
+                const skillsToDelete = this.actor.items.filter(i => i.getFlag("sla-industries", "fromPackage")).map(i => i.id);
+                await this.actor.deleteEmbeddedDocuments("Item", [packageItem.id, ...skillsToDelete]);
+                await this.actor.update({ "system.bio.package": "" });
+            }
+        });
+    });
+
+    // --- ROLLING ---
+    html.find('.rollable').click(this._onRoll.bind(this));
   }
+
+  /* -------------------------------------------- */
+  /* ROLL HANDLERS                               */
+  /* -------------------------------------------- */
 
   /**
    * Main Roll Router
@@ -152,18 +195,16 @@ export class SlaActorSheet extends ActorSheet {
     const element = event.currentTarget;
     const dataset = element.dataset;
 
-    // --- CALCULATE GLOBAL MODIFIERS (Prone/Stunned) ---
+    // Global Modifiers (Prone/Stunned)
     let globalMod = 0;
-    let globalNote = "";
-    if (this.actor.system.conditions?.prone) { globalMod -= 1; globalNote += " (Prone -1)"; }
-    if (this.actor.system.conditions?.stunned) { globalMod -= 1; globalNote += " (Stunned -1)"; }
+    if (this.actor.system.conditions?.prone) globalMod -= 1;
+    if (this.actor.system.conditions?.stunned) globalMod -= 1;
 
     // 1. STAT ROLL
     if (dataset.rollType === 'stat') {
         const statKey = dataset.key.toLowerCase();
         const statLabel = statKey.toUpperCase();
         const statValue = this.actor.system.stats[statKey]?.value || 0;
-        
         const penalty = this.actor.system.wounds.penalty || 0;
         const finalMod = statValue - penalty + globalMod;
 
@@ -199,11 +240,10 @@ export class SlaActorSheet extends ActorSheet {
         this._executeSkillRoll(element);
     }
 
-    // 3. ITEM ROLL (Weapon or Ebb)
+    // 3. ITEM ROLL
     if (dataset.rollType === 'item') {
         const itemId = $(element).parents('.item').data('itemId');
         const item = this.actor.items.get(itemId);
-
         if (item.type === 'weapon') {
             const skillKey = item.system.skill || "";
             const isMelee = ["melee", "unarmed", "thrown"].includes(skillKey);
@@ -221,126 +261,38 @@ export class SlaActorSheet extends ActorSheet {
     }
   }
 
-  // --- HELPER: RENDER ATTACK DIALOG ---
+  // --- DIALOG: WEAPON ATTACK ---
   _renderAttackDialog(item, isMelee) {
       const recoil = item.system.recoil || 0;
-      let dialogContent = `
-        <form style="color:#eee; font-family:'Roboto Condensed',sans-serif;">
-            <div class="form-group" style="margin-bottom:5px;">
-                <label>Generic Modifier (+/-)</label>
-                <input type="number" name="modifier" value="0" style="background:#333; color:#fff; border:1px solid #555; text-align:center; width:50px; float:right;"/>
-            </div>
-            <hr style="border:1px solid #444;">
-      `;
-
+      let dialogContent = `<form style="color:#eee; font-family:'Roboto Condensed',sans-serif;"><div class="form-group" style="margin-bottom:5px;"><label>Generic Modifier (+/-)</label><input type="number" name="modifier" value="0" style="background:#333; color:#fff; border:1px solid #555; text-align:center; width:50px; float:right;"/></div><hr style="border:1px solid #444;">`;
+      
       if (isMelee) {
-          dialogContent += `
-            <h3 style="border-bottom:1px solid #555; color:#39ff14; margin-bottom:5px;">Melee Modifiers</h3>
-            <div style="display:grid; grid-template-columns: 1fr; gap: 5px;">
-                <div><input type="checkbox" name="charging"/> Charging Target (-1 SD, +1 Auto Skill)</div>
-                <div><input type="checkbox" name="targetCharged"/> Target Charged/Fast Move (-1 SD)</div>
-                <div><input type="checkbox" name="sameTarget"/> Hit Same Target Last Round (+1 SD)</div>
-                <div><input type="checkbox" name="breakOff"/> Target Breaking Off (+1 SD)</div>
-                <div><input type="checkbox" name="natural"/> Natural Weapons (+1 SD)</div>
-                <div><input type="checkbox" name="prone"/> Target Prone/Stunned (+2 SD)</div>
-                <div class="form-group" style="margin-top:5px; display:flex; justify-content:space-between;">
-                    <label>Combat Defence (Rank)</label>
-                    <input type="number" name="combatDef" value="0" style="width:50px; background:#333; color:#fff; text-align:center;"/>
-                </div>
-                <div class="form-group" style="display:flex; justify-content:space-between;">
-                    <label>Acrobatic Defence (Rank)</label>
-                    <input type="number" name="acroDef" value="0" style="width:50px; background:#333; color:#fff; text-align:center;"/>
-                </div>
-            </div>`;
+          dialogContent += `<h3 style="border-bottom:1px solid #555; color:#39ff14; margin-bottom:5px;">Melee Modifiers</h3><div style="display:grid; grid-template-columns: 1fr; gap: 5px;"><div><input type="checkbox" name="charging"/> Charging (-1 SD, +1 Auto)</div><div><input type="checkbox" name="prone"/> Target Prone (+2 SD)</div><div class="form-group" style="margin-top:5px; display:flex; justify-content:space-between;"><label>Combat Def</label><input type="number" name="combatDef" value="0" style="width:50px; background:#333; color:#fff; text-align:center;"/></div></div>`;
       } else {
-          dialogContent += `
-            <h3 style="border-bottom:1px solid #555; color:#39ff14; margin-bottom:5px;">Ranged Modifiers</h3>
-            <div style="font-size:0.8em; color:#aaa; margin-bottom:5px;">Base Recoil: -${recoil} SD</div>
-            <div style="display:grid; grid-template-columns: 1fr; gap: 5px;">
-                <div class="form-group" style="display:flex; justify-content:space-between;">
-                    <label>Target Cover</label>
-                    <select name="cover" style="background:#333; color:#fff; width:120px;">
-                        <option value="0">None</option>
-                        <option value="-1">Light (-1 SD)</option>
-                        <option value="-2">Heavy/Hidden (-2 SD)</option>
-                    </select>
-                </div>
-                <div class="form-group" style="display:flex; justify-content:space-between;">
-                    <label>Ammo Type</label>
-                    <select name="ammo" style="background:#333; color:#fff; width:120px;">
-                        <option value="std">Standard</option>
-                        <option value="he">High Explosive (+1 DMG)</option>
-                        <option value="ap">Armour Piercing (-2 PV)</option>
-                        <option value="slug">Shotgun Slug (+1 DMG)</option>
-                    </select>
-                </div>
-                <div class="form-group" style="display:flex; justify-content:space-between;">
-                    <label>Firing Mode</label>
-                    <select name="mode" style="background:#333; color:#fff; width:120px;">
-                        <option value="single">Single</option>
-                        <option value="burst">Burst (+2 DMG)</option>
-                        <option value="auto">Full Auto (+4 DMG)</option>
-                        <option value="suppress">Suppressive (+4 DMG)</option>
-                    </select>
-                </div>
-                <div class="form-group" style="display:flex; justify-content:space-between;">
-                    <label>Aiming</label>
-                    <select name="aiming" style="background:#333; color:#fff; width:120px;">
-                        <option value="none">None</option>
-                        <option value="sd">+1 Success Die</option>
-                        <option value="skill">+1 Skill Success</option>
-                    </select>
-                </div>
-                <div class="form-group" style="display:flex; justify-content:space-between;">
-                    <label>Dual Wielding</label>
-                    <select name="dual" style="background:#333; color:#fff; width:120px;">
-                        <option value="0">No</option>
-                        <option value="-2">Same Target (-2 SD)</option>
-                        <option value="-4">Diff Target (-4 SD)</option>
-                    </select>
-                </div>
-                <hr style="border: 1px solid #444; width:100%;">
-                <div><input type="checkbox" name="targetMoved"/> Target Moved Fast (-1 SD)</div>
-                <div><input type="checkbox" name="blind"/> Firing Blind (-1 All Dice)</div>
-                <div><input type="checkbox" name="longRange"/> Long Range (-1 Skill Die)</div>
-                <div><input type="checkbox" name="prone"/> Target Prone/Stunned (+1 SD)</div>
-            </div>`;
+          dialogContent += `<h3 style="border-bottom:1px solid #555; color:#39ff14; margin-bottom:5px;">Ranged Modifiers</h3><div style="font-size:0.8em; color:#aaa; margin-bottom:5px;">Base Recoil: -${recoil} SD</div><div style="display:grid; grid-template-columns: 1fr; gap: 5px;"><div class="form-group" style="display:flex; justify-content:space-between;"><label>Target Cover</label><select name="cover" style="background:#333; color:#fff; width:120px;"><option value="0">None</option><option value="-1">Light (-1 SD)</option><option value="-2">Heavy (-2 SD)</option></select></div><div class="form-group" style="display:flex; justify-content:space-between;"><label>Ammo</label><select name="ammo" style="background:#333; color:#fff; width:120px;"><option value="std">Standard</option><option value="he">HE (+1)</option><option value="ap">AP (-2 PV)</option></select></div><div class="form-group" style="display:flex; justify-content:space-between;"><label>Mode</label><select name="mode" style="background:#333; color:#fff; width:120px;"><option value="single">Single</option><option value="burst">Burst (+2)</option><option value="auto">Auto (+4)</option><option value="suppress">Suppress (+4)</option></select></div></div>`;
       }
       dialogContent += `</form>`;
 
       new Dialog({
           title: `Attack: ${item.name}`,
           content: dialogContent,
-          buttons: {
-              roll: {
-                  label: "ROLL ATTACK",
-                  callback: (html) => this._processWeaponRoll(item, html, isMelee)
-              }
-          },
+          buttons: { roll: { label: "ROLL", callback: (html) => this._processWeaponRoll(item, html, isMelee) } },
           default: "roll"
       }, { classes: ["sla-dialog", "sla-sheet"] }).render(true);
   }
 
-  // --- HELPER: PROCESS WEAPON ROLL ---
+  // --- ACTION: PROCESS WEAPON ROLL ---
   async _processWeaponRoll(item, html, isMelee) {
       const form = html[0].querySelector("form");
       const genericMod = Number(form.modifier.value) || 0;
       
-      // 1. STATS
       const statKey = "dex"; 
       const statValue = this.actor.system.stats[statKey]?.value || 0;
       const strValue = Number(this.actor.system.stats.str?.value) || 0; 
       
-      // 2. GLOBAL CONDITION MODS (FIX: Re-Calculate here because scope changed)
-      let globalMod = 0;
-      if (this.actor.system.conditions?.prone) globalMod -= 1;
-      if (this.actor.system.conditions?.stunned) globalMod -= 1;
-
-      // 3. SKILL LOOKUP
       const skillKey = item.system.skill; 
       let rank = 0;
       const combatSkills = CONFIG.SLA?.combatSkills || {};
-      
       if (skillKey && combatSkills[skillKey]) {
           const targetName = combatSkills[skillKey];
           const skillItem = this.actor.items.find(i => i.type === 'skill' && i.name.toLowerCase() === targetName.toLowerCase());
@@ -348,14 +300,15 @@ export class SlaActorSheet extends ActorSheet {
       }
 
       let successDieMod = 0; 
-      let allDiceMod = genericMod + globalMod; // Apply global here
+      let allDiceMod = genericMod;
+      if (this.actor.system.conditions?.prone) allDiceMod -= 1;
+      if (this.actor.system.conditions?.stunned) allDiceMod -= 1;
+
       let autoSkillSuccesses = 0; 
       let rankMod = 0; 
-      let effectNote = "";
       let damageBonus = 0;
       let armorPen = 0;
 
-      // Helper to parse Recoil "0/1"
       const parseSlashVal = (valStr, index) => {
           const parts = String(valStr).split('/');
           if (parts.length === 1) return Number(parts[0]) || 0;
@@ -369,75 +322,43 @@ export class SlaActorSheet extends ActorSheet {
           else if (strValue === 5) damageBonus += 1;
 
           if (form.charging.checked) { successDieMod -= 1; autoSkillSuccesses += 1; }
-          if (form.targetCharged.checked) { successDieMod -= 1; }
-          if (form.sameTarget.checked) { successDieMod += 1; }
-          if (form.breakOff.checked) { successDieMod += 1; }
-          if (form.natural.checked) { successDieMod += 1; }
-          if (form.prone.checked) { successDieMod += 2; }
-
-          const combatDef = Number(form.combatDef.value) || 0;
-          const acroDef = Number(form.acroDef.value) || 0;
-          allDiceMod -= combatDef; 
-          allDiceMod -= (acroDef * 2); 
+          if (form.prone.checked) successDieMod += 2;
+          
+          allDiceMod -= (Number(form.combatDef.value) || 0); 
       } else {
           const mode = form.mode.value;
-          let ammoCost = 1;
           let recoilIndex = 0;
+          let ammoCost = 1;
 
-          if (mode === "burst") { 
-              recoilIndex = 1; ammoCost = 3; 
-              effectNote += "Burst: Reroll SD. "; damageBonus += 2; 
-          }
-          else if (mode === "auto") { 
-              recoilIndex = 2; ammoCost = 10; 
-              effectNote += "Full Auto: Reroll All. "; damageBonus += 4; 
-          }
+          if (mode === "burst") { recoilIndex = 1; ammoCost = 3; damageBonus += 2; }
+          else if (mode === "auto") { recoilIndex = 2; ammoCost = 10; damageBonus += 4; }
           else if (mode === "suppress") { 
-              recoilIndex = 2; ammoCost = 20; 
-              autoSkillSuccesses += 2; damageBonus += 4; 
-              effectNote += "Suppressive: Reroll All. "; 
+              recoilIndex = 2; ammoCost = 20; autoSkillSuccesses += 2; damageBonus += 4; 
               const supportSkill = this.actor.items.find(i => i.type === 'skill' && i.name.toLowerCase() === 'support weapons');
-              if (supportSkill) { rank = supportSkill.system.rank; effectNote += "(Skill: Support Weapons). "; }
-              else { rank = 0; effectNote += "(No Support Skill). "; }
+              rank = supportSkill ? supportSkill.system.rank : 0;
           }
 
           const recoilVal = parseSlashVal(item.system.recoil, recoilIndex);
           if (recoilVal > 0) successDieMod -= recoilVal;
 
           const currentAmmo = item.system.ammo || 0;
-          if (currentAmmo === 0) { ui.notifications.warn("Click-click. Weapon is empty!"); return; }
-          else if (currentAmmo < ammoCost) { ammoCost = currentAmmo; damageBonus -= 2; effectNote += "Low Ammo (-2 DMG). "; }
-          
+          if (currentAmmo < ammoCost) { ammoCost = currentAmmo; damageBonus -= 2; }
           await item.update({ "system.ammo": currentAmmo - ammoCost });
 
           const ammo = form.ammo.value;
-          if (ammo === "he") { damageBonus += 1; effectNote += "HE: +1 AD. "; }
-          if (ammo === "ap") { armorPen = 2; effectNote += "AP: -2 PV. "; }
-          if (ammo === "slug") { damageBonus += 1; effectNote += "Slug: -1 AD. "; }
-
+          if (ammo === "he") damageBonus += 1;
+          if (ammo === "ap") armorPen = 2;
+          if (ammo === "slug") damageBonus += 1;
+          
           const cover = Number(form.cover.value) || 0;
           successDieMod += cover;
-          const dual = Number(form.dual.value) || 0;
-          successDieMod += dual;
-
-          const aiming = form.aiming.value;
-          if (mode !== "suppress") {
-              if (aiming === "sd") successDieMod += 1;
-              if (aiming === "skill") autoSkillSuccesses += 1;
-          }
-
-          if (form.targetMoved.checked) successDieMod -= 1;
-          if (form.blind.checked) allDiceMod -= 1;
-          if (form.prone.checked) successDieMod += 1;
-          if (form.longRange.checked) { rankMod -= 1; effectNote += "Long Range (-1 Die). "; }
       }
 
-      const woundPenalty = this.actor.system.wounds.penalty || 0;
-      allDiceMod -= woundPenalty;
+      const penalty = this.actor.system.wounds.penalty || 0;
+      allDiceMod -= penalty;
 
       const baseModifier = statValue + rank + allDiceMod; 
       let effectiveRank = Math.max(0, rank + rankMod); 
-
       let formula = "1d10";
       if (effectiveRank > 0) formula += ` + ${effectiveRank}d10`;
 
@@ -458,51 +379,36 @@ export class SlaActorSheet extends ActorSheet {
                skillDiceHtml += `<div style="display:flex; flex-direction:column; align-items:center; margin:2px;"><span style="border:${border}; padding:2px 8px; border-radius:4px; font-weight:bold;">${val}</span><span style="font-size:0.7em; color:#555;">(${r.result})</span></div>`;
            });
       }
-
-      if (autoSkillSuccesses > 0) {
-          skillDiceHtml += `<div style="display:flex; flex-direction:column; align-items:center; margin:2px;"><span style="border:1px solid #39ff14; background:#39ff14; color:#000; padding:2px 8px; border-radius:4px; font-weight:bold;">+${autoSkillSuccesses}</span><span style="font-size:0.7em; color:#aaa;">(Auto)</span></div>`;
-      }
+      if (autoSkillSuccesses > 0) skillDiceHtml += `<div style="display:flex; flex-direction:column; align-items:center; margin:2px;"><span style="border:1px solid #39ff14; background:#39ff14; color:#000; padding:2px 8px; border-radius:4px; font-weight:bold;">+${autoSkillSuccesses}</span><span style="font-size:0.7em; color:#aaa;">(Auto)</span></div>`;
 
       let mosDamage = 0;
-      let hitLocation = "Standard";
-      if (mosCount === 1) { mosDamage = 1; }
-      else if (mosCount === 2) { mosDamage = 2; hitLocation = "Arm/Torso"; }
-      else if (mosCount === 3) { mosDamage = 4; hitLocation = "Leg/Arm/Torso"; }
-      else if (mosCount >= 4) { mosDamage = 6; hitLocation = "HEAD (or any)"; }
+      if (mosCount === 1) mosDamage = 1;
+      else if (mosCount === 2) mosDamage = 2;
+      else if (mosCount === 3) mosDamage = 4;
+      else if (mosCount >= 4) mosDamage = 6;
 
       const totalDamageBonus = mosDamage + damageBonus;
       const baseDamage = item.system.damage || "0";
       const finalDamageFormula = totalDamageBonus > 0 ? `${baseDamage} + ${totalDamageBonus}` : baseDamage;
       const ad = item.system.ad || 0;
 
-      let modText = `Stat: ${statValue} | Rank: ${rank}`;
-      if (allDiceMod !== 0) modText += ` | All: ${allDiceMod > 0 ? "+" : ""}${allDiceMod}`;
-      if (successDieMod !== 0) modText += ` | SD: ${successDieMod > 0 ? "+" : ""}${successDieMod}`;
-      if (effectNote) modText += `<br><em style="color:#f88;">${effectNote}</em>`;
-
       roll.toMessage({
           speaker: ChatMessage.getSpeaker({ actor: this.actor }),
           content: `
           <div style="background:#222; border:1px solid #ff4400; color:#eee; padding:5px; font-family:'Roboto Condensed',sans-serif;">
-              <div style="border-bottom:1px solid #555; margin-bottom:5px;">
-                  <h3 style="color:#ff4400; margin:0;">ATTACK: ${item.name.toUpperCase()}</h3>
-                  <div style="font-size:0.8em; color:#aaa;">${modText}</div>
-              </div>
-              <div style="display:flex; justify-content:space-between; background:rgba(255,68,0,0.1); padding:5px; margin-bottom:5px; border:1px solid #ff4400;">
+              <h3 style="color:#ff4400; margin:0; border-bottom:1px solid #555;">ATTACK: ${item.name.toUpperCase()}</h3>
+              <div style="font-size:0.8em; color:#aaa;">Stat: ${statValue} | Rank: ${rank}</div>
+              <div style="display:flex; justify-content:space-between; background:rgba(255,68,0,0.1); padding:5px; margin:5px 0;">
                   <span style="font-weight:bold; color:#ff4400;">SUCCESS DIE</span>
-                  <span style="font-size:1.5em; font-weight:bold; color:${successTotal > 10 ? '#39ff14' : '#ff5555'};">${successTotal}</span>
+                  <span style="font-size:1.5em; font-weight:bold; color:${successTotal > 10 ? '#39ff14' : '#f55'};">${successTotal}</span>
               </div>
               <div style="margin-bottom:10px;">
-                  <span style="font-size:0.8em; color:#aaa;">SKILL DICE</span>
+                  <span style="font-size:0.8em; color:#aaa;">SKILL DICE (${mosCount})</span>
                   <div style="display:flex; flex-wrap:wrap;">${skillDiceHtml}</div>
               </div>
               <div style="background:#111; border:1px solid #555; padding:5px; margin-bottom:5px;">
                   <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#ccc;">
-                      <span>Hit: <strong style="color:#fff;">${hitLocation}</strong></span>
                       <span>Total Bonus: <strong style="color:#39ff14;">+${totalDamageBonus}</strong></span>
-                  </div>
-                  <div style="font-size:0.7em; color:#777; margin-top:2px;">
-                     (MoS: +${mosDamage}, Modifiers: +${damageBonus})
                   </div>
                   ${armorPen > 0 ? `<div style="font-size:0.7em; color:#f88; margin-top:2px;">Target PV reduced by ${armorPen}</div>` : ""}
               </div>
@@ -513,7 +419,7 @@ export class SlaActorSheet extends ActorSheet {
       });
   }
 
-  // --- HELPER: EXECUTE SKILL ROLL ---
+  // --- ACTION: EXECUTE SKILL ROLL ---
   async _executeSkillRoll(element) {
       const itemId = $(element).parents('.item').data('itemId');
       const item = this.actor.items.get(itemId);
@@ -524,20 +430,18 @@ export class SlaActorSheet extends ActorSheet {
       const statValue = this.actor.system.stats[statKey]?.value || 
                         (this.actor.system.ratings && this.actor.system.ratings[statKey]?.value) || 0;
 
-      // Recalculate Global Mod (Prone/Stunned) here too
       let globalMod = 0;
       if (this.actor.system.conditions?.prone) globalMod -= 1;
       if (this.actor.system.conditions?.stunned) globalMod -= 1;
 
       const penalty = this.actor.system.wounds.penalty || 0;
-      const modifier = statValue + rank + bonus - penalty + globalMod; // Added globalMod
+      const modifier = statValue + rank + bonus - penalty + globalMod;
       
       let formula = "1d10";
       if (rank > 0) formula += ` + ${rank}d10`;
 
       let roll = new Roll(formula);
       await roll.evaluate();
-
       const successRaw = roll.terms[0].results[0].result;
       const successTotal = successRaw + modifier;
 
@@ -548,44 +452,24 @@ export class SlaActorSheet extends ActorSheet {
                let border = val >= 10 ? "1px solid #39ff14" : "1px solid #555";
                skillDiceHtml += `<div style="display:flex; flex-direction:column; align-items:center; margin:2px;"><span style="border:${border}; padding:2px 8px; border-radius:4px; font-weight:bold;">${val}</span><span style="font-size:0.7em; color:#555;">(${r.result})</span></div>`;
            });
-      } else if (rank === 0) {
-          skillDiceHtml = `<span style="font-style: italic; color: #555; font-size: 0.8em;">No Rank - Success Die Only</span>`;
       }
-
-      let penaltyHtml = "";
-      if (penalty > 0) penaltyHtml += `<span style="color:#f55;"> (Wounds: -${penalty})</span>`;
-      if (globalMod !== 0) penaltyHtml += `<span style="color:#aaa;"> (Conditions: ${globalMod})</span>`;
 
       roll.toMessage({
           speaker: ChatMessage.getSpeaker({ actor: this.actor }),
           content: `
             <div style="background: #222; border: 1px solid #39ff14; color: #eee; padding: 5px; font-family:'Roboto Condensed',sans-serif;">
-                <div style="border-bottom: 1px solid #555; margin-bottom:5px; padding-bottom:2px;">
-                    <h3 style="color:#39ff14; margin:0;">${item.name.toUpperCase()}</h3>
-                    <div style="font-size:0.8em; color:#aaa;">
-                        Stat: ${statValue} | Rank: ${rank} | <strong>Mod: +${modifier}</strong> ${penaltyHtml}
-                    </div>
-                </div>
+                <h3 style="color:#39ff14; border-bottom:1px solid #555; margin:0 0 5px 0;">${item.name.toUpperCase()}</h3>
                 <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:5px; margin-bottom:5px;">
                     <span style="font-size:0.9em; color:#aaa;">SUCCESS DIE</span>
-                    <div style="text-align:right;">
-                         <span style="font-size:1.5em; font-weight:bold; color:#fff;">${successTotal}</span>
-                         <span style="font-size:0.8em; color:#777;">(Roll ${successRaw} + ${modifier})</span>
-                    </div>
+                    <span style="font-size:1.5em; font-weight:bold; color:${successTotal > 10 ? '#39ff14' : '#f55'};">${successTotal}</span>
                 </div>
-                <div style="margin-top:5px;">
-                    <span style="font-size:0.8em; font-weight:bold; color:#aaa;">SKILL DICE</span>
-                    <div style="display:flex; flex-wrap:wrap; margin-top:2px;">${skillDiceHtml}</div>
-                </div>
+                <div style="display:flex; flex-wrap:wrap;">${skillDiceHtml}</div>
             </div>`
       });
   }
 
-// -------------------------------------------------------------
-  // HELPER: EXECUTE EBB ROLL (Discipline Check)
-  // -------------------------------------------------------------
+  // --- ACTION: EXECUTE EBB ROLL ---
   async _executeEbbRoll(item) {
-      
       const formulaRating = item.system.formulaRating || 7;
       const currentFlux = this.actor.system.stats.flux?.value || 0;
       const fluxCost = 1;
@@ -604,30 +488,21 @@ export class SlaActorSheet extends ActorSheet {
       let targetName = disciplineName;
       const ebbDisciplines = CONFIG.SLA?.ebbDisciplines || {};
       for (const [key, label] of Object.entries(ebbDisciplines)) {
-          if (key === disciplineName || label === disciplineName) {
-              targetName = label;
-              break;
-          }
+          if (key === disciplineName || label === disciplineName) { targetName = label; break; }
       }
 
       const disciplineItem = this.actor.items.find(i => i.type === 'discipline' && i.name.toLowerCase() === targetName.toLowerCase());
-      if (!disciplineItem) {
-          ui.notifications.warn(`You do not possess the '${targetName}' discipline.`);
-          return;
-      }
+      if (!disciplineItem) { ui.notifications.warn(`Missing Discipline: ${targetName}`); return; }
 
       const rank = disciplineItem.system.rank || 0;
       const effectiveName = disciplineItem.name;
 
-      // Modifiers
       let globalMod = 0;
       if (this.actor.system.conditions?.prone) globalMod -= 1;
       if (this.actor.system.conditions?.stunned) globalMod -= 1;
-
       const penalty = this.actor.system.wounds.penalty || 0;
       const modifier = statValue + rank - penalty + globalMod;
 
-      // Formula: 1d10 + (Rank+1)d10
       const skillDiceCount = rank + 1;
       let formula = `1d10 + ${skillDiceCount}d10`;
 
@@ -636,8 +511,6 @@ export class SlaActorSheet extends ActorSheet {
 
       const successRaw = roll.terms[0].results[0].result;
       const successTotal = successRaw + modifier;
-      
-      // LOGIC: Check against Formula Rating (TN)
       const isBaseSuccess = successTotal >= formulaRating;
 
       let skillSuccesses = 0;
@@ -646,25 +519,23 @@ export class SlaActorSheet extends ActorSheet {
       if (roll.terms.length > 2) {
            roll.terms[2].results.forEach(r => {
                const val = r.result + modifier;
-               // Skill Dice also check against Formula Rating
                const isSuccess = val >= formulaRating;
                if (isSuccess) skillSuccesses++;
-
                const border = isSuccess ? "1px solid #8a2be2" : "1px solid #555";
                const color = isSuccess ? "#39ff14" : "#aaa";
                skillDiceHtml += `<div style="display:flex; flex-direction:column; align-items:center; margin:2px;"><span style="border:${border}; padding:2px 8px; border-radius:4px; font-weight:bold; color:${color};">${val}</span><span style="font-size:0.7em; color:#555;">(${r.result})</span></div>`;
            });
       }
 
-      let mosEffectText = "No additional effect.";
+      let mosEffectText = "No effect.";
       let failureConsequence = "";
       const allDiceFailed = (!isBaseSuccess) && (skillSuccesses === 0);
       const isSuccessful = isBaseSuccess || (skillSuccesses >= 1);
 
       if (isSuccessful) {
-          if (skillSuccesses === 2) mosEffectText = "+1 Damage (if attack)";
-          if (skillSuccesses === 3) mosEffectText = "+2 Damage (if attack) / Repeat Ability";
-          if (skillSuccesses >= 4) mosEffectText = "+4 Damage (if attack) | Regain 1 FLUX"; 
+          if (skillSuccesses === 2) mosEffectText = "+1 Damage";
+          if (skillSuccesses === 3) mosEffectText = "+2 Damage / Repeat Ability";
+          if (skillSuccesses >= 4) mosEffectText = "+4 Damage | Regain 1 FLUX"; 
       } else {
           if (allDiceFailed) {
               failureConsequence = "🤯 SEVERE FAILURE: -3 HP & -1 FLUX";
@@ -673,53 +544,111 @@ export class SlaActorSheet extends ActorSheet {
                   "system.stats.flux.value": Math.max(0, this.actor.system.stats.flux.value - 1)
               });
           } else {
-              failureConsequence = "Formula failed.";
+              failureConsequence = "Failed.";
           }
       }
 
       const dmgFormula = item.system.dmg || "0";
       const adValue = item.system.ad || 0;
-      let penaltyHtml = "";
-      if (penalty > 0) penaltyHtml += `<span style="color:#f55;"> (Wounds: -${penalty})</span>`;
-      if (globalMod !== 0) penaltyHtml += `<span style="color:#aaa;"> (Conditions: ${globalMod})</span>`;
 
       roll.toMessage({
           speaker: ChatMessage.getSpeaker({ actor: this.actor }),
           content: `
             <div style="background: #111; border: 1px solid #8a2be2; color: #eee; padding: 5px; font-family:'Roboto Condensed',sans-serif;">
-                <div style="border-bottom: 2px solid #8a2be2; margin-bottom:5px; padding-bottom:2px;">
-                    <h3 style="color:#8a2be2; margin:0;">${item.name.toUpperCase()} (FR: ${formulaRating})</h3>
-                    <div style="font-size: 0.8em; color: #aaa;">
-                        ${effectiveName} (${rank}) | CONC ${statValue} ${penaltyHtml}
-                    </div>
-                </div>
-
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:5px; border:1px solid ${isBaseSuccess ? '#8a2be2' : '#555'}; margin-bottom:5px;">
+                <h3 style="color:#8a2be2; margin:0; border-bottom:1px solid #8a2be2;">${item.name.toUpperCase()} (FR: ${formulaRating})</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:5px; margin-bottom:5px;">
                     <span style="font-size:0.9em; font-weight:bold; color:#fff;">SUCCESS DIE</span>
-                    <span style="font-size:1.5em; font-weight:bold; color:${isBaseSuccess ? '#39ff14' : '#ff5555'};">
-                        ${successTotal}
-                    </span>
-
+                    <span style="font-size:1.5em; font-weight:bold; color:${isBaseSuccess ? '#39ff14' : '#f55'};">${successTotal}</span>
                 </div>
-
                 <div style="margin-bottom:10px;">
-                    <div style="display:flex; justify-content:space-between;">
-                        <span style="font-size:0.8em; color:#aaa;">FLUX DICE</span>
-                        <span style="font-size:0.9em; font-weight:bold; color:#39ff14;">${skillSuccesses} Successes</span>
-                    </div>
+                    <div style="display:flex; justify-content:space-between;"><span style="font-size:0.8em; color:#aaa;">FLUX DICE</span><span style="font-size:0.9em; font-weight:bold; color:#39ff14;">${skillSuccesses} Successes</span></div>
                     <div style="display:flex; flex-wrap:wrap; margin-top:5px;">${skillDiceHtml}</div>
                 </div>
-                
                 <div style="font-size: 0.9em; padding: 5px; background: ${isSuccessful ? '#003000' : '#300000'}; border: 1px solid ${isSuccessful ? '#39ff14' : '#f00'};">
                     ${isSuccessful ? `✅ <strong>Success!</strong><br>${mosEffectText}` : `❌ <strong>Failure.</strong><br>${failureConsequence}`}
                 </div>
-
                 ${isSuccessful && dmgFormula !== "0" ? `
                 <button class="roll-damage" data-damage="${dmgFormula}" data-ad="${adValue}" data-weapon="${item.name}" style="background:#300; color:#8a2be2; border:1px solid #8a2be2; cursor:pointer; width: 100%; margin-top:5px;">
                     <i class="fas fa-tint"></i> ROLL DAMAGE (${dmgFormula})
                 </button>` : ""}
             </div>`
       });
+  }
+
+  // --- DROPS ---
+  async _onDropItem(event, data) {
+    if ( !this.actor.isOwner ) return false;
+    const item = await Item.implementation.fromDropData(data);
+    const itemData = item.toObject();
+
+    if (itemData.type === "species") {
+        const existing = this.actor.items.find(i => i.type === "species");
+        if (existing) await existing.delete();
+        await this.actor.createEmbeddedDocuments("Item", [itemData]);
+        await this.actor.update({ "system.bio.species": itemData.name });
+        const stats = itemData.system.stats;
+        const updates = {};
+        for (const [key, val] of Object.entries(stats)) updates[`system.stats.${key}.value`] = val.min;
+        await this.actor.update(updates);
+        
+        const skillString = itemData.system.skills || "";
+        if (skillString) {
+            const skillNames = skillString.split(",").map(s => s.trim());
+            const skillPack = game.packs.get("world.sla-skills"); 
+            if (skillPack) {
+                const index = await skillPack.getIndex();
+                const skillsToAdd = [];
+                for (const name of skillNames) {
+                    const entry = index.find(e => e.name === name);
+                    if (entry) {
+                        const doc = await skillPack.getDocument(entry._id);
+                        const obj = doc.toObject();
+                        obj.flags = { "sla-industries": { fromSpecies: true } };
+                        obj.system.rank = 1; 
+                        skillsToAdd.push(obj);
+                    }
+                }
+                if (skillsToAdd.length) await this.actor.createEmbeddedDocuments("Item", skillsToAdd);
+            }
+        }
+        return;
+    }
+    
+    if (itemData.type === "package") {
+        const reqs = itemData.system.requirements || {};
+        for (const [key, minVal] of Object.entries(reqs)) {
+            const actorStat = this.actor.system.stats[key]?.value || 0;
+            if (actorStat < minVal) { ui.notifications.error(`Req: ${key.toUpperCase()} must be ${minVal}+`); return; }
+        }
+        const existing = this.actor.items.find(i => i.type === "package");
+        if (existing) await existing.delete();
+        await this.actor.createEmbeddedDocuments("Item", [itemData]);
+        await this.actor.update({ "system.bio.package": itemData.name });
+        
+        const skillString = itemData.system.skills || "";
+        if (skillString) {
+            const skillNames = skillString.split(",").map(s => s.trim());
+            const skillPack = game.packs.get("world.sla-skills"); 
+            if (skillPack) {
+                const index = await skillPack.getIndex();
+                const skillsToAdd = [];
+                for (const name of skillNames) {
+                    const entry = index.find(e => e.name === name);
+                    if (entry) {
+                        const doc = await skillPack.getDocument(entry._id);
+                        const obj = doc.toObject();
+                        obj.flags = { "sla-industries": { fromPackage: true } };
+                        obj.system.rank = 1;
+                        skillsToAdd.push(obj);
+                    }
+                }
+                if (skillsToAdd.length) await this.actor.createEmbeddedDocuments("Item", skillsToAdd);
+            }
+        }
+        return;
+    }
+
+    return super._onDropItem(event, data);
   }
 
   async _onItemCreate(event) {

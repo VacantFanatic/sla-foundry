@@ -18,15 +18,15 @@ import { preloadHandlebarsTemplates } from "./helpers/templates.mjs";
 const SLA_CONFIG = {
     // SPECIES DATA
     speciesStats: {
-        "human": { label: "Human", move: { closing: 2, rushing: 5 }, stats: { str: {min:1, max:3}, dex: {min:1, max:4}, know: {min:2, max:5}, conc: {min:1, max:5}, cha: {min:1, max:5}, cool: {min:1, max:5}, luck: {min:1, max:6} } },
-        "frother": { label: "Frother", move: { closing: 2, rushing: 5 }, stats: { str: {min:2, max:4}, dex: {min:2, max:4}, know: {min:1, max:5}, conc: {min:1, max:3}, cha: {min:0, max:4}, cool: {min:1, max:5}, luck: {min:1, max:3} } },
-        "ebonite": { label: "Ebonite", move: { closing: 2, rushing: 5 }, stats: { str: {min:0, max:3}, dex: {min:1, max:4}, know: {min:1, max:5}, conc: {min:2, max:6}, cha: {min:1, max:5}, cool: {min:1, max:5}, luck: {min:2, max:6} } },
-        "stormer313": { label: "Stormer 313", move: { closing: 3, rushing: 6 }, stats: { str: {min:3, max:6}, dex: {min:2, max:6}, know: {min:0, max:2}, conc: {min:0, max:3}, cha: {min:0, max:3}, cool: {min:3, max:6}, luck: {min:0, max:2} } },
-        "stormer711": { label: "Stormer 711", move: { closing: 4, rushing: 6 }, stats: { str: {min:2, max:5}, dex: {min:3, max:5}, know: {min:0, max:3}, conc: {min:1, max:4}, cha: {min:0, max:2}, cool: {min:2, max:6}, luck: {min:0, max:2} } },
-        "shaktar": { label: "Shaktar", move: { closing: 3, rushing: 6 }, stats: { str: {min:3, max:5}, dex: {min:2, max:5}, know: {min:1, max:4}, conc: {min:0, max:3}, cha: {min:1, max:3}, cool: {min:1, max:6}, luck: {min:0, max:3} } },
-        "wraithen": { label: "Wraithen", move: { closing: 4, rushing: 8 }, stats: { str: {min:1, max:3}, dex: {min:3, max:6}, know: {min:1, max:4}, conc: {min:1, max:4}, cha: {min:1, max:4}, cool: {min:0, max:5}, luck: {min:1, max:4} } },
-        "carrien": { label: "Adv. Carrien", move: { closing: 4, rushing: 7 }, stats: { str: {min:3, max:5}, dex: {min:1, max:5}, know: {min:0, max:2}, conc: {min:1, max:4}, cha: {min:0, max:3}, cool: {min:3, max:6}, luck: {min:0, max:3} } },
-        "neophron": { label: "Neophron", move: { closing: 2, rushing: 5 }, stats: { str: {min:0, max:2}, dex: {min:0, max:3}, know: {min:2, max:6}, conc: {min:2, max:6}, cha: {min:3, max:6}, cool: {min:1, max:5}, luck: {min:0, max:3} } }
+        "human": { label: "Human", hp: 14, move: { closing: 2, rushing: 5 }, stats: { str: {min:1, max:3}, dex: {min:1, max:4}, know: {min:2, max:5}, conc: {min:1, max:5}, cha: {min:1, max:5}, cool: {min:1, max:5}, luck: {min:1, max:6} } },
+        "frother": { label: "Frother", hp: 15, move: { closing: 2, rushing: 5 }, stats: { str: {min:2, max:4}, dex: {min:2, max:4}, know: {min:1, max:5}, conc: {min:1, max:3}, cha: {min:0, max:4}, cool: {min:1, max:5}, luck: {min:1, max:3} } },
+        "ebonite": { label: "Ebonite", hp: 14, move: { closing: 2, rushing: 5 }, stats: { str: {min:0, max:3}, dex: {min:1, max:4}, know: {min:1, max:5}, conc: {min:2, max:6}, cha: {min:1, max:5}, cool: {min:1, max:5}, luck: {min:2, max:6} } },
+        "stormer313": { label: "Stormer 313", hp: 22, move: { closing: 3, rushing: 6 }, stats: { str: {min:3, max:6}, dex: {min:2, max:6}, know: {min:0, max:2}, conc: {min:0, max:3}, cha: {min:0, max:3}, cool: {min:3, max:6}, luck: {min:0, max:2} } },
+        "stormer711": { label: "Stormer 711", hp: 20, move: { closing: 4, rushing: 6 }, stats: { str: {min:2, max:5}, dex: {min:3, max:5}, know: {min:0, max:3}, conc: {min:1, max:4}, cha: {min:0, max:2}, cool: {min:2, max:6}, luck: {min:0, max:2} } },
+        "shaktar": { label: "Shaktar", hp: 19, move: { closing: 3, rushing: 6 }, stats: { str: {min:3, max:5}, dex: {min:2, max:5}, know: {min:1, max:4}, conc: {min:0, max:3}, cha: {min:1, max:3}, cool: {min:1, max:6}, luck: {min:0, max:3} } },
+        "wraithen": { label: "Wraithen", hp: 14, move: { closing: 4, rushing: 8 }, stats: { str: {min:1, max:3}, dex: {min:3, max:6}, know: {min:1, max:4}, conc: {min:1, max:4}, cha: {min:1, max:4}, cool: {min:0, max:5}, luck: {min:1, max:4} } },
+        "carrien": { label: "Adv. Carrien", hp: 20, move: { closing: 4, rushing: 7 }, stats: { str: {min:3, max:5}, dex: {min:1, max:5}, know: {min:0, max:2}, conc: {min:1, max:4}, cha: {min:0, max:3}, cool: {min:3, max:6}, luck: {min:0, max:3} } },
+        "neophron": { label: "Neophron", hp: 11, move: { closing: 2, rushing: 5 }, stats: { str: {min:0, max:2}, dex: {min:0, max:3}, know: {min:2, max:6}, conc: {min:2, max:6}, cha: {min:3, max:6}, cool: {min:1, max:5}, luck: {min:0, max:3} } }
     },
 
     // COMBAT SKILLS LIST

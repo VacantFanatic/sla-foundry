@@ -11,12 +11,14 @@ export class BoilerplateActor extends Actor {
     
     super.prepareDerivedData();
 
-    // Safety Check
+    // Safety Check: Ensure stats exist before calculating
     if (!system.stats || !system.ratings) return;
 
     if (actorData.type === 'character' || actorData.type === 'npc') {
         
-        // --- 1. WOUNDS & CONDITIONS LOGIC ---
+        // =======================================================
+        // 1. WOUNDS & CONDITIONS LOGIC
+        // =======================================================
         let woundCount = 0;
         const w = system.wounds;
         if (w.head) woundCount++;
@@ -27,8 +29,9 @@ export class BoilerplateActor extends Actor {
         if (w.rLeg) woundCount++;
 
         system.wounds.total = woundCount;
-        system.wounds.penalty = woundCount; 
+        system.wounds.penalty = woundCount; // -1 Penalty per wound
 
+        // Initialize conditions object if missing
         system.conditions = system.conditions || {};
 
         // RULE: Death (6 Wounds or 0 HP)
@@ -39,11 +42,9 @@ export class BoilerplateActor extends Actor {
         const isCritical = system.hp.value < 6 && !isDead;
         system.conditions.critical = isCritical;
 
-        // RULE: Bleeding (Auto-flag for UI, toggling handled manually)
-        const isFrother = system.bio.species?.toLowerCase() === "frother";
-        const bleedingThreshold = isFrother ? 2 : 1;
-        // We don't force bleeding here (to allow toggle), but we know it *should* bleed.
-
+        // RULE: Bleeding (At least 1 Wound)
+        // Frother Exception handled in display logic or manual toggle
+        
         // RULE: Stunned (Head Wound)
         if (w.head) system.conditions.stunned = true;
 
@@ -51,44 +52,113 @@ export class BoilerplateActor extends Actor {
         if (w.lLeg && w.rLeg) system.conditions.immobile = true;
 
 
-        // --- 2. APPLY DRUG MODIFIERS ---
+        // =======================================================
+        // 2. ENCUMBRANCE & ARMOR (Pre-Calc for Dex Penalty)
+        // =======================================================
+        let totalWeight = 0;
+        let highestPV = 0; // Armor Stacking Rule: Highest PV applies
+
+        if (actorData.items) {
+            for (const item of actorData.items) {
+                const itemData = item.system;
+                // Weight
+                if (itemData?.weight) {
+                    totalWeight += (itemData.weight * (itemData.quantity || 1));
+                }
+
+                // Armor PV Calculation
+                if (item.type === 'armor' && itemData?.equipped) {
+                    let currentPV = itemData.pv || 0;
+                    const res = itemData.resistance;
+
+                    // Degradation Rules
+                    if (res) {
+                        if (res.value <= 0) {
+                            currentPV = 0; // Destroyed
+                        } else if (res.value < (res.max / 2)) {
+                            currentPV = Math.floor(currentPV / 2); // Damaged (<50%)
+                        }
+                    }
+                    // Apply Highest PV Rule
+                    if (currentPV > highestPV) highestPV = currentPV; 
+                }
+            }
+        }
+
+        // Get Raw STR for Max Calc
+        const rawStr = Number(system.stats.str?.value) || 0;
+        
+        system.encumbrance.value = Math.round(totalWeight * 10) / 10;
+        system.encumbrance.max = Math.max(8, rawStr * 3);
+        
+        // Save Final Armor
+        if (!system.armor) system.armor = { pv: 0, resist: 0 };
+        system.armor.pv = highestPV;
+
+        // Encumbrance Penalties
+        const encValue = Math.floor(system.encumbrance.max - system.encumbrance.value);
+        let encDexPenalty = 0;
+        let moveCap = null;
+
+        if (encValue === 1) {
+            encDexPenalty = 1;
+            moveCap = 1; 
+        } else if (encValue === 0) {
+            encDexPenalty = 2; 
+            moveCap = 1;
+        } else if (encValue < 0) {
+            system.conditions.immobile = true;
+        }
+
+
+        // =======================================================
+        // 3. APPLY STAT MODIFIERS (Base + Drugs + Crit + Encumbrance)
+        // =======================================================
         let strMod = 0, dexMod = 0, knowMod = 0, concMod = 0, chaMod = 0, coolMod = 0;
         let damageReduction = 0;
 
+        // Drugs Logic
         if (actorData.items) {
             for (const item of actorData.items) {
                 if (item.type === 'drug' && item.system.active) {
                     const m1 = item.system.mods.first;
+                    if (m1.value !== 0 && m1.stat) {
+                        if (m1.stat === 'str') strMod += m1.value;
+                        if (m1.stat === 'dex') dexMod += m1.value;
+                        if (m1.stat === 'know') knowMod += m1.value;
+                        if (m1.stat === 'conc') concMod += m1.value;
+                        if (m1.stat === 'cha') chaMod += m1.value;
+                        if (m1.stat === 'cool') coolMod += m1.value;
+                    }
                     const m2 = item.system.mods.second;
-                    // Apply Mods
-                    const apply = (mod) => {
-                        if (mod.stat === 'str') strMod += mod.value;
-                        if (mod.stat === 'dex') dexMod += mod.value;
-                        if (mod.stat === 'know') knowMod += mod.value;
-                        if (mod.stat === 'conc') concMod += mod.value;
-                        if (mod.stat === 'cha') chaMod += mod.value;
-                        if (mod.stat === 'cool') coolMod += mod.value;
-                    };
-                    if (m1.value !== 0) apply(m1);
-                    if (m2.value !== 0) apply(m2);
-                    
+                    if (m2.value !== 0 && m2.stat) {
+                        if (m2.stat === 'str') strMod += m2.value;
+                        if (m2.stat === 'dex') dexMod += m2.value;
+                        if (m2.stat === 'know') knowMod += m2.value;
+                        if (m2.stat === 'conc') concMod += m2.value;
+                        if (m2.stat === 'cha') chaMod += m2.value;
+                        if (m2.stat === 'cool') coolMod += m2.value;
+                    }
                     damageReduction += (item.system.damageReduction || 0);
                 }
             }
         }
         system.wounds.damageReduction = damageReduction;
 
-        // --- 3. CALCULATE STATS ---
+        // Critical Penalties
         const critModPhysical = isCritical ? -2 : 0;
         const critModMental = isCritical ? -1 : 0;
 
+        // Final Calculation (Base + Crit + Drug + Encumbrance)
+        // Clamp at 0 to prevent negatives
         let str = Math.max(0, (Number(system.stats.str?.value) || 0) + critModPhysical + strMod);
-        let dex = Math.max(0, (Number(system.stats.dex?.value) || 0) + critModPhysical + dexMod);
+        let dex = Math.max(0, (Number(system.stats.dex?.value) || 0) + critModPhysical + dexMod - encDexPenalty);
         let know = Math.max(0, (Number(system.stats.know?.value) || 0) + knowMod);
         let conc = Math.max(0, (Number(system.stats.conc?.value) || 0) + critModMental + concMod);
         let cha = Math.max(0, (Number(system.stats.cha?.value) || 0) + chaMod);
         let cool = Math.max(0, (Number(system.stats.cool?.value) || 0) + critModMental + coolMod);
 
+        // Update system values for display/rolls (In-Memory Only)
         system.stats.str.value = str;
         system.stats.dex.value = dex;
         system.stats.know.value = know;
@@ -96,7 +166,10 @@ export class BoilerplateActor extends Actor {
         system.stats.cha.value = cha;
         system.stats.cool.value = cool;
 
-        // --- 4. RATINGS POINTS ---
+
+        // =======================================================
+        // 4. RATINGS POINTS (2-1-0 Sort)
+        // =======================================================
         const rawBody = str + dex;
         const rawBrains = know + conc;
         const rawBravado = cha + cool;
@@ -108,18 +181,42 @@ export class BoilerplateActor extends Actor {
         if (system.ratings[rankings[1].id]) system.ratings[rankings[1].id].value = 1;
         if (system.ratings[rankings[2].id]) system.ratings[rankings[2].id].value = 0;
 
-        // --- 5. INITIATIVE ---
+
+        // =======================================================
+        // 5. INITIATIVE & MOVEMENT & HP
+        // =======================================================
         if (system.stats.init) system.stats.init.value = dex + conc;
 
-        // --- 6. MOVEMENT ---
-        const speciesKey = system.bio.species;
-        const speciesConfig = CONFIG.SLA?.speciesStats[speciesKey];
+        // HP Max Calculation (Base + STR)
+        // Check for Species Item First
+        let hpBase = 10; 
+        const speciesItem = actorData.items.find(i => i.type === 'species');
+        if (speciesItem && speciesItem.system.hp) {
+            hpBase = speciesItem.system.hp;
+        } else {
+            // Fallback to config
+            const speciesKey = system.bio.species;
+            const speciesConfig = CONFIG.SLA?.speciesStats[speciesKey];
+            if (speciesConfig) hpBase = speciesConfig.hp;
+        }
+        system.hp.max = hpBase + str;
+
+        // Movement Logic
         let closing = 0;
         let rushing = 0;
 
-        if (speciesConfig && speciesConfig.move) {
-            closing = speciesConfig.move.closing;
-            rushing = speciesConfig.move.rushing;
+        if (speciesItem) {
+             closing = speciesItem.system.move.closing;
+             rushing = speciesItem.system.move.rushing;
+             // While we are here, ensure bio matches item name for display
+             system.bio.species = speciesItem.name;
+        } else {
+             const speciesKey = system.bio.species;
+             const speciesConfig = CONFIG.SLA?.speciesStats[speciesKey];
+             if (speciesConfig && speciesConfig.move) {
+                closing = speciesConfig.move.closing;
+                rushing = speciesConfig.move.rushing;
+             }
         }
 
         const athletics = actorData.items.find(i => i.type === 'skill' && i.name.toLowerCase() === 'athletics');
@@ -127,52 +224,21 @@ export class BoilerplateActor extends Actor {
             rushing += Math.floor((athletics.system.rank || 0) / 2);
         }
 
-        if (system.conditions.immobile || isDead) { closing = 0; rushing = 0; }
-        else if (isCritical) { rushing = closing; }
+        // Apply Movement Caps (Critical / Encumbrance)
+        if (isCritical) {
+            rushing = closing;
+        }
+        if (moveCap !== null) {
+            rushing = Math.min(rushing, moveCap);
+        }
+        if (system.conditions.immobile || isDead) {
+            closing = 0;
+            rushing = 0;
+        }
 
         if (!system.move) system.move = { closing: 0, rushing: 0 };
         system.move.closing = closing;
         system.move.rushing = rushing;
-
-        // --- 7. ENCUMBRANCE & ARMOR ---
-        let totalWeight = 0;
-        let highestPV = 0;
-
-        if (actorData.items) {
-            for (const item of actorData.items) {
-                const itemData = item.system;
-                if (itemData?.weight) totalWeight += (itemData.weight * (itemData.quantity || 1));
-                if (item.type === 'armor' && itemData?.equipped) {
-                    let currentPV = itemData.pv || 0;
-                    const res = itemData.resistance;
-                    if (res) {
-                        if (res.value <= 0) currentPV = 0;
-                        else if (res.value < (res.max / 2)) currentPV = Math.floor(currentPV / 2);
-                    }
-                    if (currentPV > highestPV) highestPV = currentPV; 
-                }
-            }
-        }
-        
-        system.encumbrance.value = Math.round(totalWeight * 10) / 10;
-        system.encumbrance.max = Math.max(8, str * 3);
-        
-        // Apply Encumbrance Penalties to Move/Dex
-        const encValue = Math.floor(system.encumbrance.max - system.encumbrance.value);
-        if (encValue === 1) {
-            system.stats.dex.value = Math.max(0, dex - 1);
-            if (system.move.rushing > 1) system.move.rushing = 1;
-        } else if (encValue === 0) {
-            system.stats.dex.value = Math.max(0, dex - 2);
-            if (system.move.rushing > 1) system.move.rushing = 1;
-        } else if (encValue < 0) {
-            system.conditions.immobile = true;
-            system.move.closing = 0;
-            system.move.rushing = 0;
-        }
-
-        if (!system.armor) system.armor = { pv: 0, resist: 0 };
-        system.armor.pv = highestPV;
     }
   }
 
@@ -187,20 +253,38 @@ export class BoilerplateActor extends Actor {
     await super._preUpdate(changed, options, user);
     const speciesStats = CONFIG.SLA?.speciesStats; 
     
+    // 1. Prevent Negative HP
     if (changed.system?.hp?.value !== undefined) {
         if (changed.system.hp.value < 0) changed.system.hp.value = 0;
     }
 
-    if (speciesStats && changed.system?.stats) {
-        const currentSpecies = this.system.bio.species;
-        const limitData = speciesStats[currentSpecies];
+    // 2. Enforce Max Stats based on SPECIES ITEM (Priority)
+    // or CONFIG (Fallback)
+    if (changed.system?.stats) {
+        let limitData = null;
+        
+        // Check Item First
+        const speciesItem = this.items.find(i => i.type === 'species');
+        if (speciesItem) {
+            limitData = speciesItem.system.stats;
+        } else {
+            // Check Config
+            const currentSpecies = this.system.bio.species;
+            const confData = speciesStats[currentSpecies];
+            if (confData) limitData = confData.stats;
+        }
+
         if (limitData) {
             for (const [key, updateData] of Object.entries(changed.system.stats)) {
                 if (updateData?.value !== undefined) {
-                    const statLimit = limitData.stats[key];
-                    if (statLimit) {
+                    const statLimit = limitData[key];
+                    // Check if limit exists and has max
+                    if (statLimit && statLimit.max !== undefined) {
                         const max = statLimit.max;
-                        if (updateData.value > max) updateData.value = max;
+                        if (updateData.value > max) {
+                            updateData.value = max;
+                            if (typeof ui !== "undefined") ui.notifications.warn(`${key.toUpperCase()} capped at ${max}`);
+                        }
                     }
                 }
             }
@@ -210,7 +294,11 @@ export class BoilerplateActor extends Actor {
   
   getRollData() {
     const data = super.getRollData();
-    if (data.stats) { for (let [k, v] of Object.entries(data.stats)) data[k] = v.value; }
+    if (data.stats) {
+      for (let [k, v] of Object.entries(data.stats)) {
+        data[k] = v.value;
+      }
+    }
     return data;
   }
 
@@ -220,48 +308,23 @@ export class BoilerplateActor extends Actor {
   async _onUpdate(changed, options, userId) {
       await super._onUpdate(changed, options, userId);
       
-      // Only run on the client that initiated the update
       if (game.user.id !== userId) return;
 
-      // 1. SYNC CRITICAL
-      const isCritical = this.system.conditions.critical;
-      const hasCritical = this.effects.some(e => e.statuses.has("critical"));
+      // Helper to sync condition state
+      const sync = async (key, overlay = false) => {
+          const isSet = this.system.conditions[key];
+          const hasEffect = this.effects.some(e => e.statuses.has(key));
+          
+          if (isSet && !hasEffect) {
+              await this.toggleStatusEffect(key, { active: true, overlay: overlay });
+          } else if (!isSet && hasEffect) {
+              await this.toggleStatusEffect(key, { active: false });
+          }
+      };
 
-      if (isCritical && !hasCritical) {
-          await this.toggleStatusEffect("critical", { active: true });
-      } else if (!isCritical && hasCritical) {
-          await this.toggleStatusEffect("critical", { active: false });
-      }
-
-      // 2. SYNC DEAD
-      const isDead = this.system.conditions.dead;
-      const hasDead = this.effects.some(e => e.statuses.has("dead"));
-
-      if (isDead && !hasDead) {
-          // Apply Dead overlay
-          await this.toggleStatusEffect("dead", { active: true, overlay: true });
-      } else if (!isDead && hasDead) {
-          await this.toggleStatusEffect("dead", { active: false });
-      }
-      
-      // 3. SYNC IMMOBILE
-      const isImmobile = this.system.conditions.immobile;
-      const hasImmobile = this.effects.some(e => e.statuses.has("immobile"));
-      
-      if (isImmobile && !hasImmobile) {
-          await this.toggleStatusEffect("immobile", { active: true });
-      } else if (!isImmobile && hasImmobile) {
-          await this.toggleStatusEffect("immobile", { active: false });
-      }
-      
-      // 4. SYNC STUNNED
-      const isStunned = this.system.conditions.stunned;
-      const hasStunned = this.effects.some(e => e.statuses.has("stunned"));
-      
-      if (isStunned && !hasStunned) {
-          await this.toggleStatusEffect("stunned", { active: true });
-      } else if (!isStunned && hasStunned) {
-          await this.toggleStatusEffect("stunned", { active: false });
-      }
+      await sync("critical");
+      await sync("dead", true); // Overlay for dead
+      await sync("immobile");
+      await sync("stunned");
   }
 }
