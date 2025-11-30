@@ -23,15 +23,12 @@
                 {{> "systems/sla-industries/templates/partials/skills.hbs"}}
             </div>
 
-            {{!-- B. Ebb Disciplines --}}
-            <div style="flex: 0 0 auto; min-height: 150px;">
+            {{!-- B. Ebb Disciplines (Now includes Formulas nested) --}}
+            <div style="flex: 1; min-height: 250px;">
                 {{> "systems/sla-industries/templates/partials/disciplines.hbs"}}
             </div>
             
-            {{!-- C. Ebb Formulas --}}
-            <div style="flex: 1; min-height: 200px;">
-                {{> "systems/sla-industries/templates/partials/ebb.hbs"}}
-            </div>
+            {{!-- DELETED: The separate ebb.hbs partial call --}}
         </div>
 
         {{!-- RIGHT COLUMN: Traits & vitals --}}

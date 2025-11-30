@@ -15,7 +15,7 @@ export class BoilerplateActor extends Actor {
 
     if (actorData.type === 'character' || actorData.type === 'npc') {
         
-        // 1. WOUNDS & CONDITIONS
+        // --- 1. WOUNDS & CONDITIONS LOGIC ---
         let woundCount = 0;
         const w = system.wounds;
         if (w.head) woundCount++;
@@ -29,15 +29,71 @@ export class BoilerplateActor extends Actor {
         system.wounds.penalty = woundCount; 
 
         system.conditions = system.conditions || {};
+
+        // SYNC CONDITIONS FROM ACTIVE EFFECTS
+        // This ensures if the Token Icon is on, the Sheet Button lights up.
+        // We check for the ID (e.g. "bleeding") in the actor's effects.
+        const hasEffect = (id) => this.effects.some(e => e.statuses.has(id));
+        
+        if (hasEffect("bleeding")) system.conditions.bleeding = true;
+        if (hasEffect("burning")) system.conditions.burning = true;
+        if (hasEffect("prone")) system.conditions.prone = true;
+        if (hasEffect("stunned")) system.conditions.stunned = true;
+        if (hasEffect("immobile")) system.conditions.immobile = true;
+
+        // AUTOMATIC CONDITIONS (Override Manual)
         const isDead = system.hp.value === 0 || woundCount >= 6;
         system.conditions.dead = isDead;
+
         const isCritical = system.hp.value < 6 && !isDead;
         system.conditions.critical = isCritical;
 
+        // Head Wound forces Stunned
         if (w.head) system.conditions.stunned = true;
+
+        // Leg Wounds force Immobile
         if (w.lLeg && w.rLeg) system.conditions.immobile = true;
 
-        // 2. DRUG MODIFIERS
+
+        // --- 2. ENCUMBRANCE & ARMOR ---
+        let totalWeight = 0;
+        let highestPV = 0;
+
+        if (actorData.items) {
+            for (const item of actorData.items) {
+                const itemData = item.system;
+                if (itemData?.weight) {
+                    totalWeight += (itemData.weight * (itemData.quantity || 1));
+                }
+                if (item.type === 'armor' && itemData?.equipped) {
+                    let currentPV = itemData.pv || 0;
+                    const res = itemData.resistance;
+                    if (res) {
+                        if (res.value <= 0) currentPV = 0; 
+                        else if (res.value < (res.max / 2)) currentPV = Math.floor(currentPV / 2);
+                    }
+                    if (currentPV > highestPV) highestPV = currentPV; 
+                }
+            }
+        }
+        
+        const rawStr = Number(system.stats.str?.value) || 0;
+        system.encumbrance.value = Math.round(totalWeight * 10) / 10;
+        system.encumbrance.max = Math.max(8, rawStr * 3);
+        
+        const encValue = Math.floor(system.encumbrance.max - system.encumbrance.value);
+        let encDexPenalty = 0;
+        let moveCap = null;
+
+        if (encValue === 1) { encDexPenalty = 1; moveCap = 1; }
+        else if (encValue === 0) { encDexPenalty = 2; moveCap = 1; }
+        else if (encValue < 0) { system.conditions.immobile = true; }
+
+        if (!system.armor) system.armor = { pv: 0, resist: 0 };
+        system.armor.pv = highestPV;
+
+
+        // --- 3. APPLY STAT MODIFIERS ---
         let strMod = 0, dexMod = 0, knowMod = 0, concMod = 0, chaMod = 0, coolMod = 0;
         let damageReduction = 0;
 
@@ -62,62 +118,27 @@ export class BoilerplateActor extends Actor {
         }
         system.wounds.damageReduction = damageReduction;
 
-        // 3. ENCUMBRANCE (Needs Raw STR for Max)
-        const baseStr = Number(system.stats.str?.value) || 0;
-        let totalWeight = 0;
-        let highestPV = 0;
-
-        if (actorData.items) {
-            for (const item of actorData.items) {
-                const itemData = item.system;
-                if (itemData?.weight) totalWeight += (itemData.weight * (itemData.quantity || 1));
-                if (item.type === 'armor' && itemData?.equipped) {
-                    let currentPV = itemData.pv || 0;
-                    const res = itemData.resistance;
-                    if (res) {
-                        if (res.value <= 0) currentPV = 0;
-                        else if (res.value < (res.max / 2)) currentPV = Math.floor(currentPV / 2);
-                    }
-                    if (currentPV > highestPV) highestPV = currentPV; 
-                }
-            }
-        }
-        
-        system.encumbrance.value = Math.round(totalWeight * 10) / 10;
-        system.encumbrance.max = Math.max(8, baseStr * 3);
-        
-        const encValue = Math.floor(system.encumbrance.max - system.encumbrance.value);
-        let encDexPenalty = 0;
-        let moveCap = null;
-
-        if (encValue === 1) { encDexPenalty = 1; moveCap = 1; }
-        else if (encValue === 0) { encDexPenalty = 2; moveCap = 1; }
-        else if (encValue < 0) { system.conditions.immobile = true; }
-
-        // 4. CALCULATE EFFECTIVE STATS (Base + Modifiers)
         const critModPhysical = isCritical ? -2 : 0;
         const critModMental = isCritical ? -1 : 0;
 
-        // Local variables for calculation
-        const effStr = Math.max(0, (Number(system.stats.str?.value) || 0) + critModPhysical + strMod);
-        const effDex = Math.max(0, (Number(system.stats.dex?.value) || 0) + critModPhysical + dexMod - encDexPenalty);
-        const effKnow = Math.max(0, (Number(system.stats.know?.value) || 0) + knowMod);
-        const effConc = Math.max(0, (Number(system.stats.conc?.value) || 0) + critModMental + concMod);
-        const effCha = Math.max(0, (Number(system.stats.cha?.value) || 0) + chaMod);
-        const effCool = Math.max(0, (Number(system.stats.cool?.value) || 0) + critModMental + coolMod);
+        let str = Math.max(0, (Number(system.stats.str?.value) || 0) + critModPhysical + strMod);
+        let dex = Math.max(0, (Number(system.stats.dex?.value) || 0) + critModPhysical + dexMod - encDexPenalty);
+        let know = Math.max(0, (Number(system.stats.know?.value) || 0) + knowMod);
+        let conc = Math.max(0, (Number(system.stats.conc?.value) || 0) + critModMental + concMod);
+        let cha = Math.max(0, (Number(system.stats.cha?.value) || 0) + chaMod);
+        let cool = Math.max(0, (Number(system.stats.cool?.value) || 0) + critModMental + coolMod);
 
-        // SAVE TO .total (Do NOT overwrite .value)
-        system.stats.str.total = effStr;
-        system.stats.dex.total = effDex;
-        system.stats.know.total = effKnow;
-        system.stats.conc.total = effConc;
-        system.stats.cha.total = effCha;
-        system.stats.cool.total = effCool;
+        system.stats.str.value = str;
+        system.stats.dex.value = dex;
+        system.stats.know.value = know;
+        system.stats.conc.value = conc;
+        system.stats.cha.value = cha;
+        system.stats.cool.value = cool;
 
-        // 5. RATINGS POINTS (Use Effective Stats)
-        const rawBody = effStr + effDex;
-        const rawBrains = effKnow + effConc;
-        const rawBravado = effCha + effCool;
+        // --- 4. RATINGS ---
+        const rawBody = str + dex;
+        const rawBrains = know + conc;
+        const rawBravado = cha + cool;
 
         let rankings = [{ id: "body", total: rawBody }, { id: "brains", total: rawBrains }, { id: "bravado", total: rawBravado }];
         rankings.sort((a, b) => b.total - a.total);
@@ -126,10 +147,9 @@ export class BoilerplateActor extends Actor {
         if (system.ratings[rankings[1].id]) system.ratings[rankings[1].id].value = 1;
         if (system.ratings[rankings[2].id]) system.ratings[rankings[2].id].value = 0;
 
-        // 6. INITIATIVE & MOVEMENT & HP
-        if (system.stats.init) system.stats.init.value = effDex + effConc;
+        // --- 5. INITIATIVE & HP & MOVEMENT ---
+        if (system.stats.init) system.stats.init.value = dex + conc;
 
-        // HP uses Effective STR
         let hpBase = 10; 
         const speciesItem = actorData.items.find(i => i.type === 'species');
         if (speciesItem && speciesItem.system.hp) {
@@ -139,9 +159,8 @@ export class BoilerplateActor extends Actor {
             const speciesConfig = CONFIG.SLA?.speciesStats?.[speciesKey];
             if (speciesConfig) hpBase = speciesConfig.hp;
         }
-        system.hp.max = hpBase + effStr;
+        system.hp.max = hpBase + str;
 
-        // Movement
         let closing = 0;
         let rushing = 0;
 
@@ -163,16 +182,13 @@ export class BoilerplateActor extends Actor {
             rushing += Math.floor((athletics.system.rank || 0) / 2);
         }
 
-        if (isCritical) rushing = closing;
-        if (moveCap !== null) rushing = Math.min(rushing, moveCap);
         if (system.conditions.immobile || isDead) { closing = 0; rushing = 0; }
+        else if (isCritical) { rushing = closing; }
+        if (moveCap !== null) rushing = Math.min(rushing, moveCap);
 
         if (!system.move) system.move = { closing: 0, rushing: 0 };
         system.move.closing = closing;
         system.move.rushing = rushing;
-        
-        if (!system.armor) system.armor = { pv: 0, resist: 0 };
-        system.armor.pv = highestPV;
     }
   }
 
@@ -185,12 +201,9 @@ export class BoilerplateActor extends Actor {
   /** @override */
   async _preUpdate(changed, options, user) {
     await super._preUpdate(changed, options, user);
-    
     if (changed.system?.hp?.value !== undefined) {
         if (changed.system.hp.value < 0) changed.system.hp.value = 0;
     }
-    
-    // Max Stats check - Use BASE value for check
     if (changed.system?.stats) {
         const speciesItem = this.items.find(i => i.type === 'species');
         if (speciesItem) {
@@ -212,48 +225,22 @@ export class BoilerplateActor extends Actor {
   
   getRollData() {
     const data = super.getRollData();
-    if (data.stats) {
-      for (let [k, v] of Object.entries(data.stats)) {
-        // Expose both value (Base) and total (Effective) to rolls
-        data[k] = v.total !== undefined ? v.total : v.value;
-      }
-    }
+    if (data.stats) { for (let [k, v] of Object.entries(data.stats)) data[k] = v.value; }
     return data;
   }
 
-  /** * @override
-   * Detects changes to calculated conditions and syncs them to Token Status Effects.
-   */
   async _onUpdate(changed, options, userId) {
       await super._onUpdate(changed, options, userId);
-      
       if (game.user.id !== userId) return;
-
-      // Helper to sync condition state
       const sync = async (key, overlay = false) => {
           const isSet = this.system.conditions[key];
           const hasEffect = this.effects.some(e => e.statuses.has(key));
-          
-          // Only toggle if there is a mismatch
-          if (isSet && !hasEffect) {
-              await this.toggleStatusEffect(key, { active: true, overlay: overlay });
-          } else if (!isSet && hasEffect) {
-              await this.toggleStatusEffect(key, { active: false });
-          }
+          if (isSet && !hasEffect) await this.toggleStatusEffect(key, { active: true, overlay: overlay });
+          else if (!isSet && hasEffect) await this.toggleStatusEffect(key, { active: false });
       };
-
-      // ONLY sync conditions that are calculated by math
-      // Manual conditions (Bleeding, Prone) are handled by the Sheet Button directly
       await sync("critical");
-      await sync("dead", true); // Overlay for dead
-      
-      // Immobile is calculated (Encumbrance/Legs), so we sync it
+      await sync("dead", true);
       await sync("immobile");
-      
-      // Stunned is tricky. It can be Manual OR Calculated (Head wound).
-      // If we include it here, Head Wound forces it ON.
-      // If we exclude it, the Head Wound logic in prepareDerivedData won't show an icon.
-      // We will keep it here to enforce Head Wound rules.
       await sync("stunned");
   }
 }

@@ -57,34 +57,74 @@ export class SlaActorSheet extends ActorSheet {
     return context;
   }
 
+/** Organize Items */
   _prepareItems(context) {
     const gear = [];
     const skills = [];
     const traits = [];
-    const ebbFormulas = [];
-    const disciplines = [];
+    const disciplines = []; // Will hold nested formulas
+    const rawFormulas = []; // Temporary holding
 
     for (let i of context.items) {
       i.img = i.img || DEFAULT_TOKEN;
+      
       if (i.type === 'item' || i.type === 'weapon' || i.type === 'armor' || i.type === 'drug') gear.push(i);
       else if (i.type === 'skill') skills.push(i);
       else if (i.type === 'trait') traits.push(i);
-      else if (i.type === 'ebbFormula') ebbFormulas.push(i);
-      else if (i.type === 'discipline') disciplines.push(i);
+      else if (i.type === 'discipline') {
+          i.formulas = []; // Initialize empty array for children
+          disciplines.push(i);
+      }
+      else if (i.type === 'ebbFormula') {
+          rawFormulas.push(i);
+      }
     }
 
+    // Sort Parents
     const sortFn = (a, b) => a.name.localeCompare(b.name);
     gear.sort(sortFn);
     skills.sort(sortFn);
     traits.sort(sortFn);
-    ebbFormulas.sort(sortFn);
     disciplines.sort(sortFn);
+
+    // Nest Formulas under Disciplines
+    const configDis = CONFIG.SLA?.ebbDisciplines || {};
+    
+    for (let formula of rawFormulas) {
+        const discKey = formula.system.discipline; 
+        // Find the parent Discipline item by matching Name or Key
+        // We check both the Item Name and the Config Label
+        const parent = disciplines.find(d => 
+            d.name === discKey || 
+            d.name === configDis[discKey]
+        );
+
+        if (parent) {
+            parent.formulas.push(formula);
+        } else {
+            // If no parent found, maybe create a "General" dummy discipline or handle separately
+            // For now, let's just push them to a fallback discipline if needed, 
+            // or add to a specific 'orphaned' list.
+            // Let's add a fake 'Unsorted' parent if not present.
+            let unsorted = disciplines.find(d => d._id === "unsorted");
+            if (!unsorted) {
+                unsorted = { _id: "unsorted", name: "Unsorted", system: { rank: 0 }, formulas: [] };
+                disciplines.push(unsorted);
+            }
+            unsorted.formulas.push(formula);
+        }
+    }
+    
+    // Sort children
+    for (let d of disciplines) {
+        d.formulas.sort(sortFn);
+    }
 
     context.gear = gear;
     context.skills = skills;
     context.traits = traits;
-    context.ebbFormulas = ebbFormulas;
-    context.disciplines = disciplines;
+    context.disciplines = disciplines; // This now contains the nested formulas
+    // context.ebbFormulas is removed/unused now
   }
 
   /* -------------------------------------------- */
@@ -156,6 +196,56 @@ export class SlaActorSheet extends ActorSheet {
                 ui.notifications.info("Package removed.");
             }
         });
+    });
+
+    // WOUND CHECKBOX LOGIC
+    html.find('.wound-checkbox').change(async ev => {
+        const target = ev.currentTarget;
+        const isChecked = target.checked;
+        const field = target.name; 
+
+        // 1. Update the Wound in DB first
+        await this.actor.update({ [field]: isChecked });
+
+        // 2. Recalculate total wounds (We need fresh data)
+        // We can't use this.actor.system.wounds immediately because the update promise just resolved
+        // but the local 'this.actor' might not have refreshed in memory yet.
+        // So we calculate manually based on the UI state or re-fetch.
+        
+        let woundCount = 0;
+        const w = this.actor.system.wounds; // This might still be old state?
+        // Let's check the DOM to be safe, or fetch fresh actor.
+        // Actually, since we awaited the update, this.actor should be fresh on next render.
+        // But let's assume we want immediate feedback.
+        
+        // Helper to check status effect
+        const isBleeding = this.actor.effects.some(e => e.statuses.has("bleeding"));
+
+        if (isChecked) {
+             // ADDED WOUND: Apply Bleeding if not present
+             if (!isBleeding) {
+                 await this.actor.toggleStatusEffect("bleeding", { active: true });
+                 ui.notifications.info("Operative is Bleeding!");
+             }
+        } else {
+             // REMOVED WOUND: Check if we should remove Bleeding
+             // We need to check if ALL wounds are now clear.
+             // Since 'w' might be stale, we construct the new state:
+             const newState = { ...w, [field.split('.').pop()]: false }; 
+             
+             let activeWounds = 0;
+             if (newState.head) activeWounds++;
+             if (newState.torso) activeWounds++;
+             if (newState.lArm) activeWounds++;
+             if (newState.rArm) activeWounds++;
+             if (newState.lLeg) activeWounds++;
+             if (newState.rLeg) activeWounds++;
+
+             if (activeWounds === 0 && isBleeding) {
+                 await this.actor.toggleStatusEffect("bleeding", { active: false });
+                 ui.notifications.info("Bleeding stopped (No wounds remaining).");
+             }
+        }
     });
 
     // ITEM MANAGEMENT
