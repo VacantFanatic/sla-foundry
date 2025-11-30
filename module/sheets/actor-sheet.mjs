@@ -180,10 +180,14 @@ export class SlaActorSheet extends ActorSheet {
     
     html.find('.rollable').click(this._onRoll.bind(this));
 
-    html.find('.condition-toggle').click(ev => {
+    // CONDITION TOGGLE (Active Effects)
+    html.find('.condition-toggle').click(async ev => {
+      ev.preventDefault();
       const conditionKey = ev.currentTarget.dataset.condition;
-      const currentState = this.actor.system.conditions[conditionKey];
-      this.actor.update({ [`system.conditions.${conditionKey}`]: !currentState });
+      
+      // This creates/deletes the Active Effect icon on the token
+      // AND updates the system.conditions.x boolean via the Config changes we set up
+      await this.actor.toggleStatusEffect(conditionKey);
     });
   }
 

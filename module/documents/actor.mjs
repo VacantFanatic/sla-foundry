@@ -221,18 +221,39 @@ export class BoilerplateActor extends Actor {
     return data;
   }
 
+  /** * @override
+   * Detects changes to calculated conditions and syncs them to Token Status Effects.
+   */
   async _onUpdate(changed, options, userId) {
       await super._onUpdate(changed, options, userId);
+      
       if (game.user.id !== userId) return;
+
+      // Helper to sync condition state
       const sync = async (key, overlay = false) => {
           const isSet = this.system.conditions[key];
           const hasEffect = this.effects.some(e => e.statuses.has(key));
-          if (isSet && !hasEffect) await this.toggleStatusEffect(key, { active: true, overlay: overlay });
-          else if (!isSet && hasEffect) await this.toggleStatusEffect(key, { active: false });
+          
+          // Only toggle if there is a mismatch
+          if (isSet && !hasEffect) {
+              await this.toggleStatusEffect(key, { active: true, overlay: overlay });
+          } else if (!isSet && hasEffect) {
+              await this.toggleStatusEffect(key, { active: false });
+          }
       };
+
+      // ONLY sync conditions that are calculated by math
+      // Manual conditions (Bleeding, Prone) are handled by the Sheet Button directly
       await sync("critical");
-      await sync("dead", true);
+      await sync("dead", true); // Overlay for dead
+      
+      // Immobile is calculated (Encumbrance/Legs), so we sync it
       await sync("immobile");
+      
+      // Stunned is tricky. It can be Manual OR Calculated (Head wound).
+      // If we include it here, Head Wound forces it ON.
+      // If we exclude it, the Head Wound logic in prepareDerivedData won't show an icon.
+      // We will keep it here to enforce Head Wound rules.
       await sync("stunned");
   }
 }
