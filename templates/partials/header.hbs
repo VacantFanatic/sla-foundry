@@ -1,37 +1,49 @@
 <div class="header-grid">
     {{!-- Bio Section --}}
-    <div class="bio-section flexcol">
+<div class="bio-section flexcol">
         <div class="sla-header-bar">SLA Operative Security Clearance Card</div>
+        
         <div class="bio-field">
             <label>NAME:</label>
             <input type="text" name="name" value="{{actor.name}}"/>
         </div>
-        <div class="bio-field">
+
+        {{!-- SPECIES DROP ZONE --}}
+        <div class="bio-drop-row">
             <label>SPECIES:</label>
-            <div style="display: flex; align-items: center; width: 100%;">
-                {{!-- Read-Only Name --}}
-                <input type="text" value="{{system.bio.species}}" readonly style="color: #39ff14; font-weight: bold; flex: 1; border: none; background: transparent;"/>
-                
-                {{!-- Delete Button (Only if species exists) --}}
-                {{#if system.bio.species}}
-                <a class="species-delete" title="Remove Species & Skills" style="margin-left: 5px; color: #f55; cursor: pointer;">
-                    <i class="fas fa-times"></i>
-                </a>
-                {{/if}}
-            </div>
+            {{#if speciesItem}}
+                {{!-- Filled State --}}
+                <div class="item-chip">
+                    <img src="{{speciesItem.img}}"/>
+                    <span class="chip-name">{{speciesItem.name}}</span>
+                    <a class="chip-delete" data-type="species" title="Remove Species"><i class="fas fa-times"></i></a>
+                </div>
+            {{else}}
+                {{!-- Empty State --}}
+                <div class="empty-drop-zone">
+                    Drop Species Item Here
+                </div>
+            {{/if}}
         </div>
-        <div class="bio-field">
+
+        {{!-- PACKAGE DROP ZONE --}}
+        <div class="bio-drop-row">
             <label>PACKAGE:</label>
-            <div style="display: flex; align-items: center; width: 100%;">
-                <input type="text" value="{{system.bio.package}}" readonly style="color: #39ff14; font-weight: bold; flex: 1; border: none; background: transparent;"/>
-                
-                {{#if system.bio.package}}
-                <a class="package-delete" title="Remove Package & Skills" style="margin-left: 5px; color: #f55; cursor: pointer;">
-                    <i class="fas fa-times"></i>
-                </a>
-                {{/if}}
-            </div>
+            {{#if packageItem}}
+                {{!-- Filled State --}}
+                <div class="item-chip">
+                    <img src="{{packageItem.img}}"/>
+                    <span class="chip-name">{{packageItem.name}}</span>
+                    <a class="chip-delete" data-type="package" title="Remove Package"><i class="fas fa-times"></i></a>
+                </div>
+            {{else}}
+                {{!-- Empty State --}}
+                <div class="empty-drop-zone">
+                    Drop Package Item Here
+                </div>
+            {{/if}}
         </div>
+
         <div class="bio-field">
             <label>SQUAD:</label>
             <input type="text" name="system.bio.squad" value="{{system.bio.squad}}"/>

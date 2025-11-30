@@ -56,6 +56,10 @@ export class SlaActorSheet extends ActorSheet {
         return acc;
     }, {});
 
+    // Find Species & Package Items for Header Display
+    context.speciesItem = this.actor.items.find(i => i.type === "species");
+    context.packageItem = this.actor.items.find(i => i.type === "package");
+
     return context;
   }
 
@@ -99,7 +103,43 @@ export class SlaActorSheet extends ActorSheet {
     super.activateListeners(html);
     if (!this.isEditable) return;
 
-    // --- ITEM MANAGEMENT ---
+    // SPECIES DELETE
+    html.find('.chip-delete[data-type="species"]').click(async ev => {
+        ev.stopPropagation();
+        const speciesItem = this.actor.items.find(i => i.type === "species");
+        if (!speciesItem) return;
+
+        Dialog.confirm({
+            title: "Remove Species?",
+            content: `<p>Remove <strong>${speciesItem.name}</strong>? This resets attributes to base.</p>`,
+            yes: async () => {
+                const skillsToDelete = this.actor.items.filter(i => i.getFlag("sla-industries", "fromSpecies")).map(i => i.id);
+                await this.actor.deleteEmbeddedDocuments("Item", [speciesItem.id, ...skillsToDelete]);
+                const resets = { "system.bio.species": "" };
+                ["str","dex","know","conc","cha","cool"].forEach(k => resets[`system.stats.${k}.value`] = 1);
+                await this.actor.update(resets);
+            }
+        });
+    });
+
+    // PACKAGE DELETE
+    html.find('.chip-delete[data-type="package"]').click(async ev => {
+        ev.stopPropagation();
+        const packageItem = this.actor.items.find(i => i.type === "package");
+        if (!packageItem) return;
+
+        Dialog.confirm({
+            title: "Remove Package?",
+            content: `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
+            yes: async () => {
+                const skillsToDelete = this.actor.items.filter(i => i.getFlag("sla-industries", "fromPackage")).map(i => i.id);
+                await this.actor.deleteEmbeddedDocuments("Item", [packageItem.id, ...skillsToDelete]);
+                await this.actor.update({ "system.bio.package": "" });
+            }
+        });
+    });
+
+    // ITEM MANAGEMENT
     html.find('.item-edit').click(ev => {
       const li = $(ev.currentTarget).parents(".item");
       const item = this.actor.items.get(li.data("itemId"));
@@ -119,28 +159,16 @@ export class SlaActorSheet extends ActorSheet {
       }
     });
 
-    html.find('.item-create').click(this._onItemCreate.bind(this));
-
-    // --- TOGGLES ---
     html.find('.item-toggle').click(ev => {
       const li = $(ev.currentTarget).parents(".item");
       const item = this.actor.items.get(li.data("itemId"));
       if (item.type === 'drug') {
-          // Drugs use 'active' and generate Effects
           item.toggleActive();
       } else {
-          // Gear uses 'equipped'
           item.update({ "system.equipped": !item.system.equipped });
       }
     });
 
-    html.find('.condition-toggle').click(ev => {
-      const conditionKey = ev.currentTarget.dataset.condition;
-      const currentState = this.actor.system.conditions[conditionKey];
-      this.actor.update({ [`system.conditions.${conditionKey}`]: !currentState });
-    });
-    
-    // --- WEAPON RELOAD ---
     html.find('.item-reload').click(ev => {
       const li = $(ev.currentTarget).parents(".item");
       const item = this.actor.items.get(li.data("itemId"));
@@ -148,39 +176,15 @@ export class SlaActorSheet extends ActorSheet {
       item.update({ "system.ammo": max });
     });
 
-    // --- HEADER DELETIONS ---
-    html.find('.species-delete').click(async ev => {
-        const speciesItem = this.actor.items.find(i => i.type === "species");
-        if (!speciesItem) return;
-        Dialog.confirm({
-            title: "Remove Species?",
-            content: `<p>Remove <strong>${speciesItem.name}</strong>? This deletes associated skills.</p>`,
-            yes: async () => {
-                const skillsToDelete = this.actor.items.filter(i => i.getFlag("sla-industries", "fromSpecies")).map(i => i.id);
-                await this.actor.deleteEmbeddedDocuments("Item", [speciesItem.id, ...skillsToDelete]);
-                const resets = { "system.bio.species": "" };
-                ["str","dex","know","conc","cha","cool"].forEach(k => resets[`system.stats.${k}.value`] = 1);
-                await this.actor.update(resets);
-            }
-        });
-    });
-
-    html.find('.package-delete').click(async ev => {
-        const packageItem = this.actor.items.find(i => i.type === "package");
-        if (!packageItem) return;
-        Dialog.confirm({
-            title: "Remove Package?",
-            content: `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
-            yes: async () => {
-                const skillsToDelete = this.actor.items.filter(i => i.getFlag("sla-industries", "fromPackage")).map(i => i.id);
-                await this.actor.deleteEmbeddedDocuments("Item", [packageItem.id, ...skillsToDelete]);
-                await this.actor.update({ "system.bio.package": "" });
-            }
-        });
-    });
-
-    // --- ROLLING ---
+    html.find('.item-create').click(this._onItemCreate.bind(this));
+    
     html.find('.rollable').click(this._onRoll.bind(this));
+
+    html.find('.condition-toggle').click(ev => {
+      const conditionKey = ev.currentTarget.dataset.condition;
+      const currentState = this.actor.system.conditions[conditionKey];
+      this.actor.update({ [`system.conditions.${conditionKey}`]: !currentState });
+    });
   }
 
   /* -------------------------------------------- */
@@ -195,7 +199,6 @@ export class SlaActorSheet extends ActorSheet {
     const element = event.currentTarget;
     const dataset = element.dataset;
 
-    // Global Modifiers (Prone/Stunned)
     let globalMod = 0;
     if (this.actor.system.conditions?.prone) globalMod -= 1;
     if (this.actor.system.conditions?.stunned) globalMod -= 1;
@@ -204,7 +207,7 @@ export class SlaActorSheet extends ActorSheet {
     if (dataset.rollType === 'stat') {
         const statKey = dataset.key.toLowerCase();
         const statLabel = statKey.toUpperCase();
-        const statValue = this.actor.system.stats[statKey]?.value || 0;
+        const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
         const penalty = this.actor.system.wounds.penalty || 0;
         const finalMod = statValue - penalty + globalMod;
 
@@ -244,6 +247,7 @@ export class SlaActorSheet extends ActorSheet {
     if (dataset.rollType === 'item') {
         const itemId = $(element).parents('.item').data('itemId');
         const item = this.actor.items.get(itemId);
+
         if (item.type === 'weapon') {
             const skillKey = item.system.skill || "";
             const isMelee = ["melee", "unarmed", "thrown"].includes(skillKey);
@@ -287,8 +291,8 @@ export class SlaActorSheet extends ActorSheet {
       const genericMod = Number(form.modifier.value) || 0;
       
       const statKey = "dex"; 
-      const statValue = this.actor.system.stats[statKey]?.value || 0;
-      const strValue = Number(this.actor.system.stats.str?.value) || 0; 
+      const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
+      const strValue = this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0; 
       
       const skillKey = item.system.skill; 
       let rank = 0;
@@ -301,8 +305,12 @@ export class SlaActorSheet extends ActorSheet {
 
       let successDieMod = 0; 
       let allDiceMod = genericMod;
-      if (this.actor.system.conditions?.prone) allDiceMod -= 1;
-      if (this.actor.system.conditions?.stunned) allDiceMod -= 1;
+      
+      // Global Modifiers (Scope Fix: Recalculate here)
+      let globalMod = 0;
+      if (this.actor.system.conditions?.prone) globalMod -= 1;
+      if (this.actor.system.conditions?.stunned) globalMod -= 1;
+      allDiceMod += globalMod;
 
       let autoSkillSuccesses = 0; 
       let rankMod = 0; 
@@ -427,8 +435,7 @@ export class SlaActorSheet extends ActorSheet {
       const rank = item.system.rank || 0;
       const bonus = item.system.bonus || 0;
       const statKey = (item.system.stat || "dex").toLowerCase();
-      const statValue = this.actor.system.stats[statKey]?.value || 
-                        (this.actor.system.ratings && this.actor.system.ratings[statKey]?.value) || 0;
+      const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
 
       let globalMod = 0;
       if (this.actor.system.conditions?.prone) globalMod -= 1;
@@ -483,7 +490,7 @@ export class SlaActorSheet extends ActorSheet {
 
       const disciplineName = item.system.discipline;
       const statKey = "conc"; 
-      const statValue = this.actor.system.stats[statKey]?.value || 0;
+      const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
       
       let targetName = disciplineName;
       const ebbDisciplines = CONFIG.SLA?.ebbDisciplines || {};
