@@ -23,21 +23,17 @@ export class SlaActorSheet extends ActorSheet {
   }
 
   /* -------------------------------------------- */
-  /* DATA PREPARATION                            */
-  /* -------------------------------------------- */
 
   /** @override */
   async getData() {
     const context = await super.getData();
     const actorData = context.data;
     
-    // CRITICAL: Data Safety Check
     if (!actorData || !actorData.system) return context; 
     
     context.system = actorData.system;
     context.flags = actorData.flags;
 
-    // Ensure Objects Exist
     context.system.stats = context.system.stats || {};
     context.system.ratings = context.system.ratings || {};
     context.system.wounds = context.system.wounds || {};
@@ -49,21 +45,15 @@ export class SlaActorSheet extends ActorSheet {
 
     context.rollData = context.actor.getRollData();
 
-    // Species Dropdown Config
     const speciesList = CONFIG.SLA?.speciesStats || {};
     context.speciesOptions = Object.keys(speciesList).reduce((acc, key) => {
         acc[key] = speciesList[key].label;
         return acc;
     }, {});
 
-    // Find Species & Package Items for Header Display
-    context.speciesItem = this.actor.items.find(i => i.type === "species");
-    context.packageItem = this.actor.items.find(i => i.type === "package");
-
     return context;
   }
 
-  /** Organize Items */
   _prepareItems(context) {
     const gear = [];
     const skills = [];
@@ -95,23 +85,19 @@ export class SlaActorSheet extends ActorSheet {
   }
 
   /* -------------------------------------------- */
-  /* EVENT LISTENERS                             */
-  /* -------------------------------------------- */
 
   /** @override */
   activateListeners(html) {
     super.activateListeners(html);
     if (!this.isEditable) return;
 
-    // SPECIES DELETE
-    html.find('.chip-delete[data-type="species"]').click(async ev => {
-        ev.stopPropagation();
+    // HEADER DELETIONS
+    html.find('.species-delete').click(async ev => {
         const speciesItem = this.actor.items.find(i => i.type === "species");
         if (!speciesItem) return;
-
         Dialog.confirm({
             title: "Remove Species?",
-            content: `<p>Remove <strong>${speciesItem.name}</strong>? This resets attributes to base.</p>`,
+            content: `<p>Remove <strong>${speciesItem.name}</strong>? This deletes associated skills.</p>`,
             yes: async () => {
                 const skillsToDelete = this.actor.items.filter(i => i.getFlag("sla-industries", "fromSpecies")).map(i => i.id);
                 await this.actor.deleteEmbeddedDocuments("Item", [speciesItem.id, ...skillsToDelete]);
@@ -122,12 +108,9 @@ export class SlaActorSheet extends ActorSheet {
         });
     });
 
-    // PACKAGE DELETE
-    html.find('.chip-delete[data-type="package"]').click(async ev => {
-        ev.stopPropagation();
+    html.find('.package-delete').click(async ev => {
         const packageItem = this.actor.items.find(i => i.type === "package");
         if (!packageItem) return;
-
         Dialog.confirm({
             title: "Remove Package?",
             content: `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
@@ -177,23 +160,14 @@ export class SlaActorSheet extends ActorSheet {
     });
 
     html.find('.item-create').click(this._onItemCreate.bind(this));
-    
     html.find('.rollable').click(this._onRoll.bind(this));
 
-    // CONDITION TOGGLE (Active Effects)
-    html.find('.condition-toggle').click(async ev => {
-      ev.preventDefault();
+    html.find('.condition-toggle').click(ev => {
       const conditionKey = ev.currentTarget.dataset.condition;
-      
-      // This creates/deletes the Active Effect icon on the token
-      // AND updates the system.conditions.x boolean via the Config changes we set up
-      await this.actor.toggleStatusEffect(conditionKey);
+      const currentState = this.actor.system.conditions[conditionKey];
+      this.actor.update({ [`system.conditions.${conditionKey}`]: !currentState });
     });
   }
-
-  /* -------------------------------------------- */
-  /* ROLL HANDLERS                               */
-  /* -------------------------------------------- */
 
   /**
    * Main Roll Router
@@ -234,7 +208,7 @@ export class SlaActorSheet extends ActorSheet {
                 <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:5px;">
                     <span style="font-size:0.9em; color:#aaa;">SUCCESS DIE</span>
                     <div style="text-align:right;">
-                         <span style="font-size:1.5em; font-weight:bold; color:#fff;">${finalTotal}</span>
+                         <span style="font-size:1.5em; font-weight:bold; color:${finalTotal > 10 ? '#39ff14' : '#f55'};">${finalTotal}</span>
                          <span style="font-size:0.8em; color:#777;">(Roll ${rawDie} + Mod ${finalMod})</span>
                     </div>
                 </div>
@@ -269,27 +243,116 @@ export class SlaActorSheet extends ActorSheet {
     }
   }
 
-  // --- DIALOG: WEAPON ATTACK ---
+// --- HELPER: RENDER ATTACK DIALOG ---
   _renderAttackDialog(item, isMelee) {
       const recoil = item.system.recoil || 0;
-      let dialogContent = `<form style="color:#eee; font-family:'Roboto Condensed',sans-serif;"><div class="form-group" style="margin-bottom:5px;"><label>Generic Modifier (+/-)</label><input type="number" name="modifier" value="0" style="background:#333; color:#fff; border:1px solid #555; text-align:center; width:50px; float:right;"/></div><hr style="border:1px solid #444;">`;
       
+      let dialogContent = `
+        <form style="color:#eee; font-family:'Roboto Condensed',sans-serif;">
+            <div class="form-group" style="margin-bottom:5px;">
+                <label>Generic Modifier (+/-)</label>
+                <input type="number" name="modifier" value="0" style="background:#333; color:#fff; border:1px solid #555; text-align:center; width:50px; float:right;"/>
+            </div>
+            <hr style="border:1px solid #444;">
+      `;
+
       if (isMelee) {
-          dialogContent += `<h3 style="border-bottom:1px solid #555; color:#39ff14; margin-bottom:5px;">Melee Modifiers</h3><div style="display:grid; grid-template-columns: 1fr; gap: 5px;"><div><input type="checkbox" name="charging"/> Charging (-1 SD, +1 Auto)</div><div><input type="checkbox" name="prone"/> Target Prone (+2 SD)</div><div class="form-group" style="margin-top:5px; display:flex; justify-content:space-between;"><label>Combat Def</label><input type="number" name="combatDef" value="0" style="width:50px; background:#333; color:#fff; text-align:center;"/></div></div>`;
+          dialogContent += `
+            <h3 style="border-bottom:1px solid #555; color:#39ff14; margin-bottom:5px;">Melee Modifiers</h3>
+            <div style="display:grid; grid-template-columns: 1fr; gap: 5px;">
+                <div><input type="checkbox" name="charging"/> Charging Target (-1 SD, +1 Auto Skill)</div>
+                <div><input type="checkbox" name="targetCharged"/> Target Charged/Fast Move (-1 SD)</div>
+                <div><input type="checkbox" name="sameTarget"/> Hit Same Target Last Round (+1 SD)</div>
+                <div><input type="checkbox" name="breakOff"/> Target Breaking Off (+1 SD)</div>
+                <div><input type="checkbox" name="natural"/> Natural Weapons (+1 SD)</div>
+                <div><input type="checkbox" name="prone"/> Target Prone/Stunned (+2 SD)</div>
+                
+                <div class="form-group" style="margin-top:5px; display:flex; justify-content:space-between;">
+                    <label>Combat Defence (Rank)</label>
+                    <input type="number" name="combatDef" value="0" style="width:50px; background:#333; color:#fff; text-align:center;"/>
+                </div>
+                <div class="form-group" style="display:flex; justify-content:space-between;">
+                    <label>Acrobatic Defence (Rank)</label>
+                    <input type="number" name="acroDef" value="0" style="width:50px; background:#333; color:#fff; text-align:center;"/>
+                </div>
+            </div>
+          `;
       } else {
-          dialogContent += `<h3 style="border-bottom:1px solid #555; color:#39ff14; margin-bottom:5px;">Ranged Modifiers</h3><div style="font-size:0.8em; color:#aaa; margin-bottom:5px;">Base Recoil: -${recoil} SD</div><div style="display:grid; grid-template-columns: 1fr; gap: 5px;"><div class="form-group" style="display:flex; justify-content:space-between;"><label>Target Cover</label><select name="cover" style="background:#333; color:#fff; width:120px;"><option value="0">None</option><option value="-1">Light (-1 SD)</option><option value="-2">Heavy (-2 SD)</option></select></div><div class="form-group" style="display:flex; justify-content:space-between;"><label>Ammo</label><select name="ammo" style="background:#333; color:#fff; width:120px;"><option value="std">Standard</option><option value="he">HE (+1)</option><option value="ap">AP (-2 PV)</option></select></div><div class="form-group" style="display:flex; justify-content:space-between;"><label>Mode</label><select name="mode" style="background:#333; color:#fff; width:120px;"><option value="single">Single</option><option value="burst">Burst (+2)</option><option value="auto">Auto (+4)</option><option value="suppress">Suppress (+4)</option></select></div></div>`;
+          dialogContent += `
+            <h3 style="border-bottom:1px solid #555; color:#39ff14; margin-bottom:5px;">Ranged Modifiers</h3>
+            <div style="font-size:0.8em; color:#aaa; margin-bottom:5px;">Base Recoil: -${recoil} SD</div>
+            
+            <div style="display:grid; grid-template-columns: 1fr; gap: 5px;">
+                <div class="form-group" style="display:flex; justify-content:space-between;">
+                    <label>Target Cover</label>
+                    <select name="cover" style="background:#333; color:#fff; width:120px;">
+                        <option value="0">None</option>
+                        <option value="-1">Light (-1 SD)</option>
+                        <option value="-2">Heavy/Hidden (-2 SD)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="display:flex; justify-content:space-between;">
+                    <label>Dual Wielding</label>
+                    <select name="dual" style="background:#333; color:#fff; width:120px;">
+                        <option value="0">No</option>
+                        <option value="-2">Same Target (-2 SD)</option>
+                        <option value="-4">Diff Target (-4 SD)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="display:flex; justify-content:space-between;">
+                    <label>Aiming</label>
+                    <select name="aiming" style="background:#333; color:#fff; width:120px;">
+                        <option value="none">None</option>
+                        <option value="sd">+1 Success Die</option>
+                        <option value="skill">+1 Skill Success</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="display:flex; justify-content:space-between;">
+                    <label>Firing Mode</label>
+                    <select name="mode" style="background:#333; color:#fff; width:120px;">
+                        <option value="single">Single</option>
+                        <option value="burst">Burst (+2 DMG)</option>
+                        <option value="auto">Full Auto (+4 DMG)</option>
+                        <option value="suppress">Suppressive (+4 DMG)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display:flex; justify-content:space-between;">
+                    <label>Ammo</label>
+                    <select name="ammo" style="background:#333; color:#fff; width:120px;">
+                        <option value="std">Standard</option>
+                        <option value="he">HE (+1)</option><option value="ap">AP (-2 PV)</option>
+                        <option value="slug">Slug (+1)</option>
+                    </select>
+                </div>
+
+                <hr style="border: 1px solid #444; width:100%;">
+                
+                <div><input type="checkbox" name="targetMoved"/> Target Moved Fast (-1 SD)</div>
+                <div><input type="checkbox" name="blind"/> Firing Blind (-1 All Dice)</div>
+                <div><input type="checkbox" name="longRange"/> Long Range (-1 Skill Die)</div>
+                <div><input type="checkbox" name="prone"/> Target Prone/Stunned (+1 SD)</div>
+            </div>
+          `;
       }
       dialogContent += `</form>`;
 
       new Dialog({
           title: `Attack: ${item.name}`,
           content: dialogContent,
-          buttons: { roll: { label: "ROLL", callback: (html) => this._processWeaponRoll(item, html, isMelee) } },
+          buttons: {
+              roll: {
+                  label: "ROLL ATTACK",
+                  callback: (html) => this._processWeaponRoll(item, html, isMelee)
+              }
+          },
           default: "roll"
       }, { classes: ["sla-dialog", "sla-sheet"] }).render(true);
   }
 
-  // --- ACTION: PROCESS WEAPON ROLL ---
+  // --- HELPER: PROCESS WEAPON ROLL ---
   async _processWeaponRoll(item, html, isMelee) {
       const form = html[0].querySelector("form");
       const genericMod = Number(form.modifier.value) || 0;
@@ -307,20 +370,16 @@ export class SlaActorSheet extends ActorSheet {
           if (skillItem) rank = skillItem.system.rank;
       }
 
+      // Modifiers
       let successDieMod = 0; 
       let allDiceMod = genericMod;
-      
-      // Global Modifiers (Scope Fix: Recalculate here)
-      let globalMod = 0;
-      if (this.actor.system.conditions?.prone) globalMod -= 1;
-      if (this.actor.system.conditions?.stunned) globalMod -= 1;
-      allDiceMod += globalMod;
-
       let autoSkillSuccesses = 0; 
       let rankMod = 0; 
+      let effectNote = "";
       let damageBonus = 0;
       let armorPen = 0;
 
+      // Parse Recoil
       const parseSlashVal = (valStr, index) => {
           const parts = String(valStr).split('/');
           if (parts.length === 1) return Number(parts[0]) || 0;
@@ -329,23 +388,33 @@ export class SlaActorSheet extends ActorSheet {
       };
 
       if (isMelee) {
+          // MELEE MODIFIERS
           if (strValue >= 7) damageBonus += 4;
           else if (strValue === 6) damageBonus += 2;
           else if (strValue === 5) damageBonus += 1;
 
           if (form.charging.checked) { successDieMod -= 1; autoSkillSuccesses += 1; }
+          if (form.targetCharged.checked) successDieMod -= 1;
+          if (form.sameTarget.checked) successDieMod += 1;
+          if (form.breakOff.checked) successDieMod += 1;
+          if (form.natural.checked) successDieMod += 1;
           if (form.prone.checked) successDieMod += 2;
           
-          allDiceMod -= (Number(form.combatDef.value) || 0); 
+          const combatDef = Number(form.combatDef.value) || 0;
+          const acroDef = Number(form.acroDef.value) || 0;
+          allDiceMod -= combatDef; 
+          allDiceMod -= (acroDef * 2); 
       } else {
+          // RANGED MODIFIERS
           const mode = form.mode.value;
           let recoilIndex = 0;
           let ammoCost = 1;
 
-          if (mode === "burst") { recoilIndex = 1; ammoCost = 3; damageBonus += 2; }
-          else if (mode === "auto") { recoilIndex = 2; ammoCost = 10; damageBonus += 4; }
+          if (mode === "burst") { recoilIndex = 1; ammoCost = 3; damageBonus += 2; effectNote += "Burst: Reroll SD. "; }
+          else if (mode === "auto") { recoilIndex = 2; ammoCost = 10; damageBonus += 4; effectNote += "Full Auto: Reroll All. "; }
           else if (mode === "suppress") { 
               recoilIndex = 2; ammoCost = 20; autoSkillSuccesses += 2; damageBonus += 4; 
+              effectNote += "Suppressive: Reroll All. "; 
               const supportSkill = this.actor.items.find(i => i.type === 'skill' && i.name.toLowerCase() === 'support weapons');
               rank = supportSkill ? supportSkill.system.rank : 0;
           }
@@ -354,23 +423,47 @@ export class SlaActorSheet extends ActorSheet {
           if (recoilVal > 0) successDieMod -= recoilVal;
 
           const currentAmmo = item.system.ammo || 0;
-          if (currentAmmo < ammoCost) { ammoCost = currentAmmo; damageBonus -= 2; }
+          if (currentAmmo < ammoCost) { ammoCost = currentAmmo; damageBonus -= 2; effectNote += "Low Ammo (-2 DMG). "; }
           await item.update({ "system.ammo": currentAmmo - ammoCost });
 
           const ammo = form.ammo.value;
-          if (ammo === "he") damageBonus += 1;
-          if (ammo === "ap") armorPen = 2;
-          if (ammo === "slug") damageBonus += 1;
-          
+          if (ammo === "he") { damageBonus += 1; effectNote += "HE: +1 AD. "; }
+          if (ammo === "ap") { armorPen = 2; effectNote += "AP: -2 PV. "; }
+          if (ammo === "slug") { damageBonus += 1; effectNote += "Slug: -1 AD. "; }
+
           const cover = Number(form.cover.value) || 0;
           successDieMod += cover;
+          const dual = Number(form.dual.value) || 0;
+          successDieMod += dual;
+
+          const aiming = form.aiming.value;
+          if (mode !== "suppress") {
+              if (aiming === "sd") successDieMod += 1;
+              if (aiming === "skill") autoSkillSuccesses += 1;
+          }
+
+          if (form.targetMoved.checked) successDieMod -= 1;
+          if (form.blind.checked) allDiceMod -= 1;
+          if (form.prone.checked) successDieMod += 1;
+          if (form.longRange.checked) { 
+              rankMod -= 1; 
+              effectNote += "Long Range (-1 Die). "; 
+          }
       }
+
+      // Apply Global Conditions
+      let globalMod = 0;
+      if (this.actor.system.conditions?.prone) globalMod -= 1;
+      if (this.actor.system.conditions?.stunned) globalMod -= 1;
+      allDiceMod += globalMod;
 
       const penalty = this.actor.system.wounds.penalty || 0;
       allDiceMod -= penalty;
 
       const baseModifier = statValue + rank + allDiceMod; 
       let effectiveRank = Math.max(0, rank + rankMod); 
+
+      // --- ROLL ---
       let formula = "1d10";
       if (effectiveRank > 0) formula += ` + ${effectiveRank}d10`;
 
@@ -378,7 +471,7 @@ export class SlaActorSheet extends ActorSheet {
       await roll.evaluate();
 
       const successRaw = roll.terms[0].results[0].result;
-      const successTotal = successRaw + baseModifier + successDieMod;
+      const successTotal = successRaw + baseModifier + successDieMod; // Apply SD Modifiers here
 
       let mosCount = autoSkillSuccesses; 
       let skillDiceHtml = "";
@@ -394,22 +487,28 @@ export class SlaActorSheet extends ActorSheet {
       if (autoSkillSuccesses > 0) skillDiceHtml += `<div style="display:flex; flex-direction:column; align-items:center; margin:2px;"><span style="border:1px solid #39ff14; background:#39ff14; color:#000; padding:2px 8px; border-radius:4px; font-weight:bold;">+${autoSkillSuccesses}</span><span style="font-size:0.7em; color:#aaa;">(Auto)</span></div>`;
 
       let mosDamage = 0;
+      let hitLocation = "Standard";
       if (mosCount === 1) mosDamage = 1;
-      else if (mosCount === 2) mosDamage = 2;
-      else if (mosCount === 3) mosDamage = 4;
-      else if (mosCount >= 4) mosDamage = 6;
+      else if (mosCount === 2) { mosDamage = 2; hitLocation = "Arm/Torso"; }
+      else if (mosCount === 3) { mosDamage = 4; hitLocation = "Leg/Arm/Torso"; }
+      else if (mosCount >= 4) { mosDamage = 6; hitLocation = "HEAD (or any)"; }
 
       const totalDamageBonus = mosDamage + damageBonus;
       const baseDamage = item.system.damage || "0";
       const finalDamageFormula = totalDamageBonus > 0 ? `${baseDamage} + ${totalDamageBonus}` : baseDamage;
       const ad = item.system.ad || 0;
 
+      let modText = `Stat: ${statValue} | Rank: ${rank}`;
+      if (allDiceMod !== 0) modText += ` | All: ${allDiceMod > 0 ? "+" : ""}${allDiceMod}`;
+      if (successDieMod !== 0) modText += ` | SD: ${successDieMod > 0 ? "+" : ""}${successDieMod}`;
+      if (effectNote) modText += `<br><em style="color:#f88;">${effectNote}</em>`;
+
       roll.toMessage({
           speaker: ChatMessage.getSpeaker({ actor: this.actor }),
           content: `
           <div style="background:#222; border:1px solid #ff4400; color:#eee; padding:5px; font-family:'Roboto Condensed',sans-serif;">
               <h3 style="color:#ff4400; margin:0; border-bottom:1px solid #555;">ATTACK: ${item.name.toUpperCase()}</h3>
-              <div style="font-size:0.8em; color:#aaa;">Stat: ${statValue} | Rank: ${rank}</div>
+              <div style="font-size:0.8em; color:#aaa;">${modText}</div>
               <div style="display:flex; justify-content:space-between; background:rgba(255,68,0,0.1); padding:5px; margin:5px 0;">
                   <span style="font-weight:bold; color:#ff4400;">SUCCESS DIE</span>
                   <span style="font-size:1.5em; font-weight:bold; color:${successTotal > 10 ? '#39ff14' : '#f55'};">${successTotal}</span>
@@ -420,6 +519,7 @@ export class SlaActorSheet extends ActorSheet {
               </div>
               <div style="background:#111; border:1px solid #555; padding:5px; margin-bottom:5px;">
                   <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#ccc;">
+                      <span>Hit: <strong style="color:#fff;">${hitLocation}</strong></span>
                       <span>Total Bonus: <strong style="color:#39ff14;">+${totalDamageBonus}</strong></span>
                   </div>
                   ${armorPen > 0 ? `<div style="font-size:0.7em; color:#f88; margin-top:2px;">Target PV reduced by ${armorPen}</div>` : ""}
@@ -532,6 +632,7 @@ export class SlaActorSheet extends ActorSheet {
                const val = r.result + modifier;
                const isSuccess = val >= formulaRating;
                if (isSuccess) skillSuccesses++;
+
                const border = isSuccess ? "1px solid #8a2be2" : "1px solid #555";
                const color = isSuccess ? "#39ff14" : "#aaa";
                skillDiceHtml += `<div style="display:flex; flex-direction:column; align-items:center; margin:2px;"><span style="border:${border}; padding:2px 8px; border-radius:4px; font-weight:bold; color:${color};">${val}</span><span style="font-size:0.7em; color:#555;">(${r.result})</span></div>`;
@@ -586,44 +687,45 @@ export class SlaActorSheet extends ActorSheet {
       });
   }
 
-  /** * Handle dropping Items (SPECIES/PACKAGE LOGIC) */
+  // --- DROPS ---
   async _onDropItem(event, data) {
     if ( !this.actor.isOwner ) return false;
     const item = await Item.implementation.fromDropData(data);
     const itemData = item.toObject();
 
-    // 1. HANDLE SPECIES
     if (itemData.type === "species") {
         const existing = this.actor.items.find(i => i.type === "species");
         if (existing) await existing.delete();
-        
-        // Create Species
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.species": itemData.name });
-        
-        // Set Stats
         const stats = itemData.system.stats;
         const updates = {};
         for (const [key, val] of Object.entries(stats)) updates[`system.stats.${key}.value`] = val.min;
         await this.actor.update(updates);
         
-        // Grant Skills (New Array Logic)
-        const skillsToAdd = itemData.system.skills || [];
-        if (skillsToAdd.length > 0) {
-            // Flag them
-            const flaggedSkills = skillsToAdd.map(s => {
-                s.flags = { "sla-industries": { fromSpecies: true } };
-                // Ensure rank is at least 1 if not set
-                if (!s.system.rank) s.system.rank = 1; 
-                return s;
-            });
-            await this.actor.createEmbeddedDocuments("Item", flaggedSkills);
-            ui.notifications.info(`Granted ${flaggedSkills.length} starting skills/traits.`);
+        const skillString = itemData.system.skills || "";
+        if (skillString) {
+            const skillNames = skillString.split(",").map(s => s.trim());
+            const skillPack = game.packs.get("world.sla-skills"); 
+            if (skillPack) {
+                const index = await skillPack.getIndex();
+                const skillsToAdd = [];
+                for (const name of skillNames) {
+                    const entry = index.find(e => e.name === name);
+                    if (entry) {
+                        const doc = await skillPack.getDocument(entry._id);
+                        const obj = doc.toObject();
+                        obj.flags = { "sla-industries": { fromSpecies: true } };
+                        obj.system.rank = 1; 
+                        skillsToAdd.push(obj);
+                    }
+                }
+                if (skillsToAdd.length) await this.actor.createEmbeddedDocuments("Item", skillsToAdd);
+            }
         }
         return;
     }
     
-    // 2. HANDLE PACKAGE
     if (itemData.type === "package") {
         const reqs = itemData.system.requirements || {};
         for (const [key, minVal] of Object.entries(reqs)) {
@@ -632,20 +734,28 @@ export class SlaActorSheet extends ActorSheet {
         }
         const existing = this.actor.items.find(i => i.type === "package");
         if (existing) await existing.delete();
-        
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.package": itemData.name });
         
-        // Grant Skills (New Array Logic)
-        const skillsToAdd = itemData.system.skills || [];
-        if (skillsToAdd.length > 0) {
-             const flaggedSkills = skillsToAdd.map(s => {
-                s.flags = { "sla-industries": { fromPackage: true } };
-                if (!s.system.rank) s.system.rank = 1;
-                return s;
-            });
-            await this.actor.createEmbeddedDocuments("Item", flaggedSkills);
-            ui.notifications.info(`Package applied with ${flaggedSkills.length} skills.`);
+        const skillString = itemData.system.skills || "";
+        if (skillString) {
+            const skillNames = skillString.split(",").map(s => s.trim());
+            const skillPack = game.packs.get("world.sla-skills"); 
+            if (skillPack) {
+                const index = await skillPack.getIndex();
+                const skillsToAdd = [];
+                for (const name of skillNames) {
+                    const entry = index.find(e => e.name === name);
+                    if (entry) {
+                        const doc = await skillPack.getDocument(entry._id);
+                        const obj = doc.toObject();
+                        obj.flags = { "sla-industries": { fromPackage: true } };
+                        obj.system.rank = 1;
+                        skillsToAdd.push(obj);
+                    }
+                }
+                if (skillsToAdd.length) await this.actor.createEmbeddedDocuments("Item", skillsToAdd);
+            }
         }
         return;
     }
