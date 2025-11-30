@@ -586,45 +586,44 @@ export class SlaActorSheet extends ActorSheet {
       });
   }
 
-  // --- DROPS ---
+  /** * Handle dropping Items (SPECIES/PACKAGE LOGIC) */
   async _onDropItem(event, data) {
     if ( !this.actor.isOwner ) return false;
     const item = await Item.implementation.fromDropData(data);
     const itemData = item.toObject();
 
+    // 1. HANDLE SPECIES
     if (itemData.type === "species") {
         const existing = this.actor.items.find(i => i.type === "species");
         if (existing) await existing.delete();
+        
+        // Create Species
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.species": itemData.name });
+        
+        // Set Stats
         const stats = itemData.system.stats;
         const updates = {};
         for (const [key, val] of Object.entries(stats)) updates[`system.stats.${key}.value`] = val.min;
         await this.actor.update(updates);
         
-        const skillString = itemData.system.skills || "";
-        if (skillString) {
-            const skillNames = skillString.split(",").map(s => s.trim());
-            const skillPack = game.packs.get("world.sla-skills"); 
-            if (skillPack) {
-                const index = await skillPack.getIndex();
-                const skillsToAdd = [];
-                for (const name of skillNames) {
-                    const entry = index.find(e => e.name === name);
-                    if (entry) {
-                        const doc = await skillPack.getDocument(entry._id);
-                        const obj = doc.toObject();
-                        obj.flags = { "sla-industries": { fromSpecies: true } };
-                        obj.system.rank = 1; 
-                        skillsToAdd.push(obj);
-                    }
-                }
-                if (skillsToAdd.length) await this.actor.createEmbeddedDocuments("Item", skillsToAdd);
-            }
+        // Grant Skills (New Array Logic)
+        const skillsToAdd = itemData.system.skills || [];
+        if (skillsToAdd.length > 0) {
+            // Flag them
+            const flaggedSkills = skillsToAdd.map(s => {
+                s.flags = { "sla-industries": { fromSpecies: true } };
+                // Ensure rank is at least 1 if not set
+                if (!s.system.rank) s.system.rank = 1; 
+                return s;
+            });
+            await this.actor.createEmbeddedDocuments("Item", flaggedSkills);
+            ui.notifications.info(`Granted ${flaggedSkills.length} starting skills/traits.`);
         }
         return;
     }
     
+    // 2. HANDLE PACKAGE
     if (itemData.type === "package") {
         const reqs = itemData.system.requirements || {};
         for (const [key, minVal] of Object.entries(reqs)) {
@@ -633,28 +632,20 @@ export class SlaActorSheet extends ActorSheet {
         }
         const existing = this.actor.items.find(i => i.type === "package");
         if (existing) await existing.delete();
+        
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.package": itemData.name });
         
-        const skillString = itemData.system.skills || "";
-        if (skillString) {
-            const skillNames = skillString.split(",").map(s => s.trim());
-            const skillPack = game.packs.get("world.sla-skills"); 
-            if (skillPack) {
-                const index = await skillPack.getIndex();
-                const skillsToAdd = [];
-                for (const name of skillNames) {
-                    const entry = index.find(e => e.name === name);
-                    if (entry) {
-                        const doc = await skillPack.getDocument(entry._id);
-                        const obj = doc.toObject();
-                        obj.flags = { "sla-industries": { fromPackage: true } };
-                        obj.system.rank = 1;
-                        skillsToAdd.push(obj);
-                    }
-                }
-                if (skillsToAdd.length) await this.actor.createEmbeddedDocuments("Item", skillsToAdd);
-            }
+        // Grant Skills (New Array Logic)
+        const skillsToAdd = itemData.system.skills || [];
+        if (skillsToAdd.length > 0) {
+             const flaggedSkills = skillsToAdd.map(s => {
+                s.flags = { "sla-industries": { fromPackage: true } };
+                if (!s.system.rank) s.system.rank = 1;
+                return s;
+            });
+            await this.actor.createEmbeddedDocuments("Item", flaggedSkills);
+            ui.notifications.info(`Package applied with ${flaggedSkills.length} skills.`);
         }
         return;
     }

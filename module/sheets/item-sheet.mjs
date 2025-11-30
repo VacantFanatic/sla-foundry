@@ -10,7 +10,8 @@ export class SlaItemSheet extends ItemSheet {
       classes: ["sla-industries", "sheet", "item"],
       width: 520,
       height: 480,
-      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "attributes" }]
+      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "attributes" }],
+      dragDrop: [{ dragSelector: null, dropSelector: ".drop-zone" }]
     });
   }
 
@@ -20,7 +21,7 @@ export class SlaItemSheet extends ItemSheet {
     return `${path}/item-sheet.hbs`;
   }
 
-   /** @override */
+  /** @override */
   async getData() {
     const context = await super.getData();
     const item = this.item;
@@ -28,12 +29,6 @@ export class SlaItemSheet extends ItemSheet {
     context.system = item.system;
     context.flags = item.flags;
     context.item = item;
-
-    // 1. ENRICH DESCRIPTION (Converts raw text to HTML)
-    context.enrichedDescription = await TextEditor.enrichHTML(item.system.description, {
-        async: true,
-        relativeTo: this.actor
-    });
 
     context.rollData = {};
     if (this.object?.parent) {
@@ -49,17 +44,61 @@ export class SlaItemSheet extends ItemSheet {
     return context;
   }
 
-/** @override */
+  /** @override */
   activateListeners(html) {
     super.activateListeners(html);
     if (!this.isEditable) return;
 
-    // REPAIR ARMOR BUTTON
-    html.find('.repair-armor').click(async ev => {
-        ev.preventDefault();
-        const max = this.item.system.resistance.max;
-        await this.item.update({ "system.resistance.value": max });
-        ui.notifications.info("Armor repaired to full resistance.");
+    // DELETE GRANTED SKILL
+    html.find('.delete-grant').click(async ev => {
+        const index = ev.currentTarget.dataset.index;
+        // Ensure it's an array
+        let currentSkills = this.item.system.skills;
+        if (!Array.isArray(currentSkills)) currentSkills = [];
+        else currentSkills = duplicate(currentSkills);
+        
+        // Remove item at index
+        currentSkills.splice(index, 1);
+        
+        await this.item.update({ "system.skills": currentSkills });
     });
+  }
+
+  /** * Handle dropping a Skill onto a Species or Package 
+   * @override
+   */
+  async _onDrop(event) {
+      const data = TextEditor.getDragEventData(event);
+      const allowedTypes = ["species", "package"];
+      
+      if (!allowedTypes.includes(this.item.type)) return;
+
+      const droppedItem = await Item.implementation.fromDropData(data);
+      
+      if (!droppedItem) return;
+      if (droppedItem.type !== "skill" && droppedItem.type !== "discipline" && droppedItem.type !== "trait" && droppedItem.type !== "ebbFormula") {
+          return ui.notifications.warn("You can only add Skills, Traits, Disciplines, or Formulas to this list.");
+      }
+
+      // CRASH FIX: Ensure currentSkills is an array
+      // Old items might have "" (string), which crashes .find()
+      let currentSkills = this.item.system.skills;
+      if (!Array.isArray(currentSkills)) {
+          currentSkills = [];
+      } else {
+          currentSkills = duplicate(currentSkills);
+      }
+
+      // Check for duplicates
+      if (currentSkills.find(s => s.name === droppedItem.name)) {
+          return ui.notifications.warn(`${droppedItem.name} is already in the list.`);
+      }
+
+      const skillData = droppedItem.toObject();
+      delete skillData._id;
+      
+      currentSkills.push(skillData);
+
+      await this.item.update({ "system.skills": currentSkills });
   }
 }
