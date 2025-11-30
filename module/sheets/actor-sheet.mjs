@@ -51,6 +51,9 @@ export class SlaActorSheet extends ActorSheet {
         return acc;
     }, {});
 
+	context.speciesItem = this.actor.items.find(i => i.type === "species");
+    context.packageItem = this.actor.items.find(i => i.type === "package");
+	
     return context;
   }
 
@@ -91,33 +94,66 @@ export class SlaActorSheet extends ActorSheet {
     super.activateListeners(html);
     if (!this.isEditable) return;
 
-    // HEADER DELETIONS
-    html.find('.species-delete').click(async ev => {
+    // --- HEADER DELETIONS (SPECIES & PACKAGE) ---
+    
+    // 1. REMOVE SPECIES
+    html.find('.chip-delete[data-type="species"]').click(async ev => {
+        ev.preventDefault();
+        ev.stopPropagation(); // Stop bubbling
+
+        // Find the item directly on the actor
         const speciesItem = this.actor.items.find(i => i.type === "species");
-        if (!speciesItem) return;
-        Dialog.confirm({
+        
+        if (!speciesItem) {
+            // Fallback cleanup if item is missing but text remains
+            await this.actor.update({ "system.bio.species": "" });
+            return;
+        }
+
+        return Dialog.confirm({
             title: "Remove Species?",
-            content: `<p>Remove <strong>${speciesItem.name}</strong>? This deletes associated skills.</p>`,
+            content: `<p>Remove <strong>${speciesItem.name}</strong>? This resets attributes to base (1).</p>`,
             yes: async () => {
+                // 1. Find linked skills (Flagged during creation)
                 const skillsToDelete = this.actor.items.filter(i => i.getFlag("sla-industries", "fromSpecies")).map(i => i.id);
-                await this.actor.deleteEmbeddedDocuments("Item", [speciesItem.id, ...skillsToDelete]);
+                
+                // 2. Delete Items (Species + Skills)
+                const idsToDelete = [speciesItem.id, ...skillsToDelete];
+                await this.actor.deleteEmbeddedDocuments("Item", idsToDelete);
+
+                // 3. Reset Stats & Bio
                 const resets = { "system.bio.species": "" };
                 ["str","dex","know","conc","cha","cool"].forEach(k => resets[`system.stats.${k}.value`] = 1);
+                
                 await this.actor.update(resets);
+                ui.notifications.info("Species removed.");
             }
         });
     });
 
-    html.find('.package-delete').click(async ev => {
+    // 2. REMOVE PACKAGE
+    html.find('.chip-delete[data-type="package"]').click(async ev => {
+        ev.preventDefault();
+        ev.stopPropagation();
+
         const packageItem = this.actor.items.find(i => i.type === "package");
-        if (!packageItem) return;
-        Dialog.confirm({
+        
+        if (!packageItem) {
+            await this.actor.update({ "system.bio.package": "" });
+            return;
+        }
+
+        return Dialog.confirm({
             title: "Remove Package?",
-            content: `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
+            content: `<p>Remove <strong>${packageItem.name}</strong>? This removes package skills.</p>`,
             yes: async () => {
                 const skillsToDelete = this.actor.items.filter(i => i.getFlag("sla-industries", "fromPackage")).map(i => i.id);
-                await this.actor.deleteEmbeddedDocuments("Item", [packageItem.id, ...skillsToDelete]);
+                const idsToDelete = [packageItem.id, ...skillsToDelete];
+                
+                await this.actor.deleteEmbeddedDocuments("Item", idsToDelete);
                 await this.actor.update({ "system.bio.package": "" });
+                
+                ui.notifications.info("Package removed.");
             }
         });
     });
@@ -687,76 +723,97 @@ export class SlaActorSheet extends ActorSheet {
       });
   }
 
-  // --- DROPS ---
+/** * Handle dropping Items (SPECIES/PACKAGE LOGIC) */
   async _onDropItem(event, data) {
     if ( !this.actor.isOwner ) return false;
     const item = await Item.implementation.fromDropData(data);
     const itemData = item.toObject();
 
+    // --- HELPER: Process Skill Array (Create or Upgrade) ---
+    const processSkills = async (skillsArray, sourceFlag) => {
+        if (!skillsArray || !Array.isArray(skillsArray)) return;
+
+        const toCreate = [];
+        const toUpdate = [];
+
+        for (const skillData of skillsArray) {
+            // Check if actor already has this skill (by name and type)
+            const existing = this.actor.items.find(i => i.name === skillData.name && i.type === skillData.type);
+
+            if (existing) {
+                // UPGRADE: Increase Rank by 1
+                const currentRank = existing.system.rank || 0;
+                toUpdate.push({
+                    _id: existing.id,
+                    "system.rank": currentRank + 1
+                });
+                ui.notifications.info(`Upgraded ${existing.name} to Rank ${currentRank + 1}`);
+            } else {
+                // CREATE: Add new skill
+                const newSkill = foundry.utils.duplicate(skillData);
+                delete newSkill._id; // Ensure new ID
+                newSkill.system.rank = 1; // Start at Rank 1
+                
+                // Flag it so we know where it came from (for deletion purposes)
+                if (!newSkill.flags) newSkill.flags = {};
+                if (!newSkill.flags["sla-industries"]) newSkill.flags["sla-industries"] = {};
+                newSkill.flags["sla-industries"][sourceFlag] = true;
+                
+                toCreate.push(newSkill);
+            }
+        }
+
+        if (toCreate.length > 0) {
+            await this.actor.createEmbeddedDocuments("Item", toCreate);
+            ui.notifications.info(`Added ${toCreate.length} new skills.`);
+        }
+        if (toUpdate.length > 0) {
+            await this.actor.updateEmbeddedDocuments("Item", toUpdate);
+        }
+    };
+
+
+    // 1. HANDLE SPECIES
     if (itemData.type === "species") {
         const existing = this.actor.items.find(i => i.type === "species");
         if (existing) await existing.delete();
+
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.species": itemData.name });
+
+        // Set Stats
         const stats = itemData.system.stats;
         const updates = {};
-        for (const [key, val] of Object.entries(stats)) updates[`system.stats.${key}.value`] = val.min;
+        for (const [key, val] of Object.entries(stats)) {
+            updates[`system.stats.${key}.value`] = val.min;
+        }
         await this.actor.update(updates);
         
-        const skillString = itemData.system.skills || "";
-        if (skillString) {
-            const skillNames = skillString.split(",").map(s => s.trim());
-            const skillPack = game.packs.get("world.sla-skills"); 
-            if (skillPack) {
-                const index = await skillPack.getIndex();
-                const skillsToAdd = [];
-                for (const name of skillNames) {
-                    const entry = index.find(e => e.name === name);
-                    if (entry) {
-                        const doc = await skillPack.getDocument(entry._id);
-                        const obj = doc.toObject();
-                        obj.flags = { "sla-industries": { fromSpecies: true } };
-                        obj.system.rank = 1; 
-                        skillsToAdd.push(obj);
-                    }
-                }
-                if (skillsToAdd.length) await this.actor.createEmbeddedDocuments("Item", skillsToAdd);
-            }
-        }
+        // Process Skills
+        await processSkills(itemData.system.skills, "fromSpecies");
         return;
     }
     
+    // 2. HANDLE PACKAGE
     if (itemData.type === "package") {
+        // Check Req
         const reqs = itemData.system.requirements || {};
         for (const [key, minVal] of Object.entries(reqs)) {
             const actorStat = this.actor.system.stats[key]?.value || 0;
-            if (actorStat < minVal) { ui.notifications.error(`Req: ${key.toUpperCase()} must be ${minVal}+`); return; }
+            if (actorStat < minVal) { 
+                ui.notifications.error(`Cannot apply package: ${key.toUpperCase()} must be ${minVal}+`); 
+                return; 
+            }
         }
+
         const existing = this.actor.items.find(i => i.type === "package");
         if (existing) await existing.delete();
+
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.package": itemData.name });
         
-        const skillString = itemData.system.skills || "";
-        if (skillString) {
-            const skillNames = skillString.split(",").map(s => s.trim());
-            const skillPack = game.packs.get("world.sla-skills"); 
-            if (skillPack) {
-                const index = await skillPack.getIndex();
-                const skillsToAdd = [];
-                for (const name of skillNames) {
-                    const entry = index.find(e => e.name === name);
-                    if (entry) {
-                        const doc = await skillPack.getDocument(entry._id);
-                        const obj = doc.toObject();
-                        obj.flags = { "sla-industries": { fromPackage: true } };
-                        obj.system.rank = 1;
-                        skillsToAdd.push(obj);
-                    }
-                }
-                if (skillsToAdd.length) await this.actor.createEmbeddedDocuments("Item", skillsToAdd);
-            }
-        }
+        // Process Skills
+        await processSkills(itemData.system.skills, "fromPackage");
         return;
     }
 

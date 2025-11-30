@@ -183,12 +183,17 @@
 
                     {{!-- THE LIST --}}
                     <div class="granted-skills-list">
-                        {{#each system.skills as |skill idx|}}
+                        {{!-- Loop through skills --}}
+                        {{#each system.skills}}
                         <div class="item-chip" style="margin-bottom: 2px; background: #222; border: 1px solid #555; display: flex; align-items: center; padding: 2px;">
-                            <img src="{{skill.img}}" style="width: 24px; height: 24px; border: 1px solid #000; margin-right: 5px;"/>
-                            <span style="flex: 1; font-weight: bold; color: #eee;">{{skill.name}}</span>
-                            <span style="font-size: 0.8em; color: #aaa; margin-right: 5px;">({{skill.type}})</span>
-                            <a class="delete-grant" data-index="{{idx}}" style="color: #f55; cursor: pointer; padding: 0 5px;"><i class="fas fa-times"></i></a>
+                            <img src="{{this.img}}" style="width: 24px; height: 24px; border: 1px solid #000; margin-right: 5px;"/>
+                            <span style="flex: 1; font-weight: bold; color: #eee;">{{this.name}}</span>
+                            <span style="font-size: 0.8em; color: #aaa; margin-right: 5px;">({{this.type}})</span>
+                            
+                            {{!-- FIX: Use @index instead of named variable --}}
+                            <a class="delete-grant" data-index="{{@index}}" style="color: #f55; cursor: pointer; padding: 0 5px;">
+                                <i class="fas fa-times"></i>
+                            </a>
                         </div>
                         {{/each}}
                     </div>
@@ -212,12 +217,17 @@
                         Drag Skills / Traits / Disciplines Here
                     </div>
                     <div class="granted-skills-list">
-                        {{#each system.skills as |skill idx|}}
+                        {{!-- Loop through skills --}}
+                        {{#each system.skills}}
                         <div class="item-chip" style="margin-bottom: 2px; background: #222; border: 1px solid #555; display: flex; align-items: center; padding: 2px;">
-                            <img src="{{skill.img}}" style="width: 24px; height: 24px; border: 1px solid #000; margin-right: 5px;"/>
-                            <span style="flex: 1; font-weight: bold; color: #eee;">{{skill.name}}</span>
-                            <span style="font-size: 0.8em; color: #aaa; margin-right: 5px;">({{skill.type}})</span>
-                            <a class="delete-grant" data-index="{{idx}}" style="color: #f55; cursor: pointer; padding: 0 5px;"><i class="fas fa-times"></i></a>
+                            <img src="{{this.img}}" style="width: 24px; height: 24px; border: 1px solid #000; margin-right: 5px;"/>
+                            <span style="flex: 1; font-weight: bold; color: #eee;">{{this.name}}</span>
+                            <span style="font-size: 0.8em; color: #aaa; margin-right: 5px;">({{this.type}})</span>
+                            
+                            {{!-- FIX: Use @index instead of named variable --}}
+                            <a class="delete-grant" data-index="{{@index}}" style="color: #f55; cursor: pointer; padding: 0 5px;">
+                                <i class="fas fa-times"></i>
+                            </a>
                         </div>
                         {{/each}}
                     </div>

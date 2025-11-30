@@ -44,23 +44,30 @@ export class SlaItemSheet extends ItemSheet {
     return context;
   }
 
-  /** @override */
+   /** @override */
   activateListeners(html) {
     super.activateListeners(html);
     if (!this.isEditable) return;
 
-    // DELETE GRANTED SKILL
+    // ----------------------------------------------------
+    // DELETE GRANTED SKILL (Species/Package)
+    // ----------------------------------------------------
     html.find('.delete-grant').click(async ev => {
-        const index = ev.currentTarget.dataset.index;
-        // Ensure it's an array
-        let currentSkills = this.item.system.skills;
-        if (!Array.isArray(currentSkills)) currentSkills = [];
-        else currentSkills = duplicate(currentSkills);
+        ev.preventDefault();
         
-        // Remove item at index
-        currentSkills.splice(index, 1);
+        // 1. Get the index from the HTML
+        const index = parseInt(ev.currentTarget.dataset.index);
         
-        await this.item.update({ "system.skills": currentSkills });
+        // 2. Clone the current array (Safety first!)
+        const currentSkills = this.item.system.skills ? foundry.utils.deepClone(this.item.system.skills) : [];
+        
+        // 3. Remove the item
+        if (index > -1 && index < currentSkills.length) {
+            currentSkills.splice(index, 1);
+            
+            // 4. Save to database
+            await this.item.update({ "system.skills": currentSkills });
+        }
     });
   }
 
