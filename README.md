@@ -61,12 +61,5 @@ A fully automated, fan-made system implementation for playing SLA Industries 2nd
 * Edit the Formula and link it to the Discipline via the dropdown.
 * Click the Formula in your inventory to cast. Flux will be deducted automatically.
 
-## 🛠️ Macros
-* To quickly populate your world with standard gear and skills, create a Script Macro and paste the following code generators (provided in the system documentation):
-    * Armory Generator: Creates standard Weapons & Armor.
-    * Skill Database: Creates all core Skills.
-    * Drug Lab: Creates standard Combat Drugs.
-    * Ebb Library: Creates standard Disciplines and Formulas.
-
 ## ⚖️ Legal & Credits
  Unofficial System: This system is a fan creation and is not endorsed by Nightfall Games. Copyright: SLA Industries is a registered trademark of Nightfall Games. All rights reserved. This system is intended for personal use only.
