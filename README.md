@@ -38,7 +38,7 @@ A fully automated, fan-made system implementation for playing SLA Industries 2nd
 * Create a new World and select SLA Industries 2nd Edition as the Game System.
 
 ### Manifest
-* https://github.com/VacantFanatic/sla-foundry/releases/download/beta/system.json
+* https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json
   
 ## ⚙️ Setup Guide
 1. Creating an Operative
