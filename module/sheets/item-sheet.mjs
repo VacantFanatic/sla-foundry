@@ -10,8 +10,7 @@ export class SlaItemSheet extends ItemSheet {
       classes: ["sla-industries", "sheet", "item"],
       width: 520,
       height: 480,
-      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "attributes" }],
-      dragDrop: [{ dragSelector: null, dropSelector: ".drop-zone" }]
+      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "attributes" }]
     });
   }
 
@@ -30,11 +29,19 @@ export class SlaItemSheet extends ItemSheet {
     context.flags = item.flags;
     context.item = item;
 
+    // --- MISSING FIX: ENRICH DESCRIPTION ---
+    // This converts the raw text into the visual editor format
+    context.enrichedDescription = await TextEditor.enrichHTML(item.system.description, {
+        async: true,
+        relativeTo: this.actor
+    });
+
     context.rollData = {};
     if (this.object?.parent) {
       context.rollData = this.object.parent.getRollData();
     }
 
+    // CONFIG
     context.config = {
         stats: { "str":"STR", "dex":"DEX", "know":"KNOW", "conc":"CONC", "cha":"CHA", "cool":"COOL" },
         combatSkills: CONFIG.SLA?.combatSkills || {},
@@ -44,36 +51,24 @@ export class SlaItemSheet extends ItemSheet {
     return context;
   }
 
-   /** @override */
+  /** @override */
   activateListeners(html) {
     super.activateListeners(html);
     if (!this.isEditable) return;
-
-    // ----------------------------------------------------
-    // DELETE GRANTED SKILL (Species/Package)
-    // ----------------------------------------------------
+    
+    // Listeners for custom item logic (like delete-grant) go here if added back
     html.find('.delete-grant').click(async ev => {
-        ev.preventDefault();
+        const index = ev.currentTarget.dataset.index;
+        let currentSkills = this.item.system.skills;
+        if (!Array.isArray(currentSkills)) currentSkills = [];
+        else currentSkills = duplicate(currentSkills);
         
-        // 1. Get the index from the HTML
-        const index = parseInt(ev.currentTarget.dataset.index);
-        
-        // 2. Clone the current array (Safety first!)
-        const currentSkills = this.item.system.skills ? foundry.utils.deepClone(this.item.system.skills) : [];
-        
-        // 3. Remove the item
-        if (index > -1 && index < currentSkills.length) {
-            currentSkills.splice(index, 1);
-            
-            // 4. Save to database
-            await this.item.update({ "system.skills": currentSkills });
-        }
+        currentSkills.splice(index, 1);
+        await this.item.update({ "system.skills": currentSkills });
     });
   }
 
-  /** * Handle dropping a Skill onto a Species or Package 
-   * @override
-   */
+  /** @override */
   async _onDrop(event) {
       const data = TextEditor.getDragEventData(event);
       const allowedTypes = ["species", "package"];
@@ -87,8 +82,6 @@ export class SlaItemSheet extends ItemSheet {
           return ui.notifications.warn("You can only add Skills, Traits, Disciplines, or Formulas to this list.");
       }
 
-      // CRASH FIX: Ensure currentSkills is an array
-      // Old items might have "" (string), which crashes .find()
       let currentSkills = this.item.system.skills;
       if (!Array.isArray(currentSkills)) {
           currentSkills = [];
@@ -96,7 +89,6 @@ export class SlaItemSheet extends ItemSheet {
           currentSkills = duplicate(currentSkills);
       }
 
-      // Check for duplicates
       if (currentSkills.find(s => s.name === droppedItem.name)) {
           return ui.notifications.warn(`${droppedItem.name} is already in the list.`);
       }

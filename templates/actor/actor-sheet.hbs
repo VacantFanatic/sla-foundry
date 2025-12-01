@@ -1,7 +1,6 @@
 <form class="{{cssClass}} sla-sheet" autocomplete="off">
 
     {{!-- 1. HEADER --}}
-    {{!-- FIX: Explicitly pass the species/package items to the partial --}}
     {{> "systems/sla-industries/templates/partials/header.hbs" 
         actor=actor 
         system=system 
@@ -12,34 +11,91 @@
     {{!-- 2. STATS GRID --}}
     {{> "systems/sla-industries/templates/partials/stats.hbs"}}
 
-    {{!-- 3. MAIN BODY SPLIT --}}
-    <div class="main-split">
-        
-        {{!-- LEFT COLUMN: Abilities Stack --}}
-        <div class="left-col flexcol full-height" style="gap: 5px;">
+    {{!-- 3. TABS NAVIGATION --}}
+    <nav class="sheet-tabs tabs" data-group="primary">
+        <a class="item" data-tab="main">OPERATIVE DATA</a>
+        <a class="item" data-tab="biography">BIO & TRAITS</a>
+    </nav>
+
+    {{!-- 4. SHEET BODY --}}
+    <section class="sheet-body">
+
+        {{!-- ================================================= --}}
+        {{!--                   MAIN TAB                        --}}
+        {{!-- ================================================= --}}
+        {{!-- FIX: Removed 'flexcol' from this line --}}
+        <div class="tab" data-group="primary" data-tab="main">
             
-            {{!-- A. Standard Skills --}}
-            <div style="flex: 1; min-height: 200px;">
-                {{> "systems/sla-industries/templates/partials/skills.hbs"}}
-            </div>
+            {{!-- INNER LAYOUT CONTAINER (Handles the Flexbox) --}}
+            <div class="flexcol full-height">
+                
+                <div class="main-split">
+                    {{!-- Left Column --}}
+                    <div class="left-col flexcol full-height" style="gap: 5px;">
+                        <div style="flex: 1; min-height: 200px;">
+                            {{> "systems/sla-industries/templates/partials/skills.hbs"}}
+                        </div>
+                        <div style="flex: 0 0 auto; min-height: 150px;">
+                            {{> "systems/sla-industries/templates/partials/disciplines.hbs"}}
+                        </div>
+                        <div style="flex: 1; min-height: 200px;">
+                            {{> "systems/sla-industries/templates/partials/ebb.hbs"}}
+                        </div>
+                    </div>
 
-            {{!-- B. Ebb Disciplines (Now includes Formulas nested) --}}
-            <div style="flex: 1; min-height: 250px;">
-                {{> "systems/sla-industries/templates/partials/disciplines.hbs"}}
-            </div>
+                    {{!-- Right Column --}}
+                    <div class="right-col flexcol">
+                         {{> "systems/sla-industries/templates/partials/secondary.hbs"}}
+                         {{> "systems/sla-industries/templates/partials/wounds.hbs"}}
+                    </div>
+                </div>
+
+                {{!-- Inventory --}}
+                {{> "systems/sla-industries/templates/partials/inventory.hbs"}}
             
-            {{!-- DELETED: The separate ebb.hbs partial call --}}
-        </div>
+            </div> {{!-- End Inner Layout --}}
+        </div> {{!-- END MAIN TAB --}}
 
-        {{!-- RIGHT COLUMN: Traits & vitals --}}
-        <div class="right-col flexcol">
-             {{> "systems/sla-industries/templates/partials/traits.hbs"}}
-             {{> "systems/sla-industries/templates/partials/secondary.hbs"}}
-             {{> "systems/sla-industries/templates/partials/wounds.hbs"}}
-        </div>
-    </div>
 
-    {{!-- 4. FOOTER: Physical Inventory --}}
-    {{> "systems/sla-industries/templates/partials/inventory.hbs"}}
+		{{!-- ================================================= --}}
+        {{!--                 BIO & TRAITS TAB                  --}}
+        {{!-- ================================================= --}}
+        <div class="tab" data-group="primary" data-tab="biography">
+            
+            {{!-- INNER LAYOUT CONTAINER --}}
+            <div class="flexcol full-height">
 
+                <div style="min-height: 200px; margin-bottom: 10px;">
+                    {{> "systems/sla-industries/templates/partials/traits.hbs"}}
+                </div>
+
+                <div class="grid-2col" style="gap: 10px; height: 100%;">
+                    {{!-- LEFT COLUMN: Appearance & Biography --}}
+                    <div class="flexcol">
+                        <div class="sla-header-bar">APPEARANCE</div>
+                        {{!-- Replaced inline style with class 'editor-container appearance' --}}
+                        <div class="editor-container appearance">
+                            {{editor enrichedAppearance target="system.appearance" button=true owner=owner editable=editable}}
+                        </div>
+
+                        <div class="sla-header-bar">BIOGRAPHY</div>
+                        {{!-- Replaced inline style with class 'editor-container biography' --}}
+                        <div class="editor-container biography">
+                            {{editor enrichedBiography target="system.biography" button=true owner=owner editable=editable}}
+                        </div>
+                    </div>
+
+                    {{!-- RIGHT COLUMN: Notes --}}
+                    <div class="flexcol">
+                        <div class="sla-header-bar">SERVICE RECORD / NOTES</div>
+                        {{!-- Replaced inline style with class 'editor-container notes' --}}
+                        <div class="editor-container notes">
+                            {{editor enrichedNotes target="system.notes" button=true owner=owner editable=editable}}
+                        </div>
+                    </div>
+                </div>
+            
+            </div> {{!-- End Inner Layout --}}
+        </div> {{!-- END BIO TAB --}}
+    </section>
 </form>
