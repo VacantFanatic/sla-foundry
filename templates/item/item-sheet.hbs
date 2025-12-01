@@ -3,103 +3,21 @@
     {{!-- HEADER --}}
     <div class="header-grid">
         <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}"/>
-        
         <div class="flexcol">
-            {{!-- Name Field --}}
             <div class="bio-field">
-                <label style="flex: 0 0 50px; font-weight: bold; color: #aaa;">NAME</label>
+                <label>NAME:</label>
                 <input type="text" name="name" value="{{item.name}}" placeholder="Item Name"/>
             </div>
         </div>
     </div>
 
-    <section class="sheet-body" style="height: 300px; overflow-y: auto;">
+    <section class="sheet-body" style="padding: 0 10px 10px 10px; overflow-y: auto; height: calc(100% - 110px);">
 
-        {{!-- === DRUG FIELDS === --}}
-        {{#if (eq item.type "drug")}}
-            <div class="sla-header-bar">Drug Details</div>
-            <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
-                <div class="stat-block"><div class="stat-label">DURATION:</div><input class="stat-input" type="text" name="system.duration" value="{{system.duration}}"/></div>
-                <div class="stat-block"><div class="stat-label">ADDICT %:</div><input class="stat-input" type="number" name="system.addictionRating" value="{{system.addictionRating}}"/></div>
-                <div class="stat-block" style="grid-column: span 2;"><div class="stat-label">DOSE FREQ:</div><input class="stat-input" type="text" name="system.addictionDose" value="{{system.addictionDose}}" style="text-align: left; padding-left: 5px;"/></div>
-                <div class="stat-block" style="grid-column: span 2;"><div class="stat-label">DETOX FX:</div><input class="stat-input" type="text" name="system.detoxEffects" value="{{system.detoxEffects}}" style="text-align: left; padding-left: 5px;"/></div>
+        {{!-- ================================================== --}}
+        {{!--                 PHYSICAL ITEMS                     --}}
+        {{!-- ================================================== --}}
 
-                <div class="sla-header-bar" style="grid-column: span 2;">Effects</div>
-                
-                <div class="stat-block">
-                    <div class="stat-label">STAT:</div>
-                    <select class="stat-input" name="system.mods.first.stat" style="font-size: 0.8em;">
-                        {{selectOptions config.stats selected=system.mods.first.stat}}
-                    </select>
-                </div>
-                <div class="stat-block"><div class="stat-label">VAL (+/-):</div><input class="stat-input" type="number" name="system.mods.first.value" value="{{system.mods.first.value}}"/></div>
-
-                <div class="stat-block">
-                    <div class="stat-label">STAT:</div>
-                    <select class="stat-input" name="system.mods.second.stat" style="font-size: 0.8em;">
-                        {{selectOptions config.stats selected=system.mods.second.stat}}
-                    </select>
-                </div>
-                <div class="stat-block"><div class="stat-label">VAL (+/-):</div><input class="stat-input" type="number" name="system.mods.second.value" value="{{system.mods.second.value}}"/></div>
-                
-                <div class="stat-block"><div class="stat-label">DMG REDUCE:</div><input class="stat-input" type="number" name="system.damageReduction" value="{{system.damageReduction}}"/></div>
-                <div class="stat-block"><div class="stat-label">COST:</div><input class="stat-input" type="number" name="system.cost" value="{{system.cost}}"/></div>
-            </div>
-            <div style="height: 150px; padding: 10px;">{{editor enrichedDescription target="system.description" button=true owner=owner editable=editable}}</div>
-        {{/if}}
-
-        {{!-- === EBB FORMULA FIELDS (Re-Added) === --}}
-        {{#if (eq item.type "ebbFormula")}}
-             <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
-                <div class="stat-block">
-                     <div class="stat-label">FORMULA RATING (TN):</div>
-                     <input class="stat-input" type="number" name="system.formulaRating" value="{{system.formulaRating}}"/>
-                </div>
-                <div class="stat-block">
-                    <div class="stat-label">DISCIPLINE:</div>
-                    <select class="stat-input" name="system.discipline" style="font-size: 0.8em; text-align: left;">
-                       {{selectOptions config.disciplineSkills selected=system.discipline blank="None"}}
-                    </select>
-                </div>
-                
-                <div class="sla-header-bar" style="grid-column: span 2;">Combat Stats</div>
-
-                <div class="stat-block">
-                     <div class="stat-label">DAMAGE:</div>
-                     <input class="stat-input" type="text" name="system.dmg" value="{{system.dmg}}" placeholder="1d10+2"/>
-                </div>
-                <div class="stat-block">
-                     <div class="stat-label">AD:</div>
-                     <input class="stat-input" type="number" name="system.ad" value="{{system.ad}}"/>
-                </div>
-                <div class="stat-block">
-                     <div class="stat-label">ROF:</div>
-                     <input class="stat-input" type="number" name="system.rof" value="{{system.rof}}"/>
-                </div>
-                <div class="stat-block">
-                     <div class="stat-label">RECOIL:</div>
-                     <input class="stat-input" type="number" name="system.recoil" value="{{system.recoil}}"/>
-                </div>
-                <div class="stat-block">
-                     <div class="stat-label">RANGE:</div>
-                     <input class="stat-input" type="text" name="system.range" value="{{system.range}}"/>
-                </div>
-                <div class="stat-block">
-                    <div class="stat-label">COST:</div>
-                    <input class="stat-input" type="number" name="system.cost" value="{{system.cost}}"/>
-                </div>
-                <div class="stat-block">
-                    <div class="stat-label">MAINT:</div>
-                    <input class="stat-input" type="number" name="system.maintenance" value="{{system.maintenance}}"/>
-                </div>
-             </div>
-             <div class="weapon-rules-box" style="height: 150px; overflow: hidden;">
-                <div style="background: #ddd; font-weight: bold; padding: 2px 5px; font-size: 0.8em;">NOTES / RULES:</div>
-                {{editor enrichedDescription target="system.description" button=true owner=owner editable=editable}}
-            </div>
-        {{/if}}
-
-        {{!-- === WEAPON FIELDS === --}}
+        {{!-- 1. WEAPON --}}
         {{#if (eq item.type "weapon")}}
             <div class="weapon-skill-row">
                 <span class="weapon-skill-label">SKILL:</span>
@@ -133,45 +51,195 @@
                     <input type="number" name="system.cost" value="{{system.cost}}"/>
                 </div>
             </div>
-            <div class="weapon-rules-box" style="height: 200px; overflow: hidden;">
-                <div style="background: #ddd; font-weight: bold; padding: 2px 5px; font-size: 0.8em;">NOTES / RULES:</div>
-                {{editor enrichedDescription target="system.description" button=true owner=owner editable=editable}}
+        {{/if}}
+
+        {{!-- 2. ARMOR --}}
+        {{#if (eq item.type "armor")}}
+             <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
+                <div class="stat-block"><div class="stat-label">PV</div><input class="stat-input" type="number" name="system.pv" value="{{system.pv}}"/></div>
+                <div class="stat-block" style="grid-column:span 2; display:flex;"><div class="stat-label">RESISTANCE</div><input class="stat-input" type="number" name="system.resistance.value" value="{{system.resistance.value}}"/> / <input class="stat-input" type="number" name="system.resistance.max" value="{{system.resistance.max}}"/></div>
+                <div class="stat-block"><div class="stat-label">WEIGHT</div><input class="stat-input" type="number" name="system.weight" value="{{system.weight}}"/></div>
+                <div class="stat-block"><div class="stat-label">COST</div><input class="stat-input" type="number" name="system.cost" value="{{system.cost}}"/></div>
+             </div>
+             <div style="grid-column: span 2; text-align: center; margin-top: 5px;">
+                <button class="repair-armor" style="background: #333; color: #39ff14; border: 1px solid #39ff14;">REPAIR ARMOR</button>
             </div>
         {{/if}}
 
-        {{!-- === GENERIC ITEM FIELDS (SKILL, TRAIT, DISCIPLINE) === --}}
-        {{#unless (or (eq item.type "weapon") (or (eq item.type "drug") (eq item.type "ebbFormula")))}}
-            {{#if (eq item.type "armor")}}
-                 <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
-                    <div class="stat-block"><div class="stat-label">PV</div><input class="stat-input" type="number" name="system.pv" value="{{system.pv}}"/></div>
-                    <div class="stat-block" style="grid-column:span 2; display:flex;"><div class="stat-label">RESISTANCE</div><input class="stat-input" type="number" name="system.resistance.value" value="{{system.resistance.value}}"/> / <input class="stat-input" type="number" name="system.resistance.max" value="{{system.resistance.max}}"/></div>
-                    <div class="stat-block"><div class="stat-label">WEIGHT</div><input class="stat-input" type="number" name="system.weight" value="{{system.weight}}"/></div>
-                    <div class="stat-block"><div class="stat-label">COST</div><input class="stat-input" type="number" name="system.cost" value="{{system.cost}}"/></div>
-                 </div>
-                 <div style="grid-column: span 2; text-align: center; margin-top: 5px;">
-                    <button class="repair-armor" style="background: #333; color: #39ff14; border: 1px solid #39ff14;">REPAIR ARMOR</button>
-                </div>
-            {{else}}
-                <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
-                    <div class="stat-block"><div class="stat-label">Rank/Qty</div><input class="stat-input" type="number" name="system.rank" value="{{system.rank}}"/></div>
-                    
-                    {{!-- Discipline XP Cost --}}
-                    {{#if (eq item.type "discipline")}}
-                        <div class="stat-block"><div class="stat-label">XP Cost</div><input class="stat-input" type="number" name="system.xpCost" value="{{system.xpCost}}"/></div>
-                    {{/if}}
+        {{!-- 3. DRUG --}}
+        {{#if (eq item.type "drug")}}
+            <div class="sla-header-bar">Drug Details</div>
+            <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
+                <div class="stat-block"><div class="stat-label">DURATION:</div><input class="stat-input" type="text" name="system.duration" value="{{system.duration}}"/></div>
+                <div class="stat-block"><div class="stat-label">ADDICT %:</div><input class="stat-input" type="number" name="system.addictionRating" value="{{system.addictionRating}}"/></div>
+                <div class="stat-block" style="grid-column: span 2;"><div class="stat-label">DOSE FREQ:</div><input class="stat-input" type="text" name="system.addictionDose" value="{{system.addictionDose}}" style="text-align: left; padding-left: 5px;"/></div>
+                <div class="stat-block" style="grid-column: span 2;"><div class="stat-label">DETOX FX:</div><input class="stat-input" type="text" name="system.detoxEffects" value="{{system.detoxEffects}}" style="text-align: left; padding-left: 5px;"/></div>
 
-                    <div class="stat-block"><div class="stat-label">Cost</div><input class="stat-input" type="number" name="system.cost" value="{{system.cost}}"/></div>
-                    
-                    {{!-- Skill Extras --}}
-                    {{#if (eq item.type "skill")}}
-                     <div class="stat-block"><div class="stat-label">STAT</div><select class="stat-input" name="system.stat">{{selectOptions config.stats selected=system.stat}}</select></div>
-                    {{/if}}
+                <div class="sla-header-bar" style="grid-column: span 2;">Effects</div>
+                
+                <div class="stat-block">
+                    <div class="stat-label">STAT:</div>
+                    <select class="stat-input" name="system.mods.first.stat" style="font-size: 0.8em;">
+                        {{selectOptions config.stats selected=system.mods.first.stat}}
+                    </select>
                 </div>
-            {{/if}}
-            <div style="height: 200px; padding: 10px;">
-                {{editor enrichedDescription target="system.description" button=true owner=owner editable=editable}}
+                <div class="stat-block"><div class="stat-label">VAL (+/-):</div><input class="stat-input" type="number" name="system.mods.first.value" value="{{system.mods.first.value}}"/></div>
+
+                <div class="stat-block">
+                    <div class="stat-label">STAT:</div>
+                    <select class="stat-input" name="system.mods.second.stat" style="font-size: 0.8em;">
+                        {{selectOptions config.stats selected=system.mods.second.stat}}
+                    </select>
+                </div>
+                <div class="stat-block"><div class="stat-label">VAL (+/-):</div><input class="stat-input" type="number" name="system.mods.second.value" value="{{system.mods.second.value}}"/></div>
+                
+                <div class="stat-block"><div class="stat-label">DMG REDUCE:</div><input class="stat-input" type="number" name="system.damageReduction" value="{{system.damageReduction}}"/></div>
+                <div class="stat-block"><div class="stat-label">COST:</div><input class="stat-input" type="number" name="system.cost" value="{{system.cost}}"/></div>
             </div>
-        {{/unless}}
+        {{/if}}
+
+        {{!-- 4. GENERIC ITEM (Misc Gear) --}}
+        {{#if (eq item.type "item")}}
+            <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
+                <div class="stat-block"><div class="stat-label">WEIGHT</div><input class="stat-input" type="number" name="system.weight" value="{{system.weight}}"/></div>
+                <div class="stat-block"><div class="stat-label">COST</div><input class="stat-input" type="number" name="system.cost" value="{{system.cost}}"/></div>
+                <div class="stat-block"><div class="stat-label">QTY</div><input class="stat-input" type="number" name="system.quantity" value="{{system.quantity}}"/></div>
+            </div>
+        {{/if}}
+
+
+        {{!-- ================================================== --}}
+        {{!--             ABSTRACT / CHARACTER DATA              --}}
+        {{!-- ================================================== --}}
+
+        {{!-- 5. EBB FORMULA --}}
+        {{#if (eq item.type "ebbFormula")}}
+             <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
+                <div class="stat-block">
+                     <div class="stat-label">FORMULA RATING (TN):</div>
+                     <input class="stat-input" type="number" name="system.formulaRating" value="{{system.formulaRating}}"/>
+                </div>
+                <div class="stat-block">
+                    <div class="stat-label">DISCIPLINE:</div>
+                    <select class="stat-input" name="system.discipline" style="font-size: 0.8em; text-align: left;">
+                       {{selectOptions config.disciplineSkills selected=system.discipline blank="None"}}
+                    </select>
+                </div>
+                <div class="sla-header-bar" style="grid-column: span 2;">Combat Stats</div>
+                <div class="stat-block"><div class="stat-label">DAMAGE:</div><input class="stat-input" type="text" name="system.dmg" value="{{system.dmg}}" placeholder="1d10+2"/></div>
+                <div class="stat-block"><div class="stat-label">AD:</div><input class="stat-input" type="number" name="system.ad" value="{{system.ad}}"/></div>
+                <div class="stat-block"><div class="stat-label">ROF:</div><input class="stat-input" type="number" name="system.rof" value="{{system.rof}}"/></div>
+                <div class="stat-block"><div class="stat-label">RECOIL:</div><input class="stat-input" type="number" name="system.recoil" value="{{system.recoil}}"/></div>
+                <div class="stat-block"><div class="stat-label">RANGE:</div><input class="stat-input" type="text" name="system.range" value="{{system.range}}"/></div>
+                <div class="stat-block"><div class="stat-label">FLUX COST:</div><input class="stat-input" type="number" name="system.cost" value="{{system.cost}}"/></div>
+                <div class="stat-block"><div class="stat-label">MAINT:</div><input class="stat-input" type="number" name="system.maintenance" value="{{system.maintenance}}"/></div>
+             </div>
+        {{/if}}
+
+        {{!-- 6. SKILL / TRAIT / DISCIPLINE --}}
+        {{#if (or (eq item.type "skill") (or (eq item.type "trait") (eq item.type "discipline")))}}
+            <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
+                
+                <div class="stat-block"><div class="stat-label">RANK</div><input class="stat-input" type="number" name="system.rank" value="{{system.rank}}"/></div>
+                
+                {{!-- Discipline/Trait XP Cost --}}
+                {{#if (ne item.type "skill")}}
+                    <div class="stat-block"><div class="stat-label">XP COST</div><input class="stat-input" type="number" name="system.xpCost" value="{{system.xpCost}}"/></div>
+                {{/if}}
+
+                {{!-- Skill Extras --}}
+                {{#if (eq item.type "skill")}}
+                     <div class="stat-block"><div class="stat-label">STAT</div><select class="stat-input" name="system.stat">{{selectOptions config.stats selected=system.stat}}</select></div>
+                {{/if}}
+            </div>
+        {{/if}}
+
+        {{!-- 7. SPECIES --}}
+        {{#if (eq item.type "species")}}
+            <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
+                <div class="stat-block"><div class="stat-label">BASE HP</div><input class="stat-input" type="number" name="system.hp" value="{{system.hp}}"/></div>
+                <div class="stat-block"><div class="stat-label">CLOSING</div><input class="stat-input" type="number" name="system.move.closing" value="{{system.move.closing}}"/></div>
+                <div class="stat-block"><div class="stat-label">RUSHING</div><input class="stat-input" type="number" name="system.move.rushing" value="{{system.move.rushing}}"/></div>
+            </div>
+            <div class="sla-header-bar">Attribute Limits (Min / Max)</div>
+            <div class="stats-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 5px; padding: 10px;">
+                {{#each system.stats as |stat key|}}
+                <div class="stat-block" style="display: flex; justify-content: space-between;">
+                    <div class="stat-label" style="width: 50px;">{{key}}</div>
+                    <div class="slash-input" style="flex:1; display:flex;">
+                        <input type="number" name="system.stats.{{key}}.min" value="{{stat.min}}" placeholder="Min" style="width:50%"/>
+                        <span>/</span>
+                        <input type="number" name="system.stats.{{key}}.max" value="{{stat.max}}" placeholder="Max" style="width:50%"/>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+            <div class="sla-header-bar" style="grid-column: span 2;">Starting Skills (Drag & Drop)</div>
+                <div style="grid-column: span 2;">
+                    {{!-- THE DROP ZONE --}}
+                    <div class="drop-zone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #888; margin-bottom: 5px; border-radius: 4px;">
+                        Drag Skills / Traits / Disciplines Here
+                    </div>
+
+                    {{!-- THE LIST --}}
+                    <div class="granted-skills-list">
+                        {{!-- Loop through skills --}}
+                        {{#each system.skills}}
+                        <div class="item-chip" style="margin-bottom: 2px; background: #222; border: 1px solid #555; display: flex; align-items: center; padding: 2px;">
+                            <img src="{{this.img}}" style="width: 24px; height: 24px; border: 1px solid #000; margin-right: 5px;"/>
+                            <span style="flex: 1; font-weight: bold; color: #eee;">{{this.name}}</span>
+                            <span style="font-size: 0.8em; color: #aaa; margin-right: 5px;">({{this.type}})</span>
+                            
+                            {{!-- FIX: Use @index instead of named variable --}}
+                            <a class="delete-grant" data-index="{{@index}}" style="color: #f55; cursor: pointer; padding: 0 5px;">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+        {{/if}}
+
+        {{!-- 8. PACKAGE --}}
+        {{#if (eq item.type "package")}}
+            <div class="sla-header-bar">Minimum Requirements</div>
+            <div class="stats-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 5px; padding: 10px;">
+                {{#each system.requirements as |val key|}}
+                <div class="stat-block">
+                    <div class="stat-label">{{key}}</div>
+                    <input class="stat-input" type="number" name="system.requirements.{{key}}" value="{{val}}"/>
+                </div>
+                {{/each}}
+            </div>
+            <div class="sla-header-bar" style="grid-column: span 2;">Package Skills (Drag & Drop)</div>
+                <div style="grid-column: span 2;">
+                    <div class="drop-zone" style="border: 2px dashed #555; padding: 10px; text-align: center; color: #888; margin-bottom: 5px; border-radius: 4px;">
+                        Drag Skills / Traits / Disciplines Here
+                    </div>
+                    <div class="granted-skills-list">
+                        {{!-- Loop through skills --}}
+                        {{#each system.skills}}
+                        <div class="item-chip" style="margin-bottom: 2px; background: #222; border: 1px solid #555; display: flex; align-items: center; padding: 2px;">
+                            <img src="{{this.img}}" style="width: 24px; height: 24px; border: 1px solid #000; margin-right: 5px;"/>
+                            <span style="flex: 1; font-weight: bold; color: #eee;">{{this.name}}</span>
+                            <span style="font-size: 0.8em; color: #aaa; margin-right: 5px;">({{this.type}})</span>
+                            
+                            {{!-- FIX: Use @index instead of named variable --}}
+                            <a class="delete-grant" data-index="{{@index}}" style="color: #f55; cursor: pointer; padding: 0 5px;">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+        {{/if}}
+
+
+        {{!-- SHARED DESCRIPTION BOX (All items have this) --}}
+        <div class="weapon-rules-box" style="height: 200px; overflow: hidden; margin-top: 10px;">
+            <div style="background: #ddd; font-weight: bold; padding: 2px 5px; font-size: 0.8em;">NOTES / RULES:</div>
+            {{editor enrichedDescription target="system.description" button=true owner=owner editable=editable}}
+        </div>
 
     </section>
 </form>

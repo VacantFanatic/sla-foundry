@@ -906,3 +906,96 @@
     color: #000;
     border: 1px solid #ccc;
 }
+
+/* ==========================================
+   DROP ZONES & ITEM CHIPS (Header)
+   ========================================== */
+
+/* The Container for Label + Box */
+.bio-drop-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 4px;
+    height: 34px; /* Fixed height for consistency */
+}
+
+.bio-drop-row label {
+    flex: 0 0 70px; /* Match existing label width */
+    font-weight: bold;
+    color: #000;
+    background: #d0d3d8;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding-left: 5px;
+    font-size: 0.8em;
+    margin-right: 2px;
+}
+
+/* 1. EMPTY STATE: The Dotted Drop Zone */
+.empty-drop-zone {
+    flex: 1;
+    height: 100%;
+    border: 2px dashed #555;
+    background: rgba(0,0,0,0.1);
+    color: #777;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8em;
+    font-style: italic;
+    transition: all 0.2s;
+}
+
+.empty-drop-zone:hover {
+    background: rgba(57, 255, 20, 0.1);
+    border-color: #39ff14;
+    color: #39ff14;
+    cursor: copy; /* Indicates you can drop stuff here */
+}
+
+/* 2. FILLED STATE: The Item Chip */
+.item-chip {
+    flex: 1;
+    height: 100%;
+    background: #222;
+    border: 1px solid #39ff14;
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    color: #fff;
+}
+
+.item-chip img {
+    height: 28px;
+    width: 28px;
+    border: 1px solid #555;
+    margin-right: 5px;
+    object-fit: cover;
+    background: #000;
+}
+
+.item-chip .chip-name {
+    flex: 1;
+    font-weight: bold;
+    font-family: "Arial", sans-serif;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #39ff14;
+}
+
+.item-chip .chip-delete {
+    color: #555;
+    padding: 0 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: color 0.2s;
+}
+
+.item-chip .chip-delete:hover {
+    color: #ff0000;
+    text-shadow: 0 0 5px #ff0000;
+}

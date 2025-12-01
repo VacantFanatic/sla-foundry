@@ -91,8 +91,32 @@ export class BoilerplateItem extends Item {
       return null;
   }
   
-  /** @override */
+  /**
+   * @override
+   * Triggered before an Item is updated in the database.
+   */
   async _preUpdate(changed, options, user) {
     await super._preUpdate(changed, options, user);
+
+    // Check if we are updating the system data of a Skill or Discipline
+    if ((this.type === 'skill' || this.type === 'discipline') && changed.system) {
+        
+        // Check if Rank is being modified
+        if (changed.system.rank !== undefined) {
+            const newRank = changed.system.rank;
+            const maxRank = 4; // HARD CAP
+
+            // If the new rank exceeds the limit
+            if (newRank > maxRank) {
+                // Force it back to the limit
+                changed.system.rank = maxRank;
+                
+                // Notify the user
+                if (typeof ui !== "undefined") {
+                    ui.notifications.warn(`${this.name} Rank capped at ${maxRank}.`);
+                }
+            }
+        }
+    }
   }
 }
