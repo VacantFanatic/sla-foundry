@@ -308,15 +308,95 @@ export class SlaActorSheet extends ActorSheet {
     }
   }
 
-  // --- HELPER: RENDER WEAPON DIALOG ---
+// --- HELPER: RENDER WEAPON DIALOG ---
   _renderAttackDialog(item, isMelee) {
       const recoil = item.system.recoil || 0;
-      let dialogContent = `<form style="color:#eee; font-family:'Roboto Condensed',sans-serif;"><div class="form-group" style="margin-bottom:5px;"><label>Generic Modifier (+/-)</label><input type="number" name="modifier" value="0" style="background:#333; color:#fff; border:1px solid #555; text-align:center; width:50px; float:right;"/></div><hr style="border:1px solid #444;">`;
+      const currentLuck = this.actor.system.stats.luck?.value || 0;
       
+      let dialogContent = `
+        <form style="color:#eee; font-family:'Roboto Condensed',sans-serif;">
+            <div class="form-group" style="margin-bottom:5px; display:flex; justify-content:space-between;">
+                <label>Generic Modifier (+/-)</label>
+                <input type="number" name="modifier" value="0" style="background:#333; color:#fff; border:1px solid #555; text-align:center; width:50px;"/>
+            </div>
+            <div class="form-group" style="margin-bottom:5px;">
+                <label style="color:#39ff14;"><input type="checkbox" name="spendLuck"/> Spend Luck (${currentLuck} avail)</label>
+                <p style="font-size:0.8em; color:#aaa; margin:0;">Reroll failed dice.</p>
+            </div>
+            <hr style="border:1px solid #444;">
+      `;
+
       if (isMelee) {
-          dialogContent += `<h3 style="border-bottom:1px solid #555; color:#39ff14; margin-bottom:5px;">Melee Modifiers</h3><div style="display:grid; grid-template-columns: 1fr; gap: 5px;"><div><input type="checkbox" name="charging"/> Charging (-1 SD, +1 Auto)</div><div><input type="checkbox" name="prone"/> Target Prone (+2 SD)</div><div class="form-group" style="margin-top:5px; display:flex; justify-content:space-between;"><label>Combat Def</label><input type="number" name="combatDef" value="0" style="width:50px; background:#333; color:#fff; text-align:center;"/></div></div>`;
+          dialogContent += `
+            <h3 style="border-bottom:1px solid #555; color:#39ff14; margin-bottom:5px;">Melee Modifiers</h3>
+            <div style="display:grid; grid-template-columns: 1fr; gap: 5px;">
+                <div><input type="checkbox" name="charging"/> Charging (-1 SD, +1 Auto Skill)</div>
+                <div><input type="checkbox" name="targetCharged"/> Target Charged/Fast Move (-1 SD)</div>
+                <div><input type="checkbox" name="sameTarget"/> Hit Same Target Last Round (+1 SD)</div>
+                <div><input type="checkbox" name="breakOff"/> Target Breaking Off (+1 SD)</div>
+                <div><input type="checkbox" name="natural"/> Natural Weapons (+1 SD)</div>
+                <div><input type="checkbox" name="prone"/> Target Prone/Stunned (+2 SD)</div>
+                <div class="form-group" style="margin-top:5px; display:flex; justify-content:space-between;">
+                    <label>Combat Defence (Rank)</label>
+                    <input type="number" name="combatDef" value="0" style="width:50px; background:#333; color:#fff; text-align:center;"/>
+                </div>
+                <div class="form-group" style="display:flex; justify-content:space-between;">
+                    <label>Acrobatic Defence (Rank)</label>
+                    <input type="number" name="acroDef" value="0" style="width:50px; background:#333; color:#fff; text-align:center;"/>
+                </div>
+            </div>`;
       } else {
-          dialogContent += `<h3 style="border-bottom:1px solid #555; color:#39ff14; margin-bottom:5px;">Ranged Modifiers</h3><div style="font-size:0.8em; color:#aaa; margin-bottom:5px;">Base Recoil: -${recoil} SD</div><div style="display:grid; grid-template-columns: 1fr; gap: 5px;"><div class="form-group" style="display:flex; justify-content:space-between;"><label>Target Cover</label><select name="cover" style="background:#333; color:#fff; width:120px;"><option value="0">None</option><option value="-1">Light (-1 SD)</option><option value="-2">Heavy (-2 SD)</option></select></div><div class="form-group" style="display:flex; justify-content:space-between;"><label>Ammo Type</label><select name="ammo" style="background:#333; color:#fff; width:120px;"><option value="std">Standard</option><option value="he">HE (+1)</option><option value="ap">AP (-2 PV)</option></select></div><div class="form-group" style="display:flex; justify-content:space-between;"><label>Firing Mode</label><select name="mode" style="background:#333; color:#fff; width:120px;"><option value="single">Single</option><option value="burst">Burst (+2)</option><option value="auto">Auto (+4)</option><option value="suppress">Suppress (+4)</option></select></div></div>`;
+          dialogContent += `
+            <h3 style="border-bottom:1px solid #555; color:#39ff14; margin-bottom:5px;">Ranged Modifiers</h3>
+            <div style="font-size:0.8em; color:#aaa; margin-bottom:5px;">Base Recoil: -${recoil} SD</div>
+            <div style="display:grid; grid-template-columns: 1fr; gap: 5px;">
+                <div class="form-group" style="display:flex; justify-content:space-between;">
+                    <label>Target Cover</label>
+                    <select name="cover" style="background:#333; color:#fff; width:120px;">
+                        <option value="0">None</option>
+                        <option value="-1">Light (-1 SD)</option>
+                        <option value="-2">Heavy/Hidden (-2 SD)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display:flex; justify-content:space-between;">
+                    <label>Ammo Type</label>
+                    <select name="ammo" style="background:#333; color:#fff; width:120px;">
+                        <option value="std">Standard</option>
+                        <option value="he">HE (+1)</option><option value="ap">AP (-2 PV)</option>
+                        <option value="slug">Slug (+1)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display:flex; justify-content:space-between;">
+                    <label>Firing Mode</label>
+                    <select name="mode" style="background:#333; color:#fff; width:120px;">
+                        <option value="single">Single</option>
+                        <option value="burst">Burst (Reroll SD)</option>
+                        <option value="auto">Full Auto (Reroll All)</option>
+                        <option value="suppress">Suppressive (Reroll All)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display:flex; justify-content:space-between;">
+                    <label>Aiming</label>
+                    <select name="aiming" style="background:#333; color:#fff; width:120px;">
+                        <option value="none">None</option>
+                        <option value="sd">+1 Success Die</option>
+                        <option value="skill">+1 Skill Success</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display:flex; justify-content:space-between;">
+                    <label>Dual Wielding</label>
+                    <select name="dual" style="background:#333; color:#fff; width:120px;">
+                        <option value="0">No</option>
+                        <option value="-2">Same Target (-2 SD)</option>
+                        <option value="-4">Diff Target (-4 SD)</option>
+                    </select>
+                </div>
+                <hr style="border: 1px solid #444; width:100%;">
+                <div><input type="checkbox" name="targetMoved"/> Target Moved Fast (-1 SD)</div>
+                <div><input type="checkbox" name="blind"/> Firing Blind (-1 All Dice)</div>
+                <div><input type="checkbox" name="longRange"/> Long Range (-1 Skill Die)</div>
+                <div><input type="checkbox" name="prone"/> Target Prone/Stunned (+1 SD)</div>
+            </div>`;
       }
       dialogContent += `</form>`;
 
@@ -328,7 +408,7 @@ export class SlaActorSheet extends ActorSheet {
       }, { classes: ["sla-dialog", "sla-sheet"] }).render(true);
   }
 
-  // --- ACTION: PROCESS WEAPON ROLL ---
+   // --- HELPER: PROCESS WEAPON ROLL ---
   async _processWeaponRoll(item, html, isMelee) {
       const form = html[0].querySelector("form");
       const genericMod = Number(form.modifier.value) || 0;
@@ -346,19 +426,35 @@ export class SlaActorSheet extends ActorSheet {
           if (skillItem) rank = skillItem.system.rank;
       }
 
+      // Modifiers
       let successDieMod = 0; 
       let allDiceMod = genericMod;
       
-      // Global Modifiers
-      let globalMod = 0;
-      if (this.actor.system.conditions?.prone) globalMod -= 1;
-      if (this.actor.system.conditions?.stunned) globalMod -= 1;
-      allDiceMod += globalMod;
+      // Global Condition Mods
+      if (this.actor.system.conditions?.prone) allDiceMod -= 1;
+      if (this.actor.system.conditions?.stunned) allDiceMod -= 1;
 
       let autoSkillSuccesses = 0; 
       let rankMod = 0; 
       let damageBonus = 0;
       let armorPen = 0;
+      let effectNote = "";
+      
+      // Reroll Flags
+      let rerollSuccessDie = false;
+      let rerollAll = false;
+
+      // Luck
+      if (form.spendLuck && form.spendLuck.checked) {
+          const currentLuck = this.actor.system.stats.luck?.value || 0;
+          if (currentLuck > 0) {
+              rerollAll = true; // Luck rerolls failed dice (simplified as reroll all for now, or complex logic later)
+              await this.actor.update({"system.stats.luck.value": currentLuck - 1});
+              effectNote += "<strong style='color:#39ff14'>Luck Used (Reroll). </strong>";
+          } else {
+              ui.notifications.warn("No Luck remaining!");
+          }
+      }
 
       const parseSlashVal = (valStr, index) => {
           const parts = String(valStr).split('/');
@@ -373,18 +469,34 @@ export class SlaActorSheet extends ActorSheet {
           else if (strValue === 5) damageBonus += 1;
 
           if (form.charging.checked) { successDieMod -= 1; autoSkillSuccesses += 1; }
-          if (form.prone.checked) successDieMod += 2;
-          
+          if (form.targetCharged.checked) { successDieMod -= 1; }
+          if (form.sameTarget.checked) { successDieMod += 1; }
+          if (form.breakOff.checked) { successDieMod += 1; }
+          if (form.natural.checked) { successDieMod += 1; }
+          if (form.prone.checked) { successDieMod += 2; }
+
           allDiceMod -= (Number(form.combatDef.value) || 0); 
+          allDiceMod -= (Number(form.acroDef.value) || 0) * 2; 
       } else {
           const mode = form.mode.value;
           let recoilIndex = 0;
           let ammoCost = 1;
 
-          if (mode === "burst") { recoilIndex = 1; ammoCost = 3; damageBonus += 2; }
-          else if (mode === "auto") { recoilIndex = 2; ammoCost = 10; damageBonus += 4; }
+          if (mode === "burst") { 
+              recoilIndex = 1; ammoCost = 3; damageBonus += 2; 
+              rerollSuccessDie = true; 
+              effectNote += "Burst: Reroll SD. "; 
+          }
+          else if (mode === "auto") { 
+              recoilIndex = 2; ammoCost = 10; damageBonus += 4; 
+              rerollAll = true; 
+              effectNote += "Full Auto: Reroll All. "; 
+          }
           else if (mode === "suppress") { 
               recoilIndex = 2; ammoCost = 20; autoSkillSuccesses += 2; damageBonus += 4; 
+              rerollAll = true; 
+              effectNote += "Suppressive: Reroll All. "; 
+              
               const supportSkill = this.actor.items.find(i => i.type === 'skill' && i.name.toLowerCase() === 'support weapons');
               rank = supportSkill ? supportSkill.system.rank : 0;
           }
@@ -393,16 +505,29 @@ export class SlaActorSheet extends ActorSheet {
           if (recoilVal > 0) successDieMod -= recoilVal;
 
           const currentAmmo = item.system.ammo || 0;
-          if (currentAmmo < ammoCost) { ammoCost = currentAmmo; damageBonus -= 2; }
+          if (currentAmmo < ammoCost) { ammoCost = currentAmmo; damageBonus -= 2; effectNote += "Low Ammo (-2 DMG). "; }
           await item.update({ "system.ammo": currentAmmo - ammoCost });
 
           const ammo = form.ammo.value;
-          if (ammo === "he") damageBonus += 1;
-          if (ammo === "ap") armorPen = 2;
-          if (ammo === "slug") damageBonus += 1;
-          
+          if (ammo === "he") { damageBonus += 1; effectNote += "HE: +1 AD. "; }
+          if (ammo === "ap") { armorPen = 2; effectNote += "AP: -2 PV. "; }
+          if (ammo === "slug") { damageBonus += 1; effectNote += "Slug: -1 AD. "; }
+
           const cover = Number(form.cover.value) || 0;
           successDieMod += cover;
+          const dual = Number(form.dual.value) || 0;
+          successDieMod += dual;
+
+          const aiming = form.aiming.value;
+          if (mode !== "suppress") {
+              if (aiming === "sd") successDieMod += 1;
+              if (aiming === "skill") autoSkillSuccesses += 1;
+          }
+
+          if (form.targetMoved.checked) successDieMod -= 1;
+          if (form.blind.checked) allDiceMod -= 1;
+          if (form.prone.checked) successDieMod += 1;
+          if (form.longRange.checked) { rankMod -= 1; effectNote += "Long Range (-1 Die). "; }
       }
 
       const penalty = this.actor.system.wounds.penalty || 0;
@@ -410,12 +535,60 @@ export class SlaActorSheet extends ActorSheet {
 
       const baseModifier = statValue + rank + allDiceMod; 
       let effectiveRank = Math.max(0, rank + rankMod); 
+      
+      // --- ROLL LOGIC WITH REROLLS ---
       let formula = "1d10";
       if (effectiveRank > 0) formula += ` + ${effectiveRank}d10`;
 
       let roll = new Roll(formula);
       await roll.evaluate();
 
+      // Reroll Logic (Foundry Dice Modification)
+      // If Reroll All is true, we essentially reroll the whole thing.
+      // If Reroll SD is true, we reroll the first term if it failed.
+      
+      // Simple Implementation: Just roll again if criteria met
+      // Check failures (Threshold 10 - Mods)
+      // Target Number is effectively 10, modifiers apply to result.
+      
+      // Reroll Success Die?
+      let sdVal = roll.terms[0].results[0].result + baseModifier + successDieMod;
+      if (rerollSuccessDie && sdVal < 10) {
+          // Reroll Term 0
+          const newDie = new Roll("1d10");
+          await newDie.evaluate();
+          roll.terms[0].results[0].result = newDie.terms[0].results[0].result;
+          // Recalculate total? Foundry rolls are immutable-ish. Easier to just make a new roll object or manually track.
+          // Let's manually track the final results.
+      }
+
+      // Reroll All?
+      // This logic is complex because we only reroll FAILURES usually, but Full Auto allows "Any/All".
+      // For simplicity in automation, we will reroll IF the result was bad.
+      if (rerollAll) {
+           // Check if outcome is poor, if so, reroll the whole stack.
+           // Logic: If Success Die < 10, Reroll. 
+           // If any Skill Die < 10, Reroll.
+           // This is a powerful interpretation of "May reroll".
+           // Let's just reroll the specific dice that failed.
+           
+           // 1. Re-roll SD if failed
+           if ((roll.terms[0].results[0].result + baseModifier + successDieMod) < 10) {
+               const r = new Roll("1d10"); await r.evaluate();
+               roll.terms[0].results[0].result = r.terms[0].results[0].result;
+           }
+           // 2. Re-roll Skill Dice if failed
+           if (roll.terms.length > 2) {
+               for (let res of roll.terms[2].results) {
+                   if ((res.result + baseModifier) < 10) {
+                       const r = new Roll("1d10"); await r.evaluate();
+                       res.result = r.terms[0].results[0].result;
+                   }
+               }
+           }
+      }
+
+      // Final Calc
       const successRaw = roll.terms[0].results[0].result;
       const successTotal = successRaw + baseModifier + successDieMod;
 
@@ -433,10 +606,11 @@ export class SlaActorSheet extends ActorSheet {
       if (autoSkillSuccesses > 0) skillDiceHtml += `<div style="display:flex; flex-direction:column; align-items:center; margin:2px;"><span style="border:1px solid #39ff14; background:#39ff14; color:#000; padding:2px 8px; border-radius:4px; font-weight:bold;">+${autoSkillSuccesses}</span><span style="font-size:0.7em; color:#aaa;">(Auto)</span></div>`;
 
       let mosDamage = 0;
+      let hitLocation = "Standard";
       if (mosCount === 1) mosDamage = 1;
-      else if (mosCount === 2) mosDamage = 2;
-      else if (mosCount === 3) mosDamage = 4;
-      else if (mosCount >= 4) mosDamage = 6;
+      else if (mosCount === 2) { mosDamage = 2; hitLocation = "Arm/Torso"; }
+      else if (mosCount === 3) { mosDamage = 4; hitLocation = "Leg/Arm/Torso"; }
+      else if (mosCount >= 4) { mosDamage = 6; hitLocation = "HEAD (or any)"; }
 
       const totalDamageBonus = mosDamage + damageBonus;
       const baseDamage = item.system.damage || "0";
@@ -459,6 +633,7 @@ export class SlaActorSheet extends ActorSheet {
               </div>
               <div style="background:#111; border:1px solid #555; padding:5px; margin-bottom:5px;">
                   <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#ccc;">
+                      <span>Hit: <strong style="color:#fff;">${hitLocation}</strong></span>
                       <span>Total Bonus: <strong style="color:#39ff14;">+${totalDamageBonus}</strong></span>
                   </div>
                   ${armorPen > 0 ? `<div style="font-size:0.7em; color:#f88; margin-top:2px;">Target PV reduced by ${armorPen}</div>` : ""}
