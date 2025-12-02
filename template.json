@@ -2,7 +2,10 @@
   "Actor": {
     "types": ["character", "npc"],
     "character": {
-      "bio": { "species": "", "package": "", "squad": "", "scl": "", "ladAccount": false },
+      "biography": "",
+      "appearance": "",
+      "notes": "",
+	  "bio": { "species": "", "package": "", "squad": "", "scl": "", "ladAccount": false },
       "finance": { "credits": 0, "unis": 0, "lad": 0 },
       "ratings": {
         "body": { "value": 0 }, "brains": { "value": 0 }, "bravado": { "value": 0 }
