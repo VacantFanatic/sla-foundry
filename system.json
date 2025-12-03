@@ -29,5 +29,5 @@
   "secondaryTokenAttribute": "attributes.flux",
   "url": "https://github.com/VacantFanatic/sla-foundry",
   "manifest": "https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json",
-  "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/v0.2.1-alpha/sla-industries.zip"
+  "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/v0.2.1-alpha/sla-foundry.zip"
 }
