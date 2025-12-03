@@ -10,7 +10,9 @@ export class SlaItemSheet extends ItemSheet {
       classes: ["sla-industries", "sheet", "item"],
       width: 520,
       height: 480,
-      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "attributes" }]
+      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "attributes" }],
+      // CRITICAL: This enables the _onDrop handler for the specific CSS class
+      dragDrop: [{ dragSelector: null, dropSelector: ".drop-zone" }] 
     });
   }
 
@@ -19,6 +21,10 @@ export class SlaItemSheet extends ItemSheet {
     const path = "systems/sla-industries/templates/item";
     return `${path}/item-sheet.hbs`;
   }
+
+  /* -------------------------------------------- */
+  /* Data Preparation                            */
+  /* -------------------------------------------- */
 
   /** @override */
   async getData() {
@@ -29,8 +35,7 @@ export class SlaItemSheet extends ItemSheet {
     context.flags = item.flags;
     context.item = item;
 
-    // --- MISSING FIX: ENRICH DESCRIPTION ---
-    // This converts the raw text into the visual editor format
+    // Enrich Description (Bio/Rules)
     context.enrichedDescription = await TextEditor.enrichHTML(item.system.description, {
         async: true,
         relativeTo: this.actor
@@ -41,7 +46,7 @@ export class SlaItemSheet extends ItemSheet {
       context.rollData = this.object.parent.getRollData();
     }
 
-    // CONFIG
+    // Dropdown Configs
     context.config = {
         stats: { "str":"STR", "dex":"DEX", "know":"KNOW", "conc":"CONC", "cha":"CHA", "cool":"COOL" },
         combatSkills: CONFIG.SLA?.combatSkills || {},
@@ -51,53 +56,81 @@ export class SlaItemSheet extends ItemSheet {
     return context;
   }
 
+  /* -------------------------------------------- */
+  /* Event Listeners                             */
+  /* -------------------------------------------- */
+
   /** @override */
   activateListeners(html) {
     super.activateListeners(html);
     if (!this.isEditable) return;
-    
-    // Listeners for custom item logic (like delete-grant) go here if added back
+
+    // DELETE GRANTED SKILL (Species/Package)
     html.find('.delete-grant').click(async ev => {
-        const index = ev.currentTarget.dataset.index;
+        ev.preventDefault();
+        const index = parseInt(ev.currentTarget.dataset.index);
+        
+        // Safely get array
         let currentSkills = this.item.system.skills;
         if (!Array.isArray(currentSkills)) currentSkills = [];
-        else currentSkills = duplicate(currentSkills);
+        else currentSkills = foundry.utils.deepClone(currentSkills);
         
+        // Remove item at index
         currentSkills.splice(index, 1);
+        
+        // Save
         await this.item.update({ "system.skills": currentSkills });
     });
   }
 
-  /** @override */
+  /* -------------------------------------------- */
+  /* Drag and Drop Logic                         */
+  /* -------------------------------------------- */
+
+  /** * Handle dropping a Skill onto a Species or Package Item Sheet
+   * @override
+   */
   async _onDrop(event) {
-      const data = TextEditor.getDragEventData(event);
+      // 1. Check if this item type allows dropping (Species/Package)
       const allowedTypes = ["species", "package"];
-      
       if (!allowedTypes.includes(this.item.type)) return;
 
+      // 2. Get the dropped data
+      const data = TextEditor.getDragEventData(event);
       const droppedItem = await Item.implementation.fromDropData(data);
-      
+
       if (!droppedItem) return;
+
+      // 3. Validate Item Type (Only Skills/Traits/Disciplines/Formulas allowed)
       if (droppedItem.type !== "skill" && droppedItem.type !== "discipline" && droppedItem.type !== "trait" && droppedItem.type !== "ebbFormula") {
           return ui.notifications.warn("You can only add Skills, Traits, Disciplines, or Formulas to this list.");
       }
 
+      // 4. Get Current List (Safe Array)
       let currentSkills = this.item.system.skills;
       if (!Array.isArray(currentSkills)) {
           currentSkills = [];
       } else {
-          currentSkills = duplicate(currentSkills);
+          currentSkills = foundry.utils.deepClone(currentSkills);
       }
 
+      // 5. Check for Duplicates
       if (currentSkills.find(s => s.name === droppedItem.name)) {
           return ui.notifications.warn(`${droppedItem.name} is already in the list.`);
       }
 
+      // 6. Prepare Data to Save (Clone and Strip ID)
       const skillData = droppedItem.toObject();
-      delete skillData._id;
+      delete skillData._id; // We want a raw data object, not a reference to an ID
       
-      currentSkills.push(skillData);
+      // Default Rank to 1 if 0 (so it actually does something when granted)
+      if (!skillData.system.rank) skillData.system.rank = 1;
 
+      // 7. Push and Update
+      currentSkills.push(skillData);
       await this.item.update({ "system.skills": currentSkills });
+      
+      // Visual Feedback
+      console.log(`SLA | Added ${droppedItem.name} to ${this.item.name}`);
   }
 }

@@ -750,97 +750,113 @@ export class SlaActorSheet extends ActorSheet {
       });
   }
 
-  // --- DROPS ---
+  // --- DROPS (SPECIES & PACKAGES) ---
   async _onDropItem(event, data) {
     if ( !this.actor.isOwner ) return false;
     const item = await Item.implementation.fromDropData(data);
     const itemData = item.toObject();
 
-    if (itemData.type === "species") {
-        const existing = this.actor.items.find(i => i.type === "species");
-        if (existing) await existing.delete();
-        await this.actor.createEmbeddedDocuments("Item", [itemData]);
-        await this.actor.update({ "system.bio.species": itemData.name });
-        const stats = itemData.system.stats;
-        const updates = {};
-        for (const [key, val] of Object.entries(stats)) updates[`system.stats.${key}.value`] = val.min;
-        await this.actor.update(updates);
-        
-        const skillString = itemData.system.skills || "";
-        if (skillString) {
-            const skillNames = skillString.split(",").map(s => s.trim());
-            const skillPack = game.packs.get("world.sla-skills"); 
-            if (skillPack) {
-                const index = await skillPack.getIndex();
-                const skillsToAdd = [];
-                for (const name of skillNames) {
-                    const entry = index.find(e => e.name === name);
-                    if (entry) {
-                        const doc = await skillPack.getDocument(entry._id);
-                        const obj = doc.toObject();
-                        obj.flags = { "sla-industries": { fromSpecies: true } };
-                        obj.system.rank = 1; 
-                        skillsToAdd.push(obj);
-                    }
-                }
-                if (skillsToAdd.length) await this.actor.createEmbeddedDocuments("Item", skillsToAdd);
+    // Helper: Handle Skill Array (Create or Increment)
+    const processSkills = async (skillsArray, sourceFlag) => {
+        // 1. Validate Data
+        if (!skillsArray || !Array.isArray(skillsArray) || skillsArray.length === 0) return;
+
+        const toCreate = [];
+        const toUpdate = [];
+
+        for (const skillData of skillsArray) {
+            // 2. Check if Actor already has this skill (Name + Type match)
+            // We use toLowerCase to be forgiving on casing
+            const existing = this.actor.items.find(i => 
+                i.name.toLowerCase() === skillData.name.toLowerCase() && 
+                i.type === skillData.type
+            );
+
+            if (existing) {
+                // 3. UPDATE: Increment Rank
+                const currentRank = existing.system.rank || 0;
+                const newRank = currentRank + 1;
+                
+                toUpdate.push({
+                    _id: existing.id,
+                    "system.rank": newRank
+                });
+                
+                ui.notifications.info(`Upgraded ${existing.name} to Rank ${newRank}`);
+            } else {
+                // 4. CREATE: Add new item
+                const newSkill = foundry.utils.deepClone(skillData);
+                delete newSkill._id; // Ensure a new ID is generated
+                
+                // Default rank to 1 if missing
+                if (!newSkill.system.rank) newSkill.system.rank = 1;
+                
+                // Flag source
+                if (!newSkill.flags) newSkill.flags = {};
+                if (!newSkill.flags["sla-industries"]) newSkill.flags["sla-industries"] = {};
+                newSkill.flags["sla-industries"][sourceFlag] = true;
+                
+                toCreate.push(newSkill);
             }
         }
-        // Array logic (New Method)
-        const skillArray = itemData.system.skills || [];
-        if (Array.isArray(skillArray) && skillArray.length > 0) {
-             const flaggedSkills = skillArray.map(s => {
-                s.flags = { "sla-industries": { fromSpecies: true } };
-                if (!s.system.rank) s.system.rank = 1; 
-                return s;
-            });
-            await this.actor.createEmbeddedDocuments("Item", flaggedSkills);
-        }
 
+        // 5. Commit Changes
+        if (toCreate.length > 0) {
+            await this.actor.createEmbeddedDocuments("Item", toCreate);
+            ui.notifications.info(`Added ${toCreate.length} new skills.`);
+        }
+        if (toUpdate.length > 0) {
+            await this.actor.updateEmbeddedDocuments("Item", toUpdate);
+        }
+    };
+
+    // CASE 1: SPECIES
+    if (itemData.type === "species") {
+        // Remove old species
+        const existing = this.actor.items.find(i => i.type === "species");
+        if (existing) await existing.delete();
+
+        // Add new species
+        await this.actor.createEmbeddedDocuments("Item", [itemData]);
+        await this.actor.update({ "system.bio.species": itemData.name });
+
+        // Apply Stats
+        const stats = itemData.system.stats;
+        if (stats) {
+            const updates = {};
+            for (const [key, val] of Object.entries(stats)) {
+                updates[`system.stats.${key}.value`] = val.min;
+            }
+            await this.actor.update(updates);
+        }
+        
+        // Apply Skills
+        await processSkills(itemData.system.skills, "fromSpecies");
         return;
     }
     
+    // CASE 2: PACKAGE
     if (itemData.type === "package") {
+        // Check Stat Requirements
         const reqs = itemData.system.requirements || {};
         for (const [key, minVal] of Object.entries(reqs)) {
             const actorStat = this.actor.system.stats[key]?.value || 0;
-            if (actorStat < minVal) { ui.notifications.error(`Req: ${key.toUpperCase()} must be ${minVal}+`); return; }
+            if (actorStat < minVal) { 
+                ui.notifications.error(`Requirement not met: ${key.toUpperCase()} must be ${minVal}+`); 
+                return; 
+            }
         }
+
+        // Remove old package
         const existing = this.actor.items.find(i => i.type === "package");
         if (existing) await existing.delete();
+
+        // Add new package
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.package": itemData.name });
         
-        const skillString = itemData.system.skills || "";
-        if (skillString) {
-            const skillNames = skillString.split(",").map(s => s.trim());
-            const skillPack = game.packs.get("world.sla-skills"); 
-            if (skillPack) {
-                const index = await skillPack.getIndex();
-                const skillsToAdd = [];
-                for (const name of skillNames) {
-                    const entry = index.find(e => e.name === name);
-                    if (entry) {
-                        const doc = await skillPack.getDocument(entry._id);
-                        const obj = doc.toObject();
-                        obj.flags = { "sla-industries": { fromPackage: true } };
-                        obj.system.rank = 1;
-                        skillsToAdd.push(obj);
-                    }
-                }
-                if (skillsToAdd.length) await this.actor.createEmbeddedDocuments("Item", skillsToAdd);
-            }
-        }
-        // Array logic
-        const skillArray = itemData.system.skills || [];
-        if (Array.isArray(skillArray) && skillArray.length > 0) {
-             const flaggedSkills = skillArray.map(s => {
-                s.flags = { "sla-industries": { fromPackage: true } };
-                if (!s.system.rank) s.system.rank = 1; 
-                return s;
-            });
-            await this.actor.createEmbeddedDocuments("Item", flaggedSkills);
-        }
+        // Apply Skills
+        await processSkills(itemData.system.skills, "fromPackage");
         return;
     }
 
