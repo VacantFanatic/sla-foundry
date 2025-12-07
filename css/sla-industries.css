@@ -10,14 +10,13 @@
     --sla-font-mono: "Roboto Condensed", "Arial Narrow", sans-serif;
 }
 
-/* Main Window Container */
 .sla-sheet.window-content {
     background: var(--sla-bg-dark);
     color: var(--sla-text-light);
     font-family: var(--sla-font-mono);
     font-size: 13px;
     padding: 5px;
-    overflow: hidden; /* Fix double scrollbars */
+    overflow: hidden; 
     border: 2px solid #333;
 }
 
@@ -25,15 +24,16 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* Allow internal scrolling */
+    overflow-y: auto; 
 }
 
 /* ==========================================
-   2. INPUTS (Scoped to avoid breaking Chat)
+   2. INPUTS
    ========================================== */
 .sla-sheet input[type="text"],
-.sla-sheet input[type="number"] {
-    background: #d0d3d8; /* The SLA "Paper" Grey */
+.sla-sheet input[type="number"],
+.sla-sheet select {
+    background: #d0d3d8; 
     border: 1px solid #555;
     border-radius: 0;
     color: #000;
@@ -47,515 +47,475 @@
     background: #fff;
 }
 
-/* Dropdowns (Dark Theme Default) */
 .sla-sheet select {
     background-color: #000;
     color: #fff;
-    border: 1px solid #555;
-    height: 24px;
-    font-family: var(--sla-font-mono);
-}
-.sla-sheet select option {
-    background-color: #000;
-    color: #fff;
 }
 
 /* ==========================================
-   3. HEADERS & GRIDS
+   3. HEADER & PORTRAIT (FIXED SIZE)
    ========================================== */
-.sla-sheet .sla-header-bar {
-    background-color: var(--sla-bg-panel);
-    color: #fff;
-    text-transform: uppercase;
-    font-weight: bold;
-    padding: 2px 5px;
-    border-bottom: 2px solid var(--sla-border);
-    margin-bottom: 2px;
-    font-size: 0.9em;
-}
-
 .sla-sheet .header-grid {
-    display: flex; /* Use Flex for Item Sheet compatibility */
+    display: grid;
+    /* Name Area | Portrait | Finance Area */
+    grid-template-columns: 1.5fr 140px 1fr; 
     gap: 10px;
-    height: 180px;
+    height: 200px; /* Locked height ensures image doesn't grow */
     margin-bottom: 10px;
 }
 
-/* Character Sheet specific grid override */
-.sla-sheet.actor .header-grid {
-    display: grid;
-    grid-template-columns: 1.2fr 130px 1fr;
-}
-
-/* ==========================================
-   4. UTILITIES
-   ========================================== */
-.sla-sheet .sla-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-.sla-sheet .sla-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
-.sla-sheet .flexcol { display: flex; flex-direction: column; gap: 2px; }
-.sla-sheet .flexrow { display: flex; flex-direction: row; gap: 5px; align-items: center; }
-
-/* ==========================================
-   5. BIO & FINANCE
-   ========================================== */
 .sla-sheet .profile-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* Crops image to fit the 140x200 box */
     border: 2px solid var(--sla-bg-panel);
     background: #fff;
+}
+
+/* Bio Section Layout */
+.bio-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
 }
 
 .sla-sheet .bio-field {
     display: grid;
     grid-template-columns: 70px auto;
     align-items: center;
-    margin-bottom: 2px;
     background: #d0d3d8;
     padding-left: 5px;
     color: #000;
     font-weight: bold;
+    margin-bottom: 2px;
 }
 .sla-sheet .bio-field label { font-size: 0.8em; }
 .sla-sheet .bio-field input { border: none; background: transparent !important; }
 
-.sla-sheet .finance-box { background: var(--sla-bg-panel); padding: 5px; height: 100%; }
-.sla-sheet .finance-box .logo-placeholder { 
-    height: 40px; background: #111; color: #555; 
-    display: flex; align-items: center; justify-content: center; margin-bottom: 5px;
+/* Finance Section */
+.sla-sheet .finance-box {
+    background: var(--sla-bg-panel);
+    padding: 5px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 .sla-sheet .finance-field label { display: block; color: #ccc; font-size: 0.8em; }
-.sla-sheet .finance-field input { width: 100%; margin-bottom: 5px; }
+.sla-sheet .finance-field input { width: 100%; }
 
 /* ==========================================
-   6. STATS (Reorganized for Body/Str/Dex stack)
+   4. STATS GRID (NEW LAYOUT)
    ========================================== */
 .sla-sheet .stats-grid {
     display: grid;
-    /* Col 1: Label (100px) | Col 2-4: Body/Brain/Bravado (140px) | Col 5: Extras */
-    grid-template-columns: 100px 140px 140px 140px 1fr;
+    /* 3 Main Stat Groups + 1 Secondary Column */
+    grid-template-columns: 1fr 1fr 1fr 90px;
     gap: 10px;
-    margin-bottom: 10px;
-    padding: 10px;
-    border-bottom: 2px solid var(--sla-bg-panel);
+    padding: 5px;
     background: rgba(0,0,0,0.1);
-    min-height: 140px;
+    border-bottom: 2px solid var(--sla-bg-panel);
+    margin-bottom: 10px;
 }
 
-.sla-sheet .stats-grid .flexcol {
-    display: flex; flex-direction: column; gap: 5px; height: 100%; overflow: hidden; 
+.stat-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
-/* Stat Rows */
-.sla-sheet .stat-block { 
-    display: flex; align-items: center; justify-content: space-between; height: 30px; width: 100%;
+/* Rating Header (Body/Brains/Bravado) */
+.rating-block {
+    display: flex;
+    align-items: center;
+    background: #222;
+    padding: 2px;
+    border: 1px solid #444;
+}
+.rating-block label {
+    flex: 1;
+    color: #888;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-align: center;
+}
+.rating-block input {
+    width: 50px;
+    text-align: center;
+    color: #39ff14 !important; /* Green Text */
+    background: #000 !important;
+    border: none !important;
+    font-weight: bold;
 }
 
-/* Black Labels (STR, DEX) */
-.sla-sheet .stat-label {
+/* Stat Rows (STR, DEX, etc) */
+.stat-row {
+    display: flex;
+    align-items: center;
+    height: 28px;
+    background: #d0d3d8; /* Grey paper look */
+    border: 1px solid #555;
+}
+
+.stat-row .stat-label {
+    width: 50px;
     background: var(--sla-bg-panel);
     color: #fff;
-    flex: 0 0 70px; width: 70px; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: bold; font-size: 0.9em; text-transform: uppercase; border: 1px solid #111;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9em;
 }
 
-/* Inputs */
-.sla-sheet .stat-input { 
-    flex: 1; text-align: center; font-size: 1.2em; font-weight: bold; height: 100%;
-    border-radius: 0; min-width: 0;
+.stat-row input {
+    flex: 1;
+    border: none !important;
+    background: transparent !important;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    height: 100%;
 }
 
-/* Ratings Header */
-.ratings-header {
-    color: #888; font-size: 0.75em; font-weight: bold; text-transform: uppercase; white-space: nowrap;
+.stat-row .rollable {
+    width: 24px;
+    text-align: center;
+    color: #555;
+    cursor: pointer;
 }
+.stat-row .rollable:hover { color: #000; }
 
-/* Secondary Boxes */
-.sla-sheet .secondary-stat-box { 
-    background: #445; text-align: center; padding: 2px; border: 1px solid #555;
-    display: flex; flex-direction: column; justify-content: center; height: 100%;
+/* Secondary Stats (Right Column) */
+.stat-group.secondary {
+    justify-content: space-between;
 }
+.secondary-box {
+    background: #445;
+    text-align: center;
+    padding: 2px;
+    border: 1px solid #555;
+}
+.secondary-box label { display: block; font-size: 0.7em; color: #ccc; }
+.secondary-box input { width: 100%; text-align: center; }
+.secondary-box.init { background: #334; height: 40px; }
+.init-val { font-size: 1.4em; font-weight: bold; color: #fff; margin-right: 5px; }
 
 /* ==========================================
-   7. MAIN BODY & LISTS
+   5. MAIN LAYOUT (LEFT/RIGHT SPLIT)
    ========================================== */
-.sla-sheet .main-split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; min-height: 300px; }
+.sla-sheet .main-split {
+    display: grid;
+    /* Force 50/50 split or 60/40 */
+    grid-template-columns: 1fr 1fr; 
+    gap: 10px;
+    height: 100%;
+    overflow: hidden; /* Prevent spillover */
+}
 
-.sla-sheet .sla-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
-.sla-sheet .sla-table thead tr { background: #2a2a35; position: sticky; top: 0; z-index: 5; }
-.sla-sheet .sla-table th { padding: 4px; font-size: 0.8em; text-transform: uppercase; color: #aaa; border-bottom: 2px solid #111; }
-.sla-sheet .sla-table tbody tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.03); }
-.sla-sheet .sla-table tbody tr:nth-child(odd) { background-color: rgba(0, 0, 0, 0.2); }
-.sla-sheet .sla-table td { border-bottom: 1px solid #444; }
-.sla-sheet .sla-table input { width: 100%; background: transparent; border: none; color: #eee; }
-
-/* Hover Effect */
-.sla-sheet .item:hover { background-color: rgba(57, 255, 20, 0.1) !important; }
-
-/* Scroll Container */
-.sla-sheet .scroll-list {
-    flex-grow: 1; height: 100%; overflow-y: auto; display: block; 
-    background: transparent; border-top: 1px solid #444; padding: 0;
+/* Ensure columns act as containers */
+.sla-sheet .left-col, 
+.sla-sheet .right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    height: 100%;
+    min-width: 0; /* Prevents flex items from refusing to shrink */
 }
 
 /* Panels */
 .sla-sheet .sla-panel {
-    display: flex; flex-direction: column; height: 100%; width: 100%; min-height: 200px;
-    background: rgba(0,0,0,0.2); border: 1px solid #444; overflow: hidden; box-sizing: border-box;
+    display: flex; flex-direction: column;
+    height: 100%; width: 100%;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid #444;
+    overflow: hidden;
 }
-.sla-sheet .sla-header-bar { flex: 0 0 auto; margin: 0; border-bottom: 1px solid #000; }
-
-/* ==========================================
-   8. SECONDARY DATA
-   ========================================== */
-.sla-sheet .secondary-grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 5px; }
-.sla-sheet .data-box { border: 1px solid #555; background: rgba(0,0,0,0.2); }
-.sla-sheet .data-header { background: #444; color: #ccc; text-align: center; font-size: 0.8em; padding: 2px; }
-.sla-sheet .wound-grid { display: grid; grid-template-columns: auto auto auto 1fr; gap: 5px 10px; align-items: center; font-size: 0.9em; }
-
-/* ==========================================
-   9. INTERACTIVE ELEMENTS
-   ========================================== */
-.sla-sheet .rollable:hover {
-    color: var(--sla-accent); cursor: pointer; text-shadow: 0 0 5px var(--sla-accent);
-}
-
-/* Conditions */
-.condition-toggle, .condition-read-only {
-    background: #111; border: 1px solid #444; width: 30px; height: 30px;
-    display: flex; align-items: center; justify-content: center; border-radius: 4px;
-    color: #555; cursor: pointer; transition: all 0.2s; font-size: 1.2em;
-}
-.condition-toggle:hover { border-color: #fff; color: #aaa; }
-.condition-toggle.active[data-condition="bleeding"] { color: #f00; border-color: #f00; box-shadow: 0 0 5px #f00; }
-.condition-toggle.active[data-condition="burning"] { color: #f80; border-color: #f80; box-shadow: 0 0 5px #f80; }
-.condition-toggle.active[data-condition="prone"] { color: #ccc; border-color: #ccc; box-shadow: 0 0 5px #ccc; }
-.condition-toggle.active[data-condition="stunned"] { color: #ff0; border-color: #ff0; box-shadow: 0 0 5px #ff0; }
-.condition-toggle.active[data-condition="immobile"] { color: #0af; border-color: #0af; box-shadow: 0 0 5px #0af; }
-.condition-read-only.active { color: #f00; border-color: #f00; background: #300; animation: pulse 1s infinite; }
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
-    70% { box-shadow: 0 0 10px 10px rgba(255, 0, 0, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
-}
-
-/* Drop Zones */
-.bio-drop-row { display: flex; flex-direction: row; align-items: center; margin-bottom: 4px; height: 34px; }
-.bio-drop-row label {
-    flex: 0 0 70px; font-weight: bold; color: #000; background: #d0d3d8;
-    height: 100%; display: flex; align-items: center; padding-left: 5px; font-size: 0.8em; margin-right: 2px;
-}
-.empty-drop-zone {
-    flex: 1; height: 100%; border: 2px dashed #555; background: rgba(0,0,0,0.1);
-    color: #777; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-style: italic;
-}
-.empty-drop-zone:hover { background: rgba(57, 255, 20, 0.1); border-color: #39ff14; color: #39ff14; cursor: copy; }
-
-.item-chip {
-    flex: 1; height: 100%; background: #222; border: 1px solid #39ff14;
-    display: flex; align-items: center; padding: 2px; color: #fff;
-}
-.item-chip img { height: 28px; width: 28px; border: 1px solid #555; margin-right: 5px; object-fit: cover; background: #000; }
-.item-chip .chip-name { flex: 1; font-weight: bold; font-family: "Arial"; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #39ff14; }
-.item-chip .chip-delete { color: #555; padding: 0 8px; cursor: pointer; font-size: 1.1em; transition: color 0.2s; }
-.item-chip .chip-delete:hover { color: #f00; text-shadow: 0 0 5px #f00; }
-
-/* ==========================================
-   10. ITEM SHEET FIXES
-   ========================================== */
-.sla-sheet.item .header-grid {
-    display: flex !important; flex-direction: row; align-items: center; gap: 10px;
-    height: 110px; margin-bottom: 10px; border-bottom: 2px solid var(--sla-border);
-    background: rgba(0,0,0,0.2); padding: 5px;
-}
-.sla-sheet.item .profile-img { flex: 0 0 100px; width: 100px; height: 100px; object-fit: cover; border: 1px solid #fff; margin: 0; }
-.sla-sheet.item .header-grid .flexcol { flex: 1; display: flex; flex-direction: column; justify-content: center; height: 100%; }
-.sla-sheet.item .header-grid .bio-field { width: 100%; display: flex; align-items: center; background: transparent; padding: 0; }
-.sla-sheet.item .header-grid .bio-field label { flex: 0 0 50px; margin-right: 5px; font-weight: bold; color: #aaa !important; font-size: 0.9em; }
-
-/* FIX NAME INPUT COLOR */
-.sla-sheet.item .header-grid .bio-field input[name="name"] {
-    color: #ffffff !important; background: transparent !important;
-    font-family: "Arial", sans-serif; font-weight: bold; font-size: 1.5em;
-    border: none; border-bottom: 1px solid rgba(255, 255, 255, 0.3); height: 40px; width: 100%;
-}
-
-/* Editor */
-.sla-sheet.item .sheet-body { height: calc(100% - 140px); overflow-y: auto; padding: 0 10px 10px 10px; }
-.sla-sheet.item .tab.description { height: 100%; display: flex; flex-direction: column; }
-.sla-sheet.item .editor { height: 100%; min-height: 200px; border: 1px solid #444; background: rgba(0, 0, 0, 0.2); padding: 5px; }
-.sla-sheet.item .editor-content { height: 100%; color: #eee; font-family: var(--sla-font-mono); }
-
-/* ==========================================
-   11. THREAT SHEET (NPC)
-   ========================================== */
-.sla-sheet.threat-sheet.window-content {
-    background: #e8e8e8; color: #000; font-family: "Georgia", serif; padding: 0; border: 3px solid #800;
-}
-.threat-header { background: #800; padding: 5px; border-bottom: 2px solid #000; display: flex; align-items: center; height: 90px; }
-.threat-header .header-name { flex: 1; }
-.threat-header input { background: transparent !important; border: none !important; color: #fff !important; font-family: "Arial"; font-weight: bold; font-size: 1.8em; text-transform: uppercase; text-align: left; padding: 0; width: 100%; }
-.threat-img { flex: 0 0 80px; height: 80px; width: 80px; object-fit: cover; border: 2px solid #000; background: #fff; margin-left: 10px; cursor: pointer; }
-
-.threat-table { background: #fff; border-bottom: 2px solid #000; margin-bottom: 10px; }
-.threat-row-label { display: flex; background: #222; color: #fff; font-weight: bold; text-transform: uppercase; font-size: 0.8em; padding: 2px 0; }
-.threat-row-label div { flex: 1; padding-left: 5px; border-right: 1px solid #555; }
-.threat-row-value { display: flex; background: #fff; border-bottom: 1px solid #000; }
-.threat-sheet .threat-row-value input { flex: 1; background: transparent !important; border: none !important; border-right: 1px solid #ccc !important; border-radius: 0; color: #000 !important; font-family: "Arial"; font-weight: normal; height: 25px; text-align: left; padding-left: 5px; }
-.threat-sheet .read-only-val { flex: 1; padding: 4px 0 0 5px; font-weight: bold; border-right: 1px solid #ccc; }
-
-.threat-section-bar { background: #333; color: #fff; text-transform: uppercase; font-weight: bold; padding: 2px 5px; border-top: 1px solid #000; font-family: "Arial"; font-size: 0.9em; }
-.threat-content-box { background: #fff; padding: 5px; min-height: 30px; border-bottom: 1px solid #000; }
-.threat-sheet .threat-skill { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dotted #888; padding: 2px 0; color: #000; }
-.threat-sheet .threat-skill .skill-name:hover { color: #a00; text-shadow: none; }
-.threat-sheet .item-controls a { color: #444; font-size: 0.9em; }
-.threat-sheet .item-controls a:hover { color: #d00; text-shadow: none; }
-.threat-gear { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px solid #eee; }
-
-/* Threat Editor */
-.threat-sheet .editor { height: 100%; color: #000; background: #fff; font-family: "Georgia"; padding: 5px; }
-
-/* ==========================================
-   12. WEAPON CARD (Light Theme Override)
-   ========================================== */
-.sla-sheet.item.weapon .window-content {
-    background: #f5f5f5; color: #000; font-family: "Georgia", serif; padding: 0; border: 2px solid #333;
-}
-.sla-sheet.item.weapon .header-grid { background: #880000; color: #fff; border-bottom: none; }
-.sla-sheet.item.weapon .header-grid .bio-field label { color: #ffcccc !important; }
-.sla-sheet.item.weapon .header-grid .bio-field input { color: #fff !important; }
-
-.weapon-skill-row { color: #000 !important; background: #fff !important; border: 1px solid #ccc; padding: 5px; font-weight: bold; font-family: "Arial"; border-bottom: 4px solid #333; display: flex; align-items: center; }
-.weapon-skill-label { text-transform: uppercase; margin-right: 10px; font-size: 0.8em; }
-.sla-sheet.item.weapon select { background-color: #fff; color: #000; border: 1px solid #ccc; }
-
-.weapon-stats-bar { background: #222; color: #fff; display: grid; padding: 2px 5px; font-family: "Arial"; font-size: 0.8em; text-transform: uppercase; }
-.weapon-data-row { background: #fff; color: #000; display: grid; padding: 5px; border-bottom: 1px solid #ccc; font-family: "Georgia"; font-size: 1.1em; }
-
-.sla-sheet.item.weapon .weapon-data-row input, 
-.sla-sheet.item.weapon .weapon-ranged-data input {
-    color: #000 !important; -webkit-text-fill-color: #000 !important;
-    background: transparent !important; border: none !important;
-    height: auto; padding: 2px; opacity: 1; font-weight: bold; text-align: center; width: 100%;
-}
-
-.weapon-ranged-bar { background: #222; color: #fff; display: grid; padding: 2px 5px; font-family: "Arial"; font-size: 0.8em; text-transform: uppercase; margin-top: 10px; }
-.weapon-ranged-data { background: #fff; color: #000; display: grid; padding: 5px; border-bottom: 1px solid #ccc; }
-.weapon-rules-box { background: #eee; padding: 5px; margin-top: 10px; border-top: 1px solid #aaa; font-size: 0.9em; min-height: 100px; }
-
-.sla-sheet.item.weapon .weapon-stats-bar div { text-align: center; border-right: 1px solid #444; }
-.sla-sheet.item.weapon .weapon-stats-bar div:last-child { border-right: none; }
-/* SHEET TABS */
-.sla-sheet .sheet-tabs {
-    display: flex;
-    border-bottom: 2px solid var(--sla-accent);
-    margin-bottom: 5px;
-    background: #1a1a1a;
-}
-
-.sla-sheet .sheet-tabs .item {
-    padding: 5px 15px;
-    color: #aaa;
+.sla-sheet .sla-header-bar {
+    background-color: var(--sla-bg-panel);
+    color: #fff;
+    padding: 2px 5px;
     font-weight: bold;
+    border-bottom: 1px solid #000;
+}
+.sla-sheet .scroll-list {
+    flex: 1; overflow-y: auto; padding: 0;
+}
+
+/* ==========================================
+   6. TABS & EDITORS
+   ========================================== */
+.sla-sheet .sheet-tabs {
+    display: flex; border-bottom: 2px solid var(--sla-accent); margin-bottom: 5px; background: #1a1a1a;
+}
+.sla-sheet .sheet-tabs .item {
+    padding: 5px 15px; color: #aaa; font-weight: bold; text-transform: uppercase;
+    border-right: 1px solid #333; cursor: pointer;
+}
+.sla-sheet .sheet-tabs .item:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.sla-sheet .sheet-tabs .item.active { color: #000; background: var(--sla-accent); }
+
+.sla-sheet .tab { display: none; height: 100%; overflow-y: auto; }
+.sla-sheet .tab.active { display: block; }
+
+/* Editor Containers */
+.sla-sheet .editor-container {
+    border: 1px solid #444; background: rgba(0, 0, 0, 0.2);
+    display: flex; flex-direction: column; position: relative;
+}
+.sla-sheet .editor-container.appearance,
+.sla-sheet .editor-container.biography { flex: 1; min-height: 250px; }
+.sla-sheet .editor-container.notes { height: 100%; min-height: 500px; }
+
+.sla-sheet .tab[data-tab="biography"] .editor-container .editor {
+    flex: 1; height: 100%; min-height: 0; border: none; background: transparent; padding: 5px;
+}
+.sla-sheet .tab[data-tab="biography"] .editor-content {
+    height: 100%; color: #e0e0e0; font-family: "Arial", sans-serif; line-height: 1.4; overflow-y: auto;
+}
+.sla-sheet .editor-edit {
+    background: #222; color: #39ff14; border: 1px solid #39ff14; padding: 2px 6px;
+    border-radius: 4px; position: absolute; top: 5px; right: 5px; z-index: 10;
+}
+
+/* ==========================================
+   7. LIST ITEMS & DROPS
+   ========================================== */
+.bio-drop-row { display: flex; align-items: center; margin-bottom: 4px; height: 34px; }
+.bio-drop-row label { flex: 0 0 70px; background: #d0d3d8; color: #000; height: 100%; display: flex; align-items: center; padding-left: 5px; font-weight: bold; margin-right: 2px; }
+.empty-drop-zone { flex: 1; height: 100%; border: 2px dashed #555; display: flex; align-items: center; justify-content: center; color: #777; }
+.item-chip { flex: 1; height: 100%; background: #222; border: 1px solid #39ff14; display: flex; align-items: center; padding: 2px; color: #fff; }
+.item-chip img { height: 28px; width: 28px; margin-right: 5px; border: 1px solid #555; }
+.item-chip .chip-name { flex: 1; font-weight: bold; color: #39ff14; }
+.item-chip .chip-delete { color: #555; padding: 0 8px; cursor: pointer; }
+.item-chip .chip-delete:hover { color: #f00; }
+
+/* Item Controls in Lists */
+.sla-sheet .item-controls { display: flex; gap: 5px; min-width: 40px; justify-content: center; }
+.sla-sheet .item-controls a { width: 18px; text-align: center; color: #aaa; cursor: pointer; }
+.sla-sheet .item-controls .item-edit:hover { color: #fff; }
+.sla-sheet .item-controls .item-delete:hover { color: #f00; }
+
+/* ==========================================
+   8. DIALOGS
+   ========================================== */
+.sla-dialog .window-content { background: #1a1a1a !important; color: #eee !important; border: 2px solid #444; font-family: "Roboto Condensed"; }
+.sla-dialog input, .sla-dialog select { background: #000 !important; color: #fff !important; border: 1px solid #555 !important; }
+.sla-dialog h3 { color: #39ff14; border-bottom: 1px solid #555; }
+.sla-dialog button { background: #2a2a35; color: #39ff14; border: 1px solid #39ff14; text-transform: uppercase; font-weight: bold; }
+.sla-dialog button:hover { background: #39ff14; color: #000; }
+
+/* ==========================================
+   11. UI POLISH (ROUNDED & COMPACT)
+   ========================================== */
+
+/* The Container Box */
+.sla-box {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid #444;
+    border-radius: 8px; /* Rounded Corners */
+    padding: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Header for the box */
+.sla-box-header {
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #888;
     text-transform: uppercase;
-    border-right: 1px solid #333;
+    border-bottom: 1px solid #333;
+    margin-bottom: 3px;
+    padding-bottom: 2px;
+}
+
+/* Mini Input (2 digits) */
+.sla-input-mini {
+    width: 40px !important;
+    text-align: center;
+    border-radius: 4px !important;
+    background: #111 !important;
+    color: #fff !important;
+    border: 1px solid #555 !important;
+    height: 22px !important;
+    font-weight: bold;
+}
+
+/* Standard Input inside box */
+.sla-box input[type="text"], 
+.sla-box input[type="number"] {
+    background: #111;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+
+/* Flex rows for side-by-side stats */
+.compact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+/* Update Stat Rows to be rounded */
+.stat-row {
+    border-radius: 4px;
+    overflow: hidden; /* Clips the inner label background */
+    border: 1px solid #444;
+}
+.rating-block {
+    border-radius: 4px;
+    border: 1px solid #444;
+    overflow: hidden;
+}
+.secondary-box {
+    border-radius: 4px;
+}
+
+/* ==========================================
+   11. UI POLISH (ROUNDED & COMPACT)
+   ========================================== */
+
+/* The Container Box */
+.sla-box {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid #444;
+    border-radius: 8px; /* Rounded Corners */
+    padding: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Header for the box */
+.sla-box-header {
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #888;
+    text-transform: uppercase;
+    border-bottom: 1px solid #333;
+    margin-bottom: 5px;
+    padding-bottom: 2px;
+    letter-spacing: 1px;
+}
+
+/* Mini Input (2 digits) */
+.sla-input-mini {
+    width: 45px !important;
+    text-align: center;
+    border-radius: 4px !important;
+    background: #111 !important;
+    color: #fff !important;
+    border: 1px solid #555 !important;
+    height: 24px !important;
+    font-weight: bold;
+}
+
+/* Flex rows for side-by-side stats */
+.compact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+    color: #ccc;
+    height: 26px;
+}
+
+/* ==========================================
+   WOUNDS ALIGNMENT
+   ========================================== */
+.wound-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two Columns */
+    gap: 5px 15px;
+}
+
+.wound-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 5px;
+    border-radius: 4px;
+}
+
+.wound-entry label {
+    font-size: 0.85em;
+    color: #ddd;
     cursor: pointer;
 }
 
-.sla-sheet .sheet-tabs .item:hover {
-    color: #fff;
-    background: rgba(255,255,255,0.05);
-}
-
-.sla-sheet .sheet-tabs .item.active {
-    color: #000;
-    background: var(--sla-accent);
-    text-shadow: none;
-}
-
-/* FORCE TABS TO HIDE CORRECTLY */
-.sla-sheet .tab {
-    display: none;
-    height: 100%;
-    overflow-y: auto;
-}
-
-.sla-sheet .tab.active {
-    display: block; /* Only show when active */
+.wound-entry input[type="checkbox"] {
+    height: 16px;
+    width: 16px;
+    margin: 0;
+    cursor: pointer;
 }
 
 /* ==========================================
-   FIX MAIN CHARACTER SHEET EDITORS
+   CONDITION BUTTONS (ROUNDED SQUARES)
    ========================================== */
-
-/* Target editors specifically inside the BIO tab */
-.sla-sheet .tab[data-tab="biography"] .editor {
-    height: 100%;
-    min-height: 100%;
-    border: 1px solid #444;
-    background: rgba(0, 0, 0, 0.3); /* Darker background for contrast */
-    border-radius: 4px;
-    padding: 5px;
-}
-
-/* Ensure the content area fills the box and text is visible */
-.sla-sheet .tab[data-tab="biography"] .editor-content {
-    height: 100%;
-    color: #e0e0e0; /* Light Grey Text */
-    font-family: "Arial", sans-serif; /* Readable font */
-    line-height: 1.4;
-    overflow-y: auto;
-}
-
-/* Style the Edit Button (Pencil/Save icon) */
-.sla-sheet .editor-edit {
-    background: #222;
-    color: #39ff14;
-    border: 1px solid #39ff14;
-    padding: 2px 6px;
-    border-radius: 4px;
-    top: 5px;
-    right: 5px;
-}
-
-/* Fix Generic Editor Container Sizing */
-.sla-sheet .tab[data-tab="biography"] .flexcol > div {
+.condition-grid {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    gap: 2px;
 }
 
-/* ==========================================
-   BIO TAB EDITOR CONTAINERS
-   ========================================== */
-
-/* Common styles for the editor wrappers (the grey boxes) */
-.sla-sheet .editor-container {
-    border: 1px solid #444;
-    background: rgba(0, 0, 0, 0.2); /* Grey background */
-    display: flex;
-    flex-direction: column;
-    position: relative; /* Needed to position the edit button inside */
-}
-
-/* Specific sizing for each field */
-.sla-sheet .editor-container.appearance {
-    flex: 1;           /* Equal share */
-    min-height: 250px; /* Fixed minimum height */
-}
-
-.sla-sheet .editor-container.biography {
-    flex: 1;           /* Equal share */
-    min-height: 250px; /* Fixed minimum height */
-}
-
-.sla-sheet .editor-container.notes {
-    height: 100%;      /* Fills the right column */
-    min-height: 500px; /* Matches the total of the left column (250 + 250) */
-}
-
-/* ==========================================
-   FIX EDITOR CONTENT & BUTTON
-   ========================================== */
-
-/* Force the Foundry editor itself to fill our container */
-.sla-sheet .tab[data-tab="biography"] .editor-container .editor {
-    flex: 1; 
-    height: 100%;
-    min-height: 0;
-    border: none; /* Container has the border */
-    background: transparent;
-    padding: 5px; /* Inner padding for text */
-}
-
-/* Style the content text area */
-.sla-sheet .tab[data-tab="biography"] .editor-content {
-    height: 100%;
-    color: #e0e0e0; /* Light Grey Text */
-    font-family: "Arial", sans-serif;
-    line-height: 1.4;
-    overflow-y: auto; /* Scrollbar if text is too long */
-}
-
-/* Style and position the Edit Button (Pencil/Save icon) */
-.sla-sheet .editor-edit {
+.condition-toggle {
     background: #222;
-    color: #39ff14;
-    border: 1px solid #39ff14;
-    padding: 2px 6px;
-    border-radius: 4px;
-    /* Absolutely position it within the relative .editor-container */
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    z-index: 10;
+    border: 1px solid #444;
+    width: 36px;
+    height: 36px;
+    border-radius: 5px; /* Rounded Square */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.3em;
 }
 
-/* ==========================================
-   FIX DIALOG READABILITY
-   ========================================== */
-.sla-dialog .window-content {
-    background: #1a1a1a !important;
-    color: #eee !important;
-    font-family: "Roboto Condensed", sans-serif;
-    font-size: 14px;
-    border: 2px solid #444;
+.condition-toggle:hover {
+    border-color: #fff;
+    color: #aaa;
 }
 
-/* Inputs and Selects */
-.sla-dialog input[type="text"],
-.sla-dialog input[type="number"],
-.sla-dialog select {
-    background-color: #000 !important;
-    color: #fff !important;
-    border: 1px solid #555 !important;
-    height: 26px;
-    padding: 0 5px;
+/* Active State (The Glow) */
+.condition-toggle.active {
+    background: #333;
+    color: #39ff14; /* SLA Green Default */
+    border-color: #39ff14;
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+    text-shadow: 0 0 5px #39ff14;
 }
 
-.sla-dialog input:focus,
-.sla-dialog select:focus {
-    border-color: #39ff14 !important;
-    box-shadow: 0 0 5px #39ff14;
+/* Specific Colors for Stunned/Immobile/Etc */
+.condition-toggle[data-condition="bleeding"].active { 
+    color: #ff4444; border-color: #ff4444; box-shadow: 0 0 8px rgba(255,68,68,0.4); text-shadow: 0 0 5px #ff4444; 
+}
+.condition-toggle[data-condition="burning"].active { 
+    color: #ffaa00; border-color: #ffaa00; box-shadow: 0 0 8px rgba(255,170,0,0.4); text-shadow: 0 0 5px #ffaa00; 
+}
+.condition-toggle[data-condition="stunned"].active { 
+    color: #ffff00; border-color: #ffff00; box-shadow: 0 0 8px rgba(255,255,0,0.4); text-shadow: 0 0 5px #ffff00; 
+}
+.condition-toggle[data-condition="immobile"].active { 
+    color: #00ccff; border-color: #00ccff; box-shadow: 0 0 8px rgba(0,204,255,0.4); text-shadow: 0 0 5px #00ccff; 
 }
 
-/* Labels */
-.sla-dialog label {
-    font-weight: bold;
-    color: #ccc;
-    margin-bottom: 2px;
+/* Critical is read-only */
+.condition-read-only {
+    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 5px; background: #222; border: 1px solid #444; color: #555;
 }
-
-/* Headers inside Dialog */
-.sla-dialog h3 {
-    color: #39ff14;
-    border-bottom: 1px solid #555;
-    margin-top: 10px;
-    margin-bottom: 5px;
-    padding-bottom: 2px;
-    font-family: "Arial", sans-serif;
-    text-transform: uppercase;
-}
-
-/* Checkboxes */
-.sla-dialog input[type="checkbox"] {
-    margin-right: 5px;
-    height: 14px;
-}
-
-/* Buttons */
-.sla-dialog .dialog-buttons button {
-    background: #2a2a35;
-    border: 1px solid #39ff14;
-    color: #39ff14;
-    text-transform: uppercase;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-.sla-dialog .dialog-buttons button:hover {
-    background: #39ff14;
-    color: #000;
-    box-shadow: 0 0 10px #39ff14;
+.condition-read-only.active {
+    color: #ff0000; border-color: #ff0000; background: #300; animation: pulse 1s infinite;
 }

@@ -1,5 +1,17 @@
 # CHANGELOG
 
+# v0.2.3-alpha
+
+## Bugs
+- (#18)Fix Ratings Points
+
+# v0.2.2-alpha
+
+## Bugs
+- (#13) Skill Drops not working
+- (#10) Fix roll diaglog options and readibility
+- (#8) Review and correct damage modifiers
+
 # v0.1.0-alpha
  
 ## What's new

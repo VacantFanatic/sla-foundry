@@ -1,68 +1,61 @@
-<div class="data-box">
-    <div class="data-header" style="display: flex; justify-content: space-between; padding: 2px 5px;">
-        <span>STATUS</span>
-        {{#if (gt system.wounds.penalty 0)}}
-            <span style="color: #f55; font-weight: bold;">WOUND PENALTY: -{{system.wounds.penalty}}</span>
-        {{/if}}
-    </div>
+{{!-- WOUNDS SECTION --}}
+<div class="sla-box">
+    <div class="sla-box-header">WOUNDS</div>
     
-    <div style="padding: 10px;">
-        {{!-- Wounds Grid --}}
-        <div class="wound-grid" style="margin-bottom: 10px;">
-            <label>Head</label>
-            <input class="wound-checkbox" type="checkbox" name="system.wounds.head" {{checked system.wounds.head}}/>
-            <label style="text-align: right;">Left Arm</label>
-            <div class="flexrow">
-                 <input class="wound-checkbox" type="checkbox" name="system.wounds.lArm" {{checked system.wounds.lArm}}/>
-                 <label style="margin-left: auto;">Right Arm</label>
-                  <input class="wound-checkbox" type="checkbox" name="system.wounds.rArm" {{checked system.wounds.rArm}}/>
-            </div>
-
-            <label>Torso</label>
-             <input class="wound-checkbox" type="checkbox" name="system.wounds.torso" {{checked system.wounds.torso}}/>
-             <label style="text-align: right;">Left Leg</label>
-             <div class="flexrow">
-                 <input class="wound-checkbox" type="checkbox" name="system.wounds.lLeg" {{checked system.wounds.lLeg}}/>
-                 <label style="margin-left: auto;">Right Leg</label>
-                  <input class="wound-checkbox" type="checkbox" name="system.wounds.rLeg" {{checked system.wounds.rLeg}}/>
-            </div>
+    <div class="wound-list">
+        {{!-- Left Column --}}
+        <div class="wound-entry">
+            <label for="w_head">Head</label>
+            <input type="checkbox" id="w_head" class="wound-checkbox" name="system.wounds.head" {{checked system.wounds.head}}/>
+        </div>
+        <div class="wound-entry">
+            <label for="w_torso">Torso</label>
+            <input type="checkbox" id="w_torso" class="wound-checkbox" name="system.wounds.torso" {{checked system.wounds.torso}}/>
+        </div>
+        <div class="wound-entry">
+            <label for="w_larm">Left Arm</label>
+            <input type="checkbox" id="w_larm" class="wound-checkbox" name="system.wounds.lArm" {{checked system.wounds.lArm}}/>
         </div>
 
-        {{!-- CONDITIONS BAR --}}
-        <div class="sla-header-bar" style="font-size: 0.8em; margin-bottom: 5px;">CONDITIONS</div>
+        {{!-- Right Column --}}
+        <div class="wound-entry">
+            <label for="w_rarm">Right Arm</label>
+            <input type="checkbox" id="w_rarm" class="wound-checkbox" name="system.wounds.rArm" {{checked system.wounds.rArm}}/>
+        </div>
+        <div class="wound-entry">
+            <label for="w_lleg">Left Leg</label>
+            <input type="checkbox" id="w_lleg" class="wound-checkbox" name="system.wounds.lLeg" {{checked system.wounds.lLeg}}/>
+        </div>
+        <div class="wound-entry">
+            <label for="w_rleg">Right Leg</label>
+            <input type="checkbox" id="w_rleg" class="wound-checkbox" name="system.wounds.rLeg" {{checked system.wounds.rLeg}}/>
+        </div>
+    </div>
+</div>
+
+{{!-- CONDITIONS SECTION --}}
+<div class="sla-box">
+    <div class="sla-box-header">CONDITIONS</div>
+    <div class="condition-grid">
+        <a class="condition-toggle {{#if system.conditions.bleeding}}active{{/if}}" data-condition="bleeding" title="Bleeding">
+            <i class="fas fa-tint"></i>
+        </a>
+        <a class="condition-toggle {{#if system.conditions.burning}}active{{/if}}" data-condition="burning" title="Burning">
+            <i class="fas fa-fire"></i>
+        </a>
+        <a class="condition-toggle {{#if system.conditions.prone}}active{{/if}}" data-condition="prone" title="Prone">
+            <i class="fas fa-user-injured"></i>
+        </a>
+        <a class="condition-toggle {{#if system.conditions.stunned}}active{{/if}}" data-condition="stunned" title="Stunned">
+            <i class="fas fa-dizzy"></i>
+        </a>
+        <a class="condition-toggle {{#if system.conditions.immobile}}active{{/if}}" data-condition="immobile" title="Immobile">
+            <i class="fas fa-anchor"></i>
+        </a>
         
-        <div class="flexrow" style="justify-content: space-between;">
-            
-            {{!-- 1. BLEEDING (Toggleable) --}}
-            <a class="condition-toggle {{#if system.conditions.bleeding}}active{{/if}}" data-condition="bleeding" title="Bleeding: Lose 1 HP/20 mins">
-                <i class="fas fa-tint"></i>
-            </a>
-
-            {{!-- 2. BURNING (Toggleable) --}}
-            <a class="condition-toggle {{#if system.conditions.burning}}active{{/if}}" data-condition="burning" title="Burning: Damage per round">
-                <i class="fas fa-fire"></i>
-            </a>
-
-            {{!-- 3. PRONE (Toggleable) --}}
-            <a class="condition-toggle {{#if system.conditions.prone}}active{{/if}}" data-condition="prone" title="Prone: -1 All Rolls">
-                <i class="fas fa-user-injured"></i>
-            </a>
-
-            {{!-- 4. STUNNED (Toggleable) --}}
-            <a class="condition-toggle {{#if system.conditions.stunned}}active{{/if}}" data-condition="stunned" title="Stunned: -1 All Rolls, Initiative Last">
-                <i class="fas fa-dizzy"></i>
-            </a>
-
-            {{!-- 5. IMMOBILE (Toggleable) --}}
-            <a class="condition-toggle {{#if system.conditions.immobile}}active{{/if}}" data-condition="immobile" title="Immobile: Speed 0">
-                <i class="fas fa-anchor"></i>
-            </a>
-
-            {{!-- 6. CRITICAL (Read Only - Controlled by HP) --}}
-            <a class="condition-read-only {{#if system.conditions.critical}}active{{/if}}" title="Critical: HP < 6. -2 STR/DEX.">
-                <i class="fas fa-heartbeat"></i>
-            </a>
-
+        {{!-- Critical Indicator (Read Only) --}}
+        <div class="condition-read-only {{#if system.conditions.critical}}active{{/if}}" title="Critical Status">
+            <i class="fas fa-heartbeat"></i>
         </div>
     </div>
 </div>
