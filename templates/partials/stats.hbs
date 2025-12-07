@@ -1,71 +1,75 @@
 <div class="stats-grid">
-    {{!-- COLUMN 1: HEADER TEXT ONLY --}}
-    <div class="flexcol" style="justify-content: flex-start; padding-top: 5px;">
-        <div class="ratings-header">RATINGS POINTS</div>
-    </div>
-
-    {{!-- COLUMN 2: BODY GROUP --}}
-    <div class="flexcol">
-        {{!-- PARENT STAT (Dark) --}}
-        <div class="stat-block">
-             <div class="stat-label">BODY:</div>
-             <input class="stat-input" type="number" name="system.ratings.body.value" value="{{system.ratings.body.value}}" readonly style="background: #222; color: #aaa; border: 1px solid #000;"/>
+    
+    {{!-- COLUMN 1: BODY --}}
+    <div class="stat-group">
+        <div class="rating-block">
+            <label>BODY</label>
+            <input type="number" name="system.ratings.body.value" value="{{system.ratings.body.value}}"/>
         </div>
-        {{!-- CHILD STATS --}}
-        <div class="stat-block">
-             <div class="stat-label rollable" data-roll-type="stat" data-key="str">STR:</div>
-             <input class="stat-input" type="number" name="system.stats.str.value" value="{{system.stats.str.value}}"/>
+        <div class="stat-row">
+            <div class="stat-label">STR</div>
+            <input type="number" name="system.stats.str.value" value="{{system.stats.str.value}}"/>
+            <a class="rollable" data-roll-type="stat" data-key="str"><i class="fas fa-dice-d20"></i></a>
         </div>
-        <div class="stat-block">
-             <div class="stat-label rollable" data-roll-type="stat" data-key="dex">DEX:</div>
-             <input class="stat-input" type="number" name="system.stats.dex.value" value="{{system.stats.dex.value}}"/>
-        </div>
-    </div> 
-
-     {{!-- COLUMN 3: BRAINS GROUP --}}
-     <div class="flexcol">
-        {{!-- PARENT STAT (Dark) --}}
-        <div class="stat-block">
-             <div class="stat-label">BRAINS:</div>
-             <input class="stat-input" type="number" name="system.ratings.brains.value" value="{{system.ratings.brains.value}}" readonly style="background: #222; color: #aaa; border: 1px solid #000;"/>
-        </div>
-        {{!-- CHILD STATS --}}
-        <div class="stat-block">
-             <div class="stat-label rollable" data-roll-type="stat" data-key="know">KNOW:</div>
-             <input class="stat-input" type="number" name="system.stats.know.value" value="{{system.stats.know.value}}"/>
-        </div>
-        <div class="stat-block">
-             <div class="stat-label rollable" data-roll-type="stat" data-key="conc">CONC:</div>
-             <input class="stat-input" type="number" name="system.stats.conc.value" value="{{system.stats.conc.value}}"/>
+        <div class="stat-row">
+            <div class="stat-label">DEX</div>
+            <input type="number" name="system.stats.dex.value" value="{{system.stats.dex.value}}"/>
+            <a class="rollable" data-roll-type="stat" data-key="dex"><i class="fas fa-dice-d20"></i></a>
         </div>
     </div>
 
-     {{!-- COLUMN 4: BRAVADO GROUP --}}
-     <div class="flexcol">
-        {{!-- PARENT STAT (Dark) --}}
-        <div class="stat-block">
-             <div class="stat-label">BRAVADO:</div>
-             <input class="stat-input" type="number" name="system.ratings.bravado.value" value="{{system.ratings.bravado.value}}" readonly style="background: #222; color: #aaa; border: 1px solid #000;"/>
+    {{!-- COLUMN 2: BRAINS --}}
+    <div class="stat-group">
+        <div class="rating-block">
+            <label>BRAINS</label>
+            <input type="number" name="system.ratings.brains.value" value="{{system.ratings.brains.value}}"/>
         </div>
-        {{!-- CHILD STATS --}}
-        <div class="stat-block">
-             <div class="stat-label rollable" data-roll-type="stat" data-key="cha">CHA:</div>
-             <input class="stat-input" type="number" name="system.stats.cha.value" value="{{system.stats.cha.value}}"/>
+        <div class="stat-row">
+            <div class="stat-label">KNOW</div>
+            <input type="number" name="system.stats.know.value" value="{{system.stats.know.value}}"/>
+            <a class="rollable" data-roll-type="stat" data-key="know"><i class="fas fa-dice-d20"></i></a>
         </div>
-        <div class="stat-block">
-             <div class="stat-label rollable" data-roll-type="stat" data-key="cool">COOL:</div>
-             <input class="stat-input" type="number" name="system.stats.cool.value" value="{{system.stats.cool.value}}"/>
+        <div class="stat-row">
+            <div class="stat-label">CONC</div>
+            <input type="number" name="system.stats.conc.value" value="{{system.stats.conc.value}}"/>
+            <a class="rollable" data-roll-type="stat" data-key="conc"><i class="fas fa-dice-d20"></i></a>
         </div>
     </div>
-    {{!-- COLUMN 5: EXTRAS --}}
-    <div class="flexcol" style="justify-content: flex-end; gap: 10px;">
-        <div class="secondary-stat-box flexrow">
-            {{!-- ADDED: rollable class and data-roll-type="init" --}}
-            <label class="rollable" data-roll-type="init" style="width: 60px; font-size: 0.8em; line-height: 1; cursor: pointer;">
-                INITIATIVE <i class="fas fa-dice-d20"></i>
-            </label>
-            
-            <input class="stat-input" type="number" name="system.stats.init.value" value="{{system.stats.init.value}}" readonly style="background: #222; color: #aaa; border: 1px solid #000;"/>
+
+    {{!-- COLUMN 3: BRAVADO --}}
+    <div class="stat-group">
+        <div class="rating-block">
+            <label>BRAVADO</label>
+            <input type="number" name="system.ratings.bravado.value" value="{{system.ratings.bravado.value}}"/>
+        </div>
+        <div class="stat-row">
+            <div class="stat-label">CHA</div>
+            <input type="number" name="system.stats.cha.value" value="{{system.stats.cha.value}}"/>
+            <a class="rollable" data-roll-type="stat" data-key="cha"><i class="fas fa-dice-d20"></i></a>
+        </div>
+        <div class="stat-row">
+            <div class="stat-label">COOL</div>
+            <input type="number" name="system.stats.cool.value" value="{{system.stats.cool.value}}"/>
+            <a class="rollable" data-roll-type="stat" data-key="cool"><i class="fas fa-dice-d20"></i></a>
+        </div>
+    </div>
+
+    {{!-- COLUMN 4: SECONDARY (Luck/Flux/Init) --}}
+    <div class="stat-group secondary">
+        <div class="secondary-box">
+            <label>LUCK</label>
+            <input type="number" name="system.stats.luck.value" value="{{system.stats.luck.value}}"/>
+        </div>
+        <div class="secondary-box">
+            <label>FLUX</label>
+            <input type="number" name="system.stats.flux.value" value="{{system.stats.flux.value}}"/>
+        </div>
+        <div class="secondary-box init">
+            <label>INIT</label>
+            <div class="flexrow" style="justify-content: center; align-items: center; height: 100%;">
+                <span class="init-val">{{system.stats.init.value}}</span>
+                <a class="rollable" data-roll-type="init"><i class="fas fa-dice-d10"></i></a>
+            </div>
         </div>
     </div>
 </div>

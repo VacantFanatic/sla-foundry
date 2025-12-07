@@ -30,9 +30,7 @@ export class BoilerplateActor extends Actor {
 
         system.conditions = system.conditions || {};
 
-        // SYNC CONDITIONS FROM ACTIVE EFFECTS
-        // This ensures if the Token Icon is on, the Sheet Button lights up.
-        // We check for the ID (e.g. "bleeding") in the actor's effects.
+        // Sync Active Effects to Sheet
         const hasEffect = (id) => this.effects.some(e => e.statuses.has(id));
         
         if (hasEffect("bleeding")) system.conditions.bleeding = true;
@@ -41,17 +39,13 @@ export class BoilerplateActor extends Actor {
         if (hasEffect("stunned")) system.conditions.stunned = true;
         if (hasEffect("immobile")) system.conditions.immobile = true;
 
-        // AUTOMATIC CONDITIONS (Override Manual)
         const isDead = system.hp.value === 0 || woundCount >= 6;
         system.conditions.dead = isDead;
 
         const isCritical = system.hp.value < 6 && !isDead;
         system.conditions.critical = isCritical;
 
-        // Head Wound forces Stunned
         if (w.head) system.conditions.stunned = true;
-
-        // Leg Wounds force Immobile
         if (w.lLeg && w.rLeg) system.conditions.immobile = true;
 
 
@@ -135,17 +129,11 @@ export class BoilerplateActor extends Actor {
         system.stats.cha.value = cha;
         system.stats.cool.value = cool;
 
-        // --- 4. RATINGS ---
-        const rawBody = str + dex;
-        const rawBrains = know + conc;
-        const rawBravado = cha + cool;
-
-        let rankings = [{ id: "body", total: rawBody }, { id: "brains", total: rawBrains }, { id: "bravado", total: rawBravado }];
-        rankings.sort((a, b) => b.total - a.total);
-
-        if (system.ratings[rankings[0].id]) system.ratings[rankings[0].id].value = 2;
-        if (system.ratings[rankings[1].id]) system.ratings[rankings[1].id].value = 1;
-        if (system.ratings[rankings[2].id]) system.ratings[rankings[2].id].value = 0;
+        // --- 4. RATINGS (Logic Removed - Defaults Only) ---
+        // We removed the auto-calculation here. Now we just ensure they aren't null.
+        if (system.ratings.body) system.ratings.body.value = system.ratings.body.value ?? 0;
+        if (system.ratings.brains) system.ratings.brains.value = system.ratings.brains.value ?? 0;
+        if (system.ratings.bravado) system.ratings.bravado.value = system.ratings.bravado.value ?? 0;
 
         // --- 5. INITIATIVE & HP & MOVEMENT ---
         if (system.stats.init) system.stats.init.value = dex + conc;
