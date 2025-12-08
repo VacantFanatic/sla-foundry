@@ -208,21 +208,23 @@
    ========================================== */
 .sla-sheet .main-split {
     display: grid;
-    /* Force 50/50 split or 60/40 */
-    grid-template-columns: 1fr 1fr; 
+    /* 1.6fr = Left Column (Skills/Ebb) - Takes 62% width
+       1fr   = Right Column (Vitals)    - Takes 38% width
+    */
+    grid-template-columns: 1.6fr 1fr; 
     gap: 10px;
     height: 100%;
     overflow: hidden; /* Prevent spillover */
+    align-items: start; /* Align tops of columns */
 }
 
-/* Ensure columns act as containers */
+/* Ensure columns act as flex containers */
 .sla-sheet .left-col, 
 .sla-sheet .right-col {
     display: flex;
     flex-direction: column;
-    gap: 5px;
     height: 100%;
-    min-width: 0; /* Prevents flex items from refusing to shrink */
+    min-width: 0; /* Critical for grid children to shrink properly */
 }
 
 /* Panels */
@@ -518,4 +520,40 @@
 }
 .condition-read-only.active {
     color: #ff0000; border-color: #ff0000; background: #300; animation: pulse 1s infinite;
+}
+
+/* ==========================================
+   EBB DISCIPLINES STYLING
+   ========================================== */
+
+/* Parent Row (The Discipline) */
+.discipline-row {
+    background-color: rgba(138, 43, 226, 0.15) !important; /* Purple Tint */
+    border-bottom: 1px solid #444;
+    border-top: 1px solid #444;
+}
+
+.discipline-row:hover {
+    background-color: rgba(138, 43, 226, 0.25) !important;
+}
+
+/* Child Row (The Formula) */
+.formula-row {
+    background-color: transparent !important;
+    border-bottom: 1px dotted #333;
+}
+
+.formula-row:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Remove border from the last formula in a group to look cleaner */
+.formula-row:last-child {
+    border-bottom: none;
+}
+
+/* Rollable Hover for Formulas */
+.formula-row .rollable:hover {
+    color: #fff !important;
+    text-shadow: 0 0 5px #8a2be2;
 }
