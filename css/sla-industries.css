@@ -700,6 +700,17 @@
     padding: 2px;
     border-bottom: 1px dashed #ccc;
     align-items: center;
+    display: flex; /* Ensure flex behavior */
+}
+
+/* FIX: Force Image Size */
+.threat-item img {
+    flex: 0 0 24px; /* Don't grow, don't shrink, fixed 24px */
+    width: 24px;
+    height: 24px;
+    object-fit: cover;
+    margin-right: 5px;
+    border: 1px solid #000;
 }
 
 .threat-item .item-name {
@@ -710,6 +721,18 @@
 .threat-item .item-name:hover {
     color: #a00;
     text-shadow: none;
+}
+
+/* Ensure controls are visible */
+.threat-item .item-controls {
+    display: flex;
+    gap: 5px;
+}
+.threat-item .item-controls a {
+    color: #555;
+}
+.threat-item .item-controls a:hover {
+    color: #d00;
 }
 
 /* 6. Editor Fix for White Paper */
