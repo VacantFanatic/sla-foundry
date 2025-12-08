@@ -20,38 +20,46 @@
     {{!-- 4. SHEET BODY --}}
     <section class="sheet-body">
 
-        {{!-- ================================================= --}}
+ {{!-- ================================================= --}}
         {{!--                   MAIN TAB                        --}}
         {{!-- ================================================= --}}
-        {{!-- FIX: Removed 'flexcol' from this line --}}
         <div class="tab" data-group="primary" data-tab="main">
             
-            {{!-- INNER LAYOUT CONTAINER (Handles the Flexbox) --}}
+            {{!-- INNER LAYOUT CONTAINER --}}
             <div class="flexcol full-height">
                 
+                {{!-- 
+                   GRID SPLIT: 
+                   Left = Skills & Ebb (Wider)
+                   Right = Vitals & Wounds (Narrower)
+                --}}
                 <div class="main-split">
-                    {{!-- Left Column --}}
+                    
+                    {{!-- LEFT COLUMN: Skills & Disciplines --}}
                     <div class="left-col flexcol full-height" style="gap: 5px;">
+                        {{!-- 1. SKILLS BOX --}}
                         <div style="flex: 1; min-height: 200px;">
                             {{> "systems/sla-industries/templates/partials/skills.hbs"}}
                         </div>
-                        <div style="flex: 0 0 auto; min-height: 150px;">
+                        
+                        {{!-- 2. DISCIPLINES BOX (Expanded) --}}
+                        <div style="flex: 1; min-height: 250px;">
                             {{> "systems/sla-industries/templates/partials/disciplines.hbs"}}
-                        </div>
-                        <div style="flex: 1; min-height: 200px;">
-                            {{> "systems/sla-industries/templates/partials/ebb.hbs"}}
                         </div>
                     </div>
 
-                    {{!-- Right Column --}}
-                    <div class="right-col flexcol">
+                    {{!-- RIGHT COLUMN: Vitals & Status --}}
+                    <div class="right-col flexcol" style="gap: 10px;">
                          {{> "systems/sla-industries/templates/partials/secondary.hbs"}}
                          {{> "systems/sla-industries/templates/partials/wounds.hbs"}}
                     </div>
+
                 </div>
 
-                {{!-- Inventory --}}
-                {{> "systems/sla-industries/templates/partials/inventory.hbs"}}
+                {{!-- INVENTORY (Bottom) --}}
+                <div style="margin-top: 5px; flex: 1; min-height: 200px;">
+                    {{> "systems/sla-industries/templates/partials/inventory.hbs"}}
+                </div>
             
             </div> {{!-- End Inner Layout --}}
         </div> {{!-- END MAIN TAB --}}
