@@ -11,7 +11,6 @@ export class BoilerplateActor extends Actor {
     
     super.prepareDerivedData();
 
-    // Prevent errors on empty actors
     if (!system.stats || !system.ratings) return;
 
     if (actorData.type === 'character' || actorData.type === 'npc') {
@@ -69,7 +68,6 @@ export class BoilerplateActor extends Actor {
             }
         }
         
-        // Base STR is used for Encumbrance Cap
         const rawStr = Number(system.stats.str?.value) || 0;
         system.encumbrance.value = Math.round(totalWeight * 10) / 10;
         system.encumbrance.max = Math.max(8, rawStr * 3);
@@ -113,7 +111,6 @@ export class BoilerplateActor extends Actor {
         const critModPhysical = isCritical ? -2 : 0;
         const critModMental = isCritical ? -1 : 0;
 
-        // Calculate Totals (Base + Mods)
         system.stats.str.total = Math.max(0, (Number(system.stats.str?.value) || 0) + critModPhysical + strMod);
         system.stats.dex.total = Math.max(0, (Number(system.stats.dex?.value) || 0) + critModPhysical + dexMod - encDexPenalty);
         system.stats.know.total = Math.max(0, (Number(system.stats.know?.value) || 0) + knowMod);
@@ -121,13 +118,12 @@ export class BoilerplateActor extends Actor {
         system.stats.cha.total = Math.max(0, (Number(system.stats.cha?.value) || 0) + chaMod);
         system.stats.cool.total = Math.max(0, (Number(system.stats.cool?.value) || 0) + critModMental + coolMod);
 
-        // --- 4. RATINGS & DERIVED ---
+        // --- 4. RATINGS & DEFAULTS ---
         if (system.ratings.body) system.ratings.body.value = system.ratings.body.value ?? 0;
         if (system.ratings.brains) system.ratings.brains.value = system.ratings.brains.value ?? 0;
         if (system.ratings.bravado) system.ratings.bravado.value = system.ratings.bravado.value ?? 0;
 
-        if (system.stats.init) system.stats.init.value = system.stats.dex.total + system.stats.conc.total;
-
+        // Base HP Calculation
         let hpBase = 10; 
         const speciesItem = actorData.items.find(i => i.type === 'species');
         if (speciesItem && speciesItem.system.hp) {
@@ -139,14 +135,15 @@ export class BoilerplateActor extends Actor {
         }
         system.hp.max = hpBase + system.stats.str.total;
 
-        // --- 5. MOVEMENT LOGIC ---
+        // --- 5. TYPE SPECIFIC LOGIC ---
         
-        // Ensure object exists
-        if (!system.move) system.move = { closing: 0, rushing: 0 };
-
-        // [LOGIC SPLIT]
-        // CHARACTER: Calculate Automatically
+        // CHARACTER: Auto-Calculate Initiative & Movement
         if (actorData.type === 'character') {
+            // Auto Init
+            if (system.stats.init) system.stats.init.value = system.stats.dex.total + system.stats.conc.total;
+
+            // Auto Movement
+            if (!system.move) system.move = { closing: 0, rushing: 0 };
             let closing = 0;
             let rushing = 0;
 
@@ -173,19 +170,13 @@ export class BoilerplateActor extends Actor {
             
             if (moveCap !== null) rushing = Math.min(rushing, moveCap);
 
-            // Apply Calculated Values
             system.move.closing = closing;
             system.move.rushing = rushing;
         } 
         
-        // NPC / THREAT: Do nothing (Manual Entry)
-        // We still apply Immobile/Dead logic to NPCs for consistency, but don't overwrite the base.
-        if (actorData.type === 'npc') {
-             if (system.conditions.immobile || isDead) {
-                 // We can temporarily override for display, but ideally we don't save 0 to the DB
-                 // unless we really want to. For now, let's leave NPCs strictly manual.
-             }
-        }
+        // NPC: Manual Entry Only
+        // We do NOT touch system.stats.init.value or system.move here.
+        // This ensures whatever the user types into the input box is saved and kept.
     }
   }
 
