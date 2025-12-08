@@ -557,3 +557,171 @@
     color: #fff !important;
     text-shadow: 0 0 5px #8a2be2;
 }
+
+/* ==========================================
+   12. THREAT SHEET (NPC RESTORATION)
+   ========================================== */
+
+/* 1. Reset Container to Light Theme */
+.sla-sheet.threat-sheet.window-content {
+    background: #e8e8e8 !important; /* Light Grey Paper */
+    color: #000 !important;         /* Black Text */
+    font-family: "Georgia", serif;  /* Book Font */
+    padding: 0;
+    border: 3px solid #800;         /* Red Border */
+}
+
+/* 2. Header (Red Bar) */
+.threat-header {
+    background: #880000; /* Deep Red */
+    padding: 5px;
+    border-bottom: 2px solid #000;
+    display: flex;
+    align-items: center;
+    height: 90px;
+}
+
+.threat-header input {
+    background: transparent !important;
+    border: none !important;
+    color: #fff !important;
+    font-family: "Arial", sans-serif;
+    font-weight: bold;
+    font-size: 1.8em;
+    text-transform: uppercase;
+    box-shadow: none !important;
+}
+
+.threat-img {
+    flex: 0 0 80px;
+    height: 80px;
+    width: 80px;
+    border: 2px solid #fff;
+    background: #000;
+    margin-left: 10px;
+}
+
+/* 3. Stat Table */
+.threat-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+    border: 1px solid #000;
+    table-layout: fixed; /* Force equal column widths */
+}
+
+/* Header Cells (STR, DEX, etc) */
+.threat-row-label th {
+    background: #222;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+    padding: 2px;
+    border-right: 1px solid #555;
+    font-family: "Arial", sans-serif;
+    font-size: 0.8em;
+}
+.threat-row-label th:last-child {
+    border-right: none;
+}
+
+/* Data Cells (Inputs) */
+.threat-row-value td {
+    padding: 0;
+    border-right: 1px solid #ccc;
+}
+.threat-row-value td:last-child {
+    border-right: none;
+}
+
+/* Inputs inside cells */
+.threat-row-value input {
+    width: 100%;
+    background: #fff !important;
+    color: #000 !important;
+    border: none !important;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    height: 30px;
+    border-radius: 0;
+}
+
+/* 4. Derived Stats Row */
+.threat-derived {
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.threat-box {
+    background: #fff;
+    border: 1px solid #000;
+    padding: 2px;
+    flex: 1;
+    text-align: center;
+}
+
+.threat-box label {
+    display: block;
+    background: #ccc;
+    font-weight: bold;
+    font-size: 0.7em;
+    margin-bottom: 2px;
+}
+
+.threat-box input {
+    background: transparent !important;
+    color: #000 !important;
+    border: none !important;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* 5. Lists & Content */
+.threat-section-bar {
+    background: #333;
+    color: #fff;
+    padding: 2px 5px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-top: 1px solid #000;
+    font-size: 0.9em;
+}
+
+.threat-content-box {
+    background: #fff;
+    padding: 5px;
+    border: 1px solid #ccc;
+    min-height: 50px;
+    margin-bottom: 5px;
+}
+
+.threat-item {
+    padding: 2px;
+    border-bottom: 1px dashed #ccc;
+    align-items: center;
+}
+
+.threat-item .item-name {
+    flex: 1;
+    color: #000;
+    cursor: pointer;
+}
+.threat-item .item-name:hover {
+    color: #a00;
+    text-shadow: none;
+}
+
+/* 6. Editor Fix for White Paper */
+.threat-sheet .editor {
+    height: 100%;
+}
+.threat-sheet .editor-content {
+    color: #000 !important;
+    font-family: "Georgia", serif;
+}
+.threat-sheet .editor-edit {
+    background: #eee;
+    color: #000;
+    border: 1px solid #000;
+}

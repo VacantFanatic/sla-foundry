@@ -11,11 +11,12 @@ export class BoilerplateActor extends Actor {
     
     super.prepareDerivedData();
 
+    // Prevent errors on empty actors
     if (!system.stats || !system.ratings) return;
 
     if (actorData.type === 'character' || actorData.type === 'npc') {
         
-        // --- 1. WOUNDS & CONDITIONS LOGIC ---
+        // --- 1. WOUNDS & CONDITIONS ---
         let woundCount = 0;
         const w = system.wounds;
         if (w.head) woundCount++;
@@ -30,9 +31,7 @@ export class BoilerplateActor extends Actor {
 
         system.conditions = system.conditions || {};
 
-        // Sync Active Effects to Sheet
         const hasEffect = (id) => this.effects.some(e => e.statuses.has(id));
-        
         if (hasEffect("bleeding")) system.conditions.bleeding = true;
         if (hasEffect("burning")) system.conditions.burning = true;
         if (hasEffect("prone")) system.conditions.prone = true;
@@ -47,7 +46,6 @@ export class BoilerplateActor extends Actor {
 
         if (w.head) system.conditions.stunned = true;
         if (w.lLeg && w.rLeg) system.conditions.immobile = true;
-
 
         // --- 2. ENCUMBRANCE & ARMOR ---
         let totalWeight = 0;
@@ -71,6 +69,7 @@ export class BoilerplateActor extends Actor {
             }
         }
         
+        // Base STR is used for Encumbrance Cap
         const rawStr = Number(system.stats.str?.value) || 0;
         system.encumbrance.value = Math.round(totalWeight * 10) / 10;
         system.encumbrance.max = Math.max(8, rawStr * 3);
@@ -86,8 +85,7 @@ export class BoilerplateActor extends Actor {
         if (!system.armor) system.armor = { pv: 0, resist: 0 };
         system.armor.pv = highestPV;
 
-
-        // --- 3. APPLY STAT MODIFIERS ---
+        // --- 3. STAT TOTALS ---
         let strMod = 0, dexMod = 0, knowMod = 0, concMod = 0, chaMod = 0, coolMod = 0;
         let damageReduction = 0;
 
@@ -115,28 +113,20 @@ export class BoilerplateActor extends Actor {
         const critModPhysical = isCritical ? -2 : 0;
         const critModMental = isCritical ? -1 : 0;
 
-        let str = Math.max(0, (Number(system.stats.str?.value) || 0) + critModPhysical + strMod);
-        let dex = Math.max(0, (Number(system.stats.dex?.value) || 0) + critModPhysical + dexMod - encDexPenalty);
-        let know = Math.max(0, (Number(system.stats.know?.value) || 0) + knowMod);
-        let conc = Math.max(0, (Number(system.stats.conc?.value) || 0) + critModMental + concMod);
-        let cha = Math.max(0, (Number(system.stats.cha?.value) || 0) + chaMod);
-        let cool = Math.max(0, (Number(system.stats.cool?.value) || 0) + critModMental + coolMod);
+        // Calculate Totals (Base + Mods)
+        system.stats.str.total = Math.max(0, (Number(system.stats.str?.value) || 0) + critModPhysical + strMod);
+        system.stats.dex.total = Math.max(0, (Number(system.stats.dex?.value) || 0) + critModPhysical + dexMod - encDexPenalty);
+        system.stats.know.total = Math.max(0, (Number(system.stats.know?.value) || 0) + knowMod);
+        system.stats.conc.total = Math.max(0, (Number(system.stats.conc?.value) || 0) + critModMental + concMod);
+        system.stats.cha.total = Math.max(0, (Number(system.stats.cha?.value) || 0) + chaMod);
+        system.stats.cool.total = Math.max(0, (Number(system.stats.cool?.value) || 0) + critModMental + coolMod);
 
-        system.stats.str.value = str;
-        system.stats.dex.value = dex;
-        system.stats.know.value = know;
-        system.stats.conc.value = conc;
-        system.stats.cha.value = cha;
-        system.stats.cool.value = cool;
-
-        // --- 4. RATINGS (Logic Removed - Defaults Only) ---
-        // We removed the auto-calculation here. Now we just ensure they aren't null.
+        // --- 4. RATINGS & DERIVED ---
         if (system.ratings.body) system.ratings.body.value = system.ratings.body.value ?? 0;
         if (system.ratings.brains) system.ratings.brains.value = system.ratings.brains.value ?? 0;
         if (system.ratings.bravado) system.ratings.bravado.value = system.ratings.bravado.value ?? 0;
 
-        // --- 5. INITIATIVE & HP & MOVEMENT ---
-        if (system.stats.init) system.stats.init.value = dex + conc;
+        if (system.stats.init) system.stats.init.value = system.stats.dex.total + system.stats.conc.total;
 
         let hpBase = 10; 
         const speciesItem = actorData.items.find(i => i.type === 'species');
@@ -147,36 +137,55 @@ export class BoilerplateActor extends Actor {
             const speciesConfig = CONFIG.SLA?.speciesStats?.[speciesKey];
             if (speciesConfig) hpBase = speciesConfig.hp;
         }
-        system.hp.max = hpBase + str;
+        system.hp.max = hpBase + system.stats.str.total;
 
-        let closing = 0;
-        let rushing = 0;
+        // --- 5. MOVEMENT LOGIC ---
+        
+        // Ensure object exists
+        if (!system.move) system.move = { closing: 0, rushing: 0 };
 
-        if (speciesItem) {
-             closing = speciesItem.system.move.closing;
-             rushing = speciesItem.system.move.rushing;
-             system.bio.species = speciesItem.name;
-        } else {
-             const speciesKey = system.bio.species;
-             const speciesConfig = CONFIG.SLA?.speciesStats?.[speciesKey];
-             if (speciesConfig?.move) {
-                closing = speciesConfig.move.closing;
-                rushing = speciesConfig.move.rushing;
+        // [LOGIC SPLIT]
+        // CHARACTER: Calculate Automatically
+        if (actorData.type === 'character') {
+            let closing = 0;
+            let rushing = 0;
+
+            if (speciesItem) {
+                 closing = speciesItem.system.move.closing;
+                 rushing = speciesItem.system.move.rushing;
+                 system.bio.species = speciesItem.name;
+            } else {
+                 const speciesKey = system.bio.species;
+                 const speciesConfig = CONFIG.SLA?.speciesStats?.[speciesKey];
+                 if (speciesConfig?.move) {
+                    closing = speciesConfig.move.closing;
+                    rushing = speciesConfig.move.rushing;
+                 }
+            }
+
+            const athletics = actorData.items.find(i => i.type === 'skill' && i.name.toLowerCase() === 'athletics');
+            if (athletics) {
+                rushing += Math.floor((athletics.system.rank || 0) / 2);
+            }
+
+            if (system.conditions.immobile || isDead) { closing = 0; rushing = 0; }
+            else if (isCritical) { rushing = closing; }
+            
+            if (moveCap !== null) rushing = Math.min(rushing, moveCap);
+
+            // Apply Calculated Values
+            system.move.closing = closing;
+            system.move.rushing = rushing;
+        } 
+        
+        // NPC / THREAT: Do nothing (Manual Entry)
+        // We still apply Immobile/Dead logic to NPCs for consistency, but don't overwrite the base.
+        if (actorData.type === 'npc') {
+             if (system.conditions.immobile || isDead) {
+                 // We can temporarily override for display, but ideally we don't save 0 to the DB
+                 // unless we really want to. For now, let's leave NPCs strictly manual.
              }
         }
-
-        const athletics = actorData.items.find(i => i.type === 'skill' && i.name.toLowerCase() === 'athletics');
-        if (athletics) {
-            rushing += Math.floor((athletics.system.rank || 0) / 2);
-        }
-
-        if (system.conditions.immobile || isDead) { closing = 0; rushing = 0; }
-        else if (isCritical) { rushing = closing; }
-        if (moveCap !== null) rushing = Math.min(rushing, moveCap);
-
-        if (!system.move) system.move = { closing: 0, rushing: 0 };
-        system.move.closing = closing;
-        system.move.rushing = rushing;
     }
   }
 

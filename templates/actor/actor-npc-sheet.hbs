@@ -1,108 +1,94 @@
 <form class="{{cssClass}} sla-sheet threat-sheet" autocomplete="off">
-    
-    {{!-- 1. THREAT HEADER (Now with Image) --}}
-    <header class="threat-header">
+
+    {{!-- THREAT HEADER --}}
+    <div class="threat-header">
         <div class="header-name">
-            <input type="text" name="name" value="{{actor.name}}" placeholder="THREAT NAME"/>
+            <input name="name" type="text" value="{{actor.name}}" placeholder="Threat Name"/>
         </div>
-        <img class="threat-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
-    </header>
-
-    {{!-- 2. STATS TABLE --}}
-    <div class="threat-table">
-        
-        {{!-- Row 1: Base Stats --}}
-        <div class="threat-row-label">
-            <div>STR</div><div>DEX</div><div>KNOW</div><div>CONC</div>
-        </div>
-        <div class="threat-row-value">
-            <input type="number" name="system.stats.str.value" value="{{system.stats.str.value}}"/>
-            <input type="number" name="system.stats.dex.value" value="{{system.stats.dex.value}}"/>
-            <input type="number" name="system.stats.know.value" value="{{system.stats.know.value}}"/>
-            <input type="number" name="system.stats.conc.value" value="{{system.stats.conc.value}}"/>
-        </div>
-
-        {{!-- Row 2: Secondary Stats --}}
-        <div class="threat-row-label">
-            <div>CHA</div>
-            <div>COOL</div>
-            <div>LUCK</div>
-            {{!-- Click Label to Roll --}}
-            <div class="rollable" data-roll-type="init" style="cursor: pointer; color: #a00;">INITIATIVE <i class="fas fa-dice-d20"></i></div>
-        </div>
-        <div class="threat-row-value">
-            <input type="number" name="system.stats.cha.value" value="{{system.stats.cha.value}}"/>
-            <input type="number" name="system.stats.cool.value" value="{{system.stats.cool.value}}"/>
-            <input type="number" name="system.stats.luck.value" value="{{system.stats.luck.value}}"/>
-            {{!-- Editable Input --}}
-            <input type="number" name="system.stats.init.value" value="{{system.stats.init.value}}"/>
-        </div>
-
-        {{!-- Row 3: Vitals (HP Wide, Movement) --}}
-        <div class="threat-row-label three-col">
-            <div style="flex: 2;">HIT POINTS</div>
-            <div>CLOSING</div>
-            <div>RUSHING</div>
-        </div>
-        <div class="threat-row-value three-col">
-            <div style="flex: 2; display: flex; align-items: center;">
-                <input type="number" name="system.hp.value" value="{{system.hp.value}}"/>
-                <span style="color:#888;">/</span>
-                <input type="number" name="system.hp.max" value="{{system.hp.max}}"/>
-            </div>
-            <input type="number" name="system.move.closing" value="{{system.move.closing}}"/>
-            <input type="number" name="system.move.rushing" value="{{system.move.rushing}}"/>
-        </div>
+        <img class="threat-img profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
     </div>
 
-    {{!-- 3. SKILLS LIST --}}
-    <div class="threat-section-bar">SKILLS</div>
-    <div class="threat-content-box skill-list">
-        {{#each skills as |skill|}}
-        {{!-- ADDED CLASS: 'item' so the JS knows this is an item row --}}
-        <div class="threat-skill item" data-item-id="{{skill._id}}">
-            
-            {{!-- Click Name to Roll --}}
-            <span class="skill-name rollable" data-roll-type="skill" style="flex: 1; cursor: pointer;">
-                <strong>{{skill.name}}:</strong> {{skill.system.rank}}
-            </span>
+    {{!-- STATS BLOCK --}}
+    <div class="threat-body" style="padding: 5px;">
+        <table class="threat-table">
+            <thead>
+                <tr class="threat-row-label">
+                    <th>STR</th> <th>DEX</th> <th>KNOW</th>
+                    <th>CONC</th> <th>CHA</th> <th>COOL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="threat-row-value">
+                    <td><input type="number" name="system.stats.str.value" value="{{system.stats.str.value}}"/></td>
+                    <td><input type="number" name="system.stats.dex.value" value="{{system.stats.dex.value}}"/></td>
+                    <td><input type="number" name="system.stats.know.value" value="{{system.stats.know.value}}"/></td>
+                    <td><input type="number" name="system.stats.conc.value" value="{{system.stats.conc.value}}"/></td>
+                    <td><input type="number" name="system.stats.cha.value" value="{{system.stats.cha.value}}"/></td>
+                    <td><input type="number" name="system.stats.cool.value" value="{{system.stats.cool.value}}"/></td>
+                </tr>
+            </tbody>
+        </table>
 
-            {{!-- Edit / Delete Buttons --}}
-            <div class="item-controls" style="display: flex; gap: 5px;">
-                <a class="item-edit" title="Edit Skill"><i class="fas fa-edit"></i></a>
-                <a class="item-delete" title="Delete Skill"><i class="fas fa-trash"></i></a>
+        {{!-- DERIVED STATS --}}
+        <div class="threat-derived flexrow">
+            <div class="threat-box">
+                <label>HP</label>
+                <div class="flexrow">
+                    <input type="number" name="system.hp.value" value="{{system.hp.value}}"/>
+                    <span>/</span>
+                    <input type="number" name="system.hp.max" value="{{system.hp.max}}"/>
+                </div>
             </div>
-            
-        </div>
-        {{/each}}
-        
-        {{#unless skills}}
-            <div style="color:#555; font-style:italic;">No skills...</div>
-        {{/unless}}
-    </div>
-
-    {{!-- 4. EQUIPMENT --}}
-    <div class="threat-section-bar">EQUIPMENT</div>
-    <div class="threat-content-box equipment-list">
-        {{#each gear as |item|}}
-        <div class="threat-gear item" data-item-id="{{item._id}}">
-            <span class="rollable" data-roll-type="item">
-                <strong>{{item.name}}</strong>
-                {{#if (eq item.type "weapon")}} (Dmg: {{item.system.damage}}, AD: {{item.system.ad}}) {{/if}}
-                {{#if (eq item.type "armor")}} (PV: {{item.system.pv}}) {{/if}}
-            </span>
-            <div class="item-controls">
-                <a class="item-edit"><i class="fas fa-edit"></i></a>
-                <a class="item-delete"><i class="fas fa-trash"></i></a>
+            <div class="threat-box">
+                <label>ARMOR</label>
+                <input type="number" name="system.armor.pv" value="{{system.armor.pv}}"/>
+            </div>
+            <div class="threat-box">
+                <label>INIT</label>
+                <div class="flexrow">
+                    <span style="font-weight:bold; font-size:1.2em;">{{system.stats.init.value}}</span>
+                    <a class="rollable" data-roll-type="init"><i class="fas fa-dice-d10"></i></a>
+                </div>
+            </div>
+            <div class="threat-box">
+                <label>MOVE (Close/Rush)</label>
+                <div class="flexrow">
+                    <input type="number" name="system.move.closing" value="{{system.move.closing}}" placeholder="0"/>
+                    <span>/</span>
+                    <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" placeholder="0"/>
+                </div>
             </div>
         </div>
-        {{/each}}
-    </div>
 
-    {{!-- 5. NOTES --}}
-    <div class="threat-section-bar">NOTES</div>
-    <div class="threat-content-box notes" style="height: 200px; overflow: hidden;">
-        {{editor enrichedBiography target="system.biography" button=true owner=owner editable=editable}}
-    </div>
+        {{!-- SKILLS & GEAR --}}
+        <div class="threat-section-bar">SKILLS & WEAPONS</div>
+        <div class="threat-content-box">
+            {{#each gear as |item|}}
+            <div class="threat-item flexrow">
+                <img src="{{item.img}}" width="24" height="24"/>
+                <span class="item-name rollable" data-roll-type="item" style="font-weight:bold;">{{item.name}}</span>
+                <div class="item-controls">
+                    <a class="item-edit" title="Edit"><i class="fas fa-edit"></i></a>
+                    <a class="item-delete" title="Delete"><i class="fas fa-trash"></i></a>
+                </div>
+            </div>
+            {{/each}}
+            {{#each skills as |skill|}}
+            <div class="threat-item flexrow">
+                <span class="item-name rollable" data-roll-type="skill">{{skill.name}}</span>
+                <span style="color:#666;"> ({{skill.system.rank}})</span>
+                <div class="item-controls">
+                    <a class="item-edit"><i class="fas fa-edit"></i></a>
+                    <a class="item-delete"><i class="fas fa-trash"></i></a>
+                </div>
+            </div>
+            {{/each}}
+        </div>
 
+        {{!-- DESCRIPTION --}}
+        <div class="threat-section-bar">NOTES</div>
+        <div class="threat-content-box" style="height: 150px; overflow-y: auto;">
+            {{editor enrichedBiography target="system.biography" button=true owner=owner editable=editable}}
+        </div>
+    </div>
 </form>
