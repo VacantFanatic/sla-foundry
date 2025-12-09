@@ -7,48 +7,110 @@
             <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Item Name"/></h1>
             <div class="item-subtitle">
                 <span class="type-label">{{item.type}}</span>
-                {{#if (or (eq item.type "skill") (eq item.type "discipline"))}}
-                    <span class="rank-label">Rank: <input type="number" name="system.rank" value="{{system.rank}}" class="tiny-input"/></span>
+                
+                {{!-- SHOW RANK IN HEADER (Skill, Discipline, Trait) --}}
+                {{#if (or (eq item.type "skill") (or (eq item.type "discipline") (eq item.type "trait")))}}
+                    <span class="rank-label">
+                        Rank: <input type="number" name="system.rank" value="{{system.rank}}" class="tiny-input"/>
+                    </span>
                 {{/if}}
             </div>
         </div>
     </header>
 
-    {{!-- TABS --}}
+    {{!-- NAVIGATION --}}
     <nav class="sheet-tabs tabs" data-group="primary">
         <a class="item" data-tab="attributes">Details</a>
         <a class="item" data-tab="description">Description</a>
     </nav>
 
-    {{!-- BODY --}}
+    {{!-- SHEET BODY --}}
     <section class="sheet-body">
 
         {{!-- ATTRIBUTES TAB --}}
         <div class="tab attributes" data-group="primary" data-tab="attributes">
             
-            {{!-- 1. CATALOGUE THEME (Gear) --}}
-            {{#if (or (eq item.type "weapon") (eq item.type "item") (eq item.type "armor") (eq item.type "drug"))}}
+            {{!-- 1. CATALOGUE THEME (Weapons, Items, Armor, Drugs) --}}
+            {{#if (or (eq item.type "weapon") (or (eq item.type "item") (or (eq item.type "armor") (eq item.type "drug"))))}}
             <div class="catalogue-grid">
+                
+                {{!-- Common Fields --}}
                 <div class="form-group"><label>Weight</label><input type="number" name="system.weight" value="{{system.weight}}" step="0.1"/></div>
                 <div class="form-group"><label>Cost</label><input type="number" name="system.price" value="{{system.price}}"/></div>
+                
+                {{!-- WEAPON Specific --}}
                 {{#if (eq item.type "weapon")}}
                 <div class="form-group"><label>Damage</label><input type="text" name="system.damage" value="{{system.damage}}"/></div>
                 <div class="form-group"><label>Recoil</label><input type="text" name="system.recoil" value="{{system.recoil}}"/></div>
                 <div class="form-group"><label>Skill</label><select name="system.skill">{{selectOptions config.combatSkills selected=system.skill}}</select></div>
                 {{/if}}
+
+                {{!-- ARMOR Specific --}}
                 {{#if (eq item.type "armor")}}
-                <div class="form-group"><label>PV</label><input type="number" name="system.pv" value="{{system.pv}}"/></div>
-                <div class="form-group"><label>Resist (Cur/Max)</label>
-                    <div class="flexrow"><input type="number" name="system.resistance.value" value="{{system.resistance.value}}"/> / <input type="number" name="system.resistance.max" value="{{system.resistance.max}}"/></div>
+                <div class="form-group"><label>PV (Prot)</label><input type="number" name="system.pv" value="{{system.pv}}"/></div>
+                <div class="form-group">
+                    <label>Resist (Cur / Max)</label>
+                    <div class="flexrow">
+                        <input type="number" name="system.resistance.value" value="{{system.resistance.value}}" placeholder="Cur"/>
+                        <span style="flex:0;">/</span>
+                        <input type="number" name="system.resistance.max" value="{{system.resistance.max}}" placeholder="Max"/>
+                    </div>
                 </div>
                 {{/if}}
+
+                {{!-- DRUG Specific --}}
+                {{#if (eq item.type "drug")}}
+                <div class="form-group"><label>Duration (Hrs)</label><input type="number" name="system.duration" value="{{system.duration}}"/></div>
+                <div class="form-group"><label>Addiction Target</label><input type="number" name="system.addiction" value="{{system.addiction}}"/></div>
+                
+                <div class="form-group" style="grid-column: 1 / -1; border-top: 2px dashed #999; margin-top:5px; padding-top:5px;">
+                    <label style="text-align:center; width:100%; display:block;">STAT MODIFIERS</label>
+                </div>
+
+                <div class="form-group"><label>Mod 1 Stat</label>
+                    <select name="system.mods.first.stat">
+                        <option value="">- None -</option>
+                        {{selectOptions config.stats selected=system.mods.first.stat}}
+                    </select>
+                </div>
+                <div class="form-group"><label>Mod 1 Value</label><input type="number" name="system.mods.first.value" value="{{system.mods.first.value}}"/></div>
+                
+                <div class="form-group"><label>Mod 2 Stat</label>
+                    <select name="system.mods.second.stat">
+                        <option value="">- None -</option>
+                        {{selectOptions config.stats selected=system.mods.second.stat}}
+                    </select>
+                </div>
+                <div class="form-group"><label>Mod 2 Value</label><input type="number" name="system.mods.second.value" value="{{system.mods.second.value}}"/></div>
+                {{/if}}
+
             </div>
             {{/if}}
 
-            {{!-- 2. ACADEMIC THEME (Skills) --}}
+            {{!-- 2. ACADEMIC THEME (Skills, Traits) --}}
             {{#if (or (eq item.type "skill") (eq item.type "trait"))}}
             <div class="academic-paper">
-                <div class="form-group line-item"><label>Related Stat:</label><select name="system.stat">{{selectOptions config.stats selected=system.stat}}</select></div>
+                {{!-- SKILLS ONLY --}}
+                {{#if (eq item.type "skill")}}
+                <div class="form-group line-item">
+                    <label>Related Stat:</label>
+                    <select name="system.stat">{{selectOptions config.stats selected=system.stat}}</select>
+                </div>
+                {{/if}}
+
+                {{!-- TRAITS ONLY --}}
+                {{#if (eq item.type "trait")}}
+                <div class="form-group line-item">
+                    <label>Trait Type:</label>
+                    <input type="text" name="system.type" value="{{system.type}}" placeholder="Advantage / Disadvantage"/>
+                </div>
+                {{!-- ADDED RANK FIELD HERE --}}
+                <div class="form-group line-item">
+                    <label>Trait Rank:</label>
+                    <input type="number" name="system.rank" value="{{system.rank}}" placeholder="0"/>
+                </div>
+                {{/if}}
+
                 <div class="form-group line-item"><label>XP Cost:</label><input type="number" name="system.xpCost" value="{{system.xpCost}}"/></div>
             </div>
             {{/if}}
@@ -58,41 +120,40 @@
             <div class="spectral-container">
                 <div class="form-group glow-input"><label>Flux Cost</label><input type="number" name="system.cost" value="{{system.cost}}"/></div>
                 {{#if (eq item.type "ebbFormula")}}
-                <div class="form-group glow-input"><label>Formula Rating</label><input type="number" name="system.formulaRating" value="{{system.formulaRating}}"/></div>
+                <div class="form-group glow-input"><label>Formula Rating (FR)</label><input type="number" name="system.formulaRating" value="{{system.formulaRating}}"/></div>
                 <div class="form-group glow-input"><label>Discipline</label><select name="system.discipline">{{selectOptions config.disciplineSkills selected=system.discipline}}</select></div>
                 {{/if}}
             </div>
             {{/if}}
 
-            {{!-- 4. OFFICE DOSSIER THEME (Species & Packages) --}}
+            {{!-- 4. DOSSIER THEME (Species, Package) --}}
             {{#if (or (eq item.type "species") (eq item.type "package"))}}
             <div class="office-dossier">
                 <div class="dossier-stamp">CONFIDENTIAL RECORD</div>
                 
-                {{!-- SPECIES STATS --}}
                 {{#if (eq item.type "species")}}
                 <div class="paper-section">
                     <div class="paper-header">BIOLOGICAL PARAMETERS</div>
                     <div class="form-group paper-row"><label>Base HP:</label><input type="number" name="system.hp" value="{{system.hp}}"/></div>
                     <div class="form-group paper-row">
-                        <label>Movement (Close/Rush):</label>
+                        <label>Move (Close/Rush):</label>
                         <div class="flexrow"><input type="number" name="system.move.closing" value="{{system.move.closing}}"/> / <input type="number" name="system.move.rushing" value="{{system.move.rushing}}"/></div>
                     </div>
+                    {{!-- Stats Min/Max Grid --}}
                     <div class="stat-limits-grid">
-                        <div class="limit-box"><label>STR (Min/Max)</label><div class="flexrow"><input type="number" name="system.stats.str.min" value="{{system.stats.str.min}}"/>-<input type="number" name="system.stats.str.max" value="{{system.stats.str.max}}"/></div></div>
-                        <div class="limit-box"><label>DEX (Min/Max)</label><div class="flexrow"><input type="number" name="system.stats.dex.min" value="{{system.stats.dex.min}}"/>-<input type="number" name="system.stats.dex.max" value="{{system.stats.dex.max}}"/></div></div>
-                        <div class="limit-box"><label>KNOW (Min/Max)</label><div class="flexrow"><input type="number" name="system.stats.know.min" value="{{system.stats.know.min}}"/>-<input type="number" name="system.stats.know.max" value="{{system.stats.know.max}}"/></div></div>
-                        <div class="limit-box"><label>CONC (Min/Max)</label><div class="flexrow"><input type="number" name="system.stats.conc.min" value="{{system.stats.conc.min}}"/>-<input type="number" name="system.stats.conc.max" value="{{system.stats.conc.max}}"/></div></div>
-                        <div class="limit-box"><label>CHA (Min/Max)</label><div class="flexrow"><input type="number" name="system.stats.cha.min" value="{{system.stats.cha.min}}"/>-<input type="number" name="system.stats.cha.max" value="{{system.stats.cha.max}}"/></div></div>
-                        <div class="limit-box"><label>COOL (Min/Max)</label><div class="flexrow"><input type="number" name="system.stats.cool.min" value="{{system.stats.cool.min}}"/>-<input type="number" name="system.stats.cool.max" value="{{system.stats.cool.max}}"/></div></div>
+                        <div class="limit-box"><label>STR</label><div class="flexrow"><input type="number" name="system.stats.str.min" value="{{system.stats.str.min}}"/>-<input type="number" name="system.stats.str.max" value="{{system.stats.str.max}}"/></div></div>
+                        <div class="limit-box"><label>DEX</label><div class="flexrow"><input type="number" name="system.stats.dex.min" value="{{system.stats.dex.min}}"/>-<input type="number" name="system.stats.dex.max" value="{{system.stats.dex.max}}"/></div></div>
+                        <div class="limit-box"><label>KNOW</label><div class="flexrow"><input type="number" name="system.stats.know.min" value="{{system.stats.know.min}}"/>-<input type="number" name="system.stats.know.max" value="{{system.stats.know.max}}"/></div></div>
+                        <div class="limit-box"><label>CONC</label><div class="flexrow"><input type="number" name="system.stats.conc.min" value="{{system.stats.conc.min}}"/>-<input type="number" name="system.stats.conc.max" value="{{system.stats.conc.max}}"/></div></div>
+                        <div class="limit-box"><label>CHA</label><div class="flexrow"><input type="number" name="system.stats.cha.min" value="{{system.stats.cha.min}}"/>-<input type="number" name="system.stats.cha.max" value="{{system.stats.cha.max}}"/></div></div>
+                        <div class="limit-box"><label>COOL</label><div class="flexrow"><input type="number" name="system.stats.cool.min" value="{{system.stats.cool.min}}"/>-<input type="number" name="system.stats.cool.max" value="{{system.stats.cool.max}}"/></div></div>
                     </div>
                 </div>
                 {{/if}}
 
-                {{!-- PACKAGE REQS --}}
                 {{#if (eq item.type "package")}}
                 <div class="paper-section">
-                    <div class="paper-header">PREREQUISITES (Min Stat)</div>
+                    <div class="paper-header">PREREQUISITES</div>
                     <div class="stat-limits-grid">
                         <div class="limit-box"><label>STR</label><input type="number" name="system.requirements.str" value="{{system.requirements.str}}"/></div>
                         <div class="limit-box"><label>DEX</label><input type="number" name="system.requirements.dex" value="{{system.requirements.dex}}"/></div>
@@ -104,13 +165,12 @@
                 </div>
                 {{/if}}
 
-                {{!-- SKILL GRANTING --}}
                 <div class="paper-section">
                     <div class="paper-header">GRANTED SKILLS & TRAITS</div>
                     <div class="drop-zone skill-grant-area">
                         {{#each system.skills as |skill index|}}
                             <div class="granted-skill-chip">
-                                <span class="skill-name">{{skill.name}} ({{skill.type}})</span>
+                                <span class="skill-name">{{skill.name}}</span>
                                 <a class="delete-grant" data-index="{{index}}" title="Remove"><i class="fas fa-times"></i></a>
                             </div>
                         {{else}}
@@ -123,7 +183,7 @@
 
         </div>
 
-        {{!-- DESCRIPTION --}}
+        {{!-- DESCRIPTION TAB --}}
         <div class="tab description" data-group="primary" data-tab="description">
             {{editor enrichedDescription target="system.description" button=true owner=owner editable=editable}}
         </div>

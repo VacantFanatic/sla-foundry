@@ -753,8 +753,8 @@
    13. ITEM SHEET THEMES
    ========================================== */
 
-/* --- A. CATALOGUE THEME (Weapons, Gear, Armor) --- */
-.item.weapon-theme, .item.item-theme, .item.armor-theme {
+/* --- A. CATALOGUE THEME (Weapons, Gear, Armor, Drugs) --- */
+.item.weapon-theme, .item.item-theme, .item.armor-theme, .item.drug-theme {
     background: #e0e0e0; /* Light Grey Industrial */
     border: 4px solid #333;
     font-family: "Arial", sans-serif;
@@ -763,14 +763,16 @@
 
 .item.weapon-theme .sheet-header,
 .item.item-theme .sheet-header,
-.item.armor-theme .sheet-header {
+.item.armor-theme .sheet-header,
+.item.drug-theme .sheet-header {
     background: #222;
     color: #fff;
     border-bottom: 4px solid #f90; /* Industrial Orange Accent */
     padding: 10px;
 }
 
-.item.weapon-theme input, .item.item-theme input {
+.item.weapon-theme input, .item.item-theme input, 
+.item.armor-theme input, .item.drug-theme input {
     background: #fff;
     border: 1px solid #999;
     color: #000;
