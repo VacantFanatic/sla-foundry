@@ -369,7 +369,7 @@ export class SlaActorSheet extends ActorSheet {
       }, { classes: ["sla-dialog", "sla-sheet"] }).render(true);
   }
 
-  // --- HELPER: PROCESS WEAPON ROLL (RESTORED) ---
+// --- ACTION: PROCESS WEAPON ROLL ---
   async _processWeaponRoll(item, html, isMelee) {
       const form = html[0].querySelector("form");
       const genericMod = Number(form.modifier.value) || 0;
@@ -390,6 +390,7 @@ export class SlaActorSheet extends ActorSheet {
       let successDieMod = 0; 
       let allDiceMod = genericMod;
       
+      // Global Modifiers
       let globalMod = 0;
       if (this.actor.system.conditions?.prone) globalMod -= 1;
       if (this.actor.system.conditions?.stunned) globalMod -= 1;
@@ -397,10 +398,11 @@ export class SlaActorSheet extends ActorSheet {
 
       let autoSkillSuccesses = 0; 
       let rankMod = 0; 
-      let damageBonus = 0;
+      let damageBonus = 0; // STR / ROF / Ammo bonuses
       let armorPen = 0;
       let effectNote = "";
 
+      // Check Luck Reroll
       let rerollSuccessDie = false;
       let rerollAll = false;
       if (form.spendLuck && form.spendLuck.checked) {
@@ -425,11 +427,11 @@ export class SlaActorSheet extends ActorSheet {
           else if (strValue === 5) damageBonus += 1;
 
           if (form.charging.checked) { successDieMod -= 1; autoSkillSuccesses += 1; }
-          if (form.targetCharged.checked) successDieMod -= 1;
-          if (form.sameTarget.checked) successDieMod += 1;
-          if (form.breakOff.checked) successDieMod += 1;
-          if (form.natural.checked) successDieMod += 1;
-          if (form.prone.checked) successDieMod += 2;
+          if (form.targetCharged.checked) { successDieMod -= 1; }
+          if (form.sameTarget.checked) { successDieMod += 1; }
+          if (form.breakOff.checked) { successDieMod += 1; }
+          if (form.natural.checked) { successDieMod += 1; }
+          if (form.prone.checked) { successDieMod += 2; }
           
           allDiceMod -= (Number(form.combatDef.value) || 0); 
           allDiceMod -= (Number(form.acroDef.value) || 0) * 2; 
@@ -441,7 +443,7 @@ export class SlaActorSheet extends ActorSheet {
           if (mode === "burst") { recoilIndex = 1; ammoCost = 3; damageBonus += 2; effectNote += "Burst. "; rerollSuccessDie = true; }
           else if (mode === "auto") { recoilIndex = 2; ammoCost = 10; damageBonus += 4; effectNote += "Full Auto. "; rerollAll = true; }
           else if (mode === "suppress") { 
-              recoilIndex = 2; ammoCost = 20; autoSkillSuccesses += 2; damageBonus += 4; rerollAll = true;
+              recoilIndex = 2; ammoCost = 20; autoSkillSuccesses += 2; damageBonus += 4; 
               effectNote += "Suppressive. "; 
               const supportSkill = this.actor.items.find(i => i.type === 'skill' && i.name.toLowerCase() === 'support weapons');
               rank = supportSkill ? supportSkill.system.rank : 0;
@@ -480,28 +482,24 @@ export class SlaActorSheet extends ActorSheet {
       allDiceMod -= penalty;
 
       const baseModifier = statValue + rank + allDiceMod; 
-      // FIXED RULE: 1 + Rank Dice
-      let skillDiceCount = Math.max(0, rank + 1 + rankMod); 
-      
-      let formula = `1d10 + ${skillDiceCount}d10`;
+      let effectiveRank = Math.max(0, rank + rankMod); 
+      let formula = "1d10";
+      if (effectiveRank > 0) formula += ` + ${effectiveRank}d10`;
 
       let roll = new Roll(formula);
       await roll.evaluate();
 
-      // Reroll Logic
       if (rerollSuccessDie) {
           const sdVal = roll.terms[0].results[0].result + baseModifier + successDieMod;
           if (sdVal < 10) {
-              let newRoll = new Roll(formula); 
-              await newRoll.evaluate();
+              let newRoll = new Roll(formula); await newRoll.evaluate();
               roll = newRoll; 
           }
       }
       if (rerollAll) {
            const sdVal = roll.terms[0].results[0].result + baseModifier + successDieMod;
            if (sdVal < 10) {
-               let newRoll = new Roll(formula); 
-               await newRoll.evaluate();
+               let newRoll = new Roll(formula); await newRoll.evaluate();
                roll = newRoll;
            }
       }
@@ -511,7 +509,7 @@ export class SlaActorSheet extends ActorSheet {
 
       let mosCount = autoSkillSuccesses; 
       let skillDiceHtml = "";
-      if (skillDiceCount > 0 && roll.terms.length > 2) {
+      if (effectiveRank > 0 && roll.terms.length > 2) {
            roll.terms[2].results.forEach(r => {
                let val = r.result + baseModifier;
                let isSuccess = val >= 10;
@@ -522,50 +520,78 @@ export class SlaActorSheet extends ActorSheet {
       }
       if (autoSkillSuccesses > 0) skillDiceHtml += `<div style="display:flex; flex-direction:column; align-items:center; margin:2px;"><span style="border:1px solid #39ff14; background:#39ff14; color:#000; padding:2px 8px; border-radius:4px; font-weight:bold;">+${autoSkillSuccesses}</span><span style="font-size:0.7em; color:#aaa;">(Auto)</span></div>`;
 
-      let mosDamage = 0;
-      let hitLocation = "Standard";
-      if (mosCount === 1) mosDamage = 1;
-      else if (mosCount === 2) { mosDamage = 2; hitLocation = "Arm/Torso"; }
-      else if (mosCount === 3) { mosDamage = 4; hitLocation = "Leg/Arm/Torso"; }
-      else if (mosCount >= 4) { mosDamage = 6; hitLocation = "HEAD (or any)"; }
-
-      const totalDamageBonus = mosDamage + damageBonus;
-      const baseDamage = item.system.damage || "0";
-      const finalDamageFormula = totalDamageBonus > 0 ? `${baseDamage} + ${totalDamageBonus}` : baseDamage;
       const ad = item.system.ad || 0;
+      const baseDamage = item.system.damage || "0";
+
+      // --- MOS CHOICE LOGIC ---
+      let buttonsHtml = "";
+      
+      const getFormula = (extra) => {
+          const total = damageBonus + extra; // Combine Static Modifiers + MoS Modifier
+          return total > 0 ? `${baseDamage} + ${total}` : baseDamage;
+      };
+
+      if (mosCount === 2) {
+          // Choice: +2 DMG OR Hit Arm (+0 DMG)
+          buttonsHtml += `
+          <button class="roll-damage" data-damage="${getFormula(2)}" data-ad="${ad}" data-weapon="${item.name}" style="background:#300; color:#f88; border:1px solid #a00; margin-bottom:4px;">
+              <i class="fas fa-crosshairs"></i> <strong>+2 DMG</strong> (Torso)
+          </button>
+          <button class="roll-damage" data-damage="${getFormula(0)}" data-ad="${ad}" data-weapon="${item.name}" style="background:#222; color:#ccc; border:1px solid #555;">
+              <i class="fas fa-bullseye"></i> <strong>Hit Arm</strong> (No Bonus)
+          </button>`;
+      } else if (mosCount === 3) {
+          // Choice: +4 DMG OR Hit Leg (+0 DMG)
+          buttonsHtml += `
+          <button class="roll-damage" data-damage="${getFormula(4)}" data-ad="${ad}" data-weapon="${item.name}" style="background:#300; color:#f88; border:1px solid #a00; margin-bottom:4px;">
+              <i class="fas fa-crosshairs"></i> <strong>+4 DMG</strong> (Torso)
+          </button>
+          <button class="roll-damage" data-damage="${getFormula(0)}" data-ad="${ad}" data-weapon="${item.name}" style="background:#222; color:#ccc; border:1px solid #555;">
+              <i class="fas fa-bullseye"></i> <strong>Hit Leg</strong> (No Bonus)
+          </button>`;
+      } else if (mosCount >= 4) {
+          // MoS 4: +6 DMG AND Head Shot (No choice, just awesome)
+          buttonsHtml += `
+          <button class="roll-damage" data-damage="${getFormula(6)}" data-ad="${ad}" data-weapon="${item.name}" style="background:#500; color:#fff; border:1px solid #f00; font-weight:bold;">
+              <i class="fas fa-skull"></i> <strong>+6 DMG & HEAD SHOT</strong>
+          </button>`;
+      } else {
+          // MoS 0 or 1: Standard Damage
+          const bonus = mosCount === 1 ? 1 : 0;
+          const label = bonus > 0 ? `+${bonus} DMG` : "Roll Damage";
+          buttonsHtml += `
+          <button class="roll-damage" data-damage="${getFormula(bonus)}" data-ad="${ad}" data-weapon="${item.name}" style="background:#300; color:#f88; border:1px solid #a00;">
+              <i class="fas fa-tint"></i> ${label}
+          </button>`;
+      }
 
       const resultColor = successTotal > 10 ? '#39ff14' : '#f55';
 
-      // Generate Tooltip
-      let tooltipHtml = `<div class="dice-tooltip" style="display:none; margin-top:10px; padding-top:5px; border-top:1px solid #444; font-size:0.8em; text-align:left;">`;
-      tooltipHtml += `<div><strong>Success Die:</strong> ${successRaw} + ${baseModifier + successDieMod} = <strong>${successTotal}</strong></div>`;
-      tooltipHtml += `<div><strong>Mods:</strong> Base ${baseModifier} | SD ${successDieMod}</div></div>`;
+      let modText = `Stat: ${statValue} | Rank: ${rank}`;
+      if (allDiceMod !== 0) modText += ` | All: ${allDiceMod > 0 ? "+" : ""}${allDiceMod}`;
+      if (successDieMod !== 0) modText += ` | SD: ${successDieMod > 0 ? "+" : ""}${successDieMod}`;
+      if (damageBonus !== 0) modText += ` | <strong>Flat Dmg: +${damageBonus}</strong>`; // Show static bonus
+      if (effectNote) modText += `<br><em style="color:#f88;">${effectNote}</em>`;
 
       roll.toMessage({
           speaker: ChatMessage.getSpeaker({ actor: this.actor }),
           content: `
           <div style="background:#222; border:1px solid #ff4400; color:#eee; padding:5px; font-family:'Roboto Condensed',sans-serif;">
               <h3 style="color:#ff4400; margin:0; border-bottom:1px solid #555;">ATTACK: ${item.name.toUpperCase()}</h3>
-              <div style="font-size:0.8em; color:#aaa;">Stat: ${statValue} | Rank: ${rank} | Mod: ${allDiceMod} ${effectNote}</div>
+              <div style="font-size:0.8em; color:#aaa;">${modText}</div>
               <div style="display:flex; justify-content:space-between; background:rgba(255,68,0,0.1); padding:5px; margin:5px 0;">
                   <span style="font-weight:bold; color:#ff4400;">SUCCESS DIE</span>
-                  <span class="roll-toggle" style="font-size:1.5em; font-weight:bold; color:${resultColor}; cursor:pointer;" title="Click for details">${successTotal}</span>
+                  <span style="font-size:1.5em; font-weight:bold; color:${resultColor};">${successTotal}</span>
               </div>
-              ${tooltipHtml}
               <div style="margin-bottom:10px;">
                   <span style="font-size:0.8em; color:#aaa;">SKILL DICE (${mosCount})</span>
                   <div style="display:flex; flex-wrap:wrap;">${skillDiceHtml}</div>
               </div>
+              
               <div style="background:#111; border:1px solid #555; padding:5px; margin-bottom:5px;">
-                  <div style="display:flex; justify-content:space-between; font-size:0.8em; color:#ccc;">
-                      <span>Hit: <strong style="color:#fff;">${hitLocation}</strong></span>
-                      <span>Bonus: <strong style="color:#39ff14;">+${totalDamageBonus}</strong></span>
-                  </div>
-                  ${armorPen > 0 ? `<div style="font-size:0.7em; color:#f88; margin-top:2px;">Target PV reduced by ${armorPen}</div>` : ""}
+                  ${armorPen > 0 ? `<div style="font-size:0.7em; color:#f88; text-align:center;">Target PV reduced by ${armorPen}</div>` : ""}
+                  ${buttonsHtml}
               </div>
-              <button class="roll-damage" data-damage="${finalDamageFormula}" data-ad="${ad}" data-weapon="${item.name}" style="background:#300; color:#f88; border:1px solid #a00; cursor:pointer; width:100%;">
-                  <i class="fas fa-tint" style="color:#a00;"></i> ROLL DAMAGE (${finalDamageFormula})
-              </button>
           </div>`
       });
   }
