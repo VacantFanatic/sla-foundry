@@ -1028,17 +1028,17 @@
    15. ITEM DESCRIPTION EDITOR FIX
    ========================================== */
 
-/* 1. Force the Tab to fill the window height */
-.sla-sheet.item .tab.description {
+/* 1. Force the Tab to fill window ONLY when active */
+.sla-sheet.item .tab.description.active {
     height: 100%;
-    display: flex;
+    display: flex;       /* Use Flexbox to stretch content */
     flex-direction: column;
-    min-height: 300px; /* Ensure it never collapses */
+    min-height: 300px;   /* Minimum height */
 }
 
 /* 2. Force the Editor to fill the Tab */
 .sla-sheet.item .editor {
-    flex: 1;
+    flex: 1;             /* Grow to fill remaining space */
     height: 100%;
 }
 
