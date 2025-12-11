@@ -41,8 +41,18 @@
                 {{!-- WEAPON Specific --}}
                 {{#if (eq item.type "weapon")}}
                 <div class="form-group"><label>Damage</label><input type="text" name="system.damage" value="{{system.damage}}"/></div>
+                <div class="form-group"><label>Min Dmg</label><input type="text" name="system.minDamage" value="{{system.minDamage}}"/></div>
+                
+                <div class="form-group"><label>AD (Armor Dmg)</label><input type="number" name="system.ad" value="{{system.ad}}"/></div>
                 <div class="form-group"><label>Recoil</label><input type="text" name="system.recoil" value="{{system.recoil}}"/></div>
-                <div class="form-group"><label>Skill</label><select name="system.skill">{{selectOptions config.combatSkills selected=system.skill}}</select></div>
+                
+                <div class="form-group"><label>Range</label><input type="text" name="system.range" value="{{system.range}}"/></div>
+                <div class="form-group"><label>Clip Size</label><input type="number" name="system.maxAmmo" value="{{system.maxAmmo}}"/></div>
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Skill</label>
+                    <select name="system.skill" style="width: 100%;">{{selectOptions config.combatSkills selected=system.skill}}</select>
+                </div>
                 {{/if}}
 
                 {{!-- ARMOR Specific --}}
@@ -104,7 +114,6 @@
                     <label>Trait Type:</label>
                     <input type="text" name="system.type" value="{{system.type}}" placeholder="Advantage / Disadvantage"/>
                 </div>
-                {{!-- ADDED RANK FIELD HERE --}}
                 <div class="form-group line-item">
                     <label>Trait Rank:</label>
                     <input type="number" name="system.rank" value="{{system.rank}}" placeholder="0"/>
@@ -139,7 +148,6 @@
                         <label>Move (Close/Rush):</label>
                         <div class="flexrow"><input type="number" name="system.move.closing" value="{{system.move.closing}}"/> / <input type="number" name="system.move.rushing" value="{{system.move.rushing}}"/></div>
                     </div>
-                    {{!-- Stats Min/Max Grid --}}
                     <div class="stat-limits-grid">
                         <div class="limit-box"><label>STR</label><div class="flexrow"><input type="number" name="system.stats.str.min" value="{{system.stats.str.min}}"/>-<input type="number" name="system.stats.str.max" value="{{system.stats.str.max}}"/></div></div>
                         <div class="limit-box"><label>DEX</label><div class="flexrow"><input type="number" name="system.stats.dex.min" value="{{system.stats.dex.min}}"/>-<input type="number" name="system.stats.dex.max" value="{{system.stats.dex.max}}"/></div></div>
