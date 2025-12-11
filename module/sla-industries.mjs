@@ -52,7 +52,7 @@ Hooks.once('init', async function() {
   CONFIG.Actor.documentClass = BoilerplateActor;
   CONFIG.Item.documentClass = BoilerplateItem;
   
-  // REGISTER CUSTOM V13 TOKEN RULER
+  // REGISTER CUSTOM TOKEN RULER
   CONFIG.Token.rulerClass = SLATokenRuler;
 
   CONFIG.Combat.initiative = {
@@ -187,15 +187,18 @@ Hooks.on('renderChatMessage', (message, html, data) => {
         });
     }
 
-    // 3. TOGGLE ROLL BREAKDOWN (This was missing!)
+    // 3. TOGGLE ROLL BREAKDOWN
     html.find('.roll-toggle').click(ev => {
         ev.preventDefault();
-        // Use .closest('div') to find container of the number, then find the sibling tooltip
-        // Or better, find the closest parent chat-message content
-        const container = $(ev.currentTarget).closest('.message-content');
-        const tooltip = container.find('.dice-tooltip');
+        const toggler = $(ev.currentTarget);
+        // Navigate up to the main content container, then find the tooltip within it
+        // This ensures we target the tooltip specific to THIS chat card
+        const tooltip = toggler.parents('.message-content').find('.dice-tooltip');
         
-        if (tooltip.is(':visible')) tooltip.slideUp(200);
-        else tooltip.slideDown(200);
+        if (tooltip.is(':visible')) {
+            tooltip.slideUp(200);
+        } else {
+            tooltip.slideDown(200);
+        }
     });
 });
