@@ -1023,3 +1023,61 @@
     font-style: italic;
     padding-top: 15px;
 }
+
+/* ==========================================
+   15. ITEM DESCRIPTION EDITOR FIX
+   ========================================== */
+
+/* 1. Force the Tab to fill the window height */
+.sla-sheet.item .tab.description {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 300px; /* Ensure it never collapses */
+}
+
+/* 2. Force the Editor to fill the Tab */
+.sla-sheet.item .editor {
+    flex: 1;
+    height: 100%;
+}
+
+.sla-sheet.item .tox-edit-area {
+    height: 100%;
+}
+
+/* 3. Theme-Specific Text Colors & Fonts */
+
+/* Catalogue (Grey Background -> Black Text) */
+.item.weapon-theme .editor-content,
+.item.item-theme .editor-content,
+.item.armor-theme .editor-content,
+.item.drug-theme .editor-content {
+    color: #000 !important;
+    font-family: "Arial", sans-serif;
+    padding: 10px;
+}
+
+/* Academic (Paper Background -> Black Text) */
+.item.skill-theme .editor-content,
+.item.trait-theme .editor-content {
+    color: #000 !important;
+    font-family: "Georgia", serif;
+    padding: 10px;
+}
+
+/* Spectral (Dark Background -> Light Purple Text) */
+.item.ebbFormula-theme .editor-content,
+.item.discipline-theme .editor-content {
+    color: #e0d0ff !important;
+    font-family: "Roboto", sans-serif;
+    padding: 10px;
+}
+
+/* Dossier (Beige Background -> Black Typewriter) */
+.item.species-theme .editor-content,
+.item.package-theme .editor-content {
+    color: #000 !important;
+    font-family: "Courier Prime", "Courier New", monospace;
+    padding: 10px;
+}
