@@ -7,13 +7,7 @@
             <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Item Name"/></h1>
             <div class="item-subtitle">
                 <span class="type-label">{{item.type}}</span>
-                
-                {{!-- SHOW RANK IN HEADER (Skill, Discipline, Trait) --}}
-                {{#if (or (eq item.type "skill") (or (eq item.type "discipline") (eq item.type "trait")))}}
-                    <span class="rank-label">
-                        Rank: <input type="number" name="system.rank" value="{{system.rank}}" class="tiny-input"/>
-                    </span>
-                {{/if}}
+                {{!-- Rank removed from header to be in body --}}
             </div>
         </div>
     </header>
@@ -46,7 +40,10 @@
                 <div class="form-group"><label>AD (Armor Dmg)</label><input type="number" name="system.ad" value="{{system.ad}}"/></div>
                 <div class="form-group"><label>Recoil</label><input type="text" name="system.recoil" value="{{system.recoil}}"/></div>
                 
+                {{!-- ROF FIELD --}}
+                <div class="form-group"><label>Rate of Fire (ROF)</label><input type="text" name="system.rof" value="{{system.rof}}"/></div>
                 <div class="form-group"><label>Range</label><input type="text" name="system.range" value="{{system.range}}"/></div>
+                
                 <div class="form-group"><label>Clip Size</label><input type="number" name="system.maxAmmo" value="{{system.maxAmmo}}"/></div>
                 
                 <div class="form-group" style="grid-column: 1 / -1;">
@@ -100,6 +97,13 @@
             {{!-- 2. ACADEMIC THEME (Skills, Traits) --}}
             {{#if (or (eq item.type "skill") (eq item.type "trait"))}}
             <div class="academic-paper">
+                
+                {{!-- RANK (Restored to Body) --}}
+                <div class="form-group line-item">
+                    <label>Current Rank:</label>
+                    <input type="number" name="system.rank" value="{{system.rank}}" placeholder="0"/>
+                </div>
+
                 {{!-- SKILLS ONLY --}}
                 {{#if (eq item.type "skill")}}
                 <div class="form-group line-item">
@@ -114,10 +118,6 @@
                     <label>Trait Type:</label>
                     <input type="text" name="system.type" value="{{system.type}}" placeholder="Advantage / Disadvantage"/>
                 </div>
-                <div class="form-group line-item">
-                    <label>Trait Rank:</label>
-                    <input type="number" name="system.rank" value="{{system.rank}}" placeholder="0"/>
-                </div>
                 {{/if}}
 
                 <div class="form-group line-item"><label>XP Cost:</label><input type="number" name="system.xpCost" value="{{system.xpCost}}"/></div>
@@ -128,6 +128,15 @@
             {{#if (or (eq item.type "ebbFormula") (eq item.type "discipline"))}}
             <div class="spectral-container">
                 <div class="form-group glow-input"><label>Flux Cost</label><input type="number" name="system.cost" value="{{system.cost}}"/></div>
+                
+                {{!-- DISCIPLINE RANK (Restored to Body) --}}
+                {{#if (eq item.type "discipline")}}
+                <div class="form-group glow-input">
+                    <label>Discipline Rank</label>
+                    <input type="number" name="system.rank" value="{{system.rank}}" placeholder="0"/>
+                </div>
+                {{/if}}
+
                 {{#if (eq item.type "ebbFormula")}}
                 <div class="form-group glow-input"><label>Formula Rating (FR)</label><input type="number" name="system.formulaRating" value="{{system.formulaRating}}"/></div>
                 <div class="form-group glow-input"><label>Discipline</label><select name="system.discipline">{{selectOptions config.disciplineSkills selected=system.discipline}}</select></div>
