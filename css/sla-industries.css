@@ -53,57 +53,68 @@
 }
 
 /* ==========================================
-   3. HEADER & PORTRAIT (FIXED SIZE)
+   3. HEADER & PORTRAIT (FULL WIDTH)
    ========================================== */
 .sla-sheet .header-grid {
     display: grid;
-    /* Name Area | Portrait | Finance Area */
-    grid-template-columns: 1.5fr 140px 1fr; 
+    /* Bio takes remaining space | Portrait Fixed | Finance Fixed */
+    grid-template-columns: 1fr 140px 200px; 
     gap: 10px;
-    height: 200px; /* Locked height ensures image doesn't grow */
-    margin-bottom: 10px;
+    height: 220px;
+    margin-bottom: 5px;
+    width: 100%; /* Ensure full width */
 }
 
-.sla-sheet .profile-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Crops image to fit the 140x200 box */
-    border: 2px solid var(--sla-bg-panel);
-    background: #fff;
-}
-
-/* Bio Section Layout */
+/* Bio Panel Styling */
 .bio-section {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-}
-
-.sla-sheet .bio-field {
-    display: grid;
-    grid-template-columns: 70px auto;
-    align-items: center;
     background: #d0d3d8;
-    padding-left: 5px;
     color: #000;
-    font-weight: bold;
-    margin-bottom: 2px;
-}
-.sla-sheet .bio-field label { font-size: 0.8em; }
-.sla-sheet .bio-field input { border: none; background: transparent !important; }
-
-/* Finance Section */
-.sla-sheet .finance-box {
-    background: var(--sla-bg-panel);
-    padding: 5px;
-    height: 100%;
+    border: 1px solid #999;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
 }
-.sla-sheet .finance-field label { display: block; color: #ccc; font-size: 0.8em; }
-.sla-sheet .finance-field input { width: 100%; }
+.bio-section .sla-header-bar {
+    background: #2a2a35;
+    color: #fff;
+    padding: 3px 5px;
+    border-bottom: 2px solid #555;
+    font-weight: bold;
+}
+
+/* SCL Input Box */
+.scl-input {
+    width: 45px !important;       /* Tighter width for 2-3 digits */
+    height: 36px !important;      /* height to match the label underline */
+    font-size: 1.6em !important;  /* Large, bold text */
+    font-weight: 900 !important;
+    text-align: center;
+    background: #d0d3d8 !important;
+    border: 2px solid #555 !important; /* Thicker border to match style */
+    padding: 0 !important;
+}
+
+.bio-content { padding: 5px; display: flex; flex-direction: column; height: 100%; justify-content: space-between; }
+.bio-row { display: flex; align-items: center; margin-bottom: 2px; height: 28px; }
+.bio-label { flex: 0 0 70px; font-weight: bold; font-size: 0.85em; text-transform: uppercase; }
+.bio-input { flex: 1; background: rgba(255,255,255,0.5) !important; border: 1px solid #aaa !important; color: #000 !important; font-weight: bold; height: 100%; }
+
+/* Finance Panel Styling */
+.sla-sheet .finance-box {
+    background: #2a2a35;
+    color: #eee;
+    border: 1px solid #000;
+    display: flex;
+    flex-direction: column;
+}
+.finance-header { color: #555; font-weight: bold; padding: 5px; text-transform: uppercase; font-size: 0.8em; }
+.finance-title { color: #fff; font-weight: bold; font-size: 1.1em; padding: 0 5px 5px 5px; border-bottom: 1px solid #444; margin-bottom: 5px; }
+.finance-body { padding: 5px; display: flex; flex-direction: column; gap: 8px; }
+.fin-row label { display: block; font-size: 0.7em; font-weight: bold; color: #ccc; }
+.fin-row input { width: 100%; background: #d0d3d8 !important; color: #000 !important; font-weight: bold; height: 24px; }
+
+/* Portrait */
+.portrait-container { background: #000; border: 2px solid #222; width: 100%; height: 100%; }
+.profile-img { width: 100%; height: 100%; object-fit: cover; border: none; }
 
 /* ==========================================
    4. STATS GRID (NEW LAYOUT)
@@ -1080,4 +1091,130 @@
     color: #000 !important;
     font-family: "Courier Prime", "Courier New", monospace;
     padding: 10px;
+}
+
+/* ==========================================
+   16. STATS MATRIX
+   ========================================== */
+.stats-strip-container {
+    margin-top: 5px;
+    padding: 5px;
+    background: #e0e0e0; /* Light background strip */
+    border-top: 2px solid #555;
+    border-bottom: 2px solid #555;
+}
+
+.stats-matrix {
+    display: grid;
+    /* 3 Main Cols + Side Col */
+    grid-template-columns: 1fr 1fr 1fr 100px; 
+    gap: 15px;
+}
+
+.stat-col {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Rating Headers (Green Text) */
+.rating-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #d0d3d8;
+    border: 1px solid #999;
+    padding: 2px 5px;
+    height: 30px;
+    position: relative;
+}
+/* Underline effect from screenshot */
+.rating-header::after {
+    content: ""; position: absolute; bottom: 2px; left: 5px; right: 5px;
+    height: 2px; background: #39ff14;
+}
+
+.rating-label { font-weight: bold; color: #777; font-size: 0.8em; }
+.rating-val {
+    width: 50px !important; text-align: center; background: transparent !important; border: none !important;
+    color: #39ff14 !important; font-weight: bold; font-size: 1.4em; text-shadow: 1px 1px 0 #000;
+}
+
+/* Attribute Boxes */
+.stat-box {
+    display: flex;
+    align-items: center;
+    background: #d0d3d8;
+    border: 1px solid #999;
+    height: 28px;
+    padding-right: 5px;
+}
+.stat-box label {
+    flex: 0 0 50px;
+    background: #2a2a35;
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.8em;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+}
+.stat-box input {
+    flex: 1;
+    background: transparent !important;
+    border: none !important;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+.stat-box .rollable { color: #555; cursor: pointer; }
+.stat-box .rollable:hover { color: #000; }
+
+/* Side Stats */
+.side-col { display: flex; flex-direction: column; gap: 5px; justify-content: space-between; }
+.side-box { background: #2a2a35; border: 1px solid #000; text-align: center; padding: 2px; }
+.side-box label { display: block; color: #777; font-size: 0.7em; font-weight: bold; }
+.side-box input { width: 100%; background: #d0d3d8 !important; color: #000 !important; font-weight: bold; text-align: center; }
+.side-box.init { background: #333; }
+.init-val { font-size: 1.5em; font-weight: bold; color: #fff; }
+
+/* ==========================================
+   17. ACTOR BIOGRAPHY TAB FIX (CORRECTED)
+   ========================================== */
+
+/* 1. Ensure the tab fills height ONLY when active */
+.sla-sheet .tab[data-tab="biography"] {
+    /* Default state is handled by Foundry (display: none) */
+    height: 100%;
+}
+
+.sla-sheet .tab[data-tab="biography"].active {
+    display: flex !important; /* Only flex when active */
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 2. Ensure the flex column wrapper fills the tab */
+.sla-sheet .tab[data-tab="biography"] .flexcol {
+    height: 100%;
+}
+
+/* 3. Force the Editor Container to grow */
+.sla-sheet .tab[data-tab="biography"] .editor-container {
+    flex: 1;             /* Grow to fill remaining space */
+    min-height: 400px;   /* Minimum usable height */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 4. Force the TinyMCE Editor to fill the container */
+.sla-sheet .tab[data-tab="biography"] .editor {
+    height: 100%;
+}
+
+.sla-sheet .tab[data-tab="biography"] .tox-edit-area {
+    height: 100%;
 }
