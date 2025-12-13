@@ -1233,3 +1233,25 @@
     border-bottom: 1px solid #555;
     letter-spacing: 1px;
 }
+
+/* ==========================================
+   19. TABLE IMAGE FIX (COMBAT LOADOUT)
+   ========================================== */
+
+/* Target images inside the item-name cell of SLA tables */
+.sla-table .item-name img {
+    flex: 0 0 24px;      /* Prevent growing or shrinking */
+    width: 24px;         /* Force width */
+    height: 24px;        /* Force height */
+    object-fit: cover;   /* Crop image to fill square without distortion */
+    border: 1px solid #555;
+    background: #000;    /* Dark background for transparent PNGs */
+    margin-right: 5px;
+}
+
+/* Ensure the text next to it takes the remaining space */
+.sla-table .item-name {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
