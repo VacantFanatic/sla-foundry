@@ -1,109 +1,206 @@
 <form class="{{cssClass}} sla-sheet" autocomplete="off">
 
-    {{!-- 1. HEADER --}}
-    {{> "systems/sla-industries/templates/partials/header.hbs" 
-        actor=actor 
-        system=system 
-        speciesItem=speciesItem 
-        packageItem=packageItem 
-    }}
-
-    {{!-- 2. STATS GRID --}}
-    {{> "systems/sla-industries/templates/partials/stats.hbs"}}
-
-    {{!-- 3. TABS NAVIGATION --}}
-    <nav class="sheet-tabs tabs" data-group="primary">
-        <a class="item" data-tab="main">OPERATIVE DATA</a>
-        <a class="item" data-tab="biography">BIO & TRAITS</a>
-    </nav>
-
-    {{!-- 4. SHEET BODY --}}
-    <section class="sheet-body">
-
- {{!-- ================================================= --}}
-        {{!--                   MAIN TAB                        --}}
-        {{!-- ================================================= --}}
-        <div class="tab" data-group="primary" data-tab="main">
+    {{!-- ================================================= --}}
+    {{!--                   HEADER                          --}}
+    {{!-- ================================================= --}}
+    <header class="sheet-header">
+        <div class="header-grid">
             
-            {{!-- INNER LAYOUT CONTAINER --}}
-            <div class="flexcol full-height">
+            {{!-- 1. LEFT: CLEARANCE CARD --}}
+            <div class="bio-section sla-panel">
+                <div class="sla-header-bar">SLA Operative Security Clearance Card</div>
                 
-                {{!-- 
-                   GRID SPLIT: 
-                   Left = Skills & Ebb (Wider)
-                   Right = Vitals & Wounds (Narrower)
-                --}}
-                <div class="main-split">
-                    
-                    {{!-- LEFT COLUMN: Skills & Disciplines --}}
-                    <div class="left-col flexcol full-height" style="gap: 5px;">
-                        {{!-- 1. SKILLS BOX --}}
-                        <div style="flex: 1; min-height: 200px;">
-                            {{> "systems/sla-industries/templates/partials/skills.hbs"}}
-                        </div>
-                        
-                        {{!-- 2. DISCIPLINES BOX (Expanded) --}}
-                        <div style="flex: 1; min-height: 250px;">
-                            {{> "systems/sla-industries/templates/partials/disciplines.hbs"}}
+                <div class="bio-content">
+                    {{!-- NAME --}}
+                    <div class="bio-row">
+                        <span class="bio-label">NAME:</span>
+                        <input class="bio-input" name="name" type="text" value="{{actor.name}}" placeholder="Operative Name"/>
+                        <a class="system-id-link" title="Open Token Settings"><i class="fas fa-id-card"></i></a>
+                    </div>
+
+                    {{!-- SPECIES --}}
+                    <div class="bio-row">
+                        <span class="bio-label">SPECIES:</span>
+                        <div class="drop-zone bio-drop">
+                            {{#if speciesItem}}
+                                <div class="item-chip species" data-item-id="{{speciesItem._id}}">
+                                    <img src="{{speciesItem.img}}"/>
+                                    <span class="chip-name">{{speciesItem.name}}</span>
+                                    <a class="chip-delete" data-type="species"><i class="fas fa-times"></i></a>
+                                </div>
+                            {{else}}
+                                <span class="empty-text">Drop Species...</span>
+                            {{/if}}
                         </div>
                     </div>
 
-                    {{!-- RIGHT COLUMN: Vitals & Status --}}
+                    {{!-- PACKAGE --}}
+                    <div class="bio-row">
+                        <span class="bio-label">PACKAGE:</span>
+                        <div class="drop-zone bio-drop">
+                            {{#if packageItem}}
+                                <div class="item-chip package" data-item-id="{{packageItem._id}}">
+                                    <img src="{{packageItem.img}}"/>
+                                    <span class="chip-name">{{packageItem.name}}</span>
+                                    <a class="chip-delete" data-type="package"><i class="fas fa-times"></i></a>
+                                </div>
+                            {{else}}
+                                <span class="empty-text">Drop Package...</span>
+                            {{/if}}
+                        </div>
+                    </div>
+
+                    {{!-- SQUAD --}}
+                    <div class="bio-row">
+                        <span class="bio-label">SQUAD:</span>
+                        <input class="bio-input" name="system.bio.squad" type="text" value="{{system.bio.squad}}"/>
+                    </div>
+
+                    {{!-- FOOTER: LAD & SCL --}}
+                    <div class="bio-footer">
+                        <div class="lad-group">
+                            <input type="checkbox" name="system.finance.hasLad" {{checked system.finance.hasLad}}/>
+                            <label>LAD ACCOUNT</label>
+                        </div>
+                        
+                        <div class="scl-group">
+                            <span class="scl-label">SCL</span>
+                            <input class="scl-input" name="system.bio.scl" type="text" value="{{system.bio.scl}}" placeholder="10" maxlength="3"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{!-- 2. CENTER: PORTRAIT --}}
+            <div class="portrait-container">
+                <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
+            </div>
+
+            {{!-- 3. RIGHT: FINANCE --}}
+            <div class="finance-box sla-panel">
+                <div class="finance-header">SLA INDUSTRIES</div>
+                <div class="finance-title">Finance</div>
+                
+                <div class="finance-body">
+                    <div class="fin-row">
+                        <label>CREDITS:</label>
+                        <input type="number" name="system.finance.credits" value="{{system.finance.credits}}"/>
+                    </div>
+                    <div class="fin-row">
+                        <label>UNIS:</label>
+                        <input type="number" name="system.finance.unis" value="{{system.finance.unis}}"/>
+                    </div>
+                    <div class="fin-row">
+                        <label>LAD BALANCE:</label>
+                        <input type="text" name="system.finance.lad" value="{{system.finance.lad}}"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    {{!-- ================================================= --}}
+    {{!--            STATS STRIP (BELOW HEADER)             --}}
+    {{!-- ================================================= --}}
+    <div class="stats-strip-container">
+        {{> "systems/sla-industries/templates/partials/stats.hbs"}}
+    </div>
+
+    {{!-- ================================================= --}}
+    {{!--                 NAVIGATION                        --}}
+    {{!-- ================================================= --}}
+    <nav class="sheet-tabs tabs" data-group="primary">
+        <a class="item" data-tab="main">Main</a>
+        <a class="item" data-tab="ebb">Ebb</a>
+        <a class="item" data-tab="biography">Biography</a>
+    </nav>
+
+    {{!-- ================================================= --}}
+    {{!--                 SHEET BODY                        --}}
+    {{!-- ================================================= --}}
+    <section class="sheet-body">
+
+        {{!-- ------------------------------------------------- --}}
+        {{!--                   MAIN TAB                        --}}
+        {{!-- ------------------------------------------------- --}}
+        <div class="tab" data-group="primary" data-tab="main">
+            <div class="flexcol full-height">
+                <div class="main-split">
+                    <div class="left-col flexcol full-height">
+                        <div style="flex: 1; min-height: 400px;">
+                            {{> "systems/sla-industries/templates/partials/skills.hbs"}}
+                        </div>
+                    </div>
                     <div class="right-col flexcol" style="gap: 10px;">
                          {{> "systems/sla-industries/templates/partials/secondary.hbs"}}
                          {{> "systems/sla-industries/templates/partials/wounds.hbs"}}
                     </div>
-
                 </div>
-
-                {{!-- INVENTORY (Bottom) --}}
                 <div style="margin-top: 5px; flex: 1; min-height: 200px;">
                     {{> "systems/sla-industries/templates/partials/inventory.hbs"}}
                 </div>
-            
-            </div> {{!-- End Inner Layout --}}
-        </div> {{!-- END MAIN TAB --}}
+            </div>
+        </div>
 
+        {{!-- ------------------------------------------------- --}}
+        {{!--                    EBB TAB                        --}}
+        {{!-- ------------------------------------------------- --}}
+        <div class="tab" data-group="primary" data-tab="ebb">
+            <div class="full-height" style="padding-top: 5px;">
+                {{!-- EBB CONTENT ONLY --}}
+                {{> "systems/sla-industries/templates/partials/disciplines.hbs"}}
+            </div>
+        </div>
 
-		{{!-- ================================================= --}}
-        {{!--                 BIO & TRAITS TAB                  --}}
-        {{!-- ================================================= --}}
+        {{!-- ------------------------------------------------- --}}
+        {{!--                 BIOGRAPHY TAB                     --}}
+        {{!-- ------------------------------------------------- --}}
         <div class="tab" data-group="primary" data-tab="biography">
-            
-            {{!-- INNER LAYOUT CONTAINER --}}
             <div class="flexcol full-height">
-
-                <div style="min-height: 200px; margin-bottom: 10px;">
-                    {{> "systems/sla-industries/templates/partials/traits.hbs"}}
-                </div>
-
-                <div class="grid-2col" style="gap: 10px; height: 100%;">
-                    {{!-- LEFT COLUMN: Appearance & Biography --}}
-                    <div class="flexcol">
-                        <div class="sla-header-bar">APPEARANCE</div>
-                        {{!-- Replaced inline style with class 'editor-container appearance' --}}
-                        <div class="editor-container appearance">
-                            {{editor enrichedAppearance target="system.appearance" button=true owner=owner editable=editable}}
-                        </div>
-
-                        <div class="sla-header-bar">BIOGRAPHY</div>
-                        {{!-- Replaced inline style with class 'editor-container biography' --}}
-                        <div class="editor-container biography">
-                            {{editor enrichedBiography target="system.biography" button=true owner=owner editable=editable}}
-                        </div>
+                {{!-- Traits Panel --}}
+                <div class="sla-panel" style="flex: 0 0 200px; margin-bottom: 5px;">
+                    <div class="sla-header-bar flexrow">
+                        <span style="flex:1">TRAITS</span>
+                        <a class="item-create" data-type="trait" title="Add Trait"><i class="fas fa-plus"></i></a>
                     </div>
-
-                    {{!-- RIGHT COLUMN: Notes --}}
-                    <div class="flexcol">
-                        <div class="sla-header-bar">SERVICE RECORD / NOTES</div>
-                        {{!-- Replaced inline style with class 'editor-container notes' --}}
-                        <div class="editor-container notes">
-                            {{editor enrichedNotes target="system.notes" button=true owner=owner editable=editable}}
-                        </div>
+                    <div class="scroll-list">
+                        <table class="sla-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; padding-left: 5px;">Name</th>
+                                    <th style="width: 50px;">Rank</th>
+                                    <th style="width: 120px;">Type</th>
+                                    <th style="width: 50px;">Cost</th>
+                                    <th style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each traits as |trait|}}
+                                <tr class="item" data-item-id="{{trait._id}}">
+                                    <td class="item-name rollable" data-roll-type="item" style="font-weight: bold; color: #fff; padding-left: 5px;">
+                                        {{trait.name}}
+                                    </td>
+                                    <td style="text-align: center;">{{trait.system.rank}}</td>
+                                    <td style="text-align: center; font-size: 0.9em; color: #aaa;">{{trait.system.type}}</td>
+                                    <td style="text-align: center;">{{trait.system.xpCost}}</td>
+                                    <td class="item-controls">
+                                        <a class="item-edit" title="Edit"><i class="fas fa-edit"></i></a>
+                                        <a class="item-delete" title="Delete"><i class="fas fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            
-            </div> {{!-- End Inner Layout --}}
-        </div> {{!-- END BIO TAB --}}
+				
+				NOTES:
+                {{!-- Editor --}}
+                <div class="editor-container" style="flex: 1; border: 1px solid #444; background: rgba(0,0,0,0.2);">
+                    {{editor enrichedBiography target="system.biography" button=true owner=owner editable=editable}}
+                </div>
+            </div>
+        </div>
+
     </section>
 </form>

@@ -1,75 +1,76 @@
-<div class="stats-grid">
+<div class="stats-matrix">
     
-    {{!-- COLUMN 1: BODY --}}
-    <div class="stat-group">
-        <div class="rating-block">
-            <label>BODY</label>
-            <input type="number" name="system.ratings.body.value" value="{{system.ratings.body.value}}"/>
+    {{!-- COLUMN 1: BODY (STR / DEX) --}}
+    <div class="stat-col">
+        <div class="rating-header">
+            <span class="rating-label">BODY</span>
+            <input type="number" class="rating-val" name="system.ratings.body.value" value="{{system.ratings.body.value}}"/>
         </div>
-        <div class="stat-row">
-            <div class="stat-label">STR</div>
+        <div class="stat-box">
+            <label>STR</label>
             <input type="number" name="system.stats.str.value" value="{{system.stats.str.value}}"/>
             <a class="rollable" data-roll-type="stat" data-key="str"><i class="fas fa-dice-d20"></i></a>
         </div>
-        <div class="stat-row">
-            <div class="stat-label">DEX</div>
+        <div class="stat-box">
+            <label>DEX</label>
             <input type="number" name="system.stats.dex.value" value="{{system.stats.dex.value}}"/>
             <a class="rollable" data-roll-type="stat" data-key="dex"><i class="fas fa-dice-d20"></i></a>
         </div>
     </div>
 
-    {{!-- COLUMN 2: BRAINS --}}
-    <div class="stat-group">
-        <div class="rating-block">
-            <label>BRAINS</label>
-            <input type="number" name="system.ratings.brains.value" value="{{system.ratings.brains.value}}"/>
+    {{!-- COLUMN 2: BRAINS (KNOW / CONC) --}}
+    <div class="stat-col">
+        <div class="rating-header">
+            <span class="rating-label">BRAINS</span>
+            <input type="number" class="rating-val" name="system.ratings.brains.value" value="{{system.ratings.brains.value}}"/>
         </div>
-        <div class="stat-row">
-            <div class="stat-label">KNOW</div>
+        <div class="stat-box">
+            <label>KNOW</label>
             <input type="number" name="system.stats.know.value" value="{{system.stats.know.value}}"/>
             <a class="rollable" data-roll-type="stat" data-key="know"><i class="fas fa-dice-d20"></i></a>
         </div>
-        <div class="stat-row">
-            <div class="stat-label">CONC</div>
+        <div class="stat-box">
+            <label>CONC</label>
             <input type="number" name="system.stats.conc.value" value="{{system.stats.conc.value}}"/>
             <a class="rollable" data-roll-type="stat" data-key="conc"><i class="fas fa-dice-d20"></i></a>
         </div>
     </div>
 
-    {{!-- COLUMN 3: BRAVADO --}}
-    <div class="stat-group">
-        <div class="rating-block">
-            <label>BRAVADO</label>
-            <input type="number" name="system.ratings.bravado.value" value="{{system.ratings.bravado.value}}"/>
+    {{!-- COLUMN 3: BRAVADO (CHA / COOL) --}}
+    <div class="stat-col">
+        <div class="rating-header">
+            <span class="rating-label">BRAVADO</span>
+            <input type="number" class="rating-val" name="system.ratings.bravado.value" value="{{system.ratings.bravado.value}}"/>
         </div>
-        <div class="stat-row">
-            <div class="stat-label">CHA</div>
+        <div class="stat-box">
+            <label>CHA</label>
             <input type="number" name="system.stats.cha.value" value="{{system.stats.cha.value}}"/>
             <a class="rollable" data-roll-type="stat" data-key="cha"><i class="fas fa-dice-d20"></i></a>
         </div>
-        <div class="stat-row">
-            <div class="stat-label">COOL</div>
+        <div class="stat-box">
+            <label>COOL</label>
             <input type="number" name="system.stats.cool.value" value="{{system.stats.cool.value}}"/>
             <a class="rollable" data-roll-type="stat" data-key="cool"><i class="fas fa-dice-d20"></i></a>
         </div>
     </div>
 
-    {{!-- COLUMN 4: SECONDARY (Luck/Flux/Init) --}}
-    <div class="stat-group secondary">
-        <div class="secondary-box">
+    {{!-- COLUMN 4: SIDE STATS --}}
+    <div class="side-col">
+        <div class="side-box">
             <label>LUCK</label>
             <input type="number" name="system.stats.luck.value" value="{{system.stats.luck.value}}"/>
         </div>
-        <div class="secondary-box">
+        <div class="side-box">
             <label>FLUX</label>
             <input type="number" name="system.stats.flux.value" value="{{system.stats.flux.value}}"/>
         </div>
-        <div class="secondary-box init">
+        <div class="side-box init">
             <label>INIT</label>
-            <div class="flexrow" style="justify-content: center; align-items: center; height: 100%;">
+            <div class="flexrow" style="justify-content:center; align-items:center;">
                 <span class="init-val">{{system.stats.init.value}}</span>
                 <a class="rollable" data-roll-type="init"><i class="fas fa-dice-d10"></i></a>
             </div>
         </div>
     </div>
+
 </div>
