@@ -66,27 +66,55 @@ export class SlaActorSheet extends ActorSheet {
 
   _prepareItems(context) {
     const gear = [];
-    const skills = [];
     const traits = [];
     const ebbFormulas = [];
     const disciplines = [];
+    
+    // Initialize Skill Buckets (In specific order)
+    const skillsByStat = {
+        "str": { label: "STR", items: [] },
+        "dex": { label: "DEX", items: [] },
+        "know": { label: "KNOW", items: [] },
+        "conc": { label: "CONC", items: [] },
+        "cha": { label: "CHA", items: [] },
+        "cool": { label: "COOL", items: [] },
+        "other": { label: "OTHER", items: [] }
+    };
 
     for (let i of context.items) {
       i.img = i.img || DEFAULT_TOKEN;
+      
+      // Categorize Items
       if (i.type === 'item' || i.type === 'weapon' || i.type === 'armor' || i.type === 'drug') gear.push(i);
-      else if (i.type === 'skill') skills.push(i);
       else if (i.type === 'trait') traits.push(i);
       else if (i.type === 'ebbFormula') ebbFormulas.push(i);
       else if (i.type === 'discipline') disciplines.push(i);
+      
+      // Categorize Skills by Stat
+      else if (i.type === 'skill') {
+          const stat = (i.system.stat || "dex").toLowerCase();
+          if (skillsByStat[stat]) {
+              skillsByStat[stat].items.push(i);
+          } else {
+              skillsByStat["other"].items.push(i);
+          }
+      }
     }
 
     const sortFn = (a, b) => a.name.localeCompare(b.name);
+    
+    // Sort everything
     gear.sort(sortFn);
-    skills.sort(sortFn);
     traits.sort(sortFn);
     ebbFormulas.sort(sortFn);
     disciplines.sort(sortFn);
+    
+    // Sort skills inside their buckets
+    for (const key in skillsByStat) {
+        skillsByStat[key].items.sort(sortFn);
+    }
 
+    // Nest Ebb Formulas
     const configDis = CONFIG.SLA?.ebbDisciplines || {};
     const nestedDisciplines = [];
     const rawFormulas = [...ebbFormulas];
@@ -103,9 +131,9 @@ export class SlaActorSheet extends ActorSheet {
     });
 
     context.gear = gear;
-    context.skills = skills;
     context.traits = traits;
-    context.disciplines = nestedDisciplines; 
+    context.disciplines = nestedDisciplines;
+    context.skillsByStat = skillsByStat; // Pass the grouped object instead of flat list
   }
 
   /* -------------------------------------------- */
@@ -398,7 +426,7 @@ export class SlaActorSheet extends ActorSheet {
 
       const baseModifier = statValue + rank + allDiceMod; 
       
-      // FIXED RULE: 1d10 Success + (Rank + 1) Skill Dice
+      // FIXED RULE: 1d10 + (Rank + 1) Skill Dice
       let skillDiceCount = Math.max(0, rank + 1 + rankMod); 
       let formula = `1d10 + ${skillDiceCount}d10`;
 

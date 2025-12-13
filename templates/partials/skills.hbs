@@ -1,32 +1,57 @@
-<div class="sla-panel">
-    {{!-- HEADER --}}
-    <div class="sla-header-bar">SKILLS</div>
+<div class="sla-panel full-height">
     
-    {{!-- LIST --}}
+    {{!-- HEADER --}}
+    <div class="sla-header-bar flexrow">
+        <span style="flex:1">SKILLS</span>
+        <a class="item-create" data-type="skill" title="Create Skill"><i class="fas fa-plus"></i></a>
+    </div>
+    
+    {{!-- SCROLLABLE LIST --}}
     <div class="scroll-list">
         <table class="sla-table">
             <thead>
                 <tr>
-                    <th style="text-align: left; padding-left: 5px;">NAME</th>
-                    <th style="width: 50px; text-align: center;">RANK</th>
-                    <th style="width: 50px; text-align: center;">BONUS</th>
-                    <th style="width: 40px;"></th>
+                    <th style="text-align: left; padding-left: 5px;">Name</th>
+                    <th style="width: 50px;">Rank</th>
+                    <th style="width: 50px;">Roll</th>
+                    <th style="width: 50px;"></th>
                 </tr>
             </thead>
             <tbody>
-                {{#each skills as |skill id|}}
-                <tr class="item" data-item-id="{{skill._id}}">
-                    <td class="item-name rollable" data-roll-type="skill" style="padding-left: 5px; font-weight: bold; cursor: pointer;">
-                        {{skill.name}} <i class="fas fa-dice-d20" style="font-size: 0.8em; opacity: 0.5;"></i>
-                    </td>
-                    <td><input type="number" value="{{skill.system.rank}}" readonly style="text-align: center; background: transparent; border: none; color: #eee;"/></td>
-                    <td><input type="number" value="{{skill.system.bonus}}" readonly style="text-align: center; background: transparent; border: none; color: #eee;"/></td>
-                    <td class="item-controls" style="text-align: center;">
-                        <a class="item-edit" title="Edit Item"><i class="fas fa-edit"></i></a>
-                        <a class="item-delete" title="Delete Item"><i class="fas fa-trash"></i></a>
-                    </td>
-                </tr>
+                {{#each skillsByStat as |group key|}}
+                    {{#if group.items.length}}
+                        {{!-- SECTION HEADER (e.g. STR) --}}
+                        <tr class="skill-group-header">
+                            <td colspan="4">{{group.label}}</td>
+                        </tr>
+
+                        {{!-- SKILL ROWS --}}
+                        {{#each group.items as |skill|}}
+                        <tr class="item" data-item-id="{{skill._id}}">
+                            <td class="item-name rollable" data-roll-type="item" style="font-weight: bold; color: #fff; padding-left: 10px;">
+                                {{skill.name}}
+                            </td>
+                            <td style="text-align: center;">{{skill.system.rank}}</td>
+                            <td style="text-align: center;">
+                                <a class="rollable" data-roll-type="skill" title="Roll Skill"><i class="fas fa-dice-d20"></i></a>
+                            </td>
+                            <td class="item-controls">
+                                <a class="item-edit" title="Edit Skill"><i class="fas fa-edit"></i></a>
+                                <a class="item-delete" title="Delete Skill"><i class="fas fa-trash"></i></a>
+                            </td>
+                        </tr>
+                        {{/each}}
+                    {{/if}}
                 {{/each}}
+
+                {{!-- EMPTY STATE --}}
+                {{#unless (or skillsByStat.str.items.length skillsByStat.dex.items.length skillsByStat.know.items.length skillsByStat.conc.items.length skillsByStat.cha.items.length skillsByStat.cool.items.length)}}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #555; font-style: italic; padding: 10px;">
+                            No skills learned.
+                        </td>
+                    </tr>
+                {{/unless}}
             </tbody>
         </table>
     </div>
