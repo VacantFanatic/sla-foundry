@@ -1,24 +1,24 @@
 <form class="{{cssClass}} sla-sheet" autocomplete="off">
 
     {{!-- ================================================= --}}
-    {{!--                   HEADER                          --}}
+    {{!--                   HEADER AREA                     --}}
     {{!-- ================================================= --}}
     <header class="sheet-header">
+        
+        {{!-- TOP ROW: INFO GRID --}}
         <div class="header-grid">
             
-            {{!-- 1. LEFT: CLEARANCE CARD --}}
+            {{!-- 1. LEFT: BIO CARD --}}
             <div class="bio-section sla-panel">
-                <div class="sla-header-bar">SLA Operative Security Clearance Card</div>
-                
+                <div class="sla-header-bar">SLA OPERATIVE SECURITY CLEARANCE CARD</div>
                 <div class="bio-content">
-                    {{!-- NAME --}}
+                    {{!-- Name --}}
                     <div class="bio-row">
                         <span class="bio-label">NAME:</span>
                         <input class="bio-input" name="name" type="text" value="{{actor.name}}" placeholder="Operative Name"/>
                         <a class="system-id-link" title="Open Token Settings"><i class="fas fa-id-card"></i></a>
                     </div>
-
-                    {{!-- SPECIES --}}
+                    {{!-- Species --}}
                     <div class="bio-row">
                         <span class="bio-label">SPECIES:</span>
                         <div class="drop-zone bio-drop">
@@ -33,8 +33,7 @@
                             {{/if}}
                         </div>
                     </div>
-
-                    {{!-- PACKAGE --}}
+                    {{!-- Package --}}
                     <div class="bio-row">
                         <span class="bio-label">PACKAGE:</span>
                         <div class="drop-zone bio-drop">
@@ -49,20 +48,17 @@
                             {{/if}}
                         </div>
                     </div>
-
-                    {{!-- SQUAD --}}
+                    {{!-- Squad --}}
                     <div class="bio-row">
                         <span class="bio-label">SQUAD:</span>
                         <input class="bio-input" name="system.bio.squad" type="text" value="{{system.bio.squad}}"/>
                     </div>
-
-                    {{!-- FOOTER: LAD & SCL --}}
+                    {{!-- Footer: LAD / SCL --}}
                     <div class="bio-footer">
                         <div class="lad-group">
                             <input type="checkbox" name="system.finance.hasLad" {{checked system.finance.hasLad}}/>
                             <label>LAD ACCOUNT</label>
                         </div>
-                        
                         <div class="scl-group">
                             <span class="scl-label">SCL</span>
                             <input class="scl-input" name="system.bio.scl" type="text" value="{{system.bio.scl}}" placeholder="10" maxlength="3"/>
@@ -80,7 +76,6 @@
             <div class="finance-box sla-panel">
                 <div class="finance-header">SLA INDUSTRIES</div>
                 <div class="finance-title">Finance</div>
-                
                 <div class="finance-body">
                     <div class="fin-row">
                         <label>CREDITS:</label>
@@ -97,6 +92,7 @@
                 </div>
             </div>
         </div>
+
     </header>
 
     {{!-- ================================================= --}}
@@ -112,7 +108,7 @@
     <nav class="sheet-tabs tabs" data-group="primary">
         <a class="item" data-tab="main">Main</a>
         <a class="item" data-tab="ebb">Ebb</a>
-        <a class="item" data-tab="biography">Biography</a>
+        <a class="item" data-tab="biography">Bio & Gear</a>
     </nav>
 
     {{!-- ================================================= --}}
@@ -120,9 +116,7 @@
     {{!-- ================================================= --}}
     <section class="sheet-body">
 
-        {{!-- ------------------------------------------------- --}}
-        {{!--                   MAIN TAB                        --}}
-        {{!-- ------------------------------------------------- --}}
+        {{!-- MAIN TAB --}}
         <div class="tab" data-group="primary" data-tab="main">
             <div class="flexcol full-height">
                 <div class="main-split">
@@ -136,28 +130,75 @@
                          {{> "systems/sla-industries/templates/partials/wounds.hbs"}}
                     </div>
                 </div>
-                <div style="margin-top: 5px; flex: 1; min-height: 200px;">
-                    {{> "systems/sla-industries/templates/partials/inventory.hbs"}}
+                
+                {{!-- COMBAT LOADOUT (Weapons/Armor) --}}
+                <div class="sla-panel" style="margin-top: 5px; flex: 1; min-height: 200px;">
+                    <div class="sla-header-bar">COMBAT LOADOUT (Weapons & Armor)</div>
+                    <div class="scroll-list">
+                        <table class="sla-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left; padding-left:5px;">Name</th>
+                                    <th style="width:40px;">Eqp</th>
+                                    <th style="width:120px;">Stats</th>
+                                    <th style="width:60px;">Actions</th> {{!-- Widened for buttons --}}
+                                    <th style="width:50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#each gear as |item|}}
+                                    {{#if (or (eq item.type "weapon") (eq item.type "armor"))}}
+                                    <tr class="item" data-item-id="{{item._id}}">
+                                        <td class="item-name rollable" data-roll-type="item" style="font-weight:bold; color:#000; padding-left:5px;">
+                                            <div class="flexrow" style="align-items:center;">
+                                                <img src="{{item.img}}" width="24" height="24" style="border:1px solid #000; margin-right:5px;"/>
+                                                {{item.name}}
+                                            </div>
+                                        </td>
+                                        <td style="text-align:center;">
+                                            <a class="item-toggle" title="{{#if item.system.equipped}}Unequip{{else}}Equip{{/if}}">
+                                                <i class="fas {{#if item.system.equipped}}fa-check-circle{{else}}fa-circle{{/if}}" style="color:{{#if item.system.equipped}}#222{{else}}#ccc{{/if}}"></i>
+                                            </a>
+                                        </td>
+                                        <td style="text-align:center; font-size:0.9em; color:#444;">
+                                            {{#if (eq item.type "weapon")}}{{item.system.damage}}{{/if}}
+                                            {{#if (eq item.type "armor")}}PV: {{item.system.pv}}{{/if}}
+                                        </td>
+                                        {{!-- ACTIONS COLUMN (Roll + Reload) --}}
+                                        <td style="text-align:center;">
+                                            {{#if (eq item.type "weapon")}}
+                                                <a class="rollable" data-roll-type="item" title="Attack"><i class="fas fa-crosshairs" style="color:#222"></i></a>
+                                                {{!-- Only show Reload if weapon has a Clip Size (maxAmmo > 0) --}}
+                                                {{#if item.system.maxAmmo}}
+                                                    <a class="item-reload" title="Reload ({{item.system.ammo}}/{{item.system.maxAmmo}})" style="margin-left:5px;"><i class="fas fa-sync-alt" style="color:#444; font-size:0.9em;"></i></a>
+                                                {{/if}}
+                                            {{/if}}
+                                        </td>
+                                        <td class="item-controls">
+                                            <a class="item-edit"><i class="fas fa-edit" style="color:#444"></i></a>
+                                            <a class="item-delete"><i class="fas fa-trash" style="color:#444"></i></a>
+                                        </td>
+                                    </tr>
+                                    {{/if}}
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
-        {{!-- ------------------------------------------------- --}}
-        {{!--                    EBB TAB                        --}}
-        {{!-- ------------------------------------------------- --}}
+        {{!-- EBB TAB --}}
         <div class="tab" data-group="primary" data-tab="ebb">
             <div class="full-height" style="padding-top: 5px;">
-                {{!-- EBB CONTENT ONLY --}}
                 {{> "systems/sla-industries/templates/partials/disciplines.hbs"}}
             </div>
         </div>
 
-        {{!-- ------------------------------------------------- --}}
-        {{!--                 BIOGRAPHY TAB                     --}}
-        {{!-- ------------------------------------------------- --}}
+        {{!-- BIO & GEAR TAB --}}
         <div class="tab" data-group="primary" data-tab="biography">
             <div class="flexcol full-height">
-                {{!-- Traits Panel --}}
+                {{!-- Traits --}}
                 <div class="sla-panel" style="flex: 0 0 200px; margin-bottom: 5px;">
                     <div class="sla-header-bar flexrow">
                         <span style="flex:1">TRAITS</span>
@@ -177,15 +218,13 @@
                             <tbody>
                                 {{#each traits as |trait|}}
                                 <tr class="item" data-item-id="{{trait._id}}">
-                                    <td class="item-name rollable" data-roll-type="item" style="font-weight: bold; color: #fff; padding-left: 5px;">
-                                        {{trait.name}}
-                                    </td>
+                                    <td class="item-name rollable" data-roll-type="item" style="font-weight: bold; color: #fff; padding-left: 5px;">{{trait.name}}</td>
                                     <td style="text-align: center;">{{trait.system.rank}}</td>
-                                    <td style="text-align: center; font-size: 0.9em; color: #aaa;">{{trait.system.type}}</td>
+                                    <td style="text-align: center;">{{trait.system.type}}</td>
                                     <td style="text-align: center;">{{trait.system.xpCost}}</td>
                                     <td class="item-controls">
-                                        <a class="item-edit" title="Edit"><i class="fas fa-edit"></i></a>
-                                        <a class="item-delete" title="Delete"><i class="fas fa-trash"></i></a>
+                                        <a class="item-edit"><i class="fas fa-edit"></i></a>
+                                        <a class="item-delete"><i class="fas fa-trash"></i></a>
                                     </td>
                                 </tr>
                                 {{/each}}
@@ -193,10 +232,14 @@
                         </table>
                     </div>
                 </div>
-				
-				NOTES:
-                {{!-- Editor --}}
-                <div class="editor-container" style="flex: 1; border: 1px solid #444; background: rgba(0,0,0,0.2);">
+
+                {{!-- Full Inventory --}}
+                <div style="flex: 1; min-height: 250px; margin-bottom: 5px;">
+                    {{> "systems/sla-industries/templates/partials/inventory.hbs"}}
+                </div>
+
+                {{!-- Notes --}}
+                <div class="editor-container" style="flex: 1; border: 1px solid #444; background: rgba(0,0,0,0.2); min-height: 300px;">
                     {{editor enrichedBiography target="system.biography" button=true owner=owner editable=editable}}
                 </div>
             </div>
