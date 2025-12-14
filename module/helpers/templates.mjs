@@ -16,7 +16,10 @@ export const preloadHandlebarsTemplates = async function() {
 	"systems/sla-industries/templates/partials/disciplines.hbs",
 	"systems/sla-industries/templates/chat/chat-weapon-rolls.hbs",
 	"systems/sla-industries/templates/chat/chat-damage.hbs",
-	"systems/sla-industries/templates/partials/ebb-drop-zone.hbs"
+	"systems/sla-industries/templates/partials/ebb-drop-zone.hbs",
+	"systems/sla-industries/templates/partials/header-card.hbs",
+    "systems/sla-industries/templates/partials/main-tab.hbs",
+    "systems/sla-industries/templates/partials/bio-gear-tab.hbs"
   ];
 
   // Load the template parts

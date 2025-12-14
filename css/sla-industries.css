@@ -1,23 +1,28 @@
 /* ==========================================
-   1. GLOBAL VARIABLES & WINDOW
+   1. GLOBAL VARIABLES & WINDOW (New Dystopian Dark Theme)
    ========================================== */
 :root {
-    --sla-bg-dark: #333e4d;
-    --sla-bg-panel: #2a2a35;
-    --sla-border: #1a1a25;
-    --sla-text-light: #e0e0e0;
-    --sla-accent: #39ff14;
+    --sla-bg-dark: #1a1a25;   /* Dystopian Background */
+    --sla-bg-panel: #2a2a35;  /* Dark Panel Background */
+    --sla-border: #444455;    /* Neutral Dark Border */
+    --sla-text-light: #e0e0e0; /* Light Text */
+    --sla-accent: #D05E1A;    /* Deep Crimson/Red-Orange Accent */
+    --sla-accent-faint: #D05E1A40; /* 25% opacity */
     --sla-font-mono: "Roboto Condensed", "Arial Narrow", sans-serif;
+    --sla-radius: 4px;
 }
 
 .sla-sheet.window-content {
-    background: var(--sla-bg-dark);
+    /* CRITICAL FIX: Kill the default paper texture */
+    background-image: none !important; 
+    background: var(--sla-bg-dark) !important;
+    
     color: var(--sla-text-light);
     font-family: var(--sla-font-mono);
     font-size: 13px;
     padding: 5px;
     overflow: hidden; 
-    border: 2px solid #333;
+    border: 2px solid var(--sla-border); 
 }
 
 .sla-sheet form {
@@ -25,422 +30,337 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto; 
+    /* Ensure the form itself doesn't have a light background */
+    background: transparent !important; 
 }
 
 /* ==========================================
-   2. INPUTS
+   2. INPUTS (High Contrast Readability)
    ========================================== */
 .sla-sheet input[type="text"],
 .sla-sheet input[type="number"],
 .sla-sheet select {
-    background: #d0d3d8; 
-    border: 1px solid #555;
-    border-radius: 0;
-    color: #000;
-    height: 24px;
+    background: #000 !important;       /* Pitch Black Background */
+    color: #e0e0e0 !important;         /* Bright White/Grey Text */
+    border: 1px solid #555;            /* Visible Border */
+    border-radius: 2px;
+    height: 26px;
     padding: 1px 5px;
     font-family: var(--sla-font-mono);
 }
 
 .sla-sheet input:focus {
     box-shadow: 0 0 5px var(--sla-accent);
-    background: #fff;
-}
-
-.sla-sheet select {
-    background-color: #000;
-    color: #fff;
+    background: #111 !important;
 }
 
 /* ==========================================
-   3. HEADER LAYOUT (ROOMY CHIPS)
+   3. HEADER LAYOUT (Stacked & Readable)
    ========================================== */
 
-/* The Main Wrapper */
+/* Main Header Box */
 .sla-sheet .sheet-header {
     margin-bottom: 10px;
-    width: 100%;
-    border: 2px solid #333;
-    background: #444; 
+    border: 2px solid #444;
+    background: #000;
 }
 
-/* The Grid that holds the 3 columns side-by-side */
 .header-grid {
     display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 0; 
-    align-items: stretch; 
     width: 100%;
+    min-height: 180px; /* Ensure enough height for the 5 rows */
 }
 
 /* --- COLUMN 1: THE CARD (Left) --- */
 .header-left {
-    flex: 3; 
+    flex: 0 0 60%; /* Fixed 60% width */
     display: flex;
     flex-direction: column;
-    background: #dcdcdc; /* Card Grey */
-    color: #000;
-    border-right: 2px solid #333;
-    padding: 10px 12px; /* Increased padding for overall breathing room */
+    background: #222233; /* Dark Panel Color */
+    border-right: 2px solid #444;
+    padding: 8px;
+    color: #e0e0e0;
 }
 
-/* The Title Bar inside the card */
 .header-section-title {
-    background: #000;
-    color: #fff;
+    background: #111;
+    color: var(--sla-accent);
     font-weight: bold;
-    font-family: 'Roboto Condensed', sans-serif;
-    padding: 4px 8px;
-    font-size: 14px;
     text-transform: uppercase;
-    margin: -10px -12px 12px -12px; /* Stretch to edges */
-    border-bottom: 2px solid #333;
-    letter-spacing: 1px;
+    padding: 4px;
+    margin: -8px -8px 8px -8px; /* Touch edges */
+    border-bottom: 1px solid #444;
+    text-align: center;
 }
 
 .header-fields {
     display: flex;
     flex-direction: column;
-    /* CHANGE: Increased gap from 8px to 12px for spacing between rows */
-    gap: 12px; 
-    justify-content: center;
+    gap: 6px; /* Spacing between the vertical rows */
 }
 
-/* --- ROW STYLING --- */
-.header-row {
-    display: flex;
-    gap: 15px; 
-    align-items: center;
-}
-
+/* Field Rows */
 .form-group {
     display: flex;
     align-items: center;
-    gap: 10px; /* Slight increase in gap between Label and Input */
+    gap: 10px;
+    width: 100%;
 }
 
-/* Labels */
 .form-group label.label-bold {
-    font-weight: 800;
-    color: #111;
-    font-size: 13px;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
-/* Inputs */
-.form-group input[type="text"] {
-    background: #fff !important; 
-    color: #000 !important;
-    border: 1px solid #777;
-    border-radius: 3px;
-    padding: 2px 8px;
-    /* CHANGE: Increased height slightly */
-    height: 30px; 
-    font-family: "Arial", sans-serif; 
+    flex: 0 0 70px; /* Fixed width for labels to align inputs */
     font-weight: bold;
-    font-size: 14px;
+    color: #aaa;    /* Readable Grey Label */
+    font-size: 13px;
 }
 
-/* Row Ratio: Name is wider */
-.header-row .form-group:first-child { flex: 2; }
-.header-row .form-group:last-child { flex: 1; }
+.form-group input {
+    flex: 1; /* Input takes remaining width */
+}
 
-
-/* --- CHIPS (Species / Package) --- */
+/* Chips */
 .chip {
-    flex: 1;                 /* Fill the available width of the form-group */
+    flex: 1;
     display: flex;
-    flex-direction: row;     /* Force horizontal row */
-    align-items: center;     /* Vertically center content */
-    justify-content: flex-start; /* <--- CRITICAL: Force content to the Left */
-    background: #fff;
-    border: 1px solid #777;
-    border-radius: 3px;
-    padding: 2px 4px;
-    height: 36px;
-    gap: 8px;                /* consistent spacing between Img-Text-X */
-    overflow: hidden;
-}
-
-/* 1. IMAGE: Leftmost, fixed size */
-.chip img {
-    flex: 0 0 30px;          /* Fixed 30px width */
-    width: 30px;
+    align-items: center;
+    background: #000;
+    border: 1px solid var(--sla-accent);
+    padding: 2px;
+    gap: 5px;
+    border-radius: 4px;
     height: 30px;
-    object-fit: cover;
-    border: 1px solid #ccc;
+}
+/* FIX: Chip Image Stability */
+.chip img {
+    flex: 0 0 24px;       /* FORCE fixed width, do not shrink */
+    width: 24px;          
+    height: 24px;         
+    object-fit: cover;    /* Crop image to fit square, do not stretch */
+    border: 1px solid #555; 
     background: #000;
     margin: 0;
 }
 
-/* 2. TEXT: Left aligned, takes up space */
-.chip-name {
-    flex: 1;                 /* Grow to push the 'X' to the right */
-    text-align: left;        /* <--- CRITICAL: Text starts on the left */
-    color: #000;
-    font-weight: 800;
-    font-family: "Arial", sans-serif;
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 30px;       /* Match image height for vertical center */
+.chip-name { color: #fff; font-weight: bold; flex: 1; }
+.chip-delete { color: #d00; cursor: pointer; padding: 0 5px; }
+.chip-placeholder { 
+    flex: 1; background: #111; color: #777; border: 1px dashed #555; 
+    text-align: center; font-style: italic; height: 30px; display: flex; align-items: center; justify-content: center;
 }
 
-/* 3. DELETE (X): Sits on the right */
-.chip-delete {
-    flex: 0 0 auto;
-    color: #999;
-    padding: 0 6px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-}
-.chip-delete:hover {
-    color: #d00;
-}
-
-/* 4. PLACEHOLDER: Centered (or Left if preferred) */
-.chip-placeholder {
-    flex: 1;
-    background: #eee;
-    border: 1px dashed #999;
-    color: #555;
-    font-style: italic;
-    font-weight: bold;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start; /* Aligns placeholder text to left too */
-    padding-left: 10px;          /* Add indent for placeholder text */
-    height: 36px;
-    border-radius: 3px;
-}
-
-/* 4. The Placeholder (When empty) */
-.chip-placeholder {
-    flex: 1;
-    background: #eee;
-    border: 1px dashed #999;
-    color: #555;
-    font-style: italic;
-    font-weight: bold;
-    font-size: 12px;
-    text-align: center;
-    padding: 0 8px;
-    border-radius: 3px;
-    height: 36px;            /* Match height of filled chip */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-/* --- BOTTOM ROW (LAD & SCL) --- */
+/* Bottom Bar (LAD/SCL) */
 .header-bottom-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 8px;
-    border-top: 1px solid #bbb; 
+    padding-top: 5px;
+    border-top: 1px solid #444;
     margin-top: 5px;
 }
-
-.lad-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: bold;
-    color: #222;
+.lad-wrapper, .scl-wrapper {
+    display: flex; align-items: center; gap: 5px; color: #e0e0e0;
 }
-.lad-wrapper input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-}
-
-.scl-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.scl-wrapper input {
-    width: 50px !important;
-    text-align: center;
-    font-size: 16px !important;
-    height: 28px !important;
-}
+.scl-wrapper input { width: 50px !important; text-align: center; }
 
 /* --- COLUMN 2: PORTRAIT (Center) --- */
 .portrait-container {
-    flex: 0 0 120px;
+    flex: 0 0 130px; /* Fixed Width */
     background: #000;
-    border-right: 2px solid #333;
+    border-right: 2px solid #444;
     overflow: hidden;
+    position: relative;
 }
 
 .profile-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* This makes the image fill the area completely */
+    object-position: top center;
     border: none;
+    display: block;
 }
 
 /* --- COLUMN 3: FINANCE (Right) --- */
 .finance-box {
-    flex: 1; 
-    background: #dcdcdc; 
-    display: flex;
-    flex-direction: column;
+    flex: 1;
+    background: #222233;
     padding: 8px;
-}
-
-.finance-header {
-    color: #555;
-    font-weight: bold;
-    font-size: 11px;
-    text-transform: uppercase;
-    margin-bottom: 2px;
+    color: #e0e0e0;
 }
 .finance-title {
-    color: #000;
-    font-weight: 800;
-    font-size: 16px;
-    border-bottom: 2px solid #000;
-    margin-bottom: 10px;
+    color: var(--sla-accent);
+    border-bottom: 2px solid var(--sla-accent);
+    margin-bottom: 5px;
+    font-weight: bold;
 }
+.finance-body label { font-size: 0.8em; color: #aaa; margin-bottom: 2px; display: block; }
 
-.finance-body .fin-row {
-    margin-bottom: 8px;
-}
-.finance-body label {
-    font-size: 10px;
-    font-weight: bold;
-    color: #444;
-    text-transform: uppercase;
-    margin-bottom: 2px;
-    display: block;
-}
-.finance-body input {
-    width: 100%;
-    background: #fff !important;
-    border: 1px solid #777;
-    color: #000 !important;
-    font-weight: bold;
-    height: 28px;
-}
 
 /* ==========================================
-   4. STATS GRID (NEW LAYOUT)
+   4. STATS STRIP (Dark Dystopian Fix)
    ========================================== */
-.sla-sheet .stats-grid {
-    display: grid;
-    /* 3 Main Stat Groups + 1 Secondary Column */
-    grid-template-columns: 1fr 1fr 1fr 90px;
-    gap: 10px;
+
+/* 1. The Main Container Strip */
+.sla-sheet .stats-strip-container {
+    margin-top: 5px;
     padding: 5px;
-    background: rgba(0,0,0,0.1);
-    border-bottom: 2px solid var(--sla-bg-panel);
-    margin-bottom: 10px;
+    /* Force dark background and remove any texture */
+    background-color: var(--sla-bg-panel) !important; 
+    background-image: none !important;
+    border-top: 2px solid var(--sla-border);
+    border-bottom: 2px solid var(--sla-border);
 }
 
-.stat-group {
+/* 2. The Grid Layout */
+.stats-matrix,
+.stats-grid { /* catching potential alternative class names */
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 100px; 
+    gap: 15px;
+    background: transparent !important; /* Ensure grid itself is transparent */
+}
+
+.stat-col {
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
 
-/* Rating Header (Body/Brains/Bravado) */
+/* 3. Rating Headers (Body/Brains/Bravado) */
+.rating-header,
 .rating-block {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    background: #222;
-    padding: 2px;
-    border: 1px solid #444;
-    border-radius: 4px;
-    overflow: hidden;
+    background: #000 !important; /* Force Black */
+    border: 1px solid var(--sla-border);
+    padding: 2px 5px;
+    height: 30px;
+    position: relative;
+    border-radius: var(--sla-radius);
 }
-.rating-block label {
-    flex: 1;
-    color: #888;
-    font-size: 0.75em;
-    font-weight: bold;
-    text-align: center;
-}
-.rating-block input {
-    width: 50px;
-    text-align: center;
-    color: #39ff14 !important; /* Green Text */
-    background: #000 !important;
-    border: none !important;
-    font-weight: bold;
+.rating-header::after,
+.rating-block::after {
+    content: ""; position: absolute; bottom: 2px; left: 5px; right: 5px;
+    height: 2px; background: var(--sla-accent);
 }
 
-/* Stat Rows (STR, DEX, etc) */
+.rating-label { 
+    font-weight: bold; 
+    color: #999; 
+    font-size: 0.8em;
+    background: transparent !important; /* Remove any grey background on text */
+}
+.rating-val {
+    width: 50px !important; text-align: center; 
+    background: transparent !important; border: none !important;
+    color: var(--sla-accent) !important; 
+    font-weight: bold; font-size: 1.4em; text-shadow: none;
+}
+
+/* 4. Attribute Boxes (STR, DEX, etc) */
+.stat-box,
 .stat-row {
     display: flex;
     align-items: center;
+    background: #000 !important; /* Force Black */
+    border: 1px solid var(--sla-border);
     height: 28px;
-    background: #d0d3d8; 
-    border: 1px solid #555;
-    border-radius: 4px;
-    overflow: hidden; 
+    padding-right: 5px;
+    border-radius: var(--sla-radius);
 }
-
+.stat-box label,
 .stat-row .stat-label {
-    width: 50px;
-    background: var(--sla-bg-panel);
-    color: #fff;
+    flex: 0 0 50px;
+    background: var(--sla-bg-panel) !important; /* Dark Grey Label Background */
+    color: #e0e0e0;
+    font-weight: bold;
+    font-size: 0.8em;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    font-size: 0.9em;
+    margin-right: 5px;
+    border-right: 1px solid var(--sla-border);
 }
-
+.stat-box input,
 .stat-row input {
     flex: 1;
-    border: none !important;
     background: transparent !important;
+    border: none !important;
     text-align: center;
-    font-size: 1.2em;
     font-weight: bold;
-    height: 100%;
+    font-size: 1.1em;
+    color: #fff !important;
+}
+.stat-box .rollable,
+.stat-row .rollable { 
+    color: #555; cursor: pointer; 
+}
+.stat-box .rollable:hover,
+.stat-row .rollable:hover { 
+    color: var(--sla-accent); 
 }
 
-.stat-row .rollable {
-    width: 24px;
-    text-align: center;
-    color: #555;
+/* 5. Side Stats (Luck/Flux/Init) */
+.side-col { 
+    display: flex; flex-direction: column; gap: 5px; justify-content: space-between; 
+}
+.side-box,
+.secondary-box { 
+    background: #000 !important; 
+    border: 1px solid var(--sla-border); 
+    text-align: center; padding: 2px; 
+    border-radius: var(--sla-radius);
+}
+.side-box label,
+.secondary-box label { 
+    display: block; color: #999; font-size: 0.7em; font-weight: bold; 
+}
+.side-box input,
+.secondary-box input { 
+    width: 100%; background: transparent !important; 
+    color: #fff !important; font-weight: bold; text-align: center; 
+    border: none !important;
+}
+/* --- Initiative Button Styling --- */
+.side-box.init,
+.secondary-box.init { 
+    background: var(--sla-accent) !important; /* Orange Background */
+    border: 1px solid var(--sla-accent);
     cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 5px var(--sla-accent-faint);
 }
-.stat-row .rollable:hover { color: #000; }
 
-/* Secondary Stats (Right Column) */
-.stat-group.secondary {
-    justify-content: space-between;
+.side-box.init:hover,
+.secondary-box.init:hover {
+    background: #ff5722 !important; /* Slightly brighter orange on hover */
+    box-shadow: 0 0 15px var(--sla-accent);
 }
-.secondary-box {
-    background: #445;
-    text-align: center;
-    padding: 2px;
-    border: 1px solid #555;
-    border-radius: 4px;
+
+/* Force text inside the orange button to be Black for contrast */
+.side-box.init label,
+.secondary-box.init label {
+    color: #000 !important; 
+    font-weight: 800;
+    text-shadow: none;
 }
-.secondary-box label { display: block; font-size: 0.7em; color: #ccc; }
-.secondary-box input { width: 100%; text-align: center; }
-.secondary-box.init { background: #334; height: 40px; }
-.init-val { font-size: 1.4em; font-weight: bold; color: #fff; margin-right: 5px; }
+
+.side-box.init .init-val,
+.secondary-box.init .init-val { 
+    font-size: 1.6em; 
+    font-weight: 900; 
+    color: #000 !important; /* Black Numbers */
+    text-shadow: none;
+}
+
 
 /* ==========================================
    5. MAIN LAYOUT (LEFT/RIGHT SPLIT)
    ========================================== */
 .sla-sheet .main-split {
     display: grid;
-    /* 1.6fr = Left Column (Skills/Ebb) - Takes 62% width
-       1fr   = Right Column (Vitals)    - Takes 38% width
-    */
     grid-template-columns: 1.6fr 1fr; 
     gap: 10px;
     height: 100%;
@@ -457,20 +377,21 @@
     min-width: 0; 
 }
 
-/* Panels */
+/* Panels (Skills, Vitals, Loadout) */
 .sla-sheet .sla-panel {
     display: flex; flex-direction: column;
     height: 100%; width: 100%;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid #444;
+    background: #000; /* Dark Background */
+    border: 1px solid var(--sla-border);
     overflow: hidden;
+    border-radius: var(--sla-radius);
 }
 .sla-sheet .sla-header-bar {
     background-color: var(--sla-bg-panel);
-    color: #fff;
+    color: var(--sla-text-light);
     padding: 2px 5px;
     font-weight: bold;
-    border-bottom: 1px solid #000;
+    border-bottom: 1px solid var(--sla-border);
 }
 .sla-sheet .scroll-list {
     flex: 1; overflow-y: auto; padding: 0;
@@ -486,7 +407,7 @@
     padding: 5px 15px; color: #aaa; font-weight: bold; text-transform: uppercase;
     border-right: 1px solid #333; cursor: pointer;
 }
-.sla-sheet .sheet-tabs .item:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.sla-sheet .sheet-tabs .item:hover { color: var(--sla-text-light); background: rgba(255,255,255,0.05); }
 .sla-sheet .sheet-tabs .item.active { color: #000; background: var(--sla-accent); }
 
 .sla-sheet .tab { display: none; height: 100%; overflow-y: auto; }
@@ -590,73 +511,98 @@
 }
 
 /* ==========================================
-   10. WOUNDS & CONDITIONS
+   10. WOUNDS & CONDITIONS (Styled like Stats)
    ========================================== */
+
+/* Section Headers (Wounds / Conditions) */
+.wound-section-title {
+    font-weight: bold;
+    color: var(--sla-accent);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--sla-border);
+    margin-bottom: 5px;
+    padding-bottom: 2px;
+    font-size: 0.85em;
+    letter-spacing: 1px;
+}
+
+/* --- WOUNDS GRID --- */
 .wound-list {
     display: grid;
     grid-template-columns: 1fr 1fr; /* Two Columns */
-    gap: 5px 15px;
+    gap: 8px; /* Increased gap */
+    margin-bottom: 10px;
 }
 
+/* Styled to match Stat Boxes */
 .wound-entry {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 2px 5px;
-    border-radius: 4px;
+    background: #000; /* Black Background */
+    border: 1px solid var(--sla-border); /* Standard Border */
+    padding: 4px 8px;
+    border-radius: var(--sla-radius);
 }
 
 .wound-entry label {
-    font-size: 0.85em;
-    color: #ddd;
+    font-size: 0.9em;
+    font-weight: bold;
+    color: var(--sla-text-light);
     cursor: pointer;
 }
 
+/* Custom Checkbox Alignment */
 .wound-entry input[type="checkbox"] {
     height: 16px;
     width: 16px;
     margin: 0;
     cursor: pointer;
+    accent-color: var(--sla-accent); /* Makes the checkmark orange/system color */
 }
 
-/* CONDITION BUTTONS (ROUNDED SQUARES) */
+/* --- CONDITIONS GRID --- */
 .condition-grid {
     display: flex;
-    justify-content: space-between;
-    gap: 2px;
+    justify-content: space-between; /* Spread them out */
+    flex-wrap: wrap; /* Allow wrapping if resizing */
+    gap: 8px; /* Better spacing between icons */
+    padding-top: 10px;
+    border-top: 1px solid var(--sla-border); /* Separator line */
+    margin-top: 5px;
 }
 
 .condition-toggle {
-    background: #222;
-    border: 1px solid #444;
-    width: 36px;
-    height: 36px;
-    border-radius: 5px; /* Rounded Square */
+    background: #1a1a25; /* Dark background */
+    border: 1px solid var(--sla-border);
+    width: 40px;  /* Larger touch target */
+    height: 40px; /* Larger touch target */
+    border-radius: var(--sla-radius);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #555;
+    color: #555; /* Dimmed when inactive */
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 1.3em;
+    font-size: 1.5em; /* Larger Icon */
 }
 
 .condition-toggle:hover {
-    border-color: #fff;
-    color: #aaa;
+    border-color: var(--sla-text-light);
+    color: var(--sla-text-light);
+    background: #222;
 }
 
 /* Active State (The Glow) */
 .condition-toggle.active {
     background: #333;
-    color: #39ff14; /* SLA Green Default */
-    border-color: #39ff14;
-    box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
-    text-shadow: 0 0 5px #39ff14;
+    color: var(--sla-accent); 
+    border-color: var(--sla-accent);
+    box-shadow: 0 0 8px var(--sla-accent-faint);
+    text-shadow: 0 0 5px var(--sla-accent);
 }
 
-/* Specific Colors for Stunned/Immobile/Etc */
+/* Specific Colors for Conditions */
 .condition-toggle[data-condition="bleeding"].active { 
     color: #ff4444; border-color: #ff4444; box-shadow: 0 0 8px rgba(255,68,68,0.4); text-shadow: 0 0 5px #ff4444; 
 }
@@ -672,7 +618,11 @@
 
 /* Critical is read-only */
 .condition-read-only {
-    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 5px; background: #222; border: 1px solid #444; color: #555;
+    width: 40px; height: 40px; /* Match toggle size */
+    display: flex; align-items: center; justify-content: center; 
+    border-radius: var(--sla-radius); 
+    background: #1a1a25; border: 1px solid var(--sla-border); color: #555;
+    font-size: 1.5em;
 }
 .condition-read-only.active {
     color: #ff0000; border-color: #ff0000; background: #300; animation: pulse 1s infinite;
@@ -725,7 +675,6 @@
     border: 3px solid #800;         /* Red Border */
 }
 
-/* 2. Header (Red Bar) */
 .threat-header {
     background: #880000; /* Deep Red */
     padding: 5px;
@@ -1143,13 +1092,13 @@
 
 /* --- E. ITEM SHEET IMAGE FIX --- */
 .sla-sheet.item .sheet-header .profile-img {
-    flex: 0 0 64px;       
-    width: 64px;          
-    height: 64px;        
-    object-fit: cover;    
+    flex: 0 0 64px;           
+    width: 64px;            
+    height: 64px;          
+    object-fit: cover;      
     border: 1px solid #000;
-    margin-right: 10px;   
-    background: #000;    
+    margin-right: 10px;     
+    background: #000;       
 }
 
 .sla-sheet.item .sheet-header {
@@ -1171,14 +1120,14 @@
 /* 1. Force the Tab to fill window ONLY when active */
 .sla-sheet.item .tab.description.active {
     height: 100%;
-    display: flex;       
+    display: flex;          
     flex-direction: column;
-    min-height: 300px;   
+    min-height: 300px;     
 }
 
 /* 2. Force the Editor to fill the Tab */
 .sla-sheet.item .editor {
-    flex: 1;             
+    flex: 1;                
     height: 100%;
 }
 
@@ -1243,14 +1192,12 @@
 
 /* Rating Headers (Green Text) */
 .rating-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     background: #d0d3d8;
     border: 1px solid #999;
     padding: 2px 5px;
     height: 30px;
     position: relative;
+    /* ... (other styles) ... */
 }
 .rating-header::after {
     content: ""; position: absolute; bottom: 2px; left: 5px; right: 5px;
@@ -1265,12 +1212,11 @@
 
 /* Attribute Boxes */
 .stat-box {
-    display: flex;
-    align-items: center;
     background: #d0d3d8;
     border: 1px solid #999;
     height: 28px;
     padding-right: 5px;
+    /* ... (other styles) ... */
 }
 .stat-box label {
     flex: 0 0 50px;
@@ -1301,7 +1247,7 @@
 .side-box label { display: block; color: #777; font-size: 0.7em; font-weight: bold; }
 .side-box input { width: 100%; background: #d0d3d8 !important; color: #000 !important; font-weight: bold; text-align: center; }
 .side-box.init { background: #333; }
-.init-val { font-size: 1.5em; font-weight: bold; color: #fff; }
+.init-val { font-size: 1.5em; font-weight: bold; color: #fff; margin-right: 5px; }
 
 /* ==========================================
    16. ACTOR BIOGRAPHY TAB FIX
@@ -1321,8 +1267,8 @@
 }
 
 .sla-sheet .tab[data-tab="biography"] .editor-container {
-    flex: 1;             
-    min-height: 400px;   
+    flex: 1; 
+    min-height: 400px; 
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -1340,25 +1286,36 @@
    17. SKILL LIST & TABLES
    ========================================== */
 
+/* Header Row */
 .skill-group-header td {
-    background: #333;
-    color: #39ff14; 
+    background: #111;
+    color: var(--sla-accent); 
     font-weight: bold;
     text-transform: uppercase;
     font-size: 0.85em;
     padding-left: 5px;
-    border-bottom: 1px solid #555;
+    border-bottom: 1px solid var(--sla-border);
     letter-spacing: 1px;
 }
 
+/* General Table Text */
+.sla-table td {
+    color: var(--sla-text-light) !important; /* Force light text */
+    padding: 2px 5px;
+}
+
+/* Icons */
+.sla-table .item-controls a { color: #777; }
+.sla-table .item-controls a:hover { color: var(--sla-accent); }
+
 /* TABLE IMAGE FIX (COMBAT LOADOUT) */
 .sla-table .item-name img {
-    flex: 0 0 24px;       
-    width: 24px;          
-    height: 24px;        
-    object-fit: cover;    
-    border: 1px solid #555;
-    background: #000;    
+    flex: 0 0 24px;         
+    width: 24px;           
+    height: 24px;         
+    object-fit: cover;     
+    border: 1px solid var(--sla-border);
+    background: #000;     
     margin-right: 5px;
 }
 
@@ -1366,7 +1323,12 @@
     display: flex;
     align-items: center;
     overflow: hidden;
+    color: #fff !important; /* Ensure item names are white */
 }
+
+/* Loadout Buttons */
+.sla-table .item-toggle i { color: #444; } /* Default dark */
+.sla-table .item-toggle i.fa-check-circle { color: #4CAF50 !important; } /* Active Green */
 
 /* EBB DROP ZONE STYLING */
 .discipline-drop-zone {
@@ -1430,4 +1392,32 @@
 .discipline-drop-zone .remove-discipline:hover {
     color: #ff0000;
     text-shadow: 0 0 5px #f00;
+}
+
+/* ==========================================
+   Z. UNIVERSAL BACKGROUND OVERRIDE FIX
+   ========================================== */
+
+/* 1. Target the absolute root window content */
+.sla-sheet.window-content,
+.app.window-app .window-content {
+    background-image: none !important; 
+    background: var(--sla-bg-dark) !important;
+    background-color: var(--sla-bg-dark) !important;
+    box-shadow: none !important; 
+}
+
+/* 2. Target the form and internal structure */
+.sla-sheet form,
+.sla-sheet .sheet-body {
+    background: transparent !important; /* Let the root dark color show through */
+    background-image: none !important;
+}
+
+/* 3. Target all Tabs and inner containers */
+.sla-sheet .tab,
+.sla-sheet .tab .full-height,
+.sla-sheet .tab > .flexcol.full-height {
+    background-image: none !important;
+    background-color: transparent !important; /* Transparent so they match the root */
 }

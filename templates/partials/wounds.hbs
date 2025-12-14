@@ -1,61 +1,35 @@
-{{!-- WOUNDS SECTION --}}
-<div class="sla-box">
-    <div class="sla-box-header">WOUNDS</div>
+<div class="sla-panel" style="flex: 0 0 auto;">
+    <div class="sla-header-bar">WOUNDS</div>
     
     <div class="wound-list">
-        {{!-- Left Column --}}
-        <div class="wound-entry">
-            <label for="w_head">Head</label>
-            <input type="checkbox" id="w_head" class="wound-checkbox" name="system.wounds.head" {{checked system.wounds.head}}/>
-        </div>
-        <div class="wound-entry">
-            <label for="w_torso">Torso</label>
-            <input type="checkbox" id="w_torso" class="wound-checkbox" name="system.wounds.torso" {{checked system.wounds.torso}}/>
-        </div>
-        <div class="wound-entry">
-            <label for="w_larm">Left Arm</label>
-            <input type="checkbox" id="w_larm" class="wound-checkbox" name="system.wounds.lArm" {{checked system.wounds.lArm}}/>
-        </div>
-
-        {{!-- Right Column --}}
-        <div class="wound-entry">
-            <label for="w_rarm">Right Arm</label>
-            <input type="checkbox" id="w_rarm" class="wound-checkbox" name="system.wounds.rArm" {{checked system.wounds.rArm}}/>
-        </div>
-        <div class="wound-entry">
-            <label for="w_lleg">Left Leg</label>
-            <input type="checkbox" id="w_lleg" class="wound-checkbox" name="system.wounds.lLeg" {{checked system.wounds.lLeg}}/>
-        </div>
-        <div class="wound-entry">
-            <label for="w_rleg">Right Leg</label>
-            <input type="checkbox" id="w_rleg" class="wound-checkbox" name="system.wounds.rLeg" {{checked system.wounds.rLeg}}/>
-        </div>
-    </div>
-</div>
-
-{{!-- CONDITIONS SECTION --}}
-<div class="sla-box">
-    <div class="sla-box-header">CONDITIONS</div>
-    <div class="condition-grid">
-        <a class="condition-toggle {{#if system.conditions.bleeding}}active{{/if}}" data-condition="bleeding" title="Bleeding">
-            <i class="fas fa-tint"></i>
-        </a>
-        <a class="condition-toggle {{#if system.conditions.burning}}active{{/if}}" data-condition="burning" title="Burning">
-            <i class="fas fa-fire"></i>
-        </a>
-        <a class="condition-toggle {{#if system.conditions.prone}}active{{/if}}" data-condition="prone" title="Prone">
-            <i class="fas fa-user-injured"></i>
-        </a>
-        <a class="condition-toggle {{#if system.conditions.stunned}}active{{/if}}" data-condition="stunned" title="Stunned">
-            <i class="fas fa-dizzy"></i>
-        </a>
-        <a class="condition-toggle {{#if system.conditions.immobile}}active{{/if}}" data-condition="immobile" title="Immobile">
-            <i class="fas fa-anchor"></i>
-        </a>
         
-        {{!-- Critical Indicator (Read Only) --}}
-        <div class="condition-read-only {{#if system.conditions.critical}}active{{/if}}" title="Critical Status">
-            <i class="fas fa-heartbeat"></i>
+        {{!-- Top Row --}}
+        <div class="wound-entry"><label for="head-wound">Head</label><input type="checkbox" name="system.wounds.head" id="head-wound" {{checked system.wounds.head}} class="wound-checkbox"/></div>
+        <div class="wound-entry"><label for="torso-wound">Torso</label><input type="checkbox" name="system.wounds.torso" id="torso-wound" {{checked system.wounds.torso}} class="wound-checkbox"/></div>
+
+        {{!-- Middle Row --}}
+        <div class="wound-entry"><label for="larm-wound">Left Arm</label><input type="checkbox" name="system.wounds.larm" id="larm-wound" {{checked system.wounds.larm}} class="wound-checkbox"/></div>
+        <div class="wound-entry"><label for="rarm-wound">Right Arm</label><input type="checkbox" name="system.wounds.rarm" id="rarm-wound" {{checked system.wounds.rarm}} class="wound-checkbox"/></div>
+
+        {{!-- Bottom Row --}}
+        <div class="wound-entry"><label for="lleg-wound">Left Leg</label><input type="checkbox" name="system.wounds.lleg" id="lleg-wound" {{checked system.wounds.lleg}} class="wound-checkbox"/></div>
+        <div class="wound-entry"><label for="rleg-wound">Right Leg</label><input type="checkbox" name="system.wounds.rleg" id="rleg-wound" {{checked system.wounds.rleg}} class="wound-checkbox"/></div>
+
+    </div>
+
+{{!-- CONDITIONS SECTION (Follows Wounds) --}}
+    <div class="section-title" style="margin-top: 10px;">CONDITIONS</div>
+    <div class="condition-grid">
+        <a class="condition-toggle {{#if system.conditions.bleeding}}active{{/if}}" data-condition="bleeding" title="Bleeding"><i class="fas fa-tint"></i></a>
+        <a class="condition-toggle {{#if system.conditions.burning}}active{{/if}}" data-condition="burning" title="Burning"><i class="fas fa-fire"></i></a>
+        <a class="condition-toggle {{#if system.conditions.prone}}active{{/if}}" data-condition="prone" title="Prone (-1 All)"><i class="fas fa-procedures"></i></a> 
+		<a class="condition-toggle {{#if system.conditions.stunned}}active{{/if}}" data-condition="stunned" title="Stunned (-1 All)"><i class="fas fa-dizzy"></i></a>
+        <a class="condition-toggle {{#if system.conditions.immobile}}active{{/if}}" data-condition="immobile" title="Immobile (0 MVT)"><i class="fas fa-hand-paper"></i></a>
+        
+        
+        {{!-- CRITICAL STATUS (READ-ONLY) --}}
+        <div class="condition-read-only {{#if system.conditions.critical}}active{{/if}}" title="Critical Wound Penalty">
+            <i class="fas fa-skull-crossbones"></i>
         </div>
     </div>
 </div>

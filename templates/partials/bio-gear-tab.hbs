@@ -1,0 +1,49 @@
+<div class="flexcol full-height">
+    {{!-- Traits --}}
+    <div class="sla-panel" style="flex: 0 0 200px; margin-bottom: 5px;">
+        <div class="sla-header-bar flexrow">
+            <span style="flex:1">TRAITS</span>
+            <a class="item-create" data-type="trait" title="Add Trait"><i class="fas fa-plus"></i></a>
+        </div>
+        <div class="scroll-list">
+            <table class="sla-table">
+                <thead>
+                    <tr>
+                        <th style="text-align: left; padding-left: 5px;">Name</th>
+                        <th style="width: 50px;">Rank</th>
+                        <th style="width: 120px;">Type</th>
+                        <th style="width: 50px;">Cost</th>
+                        <th style="width: 50px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each traits as |trait|}}
+                    <tr class="item" data-item-id="{{trait._id}}">
+                        <td class="item-name rollable" data-roll-type="item" style="font-weight: bold; color: #fff; padding-left: 5px;">{{trait.name}}</td>
+                        <td style="text-align: center;">{{trait.system.rank}}</td>
+                        <td style="text-align: center;">{{trait.system.type}}</td>
+                        <td style="text-align: center;">{{trait.system.xpCost}}</td>
+                        <td class="item-controls">
+                            <a class="item-edit"><i class="fas fa-edit"></i></a>
+                            <a class="item-delete"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{!-- Full Inventory --}}
+    <div style="flex: 1; min-height: 250px; margin-bottom: 5px;">
+        {{> "systems/sla-industries/templates/partials/inventory.hbs"}}
+    </div>
+
+    {{!-- Notes (Updated with Title Bar) --}}
+    <div class="sla-panel" style="flex: 1; min-height: 300px; display: flex; flex-direction: column;">
+        <div class="sla-header-bar">NOTES</div>
+        <div class="editor-container" style="flex: 1; border: none; padding: 5px; background: #000;">
+            {{editor enrichedBiography target="system.biography" button=true owner=owner editable=editable}}
+        </div>
+    </div>
+</div>
