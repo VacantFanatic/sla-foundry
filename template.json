@@ -61,10 +61,7 @@
                 "price": 0,
                 "quantity": 1,
                 "equipped": false,
-                "description": "",
-                "ammoType": "",
-                "ammoCapacity": 0,
-                "linkedWeapon": ""
+                "description": ""
             }
         },
         "magazine": {

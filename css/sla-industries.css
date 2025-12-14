@@ -53,184 +53,282 @@
 }
 
 /* ==========================================
-   3. HEADER & PORTRAIT (FULL WIDTH)
+   3. HEADER LAYOUT (ROOMY CHIPS)
    ========================================== */
-.sla-sheet .header-grid {
-    display: grid;
-    /* Bio takes remaining space | Portrait Fixed | Finance Fixed */
-    grid-template-columns: 1fr 140px 200px; 
-    gap: 10px;
-    height: 220px;
-    margin-bottom: 5px;
-    width: 100%; /* Ensure full width */
+
+/* The Main Wrapper */
+.sla-sheet .sheet-header {
+    margin-bottom: 10px;
+    width: 100%;
+    border: 2px solid #333;
+    background: #444; 
 }
 
-/* --- HEADER LAYOUT --- */
+/* The Grid that holds the 3 columns side-by-side */
+.header-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0; 
+    align-items: stretch; 
+    width: 100%;
+}
+
+/* --- COLUMN 1: THE CARD (Left) --- */
 .header-left {
+    flex: 3; 
     display: flex;
     flex-direction: column;
-    background: #d0d0d0; /* Match your light grey background */
-    border: 1px solid #333;
-    padding-bottom: 5px;
+    background: #dcdcdc; /* Card Grey */
+    color: #000;
+    border-right: 2px solid #333;
+    padding: 10px 12px; /* Increased padding for overall breathing room */
 }
 
+/* The Title Bar inside the card */
 .header-section-title {
-    background: #222;
+    background: #000;
     color: #fff;
     font-weight: bold;
     font-family: 'Roboto Condensed', sans-serif;
-    padding: 2px 5px;
-    font-size: 1.1em;
+    padding: 4px 8px;
+    font-size: 14px;
     text-transform: uppercase;
-    margin-bottom: 5px;
+    margin: -10px -12px 12px -12px; /* Stretch to edges */
+    border-bottom: 2px solid #333;
+    letter-spacing: 1px;
 }
 
 .header-fields {
-    padding: 0 5px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    /* CHANGE: Increased gap from 8px to 12px for spacing between rows */
+    gap: 12px; 
+    justify-content: center;
 }
 
-/* --- FORM ROWS --- */
+/* --- ROW STYLING --- */
+.header-row {
+    display: flex;
+    gap: 15px; 
+    align-items: center;
+}
+
 .form-group {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 10px; /* Slight increase in gap between Label and Input */
 }
 
+/* Labels */
 .form-group label.label-bold {
-    font-weight: bold;
-    width: 70px; /* Fixed width to align inputs */
-    flex-shrink: 0;
-    font-size: 0.9em;
+    font-weight: 800;
+    color: #111;
+    font-size: 13px;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
+/* Inputs */
 .form-group input[type="text"] {
-    flex: 1;
-    background: rgba(255,255,255,0.5);
-    border: 1px solid #999;
-    height: 24px;
-    font-family: inherit;
+    background: #fff !important; 
+    color: #000 !important;
+    border: 1px solid #777;
+    border-radius: 3px;
+    padding: 2px 8px;
+    /* CHANGE: Increased height slightly */
+    height: 30px; 
+    font-family: "Arial", sans-serif; 
+    font-weight: bold;
+    font-size: 14px;
 }
 
-/* --- CHIPS (Species/Package) --- */
-.chip-row {
-    height: 30px; /* Force consistent height */
-}
+/* Row Ratio: Name is wider */
+.header-row .form-group:first-child { flex: 2; }
+.header-row .form-group:last-child { flex: 1; }
 
+
+/* --- CHIPS (Species / Package) --- */
 .chip {
-    flex: 1;
+    flex: 1;                 /* Fill the available width of the form-group */
     display: flex;
-    align-items: center;
-    background: #111;
-    border: 1px solid #39ff14; /* Neon Green Border */
-    border-radius: 2px;
-    padding: 2px;
-    height: 28px;
+    flex-direction: row;     /* Force horizontal row */
+    align-items: center;     /* Vertically center content */
+    justify-content: flex-start; /* <--- CRITICAL: Force content to the Left */
+    background: #fff;
+    border: 1px solid #777;
+    border-radius: 3px;
+    padding: 2px 4px;
+    height: 36px;
+    gap: 8px;                /* consistent spacing between Img-Text-X */
     overflow: hidden;
 }
 
+/* 1. IMAGE: Leftmost, fixed size */
 .chip img {
-    height: 24px;
-    width: 24px;
-    object-fit: cover; /* Prevents image distortion */
-    border: 1px solid #555;
-    margin-right: 8px;
-    flex-shrink: 0;
+    flex: 0 0 30px;          /* Fixed 30px width */
+    width: 30px;
+    height: 30px;
+    object-fit: cover;
+    border: 1px solid #ccc;
+    background: #000;
+    margin: 0;
 }
 
+/* 2. TEXT: Left aligned, takes up space */
 .chip-name {
-    color: #39ff14;
-    font-weight: bold;
-    font-family: 'Roboto Condensed', sans-serif;
-    flex-grow: 1;
+    flex: 1;                 /* Grow to push the 'X' to the right */
+    text-align: left;        /* <--- CRITICAL: Text starts on the left */
+    color: #000;
+    font-weight: 800;
+    font-family: "Arial", sans-serif;
+    font-size: 13px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 30px;       /* Match image height for vertical center */
 }
 
+/* 3. DELETE (X): Sits on the right */
 .chip-delete {
-    color: #666;
-    margin-right: 5px;
-    transition: color 0.2s;
-    font-size: 0.9em;
+    flex: 0 0 auto;
+    color: #999;
+    padding: 0 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
 }
-
 .chip-delete:hover {
-    color: #f55; /* Red on hover */
-    text-shadow: 0 0 5px #f00;
+    color: #d00;
 }
 
+/* 4. PLACEHOLDER: Centered (or Left if preferred) */
 .chip-placeholder {
     flex: 1;
-    border: 1px dashed #666;
+    background: #eee;
+    border: 1px dashed #999;
     color: #555;
-    font-size: 0.8em;
-    padding: 4px;
-    text-align: center;
-    background: rgba(0,0,0,0.05);
+    font-style: italic;
+    font-weight: bold;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Aligns placeholder text to left too */
+    padding-left: 10px;          /* Add indent for placeholder text */
+    height: 36px;
+    border-radius: 3px;
 }
 
-/* --- BOTTOM BAR (LAD & SCL) --- */
+/* 4. The Placeholder (When empty) */
+.chip-placeholder {
+    flex: 1;
+    background: #eee;
+    border: 1px dashed #999;
+    color: #555;
+    font-style: italic;
+    font-weight: bold;
+    font-size: 12px;
+    text-align: center;
+    padding: 0 8px;
+    border-radius: 3px;
+    height: 36px;            /* Match height of filled chip */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* --- BOTTOM ROW (LAD & SCL) --- */
 .header-bottom-bar {
     display: flex;
-    justify-content: space-between; /* Pushes items to edges */
+    justify-content: space-between;
     align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid #bbb; 
     margin-top: 5px;
-    padding-top: 5px;
-    border-top: 1px solid #bbb;
 }
 
 .lad-wrapper {
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 0.9em;
+    gap: 8px;
     font-weight: bold;
-    color: #333;
+    color: #222;
+}
+.lad-wrapper input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
 }
 
 .scl-wrapper {
     display: flex;
     align-items: center;
-    gap: 5px;
-    background: #bbb; /* Darker box for SCL area */
-    padding: 2px 5px;
-    border: 1px solid #999;
+    gap: 8px;
 }
-
-.scl-wrapper label {
-    font-weight: bold;
-    font-size: 1.1em;
-}
-
 .scl-wrapper input {
-    width: 40px;
+    width: 50px !important;
     text-align: center;
-    font-weight: bold;
-    font-size: 1.2em;
-    border: 1px solid #555;
-    background: #eee;
-    height: 28px;
+    font-size: 16px !important;
+    height: 28px !important;
 }
-/* Finance Panel Styling */
-.sla-sheet .finance-box {
-    background: #2a2a35;
-    color: #eee;
-    border: 1px solid #000;
+
+/* --- COLUMN 2: PORTRAIT (Center) --- */
+.portrait-container {
+    flex: 0 0 120px;
+    background: #000;
+    border-right: 2px solid #333;
+    overflow: hidden;
+}
+
+.profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: none;
+}
+
+/* --- COLUMN 3: FINANCE (Right) --- */
+.finance-box {
+    flex: 1; 
+    background: #dcdcdc; 
     display: flex;
     flex-direction: column;
+    padding: 8px;
 }
-.finance-header { color: #555; font-weight: bold; padding: 5px; text-transform: uppercase; font-size: 0.8em; }
-.finance-title { color: #fff; font-weight: bold; font-size: 1.1em; padding: 0 5px 5px 5px; border-bottom: 1px solid #444; margin-bottom: 5px; }
-.finance-body { padding: 5px; display: flex; flex-direction: column; gap: 8px; }
-.fin-row label { display: block; font-size: 0.7em; font-weight: bold; color: #ccc; }
-.fin-row input { width: 100%; background: #d0d3d8 !important; color: #000 !important; font-weight: bold; height: 24px; }
 
-/* Portrait */
-.portrait-container { background: #000; border: 2px solid #222; width: 100%; height: 100%; }
-.profile-img { width: 100%; height: 100%; object-fit: cover; border: none; }
+.finance-header {
+    color: #555;
+    font-weight: bold;
+    font-size: 11px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+.finance-title {
+    color: #000;
+    font-weight: 800;
+    font-size: 16px;
+    border-bottom: 2px solid #000;
+    margin-bottom: 10px;
+}
+
+.finance-body .fin-row {
+    margin-bottom: 8px;
+}
+.finance-body label {
+    font-size: 10px;
+    font-weight: bold;
+    color: #444;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    display: block;
+}
+.finance-body input {
+    width: 100%;
+    background: #fff !important;
+    border: 1px solid #777;
+    color: #000 !important;
+    font-weight: bold;
+    height: 28px;
+}
 
 /* ==========================================
    4. STATS GRID (NEW LAYOUT)
@@ -259,6 +357,8 @@
     background: #222;
     padding: 2px;
     border: 1px solid #444;
+    border-radius: 4px;
+    overflow: hidden;
 }
 .rating-block label {
     flex: 1;
@@ -281,8 +381,10 @@
     display: flex;
     align-items: center;
     height: 28px;
-    background: #d0d3d8; /* Grey paper look */
+    background: #d0d3d8; 
     border: 1px solid #555;
+    border-radius: 4px;
+    overflow: hidden; 
 }
 
 .stat-row .stat-label {
@@ -324,6 +426,7 @@
     text-align: center;
     padding: 2px;
     border: 1px solid #555;
+    border-radius: 4px;
 }
 .secondary-box label { display: block; font-size: 0.7em; color: #ccc; }
 .secondary-box input { width: 100%; text-align: center; }
@@ -341,8 +444,8 @@
     grid-template-columns: 1.6fr 1fr; 
     gap: 10px;
     height: 100%;
-    overflow: hidden; /* Prevent spillover */
-    align-items: start; /* Align tops of columns */
+    overflow: hidden; 
+    align-items: start; 
 }
 
 /* Ensure columns act as flex containers */
@@ -351,7 +454,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    min-width: 0; /* Critical for grid children to shrink properly */
+    min-width: 0; 
 }
 
 /* Panels */
@@ -437,79 +540,7 @@
 .sla-dialog button:hover { background: #39ff14; color: #000; }
 
 /* ==========================================
-   11. UI POLISH (ROUNDED & COMPACT)
-   ========================================== */
-
-/* The Container Box */
-.sla-box {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid #444;
-    border-radius: 8px; /* Rounded Corners */
-    padding: 5px;
-    margin-bottom: 5px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-/* Header for the box */
-.sla-box-header {
-    font-size: 0.75em;
-    font-weight: bold;
-    color: #888;
-    text-transform: uppercase;
-    border-bottom: 1px solid #333;
-    margin-bottom: 3px;
-    padding-bottom: 2px;
-}
-
-/* Mini Input (2 digits) */
-.sla-input-mini {
-    width: 40px !important;
-    text-align: center;
-    border-radius: 4px !important;
-    background: #111 !important;
-    color: #fff !important;
-    border: 1px solid #555 !important;
-    height: 22px !important;
-    font-weight: bold;
-}
-
-/* Standard Input inside box */
-.sla-box input[type="text"], 
-.sla-box input[type="number"] {
-    background: #111;
-    color: #fff;
-    border: 1px solid #555;
-    border-radius: 4px;
-}
-
-/* Flex rows for side-by-side stats */
-.compact-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.9em;
-    color: #ccc;
-}
-
-/* Update Stat Rows to be rounded */
-.stat-row {
-    border-radius: 4px;
-    overflow: hidden; /* Clips the inner label background */
-    border: 1px solid #444;
-}
-.rating-block {
-    border-radius: 4px;
-    border: 1px solid #444;
-    overflow: hidden;
-}
-.secondary-box {
-    border-radius: 4px;
-}
-
-/* ==========================================
-   11. UI POLISH (ROUNDED & COMPACT)
+   9. UI POLISH (ROUNDED & COMPACT)
    ========================================== */
 
 /* The Container Box */
@@ -559,7 +590,7 @@
 }
 
 /* ==========================================
-   WOUNDS ALIGNMENT
+   10. WOUNDS & CONDITIONS
    ========================================== */
 .wound-list {
     display: grid;
@@ -589,9 +620,7 @@
     cursor: pointer;
 }
 
-/* ==========================================
-   CONDITION BUTTONS (ROUNDED SQUARES)
-   ========================================== */
+/* CONDITION BUTTONS (ROUNDED SQUARES) */
 .condition-grid {
     display: flex;
     justify-content: space-between;
@@ -650,7 +679,7 @@
 }
 
 /* ==========================================
-   EBB DISCIPLINES STYLING
+   11. EBB DISCIPLINES STYLING
    ========================================== */
 
 /* Parent Row (The Discipline) */
@@ -674,12 +703,10 @@
     background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Remove border from the last formula in a group to look cleaner */
 .formula-row:last-child {
     border-bottom: none;
 }
 
-/* Rollable Hover for Formulas */
 .formula-row .rollable:hover {
     color: #fff !important;
     text-shadow: 0 0 5px #8a2be2;
@@ -734,7 +761,7 @@
     border-collapse: collapse;
     margin-bottom: 10px;
     border: 1px solid #000;
-    table-layout: fixed; /* Force equal column widths */
+    table-layout: fixed; 
 }
 
 /* Header Cells (STR, DEX, etc) */
@@ -827,12 +854,12 @@
     padding: 2px;
     border-bottom: 1px dashed #ccc;
     align-items: center;
-    display: flex; /* Ensure flex behavior */
+    display: flex; 
 }
 
 /* FIX: Force Image Size */
 .threat-item img {
-    flex: 0 0 24px; /* Don't grow, don't shrink, fixed 24px */
+    flex: 0 0 24px; 
     width: 24px;
     height: 24px;
     object-fit: cover;
@@ -850,7 +877,6 @@
     text-shadow: none;
 }
 
-/* Ensure controls are visible */
 .threat-item .item-controls {
     display: flex;
     gap: 5px;
@@ -1003,39 +1029,6 @@
     letter-spacing: 1px;
 }
 
-/* --- EDITOR OVERRIDES --- */
-/* Ensure text editors match the theme */
-.item.weapon-theme .editor-content { color: #000; font-family: "Arial"; }
-.item.skill-theme .editor-content { color: #000; font-family: "Georgia"; }
-.item.ebbFormula-theme .editor-content { color: #e0d0ff; font-family: "Roboto"; }
-
-/* ==========================================
-   14. ITEM SHEET IMAGE FIX
-   ========================================== */
-
-.sla-sheet.item .sheet-header .profile-img {
-    flex: 0 0 64px;      /* Fixed flex width */
-    width: 64px;         /* Forced width */
-    height: 64px;        /* Forced height */
-    object-fit: cover;   /* Crop to square */
-    border: 1px solid #000;
-    margin-right: 10px;  /* Spacing from text */
-    background: #000;    /* Background for transparent PNGs */
-}
-
-/* Optional: Adjust header layout to ensure text sits nicely next to it */
-.sla-sheet.item .sheet-header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-.sla-sheet.item .header-details {
-    flex: 1;
-    overflow: hidden; /* Prevent text spill */
-}
-
 /* --- D. OFFICE DOSSIER THEME (Species, Package) --- */
 .item.species-theme, .item.package-theme {
     background: #f4e4bc; /* Manila Folder Beige */
@@ -1148,21 +1141,44 @@
     padding-top: 15px;
 }
 
+/* --- E. ITEM SHEET IMAGE FIX --- */
+.sla-sheet.item .sheet-header .profile-img {
+    flex: 0 0 64px;       
+    width: 64px;          
+    height: 64px;        
+    object-fit: cover;    
+    border: 1px solid #000;
+    margin-right: 10px;   
+    background: #000;    
+}
+
+.sla-sheet.item .sheet-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.sla-sheet.item .header-details {
+    flex: 1;
+    overflow: hidden; 
+}
+
 /* ==========================================
-   15. ITEM DESCRIPTION EDITOR FIX
+   14. ITEM DESCRIPTION EDITOR FIX
    ========================================== */
 
 /* 1. Force the Tab to fill window ONLY when active */
 .sla-sheet.item .tab.description.active {
     height: 100%;
-    display: flex;       /* Use Flexbox to stretch content */
+    display: flex;       
     flex-direction: column;
-    min-height: 300px;   /* Minimum height */
+    min-height: 300px;   
 }
 
 /* 2. Force the Editor to fill the Tab */
 .sla-sheet.item .editor {
-    flex: 1;             /* Grow to fill remaining space */
+    flex: 1;             
     height: 100%;
 }
 
@@ -1171,8 +1187,6 @@
 }
 
 /* 3. Theme-Specific Text Colors & Fonts */
-
-/* Catalogue (Grey Background -> Black Text) */
 .item.weapon-theme .editor-content,
 .item.item-theme .editor-content,
 .item.armor-theme .editor-content,
@@ -1182,7 +1196,6 @@
     padding: 10px;
 }
 
-/* Academic (Paper Background -> Black Text) */
 .item.skill-theme .editor-content,
 .item.trait-theme .editor-content {
     color: #000 !important;
@@ -1190,7 +1203,6 @@
     padding: 10px;
 }
 
-/* Spectral (Dark Background -> Light Purple Text) */
 .item.ebbFormula-theme .editor-content,
 .item.discipline-theme .editor-content {
     color: #e0d0ff !important;
@@ -1198,7 +1210,6 @@
     padding: 10px;
 }
 
-/* Dossier (Beige Background -> Black Typewriter) */
 .item.species-theme .editor-content,
 .item.package-theme .editor-content {
     color: #000 !important;
@@ -1207,12 +1218,12 @@
 }
 
 /* ==========================================
-   16. STATS MATRIX
+   15. STATS MATRIX
    ========================================== */
 .stats-strip-container {
     margin-top: 5px;
     padding: 5px;
-    background: #e0e0e0; /* Light background strip */
+    background: #e0e0e0; 
     border-top: 2px solid #555;
     border-bottom: 2px solid #555;
 }
@@ -1241,7 +1252,6 @@
     height: 30px;
     position: relative;
 }
-/* Underline effect from screenshot */
 .rating-header::after {
     content: ""; position: absolute; bottom: 2px; left: 5px; right: 5px;
     height: 2px; background: #39ff14;
@@ -1294,36 +1304,30 @@
 .init-val { font-size: 1.5em; font-weight: bold; color: #fff; }
 
 /* ==========================================
-   17. ACTOR BIOGRAPHY TAB FIX (CORRECTED)
+   16. ACTOR BIOGRAPHY TAB FIX
    ========================================== */
-
-/* 1. Ensure the tab fills height ONLY when active */
 .sla-sheet .tab[data-tab="biography"] {
-    /* Default state is handled by Foundry (display: none) */
     height: 100%;
 }
 
 .sla-sheet .tab[data-tab="biography"].active {
-    display: flex !important; /* Only flex when active */
+    display: flex !important; 
     flex-direction: column;
     overflow: hidden;
 }
 
-/* 2. Ensure the flex column wrapper fills the tab */
 .sla-sheet .tab[data-tab="biography"] .flexcol {
     height: 100%;
 }
 
-/* 3. Force the Editor Container to grow */
 .sla-sheet .tab[data-tab="biography"] .editor-container {
-    flex: 1;             /* Grow to fill remaining space */
-    min-height: 400px;   /* Minimum usable height */
+    flex: 1;             
+    min-height: 400px;   
     height: 100%;
     display: flex;
     flex-direction: column;
 }
 
-/* 4. Force the TinyMCE Editor to fill the container */
 .sla-sheet .tab[data-tab="biography"] .editor {
     height: 100%;
 }
@@ -1333,12 +1337,12 @@
 }
 
 /* ==========================================
-   18. SKILL LIST GROUPING
+   17. SKILL LIST & TABLES
    ========================================== */
 
 .skill-group-header td {
     background: #333;
-    color: #39ff14; /* SLA Green */
+    color: #39ff14; 
     font-weight: bold;
     text-transform: uppercase;
     font-size: 0.85em;
@@ -1347,22 +1351,17 @@
     letter-spacing: 1px;
 }
 
-/* ==========================================
-   19. TABLE IMAGE FIX (COMBAT LOADOUT)
-   ========================================== */
-
-/* Target images inside the item-name cell of SLA tables */
+/* TABLE IMAGE FIX (COMBAT LOADOUT) */
 .sla-table .item-name img {
-    flex: 0 0 24px;      /* Prevent growing or shrinking */
-    width: 24px;         /* Force width */
-    height: 24px;        /* Force height */
-    object-fit: cover;   /* Crop image to fill square without distortion */
+    flex: 0 0 24px;       
+    width: 24px;          
+    height: 24px;        
+    object-fit: cover;    
     border: 1px solid #555;
-    background: #000;    /* Dark background for transparent PNGs */
+    background: #000;    
     margin-right: 5px;
 }
 
-/* Ensure the text next to it takes the remaining space */
 .sla-table .item-name {
     display: flex;
     align-items: center;
