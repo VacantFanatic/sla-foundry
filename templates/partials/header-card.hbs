@@ -1,0 +1,90 @@
+<header class="sheet-header">
+    <div class="header-grid">
+        
+        {{!-- 1. LEFT: SLA OPERATIVE CARD --}}
+        <div class="header-left">
+            <div class="header-section-title">SLA OPERATIVE SECURITY CLEARANCE CARD</div>
+            
+            <div class="header-fields">
+                
+                {{!-- ROW 1: NAME --}}
+                <div class="form-group">
+                    <label class="label-bold">NAME:</label>
+                    <input name="name" type="text" value="{{actor.name}}" placeholder="Operative Name"/>
+                </div>
+
+                {{!-- ROW 2: SQUAD --}}
+                <div class="form-group">
+                    <label class="label-bold">SQUAD:</label>
+                    <input name="system.bio.squad" type="text" value="{{system.bio.squad}}"/>
+                </div>
+
+                {{!-- ROW 3: SPECIES --}}
+                <div class="form-group chip-row">
+                    <label class="label-bold">SPECIES:</label>
+                    {{#if speciesItem}}
+                    <div class="chip" data-item-id="{{speciesItem._id}}">
+                        <img src="{{speciesItem.img}}"/>
+                        <span class="chip-name">{{speciesItem.name}}</span>
+                        <a class="chip-delete" data-type="species"><i class="fas fa-times"></i></a>
+                    </div>
+                    {{else}}
+                    <div class="chip-placeholder">Drag Species</div>
+                    {{/if}}
+                </div>
+
+                {{!-- ROW 4: PACKAGE --}}
+                <div class="form-group chip-row">
+                    <label class="label-bold">PACKAGE:</label>
+                    {{#if packageItem}}
+                    <div class="chip" data-item-id="{{packageItem._id}}">
+                        <img src="{{packageItem.img}}"/>
+                        <span class="chip-name">{{packageItem.name}}</span>
+                        <a class="chip-delete" data-type="package"><i class="fas fa-times"></i></a>
+                    </div>
+                    {{else}}
+                    <div class="chip-placeholder">Drag Package</div>
+                    {{/if}}
+                </div>
+
+                {{!-- ROW 5: LAD & SCL (Side by Side) --}}
+                <div class="header-bottom-bar">
+                    <div class="lad-wrapper">
+                        <input type="checkbox" name="system.bio.ladAccount" id="ladCheck" {{checked system.bio.ladAccount}}/>
+                        <label for="ladCheck">LAD ACCOUNT</label>
+                    </div>
+                    <div class="scl-wrapper">
+                        <label>SCL</label>
+                        <input type="text" name="system.bio.scl" value="{{system.bio.scl}}" data-dtype="Number"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{!-- 2. CENTER: PORTRAIT --}}
+        <div class="portrait-container">
+            <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
+        </div>
+
+        {{!-- 3. RIGHT: FINANCE --}}
+        <div class="finance-box sla-panel">
+            <div class="finance-header">SLA INDUSTRIES</div>
+            <div class="finance-title">Finance</div>
+            <div class="finance-body">
+                <div class="fin-row">
+                    <label>CREDITS:</label>
+                    <input type="number" name="system.finance.credits" value="{{system.finance.credits}}"/>
+                </div>
+                <div class="fin-row">
+                    <label>UNIS:</label>
+                    <input type="number" name="system.finance.unis" value="{{system.finance.unis}}"/>
+                </div>
+                <div class="fin-row">
+                    <label>LAD BAL:</label>
+                    <input type="text" name="system.finance.lad" value="{{system.finance.lad}}"/>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</header>
