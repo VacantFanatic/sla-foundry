@@ -15,50 +15,68 @@ export class SlaItemSheet extends ItemSheet {
     });
   }
 
-// module/sheets/item-sheet.mjs
+  // module/sheets/item-sheet.mjs
 
-	async getData() {
-		const context = super.getData();
-		const itemData = context.item;
-		context.system = itemData.system;
-		context.flags = itemData.flags;
+  async getData() {
+    const context = await super.getData(); // Ensure we await super
+    const itemData = context.item;
+    context.system = itemData.system;
+    context.flags = itemData.flags;
+    context.config = CONFIG.SLA; 
 
-		context.config = CONFIG.SLA; 
+    // --- NEW: EBB IMAGE LOOKUP ---
+    // This finds the icon for the partial to display
+    if (this.item.actor && context.system.discipline) {
+        // Find an item on the actor with the SAME NAME and type 'discipline'
+        const disciplineItem = this.item.actor.items.find(i => 
+            i.type === "discipline" && 
+            i.name.toLowerCase() === context.system.discipline.toLowerCase()
+        );
+        context.linkedDisciplineImg = disciplineItem ? disciplineItem.img : "icons/svg/item-bag.svg";
+    } else {
+        context.linkedDisciplineImg = "icons/svg/item-bag.svg";
+    }
 
-		// --- DEBUGGING BLOCK ---
-		console.log("🔻 DEBUG: SlaItemSheet Data 🔻");
-		console.log("Item Type:", this.item.type);
-		console.log("CONTEXT CONFIG:", context.config); 
-  
-		// If config exists, let's check for the specific list you need (e.g., stats)
-		if (context.config) {
-			console.log("STATS LIST:", context.config.stats);
-		} else {
-			console.warn("⚠️ CONFIG.SLA is undefined! Check main.mjs");
-		}
-		console.log("🔺 -------------------------- 🔺");
-		// --------------------------------
-  
-		return context;
-	}
+    return context;
+  }
 
   /** @override */
   activateListeners(html) {
     super.activateListeners(html);
     if (!this.isEditable) return;
 
-    // Handle dropping a weapon onto the Magazine "Weapon Link" zone
-    const dropZone = html.find('.weapon-link');
-    if (dropZone.length > 0) {
-        dropZone[0].addEventListener('drop', this._onDropWeapon.bind(this));
-        dropZone[0].addEventListener('dragover', (ev) => ev.preventDefault()); // Allow drop
+    // --- 1. MAGAZINE LINKING (Existing) ---
+    const weaponDropZone = html.find('.weapon-link');
+    if (weaponDropZone.length > 0) {
+        weaponDropZone[0].addEventListener('drop', this._onDropWeapon.bind(this));
+        weaponDropZone[0].addEventListener('dragover', (ev) => ev.preventDefault());
     }
 
-    // Unlink weapon
     html.find('.remove-link').click(async ev => {
         ev.preventDefault();
         await this.item.update({ "system.linkedWeapon": "" });
     });
+
+    // --- 2. EBB DISCIPLINE LINKING (NEW) ---
+    
+    // A. Delete Handler
+    // We use .on() attached to the container to ensure it catches clicks even if re-rendered
+    html.find('.discipline-drop-zone').on('click', '.remove-discipline', async (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        await this.item.update({ "system.discipline": "" });
+    });
+
+    // B. Drop Handler
+    const disciplineDropZone = html.find('.discipline-drop-zone');
+    if (disciplineDropZone.length > 0) {
+        disciplineDropZone[0].addEventListener('drop', this._onDropDiscipline.bind(this));
+        // Add dragover to ensure the browser allows the drop
+        disciplineDropZone[0].addEventListener('dragover', (ev) => {
+             ev.preventDefault(); 
+             ev.dataTransfer.dropEffect = 'copy';
+        });
+    }
   }
 
   /**
@@ -80,5 +98,33 @@ export class SlaItemSheet extends ItemSheet {
       } catch (err) {
           console.error("SLA | Weapon Drop Failed:", err);
       }
+  }
+
+  /**
+   * --- NEW: Handle dropping a Discipline item ---
+   */
+  async _onDropDiscipline(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    try {
+        const data = JSON.parse(event.dataTransfer.getData('text/plain'));
+        if (data.type !== "Item") return;
+
+        const item = await Item.implementation.fromDropData(data);
+        
+        // Validation: Must be a Discipline
+        if (!item || item.type !== "discipline") {
+            return ui.notifications.warn("Only 'Discipline' items can be linked here.");
+        }
+
+        // Update the Formula with the name of the dropped discipline
+        await this.item.update({
+            "system.discipline": item.name
+        });
+        
+    } catch (err) {
+        console.error("SLA | Discipline Drop Failed:", err);
+    }
   }
 }

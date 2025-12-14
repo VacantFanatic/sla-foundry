@@ -1,0 +1,21 @@
+<div style="background:#110000; border:1px solid #a00; color:#eee; padding:5px; font-family:'Roboto Condensed',sans-serif;">
+    <h3 style="color:#f00; margin:0; border-bottom:1px solid #500;">
+        DAMAGE: {{weaponName}}
+    </h3>
+    
+    <div style="text-align:center; margin:10px 0;">
+        <div style="font-size:2em; font-weight:bold; color:#fff;">
+            {{damageTotal}} <span style="font-size:0.4em; color:#777;">DMG</span>
+        </div>
+        {{#if (gt ad 0)}}
+        <div style="font-size:1em; color:#f88;">(AD: {{ad}})</div>
+        {{/if}}
+    </div>
+
+    <button class="apply-damage" 
+            data-damage="{{damageTotal}}" 
+            data-ad="{{ad}}" 
+            style="background:#8b0000; color:#fff; border:1px solid #ff4444; font-weight:bold; cursor:pointer; width:100%; padding:5px;">
+        <i class="fas fa-skull"></i> APPLY DAMAGE & AD
+    </button>
+</div>

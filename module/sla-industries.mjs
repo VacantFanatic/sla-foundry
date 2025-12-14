@@ -78,7 +78,7 @@ Handlebars.registerHelper('gt', function (a, b) { return a > b; });
 Handlebars.registerHelper('and', function (a, b) { return a && b; });
 
 /* -------------------------------------------- */
-/* Chat Listeners (Buttons & Toggles)          */
+/* Chat Listeners (Buttons & Toggles)           */
 /* -------------------------------------------- */
 Hooks.on('renderChatMessage', (message, html, data) => {
     
@@ -88,24 +88,27 @@ Hooks.on('renderChatMessage', (message, html, data) => {
         damageButton.click(async ev => {
             ev.preventDefault();
             const damageFormula = ev.currentTarget.dataset.damage;
-            const weaponName = ev.currentTarget.dataset.weapon;
+            const weaponName = ev.currentTarget.dataset.weapon || "Weapon";
             const ad = ev.currentTarget.dataset.ad || 0; 
+
+            if (!damageFormula) return;
+
             let roll = new Roll(damageFormula);
             await roll.evaluate();
+
+            // --- USE RENDER TEMPLATE HERE ---
+            const templateData = {
+                weaponName: weaponName.toUpperCase(),
+                damageTotal: roll.total,
+                ad: ad
+            };
             
+            // Render the new partial
+            const chatContent = await renderTemplate("systems/sla-industries/templates/chat/chat-damage.hbs", templateData);
+
             roll.toMessage({
                 speaker: message.speaker,
-                content: `
-                <div style="background:#110000;border:1px solid #a00;color:#eee;padding:5px;font-family:'Roboto Condensed',sans-serif;">
-                    <h3 style="color:#f00;margin:0;border-bottom:1px solid #500;">DAMAGE: ${weaponName}</h3>
-                    <div style="text-align:center;margin:10px 0;">
-                        <div style="font-size:2em;font-weight:bold;color:#fff;">${roll.total} <span style="font-size:0.4em;color:#777;">DMG</span></div>
-                        <div style="font-size:1em;color:#f88;">(AD: ${ad})</div>
-                    </div>
-                    <button class="apply-damage" data-damage="${roll.total}" data-ad="${ad}" style="background:#300;color:#f88;border:1px solid #a00;width:100%;">
-                        <i class="fas fa-skull"></i> APPLY DAMAGE & AD
-                    </button>
-                </div>`
+                content: chatContent
             });
         });
     }
@@ -114,6 +117,7 @@ Hooks.on('renderChatMessage', (message, html, data) => {
     const applyButton = html.find('.apply-damage');
     if (applyButton.length > 0) {
         applyButton.click(async ev => {
+            // ... (Your existing Apply Damage logic remains exactly the same) ...
             ev.preventDefault();
             const rawDamage = parseInt(ev.currentTarget.dataset.damage);
             const ad = parseInt(ev.currentTarget.dataset.ad) || 0;
@@ -134,6 +138,7 @@ Hooks.on('renderChatMessage', (message, html, data) => {
                 if (armors.length > 0) {
                     const mainArmor = armors[0];
                     const currentRes = mainArmor.system.resistance?.value || 0;
+                    
                     if (ad > 0 && currentRes > 0) {
                         const newRes = Math.max(0, currentRes - ad);
                         if (currentRes !== newRes) {
@@ -141,11 +146,14 @@ Hooks.on('renderChatMessage', (message, html, data) => {
                             armorMsg = `<br><em>${mainArmor.name} degraded by ${ad} AD.</em>`;
                         }
                     }
+                    
                     const updatedRes = (ad > 0) ? Math.max(0, currentRes - ad) : currentRes;
                     const basePV = mainArmor.system.pv || 0;
                     let effectivePV = basePV;
+                    
                     if (updatedRes <= 0) effectivePV = 0;
                     else if (updatedRes < (mainArmor.system.resistance?.max / 2)) effectivePV = Math.floor(basePV / 2);
+                    
                     highestPV = effectivePV;
                 }
 
@@ -157,9 +165,12 @@ Hooks.on('renderChatMessage', (message, html, data) => {
                 // C. NOTIFY
                 if (finalDamage > 0) {
                     let woundWarning = "";
-                    if (finalDamage > (currentHP / 2)) woundWarning = `<div style="color:#f55; font-weight:bold; margin-top:5px; border-top:1px solid #555;">⚠️ MASSIVE DAMAGE: Apply a Wound!</div>`;
+                    if (finalDamage > (currentHP / 2)) {
+                        woundWarning = `<div style="color:#f55; font-weight:bold; margin-top:5px; border-top:1px solid #555;">⚠️ MASSIVE DAMAGE: Apply a Wound!</div>`;
+                    }
                     
                     ui.notifications.info(`${actor.name} takes ${finalDamage} damage! (Roll ${rawDamage} - PV ${highestPV})${armorMsg}`);
+                    
                     ChatMessage.create({
                         content: `<div style="background:#220000; color:#fff; padding:5px; border:1px solid #a00;"><strong>${actor.name}</strong> takes ${finalDamage} Damage.<br><span style="font-size:0.8em; color:#aaa;">(Roll ${rawDamage} - PV ${highestPV})</span>${armorMsg}${woundWarning}</div>`,
                         speaker: message.speaker
@@ -171,17 +182,12 @@ Hooks.on('renderChatMessage', (message, html, data) => {
         });
     }
 
-    // 3. TOGGLE ROLL BREAKDOWN
+    // 3. TOGGLE ROLL BREAKDOWN (Keep as is)
     html.find('.roll-toggle').click(ev => {
         ev.preventDefault();
         const toggler = $(ev.currentTarget);
-        // Navigate up to the main content container, then find the tooltip within it
         const tooltip = toggler.parents('.message-content').find('.dice-tooltip');
-        
-        if (tooltip.is(':visible')) {
-            tooltip.slideUp(200);
-        } else {
-            tooltip.slideDown(200);
-        }
+        if (tooltip.is(':visible')) tooltip.slideUp(200);
+        else tooltip.slideDown(200);
     });
 });

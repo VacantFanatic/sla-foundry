@@ -45,7 +45,6 @@
                 
                 <div class="form-group" style="grid-column: 1 / -1;">
                     <label>Skill</label>
-                    {{!-- FIX: Added @root. and combatSkills --}}
                     <select name="system.skill" style="width: 100%;">{{selectOptions @root.config.combatSkills selected=system.skill}}</select>
                 </div>
                 {{/if}}
@@ -65,7 +64,6 @@
                     <label>Ammunition Type</label>
                     <div class="form-fields">
                         <select name="system.ammoType">
-                            {{!-- FIX: Added @root. and ammoTypes --}}
                             {{selectOptions @root.config.ammoTypes selected=system.ammoType localize=false}}
                         </select>
                     </div>
@@ -105,14 +103,12 @@
                 
                 <div class="form-group">
                     <label>Mod 1</label>
-                    {{!-- FIX: Added @root. --}}
                     <select name="system.mods.first.stat"><option value="">- None -</option>{{selectOptions @root.config.stats selected=system.mods.first.stat}}</select>
                 </div>
                 <div class="form-group"><label>Val</label><input type="number" name="system.mods.first.value" value="{{system.mods.first.value}}"/></div>
                 
                 <div class="form-group">
                     <label>Mod 2</label>
-                    {{!-- FIX: Added @root. --}}
                     <select name="system.mods.second.stat"><option value="">- None -</option>{{selectOptions @root.config.stats selected=system.mods.second.stat}}</select>
                 </div>
                 <div class="form-group"><label>Val</label><input type="number" name="system.mods.second.value" value="{{system.mods.second.value}}"/></div>
@@ -128,7 +124,6 @@
                 {{#if (eq item.type "skill")}}
                 <div class="form-group line-item">
                     <label>Related Stat:</label>
-                    {{!-- FIX: Added @root. --}}
                     <select name="system.stat">{{selectOptions @root.config.stats selected=system.stat}}</select>
                 </div>
                 {{/if}}
@@ -139,27 +134,43 @@
             </div>
             {{/if}}
 
-            {{!-- 3. SPECTRAL THEME (Ebb) --}}
+            {{!-- 3. SPECTRAL THEME (Ebb & Disciplines) --}}
             {{#if (or (eq item.type "ebbFormula") (eq item.type "discipline"))}}
             <div class="spectral-container">
-                <div class="form-group glow-input"><label>Flux Cost</label><input type="number" name="system.cost" value="{{system.cost}}"/></div>
-                {{#if (eq item.type "discipline")}}<div class="form-group glow-input"><label>Rank</label><input type="number" name="system.rank" value="{{system.rank}}"/></div>{{/if}}
-                {{#if (eq item.type "ebbFormula")}}
-                <div class="form-group glow-input"><label>FR</label><input type="number" name="system.formulaRating" value="{{system.formulaRating}}"/></div>
+                
+                {{!-- Common Flux Cost --}}
                 <div class="form-group glow-input">
-                    <label>Discipline</label>
-                    {{!-- FIX: Added @root. and disciplineSkills --}}
-                    <select name="system.discipline">{{selectOptions @root.config.disciplineSkills selected=system.discipline}}</select>
+                    <label>Flux Cost</label>
+                    <input type="number" name="system.cost" value="{{system.cost}}"/>
                 </div>
-                <div class="form-group glow-input"><label>Skill Used</label><input type="text" name="system.skill" value="{{system.skill}}" placeholder="e.g. Blast"/></div>
-                <div class="catalogue-grid" style="background:transparent; border:none; padding:0; margin-top:10px;">
-                    <div class="form-group glow-input"><label>Dmg</label><input type="text" name="system.damage" value="{{system.damage}}"/></div>
-                    <div class="form-group glow-input"><label>Min</label><input type="text" name="system.minDamage" value="{{system.minDamage}}"/></div>
-                    <div class="form-group glow-input"><label>AD</label><input type="number" name="system.ad" value="{{system.ad}}"/></div>
-                    <div class="form-group glow-input"><label>ROF</label><input type="text" name="system.rof" value="{{system.rof}}"/></div>
-                    <div class="form-group glow-input"><label>Rec</label><input type="text" name="system.recoil" value="{{system.recoil}}"/></div>
-                    <div class="form-group glow-input"><label>Rng</label><input type="text" name="system.range" value="{{system.range}}"/></div>
-                </div>
+
+                {{!-- DISCIPLINE ITEM SPECIFIC --}}
+                {{#if (eq item.type "discipline")}}
+                    <div class="form-group glow-input">
+                        <label>Rank</label>
+                        <input type="number" name="system.rank" value="{{system.rank}}"/>
+                    </div>
+                {{/if}}
+
+                {{!-- EBB FORMULA ITEM SPECIFIC --}}
+                {{#if (eq item.type "ebbFormula")}}
+                    <div class="form-group glow-input">
+                        <label>FR</label>
+                        <input type="number" name="system.formulaRating" value="{{system.formulaRating}}"/>
+                    </div>
+
+                    {{!-- PARTIAL: Discipline Drop Zone --}}
+                    {{> "systems/sla-industries/templates/partials/ebb-drop-zone.hbs"}}
+
+                    {{!-- Combat Stats Grid --}}
+                    <div class="catalogue-grid" style="background:transparent; border:none; padding:0; margin-top:10px;">
+                        <div class="form-group glow-input"><label>Dmg</label><input type="text" name="system.damage" value="{{system.damage}}"/></div>
+                        <div class="form-group glow-input"><label>Min</label><input type="text" name="system.minDamage" value="{{system.minDamage}}"/></div>
+                        <div class="form-group glow-input"><label>AD</label><input type="number" name="system.ad" value="{{system.ad}}"/></div>
+                        <div class="form-group glow-input"><label>ROF</label><input type="text" name="system.rof" value="{{system.rof}}"/></div>
+                        <div class="form-group glow-input"><label>Rec</label><input type="text" name="system.recoil" value="{{system.recoil}}"/></div>
+                        <div class="form-group glow-input"><label>Rng</label><input type="text" name="system.range" value="{{system.range}}"/></div>
+                    </div>
                 {{/if}}
             </div>
             {{/if}}
