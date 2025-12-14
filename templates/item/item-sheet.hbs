@@ -7,7 +7,6 @@
             <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Item Name"/></h1>
             <div class="item-subtitle">
                 <span class="type-label">{{item.type}}</span>
-                {{!-- Rank removed from header to be in body --}}
             </div>
         </div>
     </header>
@@ -24,13 +23,14 @@
         {{!-- ATTRIBUTES TAB --}}
         <div class="tab attributes" data-group="primary" data-tab="attributes">
             
-            {{!-- 1. CATALOGUE THEME (Weapons, Items, Armor, Drugs) --}}
-            {{#if (or (eq item.type "weapon") (or (eq item.type "item") (or (eq item.type "armor") (eq item.type "drug"))))}}
+            {{!-- 1. CATALOGUE THEME (Weapons, Items, Armor, Drugs, Magazines) --}}
+            {{#if (or (eq item.type "weapon") (or (eq item.type "item") (or (eq item.type "armor") (or (eq item.type "drug") (eq item.type "magazine")))))}}
             <div class="catalogue-grid">
                 
                 {{!-- Common Fields --}}
                 <div class="form-group"><label>Weight</label><input type="number" name="system.weight" value="{{system.weight}}" step="0.1"/></div>
                 <div class="form-group"><label>Cost</label><input type="number" name="system.price" value="{{system.price}}"/></div>
+                <div class="form-group"><label>Quantity</label><input type="number" name="system.quantity" value="{{system.quantity}}" placeholder="1"/></div>
                 
                 {{!-- WEAPON Specific --}}
                 {{#if (eq item.type "weapon")}}
@@ -40,54 +40,82 @@
                 <div class="form-group"><label>AD (Armor Dmg)</label><input type="number" name="system.ad" value="{{system.ad}}"/></div>
                 <div class="form-group"><label>Recoil</label><input type="text" name="system.recoil" value="{{system.recoil}}"/></div>
                 
-                <div class="form-group"><label>Rate of Fire (ROF)</label><input type="text" name="system.rof" value="{{system.rof}}"/></div>
+                <div class="form-group"><label>ROF</label><input type="text" name="system.rof" value="{{system.rof}}"/></div>
                 <div class="form-group"><label>Range</label><input type="text" name="system.range" value="{{system.range}}"/></div>
-                
-                <div class="form-group"><label>Clip Size</label><input type="number" name="system.maxAmmo" value="{{system.maxAmmo}}"/></div>
                 
                 <div class="form-group" style="grid-column: 1 / -1;">
                     <label>Skill</label>
-                    <select name="system.skill" style="width: 100%;">{{selectOptions config.combatSkills selected=system.skill}}</select>
+                    {{!-- FIX: Added @root. and combatSkills --}}
+                    <select name="system.skill" style="width: 100%;">{{selectOptions @root.config.combatSkills selected=system.skill}}</select>
                 </div>
+                {{/if}}
+
+                {{!-- MAGAZINE Specific --}}
+                {{#if (eq item.type "magazine")}}
+                <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px; border-top: 2px dashed #555; padding-top: 5px;">
+                    <label style="width:100%; text-align:center; color:#333;">MAGAZINE PROPERTIES</label>
+                </div>
+
+                <div class="form-group">
+                    <label>Rounds in Clip</label>
+                    <input type="number" name="system.ammoCapacity" value="{{system.ammoCapacity}}" placeholder="30"/>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ammunition Type</label>
+                    <div class="form-fields">
+                        <select name="system.ammoType">
+                            {{!-- FIX: Added @root. and ammoTypes --}}
+                            {{selectOptions @root.config.ammoTypes selected=system.ammoType localize=false}}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="grid-column: 1 / -1; margin-top:10px;">
+                    <label style="margin-bottom:5px;">Linked Weapon:</label>
+                    <div class="drop-zone weapon-link" style="height: 50px; border: 2px dashed #999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.05);">
+                        {{#if system.linkedWeapon}}
+                            <span style="font-weight:bold; color:#222; font-size:1.2em;">{{system.linkedWeapon}}</span>
+                            <a class="remove-link" title="Unlink" style="margin-left:10px; color:#d00; cursor:pointer;"><i class="fas fa-times"></i></a>
+                        {{else}}
+                            <span style="font-style:italic; color:#777;">Drop Weapon Item Here to Link</span>
+                        {{/if}}
+                    </div>
+                </div>
+                {{/if}}
+
+                {{!-- STANDARD ITEM (Generic) --}}
+                {{#if (eq item.type "item")}}
+                {{!-- No extra fields --}}
                 {{/if}}
 
                 {{!-- ARMOR Specific --}}
                 {{#if (eq item.type "armor")}}
                 <div class="form-group"><label>PV (Prot)</label><input type="number" name="system.pv" value="{{system.pv}}"/></div>
-                <div class="form-group">
-                    <label>Resist (Cur / Max)</label>
-                    <div class="flexrow">
-                        <input type="number" name="system.resistance.value" value="{{system.resistance.value}}" placeholder="Cur"/>
-                        <span style="flex:0;">/</span>
-                        <input type="number" name="system.resistance.max" value="{{system.resistance.max}}" placeholder="Max"/>
-                    </div>
+                <div class="form-group"><label>Resist (Cur / Max)</label>
+                    <div class="flexrow"><input type="number" name="system.resistance.value" value="{{system.resistance.value}}"/> / <input type="number" name="system.resistance.max" value="{{system.resistance.max}}"/></div>
                 </div>
                 {{/if}}
 
                 {{!-- DRUG Specific --}}
                 {{#if (eq item.type "drug")}}
-                <div class="form-group"><label>Duration (Hrs)</label><input type="number" name="system.duration" value="{{system.duration}}"/></div>
-                <div class="form-group"><label>Addiction Target</label><input type="number" name="system.addiction" value="{{system.addiction}}"/></div>
+                <div class="form-group"><label>Duration</label><input type="number" name="system.duration" value="{{system.duration}}"/></div>
+                <div class="form-group"><label>Addiction</label><input type="number" name="system.addiction" value="{{system.addiction}}"/></div>
+                <div class="form-group" style="grid-column: 1 / -1;"><label style="text-align:center; width:100%;">STAT MODIFIERS</label></div>
                 
-                <div class="form-group" style="grid-column: 1 / -1; border-top: 2px dashed #999; margin-top:5px; padding-top:5px;">
-                    <label style="text-align:center; width:100%; display:block;">STAT MODIFIERS</label>
+                <div class="form-group">
+                    <label>Mod 1</label>
+                    {{!-- FIX: Added @root. --}}
+                    <select name="system.mods.first.stat"><option value="">- None -</option>{{selectOptions @root.config.stats selected=system.mods.first.stat}}</select>
                 </div>
-
-                <div class="form-group"><label>Mod 1 Stat</label>
-                    <select name="system.mods.first.stat">
-                        <option value="">- None -</option>
-                        {{selectOptions config.stats selected=system.mods.first.stat}}
-                    </select>
-                </div>
-                <div class="form-group"><label>Mod 1 Value</label><input type="number" name="system.mods.first.value" value="{{system.mods.first.value}}"/></div>
+                <div class="form-group"><label>Val</label><input type="number" name="system.mods.first.value" value="{{system.mods.first.value}}"/></div>
                 
-                <div class="form-group"><label>Mod 2 Stat</label>
-                    <select name="system.mods.second.stat">
-                        <option value="">- None -</option>
-                        {{selectOptions config.stats selected=system.mods.second.stat}}
-                    </select>
+                <div class="form-group">
+                    <label>Mod 2</label>
+                    {{!-- FIX: Added @root. --}}
+                    <select name="system.mods.second.stat"><option value="">- None -</option>{{selectOptions @root.config.stats selected=system.mods.second.stat}}</select>
                 </div>
-                <div class="form-group"><label>Mod 2 Value</label><input type="number" name="system.mods.second.value" value="{{system.mods.second.value}}"/></div>
+                <div class="form-group"><label>Val</label><input type="number" name="system.mods.second.value" value="{{system.mods.second.value}}"/></div>
                 {{/if}}
 
             </div>
@@ -96,29 +124,17 @@
             {{!-- 2. ACADEMIC THEME (Skills, Traits) --}}
             {{#if (or (eq item.type "skill") (eq item.type "trait"))}}
             <div class="academic-paper">
-                
-                {{!-- RANK (Restored to Body) --}}
-                <div class="form-group line-item">
-                    <label>Current Rank:</label>
-                    <input type="number" name="system.rank" value="{{system.rank}}" placeholder="0"/>
-                </div>
-
-                {{!-- SKILLS ONLY --}}
+                <div class="form-group line-item"><label>Current Rank:</label><input type="number" name="system.rank" value="{{system.rank}}" placeholder="0"/></div>
                 {{#if (eq item.type "skill")}}
                 <div class="form-group line-item">
                     <label>Related Stat:</label>
-                    <select name="system.stat">{{selectOptions config.stats selected=system.stat}}</select>
+                    {{!-- FIX: Added @root. --}}
+                    <select name="system.stat">{{selectOptions @root.config.stats selected=system.stat}}</select>
                 </div>
                 {{/if}}
-
-                {{!-- TRAITS ONLY --}}
                 {{#if (eq item.type "trait")}}
-                <div class="form-group line-item">
-                    <label>Trait Type:</label>
-                    <input type="text" name="system.type" value="{{system.type}}" placeholder="Advantage / Disadvantage"/>
-                </div>
+                <div class="form-group line-item"><label>Type:</label><input type="text" name="system.type" value="{{system.type}}" placeholder="Advantage / Disadvantage"/></div>
                 {{/if}}
-
                 <div class="form-group line-item"><label>XP Cost:</label><input type="number" name="system.xpCost" value="{{system.xpCost}}"/></div>
             </div>
             {{/if}}
@@ -127,29 +143,22 @@
             {{#if (or (eq item.type "ebbFormula") (eq item.type "discipline"))}}
             <div class="spectral-container">
                 <div class="form-group glow-input"><label>Flux Cost</label><input type="number" name="system.cost" value="{{system.cost}}"/></div>
-                
-                {{!-- DISCIPLINE RANK --}}
-                {{#if (eq item.type "discipline")}}
-                <div class="form-group glow-input">
-                    <label>Discipline Rank</label>
-                    <input type="number" name="system.rank" value="{{system.rank}}" placeholder="0"/>
-                </div>
-                {{/if}}
-
-                {{!-- EBB FORMULA FIELDS --}}
+                {{#if (eq item.type "discipline")}}<div class="form-group glow-input"><label>Rank</label><input type="number" name="system.rank" value="{{system.rank}}"/></div>{{/if}}
                 {{#if (eq item.type "ebbFormula")}}
-                <div class="form-group glow-input"><label>Formula Rating (FR)</label><input type="number" name="system.formulaRating" value="{{system.formulaRating}}"/></div>
-                <div class="form-group glow-input"><label>Discipline</label><select name="system.discipline">{{selectOptions config.disciplineSkills selected=system.discipline}}</select></div>
-                
-                {{!-- NEW COMBAT FIELDS FOR EBB --}}
-                
+                <div class="form-group glow-input"><label>FR</label><input type="number" name="system.formulaRating" value="{{system.formulaRating}}"/></div>
+                <div class="form-group glow-input">
+                    <label>Discipline</label>
+                    {{!-- FIX: Added @root. and disciplineSkills --}}
+                    <select name="system.discipline">{{selectOptions @root.config.disciplineSkills selected=system.discipline}}</select>
+                </div>
+                <div class="form-group glow-input"><label>Skill Used</label><input type="text" name="system.skill" value="{{system.skill}}" placeholder="e.g. Blast"/></div>
                 <div class="catalogue-grid" style="background:transparent; border:none; padding:0; margin-top:10px;">
-                    <div class="form-group glow-input"><label>Damage</label><input type="text" name="system.damage" value="{{system.damage}}"/></div>
-                    <div class="form-group glow-input"><label>Min Dmg</label><input type="text" name="system.minDamage" value="{{system.minDamage}}"/></div>
+                    <div class="form-group glow-input"><label>Dmg</label><input type="text" name="system.damage" value="{{system.damage}}"/></div>
+                    <div class="form-group glow-input"><label>Min</label><input type="text" name="system.minDamage" value="{{system.minDamage}}"/></div>
                     <div class="form-group glow-input"><label>AD</label><input type="number" name="system.ad" value="{{system.ad}}"/></div>
                     <div class="form-group glow-input"><label>ROF</label><input type="text" name="system.rof" value="{{system.rof}}"/></div>
-                    <div class="form-group glow-input"><label>Recoil</label><input type="text" name="system.recoil" value="{{system.recoil}}"/></div>
-                    <div class="form-group glow-input"><label>Range</label><input type="text" name="system.range" value="{{system.range}}"/></div>
+                    <div class="form-group glow-input"><label>Rec</label><input type="text" name="system.recoil" value="{{system.recoil}}"/></div>
+                    <div class="form-group glow-input"><label>Rng</label><input type="text" name="system.range" value="{{system.range}}"/></div>
                 </div>
                 {{/if}}
             </div>
@@ -158,16 +167,12 @@
             {{!-- 4. DOSSIER THEME (Species, Package) --}}
             {{#if (or (eq item.type "species") (eq item.type "package"))}}
             <div class="office-dossier">
-                <div class="dossier-stamp">CONFIDENTIAL RECORD</div>
-                
+                <div class="dossier-stamp">CONFIDENTIAL</div>
                 {{#if (eq item.type "species")}}
                 <div class="paper-section">
-                    <div class="paper-header">BIOLOGICAL PARAMETERS</div>
-                    <div class="form-group paper-row"><label>Base HP:</label><input type="number" name="system.hp" value="{{system.hp}}"/></div>
-                    <div class="form-group paper-row">
-                        <label>Move (Close/Rush):</label>
-                        <div class="flexrow"><input type="number" name="system.move.closing" value="{{system.move.closing}}"/> / <input type="number" name="system.move.rushing" value="{{system.move.rushing}}"/></div>
-                    </div>
+                    <div class="paper-header">BIO</div>
+                    <div class="form-group paper-row"><label>HP</label><input type="number" name="system.hp" value="{{system.hp}}"/></div>
+                    <div class="form-group paper-row"><label>Move</label><div class="flexrow"><input type="number" name="system.move.closing" value="{{system.move.closing}}"/> / <input type="number" name="system.move.rushing" value="{{system.move.rushing}}"/></div></div>
                     <div class="stat-limits-grid">
                         <div class="limit-box"><label>STR</label><div class="flexrow"><input type="number" name="system.stats.str.min" value="{{system.stats.str.min}}"/>-<input type="number" name="system.stats.str.max" value="{{system.stats.str.max}}"/></div></div>
                         <div class="limit-box"><label>DEX</label><div class="flexrow"><input type="number" name="system.stats.dex.min" value="{{system.stats.dex.min}}"/>-<input type="number" name="system.stats.dex.max" value="{{system.stats.dex.max}}"/></div></div>
@@ -178,7 +183,6 @@
                     </div>
                 </div>
                 {{/if}}
-
                 {{#if (eq item.type "package")}}
                 <div class="paper-section">
                     <div class="paper-header">PREREQUISITES</div>
@@ -192,20 +196,7 @@
                     </div>
                 </div>
                 {{/if}}
-
-                <div class="paper-section">
-                    <div class="paper-header">GRANTED SKILLS & TRAITS</div>
-                    <div class="drop-zone skill-grant-area">
-                        {{#each system.skills as |skill index|}}
-                            <div class="granted-skill-chip">
-                                <span class="skill-name">{{skill.name}}</span>
-                                <a class="delete-grant" data-index="{{index}}" title="Remove"><i class="fas fa-times"></i></a>
-                            </div>
-                        {{else}}
-                            <div class="empty-dossier-text">Drag & Drop Skills/Traits here to auto-grant them.</div>
-                        {{/each}}
-                    </div>
-                </div>
+                <div class="paper-section"><div class="paper-header">GRANTED SKILLS</div><div class="drop-zone skill-grant-area">{{#each system.skills as |skill index|}}<div class="granted-skill-chip"><span class="skill-name">{{skill.name}}</span><a class="delete-grant" data-index="{{index}}"><i class="fas fa-times"></i></a></div>{{else}}<div class="empty-dossier-text">Drop Skills Here</div>{{/each}}</div></div>
             </div>
             {{/if}}
 
