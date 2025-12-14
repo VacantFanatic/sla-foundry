@@ -1367,3 +1367,67 @@
     align-items: center;
     overflow: hidden;
 }
+
+/* EBB DROP ZONE STYLING */
+.discipline-drop-zone {
+    border: 2px dashed #555;
+    border-radius: 5px;
+    padding: 5px 10px; /* Reduced padding */
+    background: rgba(0, 0, 0, 0.2);
+    min-height: 40px; /* Smaller height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.discipline-drop-zone:hover {
+    border-color: #8a2be2;
+    background: rgba(138, 43, 226, 0.1);
+}
+
+.discipline-drop-zone.filled {
+    border: 1px solid #8a2be2;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.discipline-drop-zone .linked-item {
+    display: flex;
+    align-items: center; /* Vertically align items */
+    width: 100%;
+    gap: 10px;
+}
+
+/* Constrain the image size explicitly */
+.discipline-drop-zone .linked-item img {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #000;
+    border-radius: 4px;
+    background: #000;
+    object-fit: cover;
+    flex-shrink: 0; /* Prevent squishing */
+    margin: 0; /* Remove any default margins */
+}
+
+.discipline-drop-zone .linked-item .linked-name {
+    font-weight: bold;
+    color: #fff;
+    flex-grow: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.discipline-drop-zone .remove-discipline {
+    color: #ff5555;
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 0 5px;
+}
+
+.discipline-drop-zone .remove-discipline:hover {
+    color: #ff0000;
+    text-shadow: 0 0 5px #f00;
+}

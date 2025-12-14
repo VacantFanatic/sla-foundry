@@ -30,6 +30,14 @@
     </div>
     {{/if}}
 
+    {{!-- MOS OUTCOME SECTION --}}
+    {{#if mos.isSuccess}}
+    <div style="margin-top:8px; padding:4px; background:#333; border-left:3px solid #39ff14;">
+        <span style="font-size:0.8em; color:#aaa;">OUTCOME ({{mos.hits}} Skill Hits):</span><br>
+        <span style="font-size:1em; color:#fff;">{{{mos.effect}}}</span>
+    </div>
+    {{/if}}
+
     {{!-- NOTES --}}
     {{#if notes}}
     <div style="margin-top: 5px; font-size: 0.9em; border-top: 1px dashed #444; padding-top: 2px;">
@@ -37,13 +45,13 @@
     </div>
     {{/if}}
 
-    {{!-- DAMAGE BUTTON --}}
+{{!-- DAMAGE BUTTON --}}
     {{#if showDamageButton}}
     <button class="roll-damage" 
             data-damage="{{dmgFormula}}" 
             data-ad="{{adValue}}" 
             data-weapon="{{itemName}}" 
-            style="background:#300; color:#8a2be2; border:1px solid #8a2be2; cursor:pointer; width: 100%; margin-top:10px;">
+            style="background: #8b0000; color: #ffffff; border: 1px solid #ff4444; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; padding: 5px;">
         <i class="fas fa-tint"></i> ROLL DAMAGE ({{dmgFormula}})
     </button>
     {{/if}}

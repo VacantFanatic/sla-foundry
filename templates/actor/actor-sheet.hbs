@@ -170,28 +170,51 @@
                                             {{#if (eq item.type "armor")}}PV: {{item.system.pv}}{{/if}}
                                         </td>
 
-                                        {{!-- ACTIONS COLUMN (Roll + Reload + Ammo Count) --}}
-                                        <td style="text-align:center;">
-                                            {{#if (eq item.type "weapon")}}
-                                            <div class="flexrow" style="align-items:center; justify-content:center; gap:5px;">
-                                                
-                                                {{!-- 1. Attack Button --}}
-                                                <a class="rollable" data-roll-type="item" title="Attack"><i class="fas fa-crosshairs" style="color:#222"></i></a>
-                                                
-                                                {{!-- 2. Reload Button (Always Visible) --}}
-                                                <a class="item-reload" title="Reload"><i class="fas fa-sync-alt" style="color:#444; font-size:0.9em;"></i></a>
-                                                
-                                                {{!-- 3. Ammo Display --}}
-                                                <span style="font-size:0.8em; font-weight:bold; color:{{#if (eq item.system.maxAmmo 0)}}#d00{{else}}#444{{/if}};">
-                                                    {{#if item.system.maxAmmo}}
-                                                        {{item.system.ammo}}/{{item.system.maxAmmo}}
-                                                    {{else}}
-                                                        No Clip
-                                                    {{/if}}
-                                                </span>
-                                            </div>
-                                            {{/if}}
-                                        </td>
+										{{!-- ACTIONS/AMMO/RESIST COLUMN --}}
+										<td style="text-align:center;">
+    
+										{{!-- ARMOR STATS (NEW BLOCK) --}}
+										{{#if (eq item.type "armor")}}
+										<div class="flexrow armor-resist-stats" style="align-items:center; justify-content:center; gap:5px; font-size:0.9em;">
+											<i class="fas fa-shield-alt" title="Resistance" style="color: #8a2be2;"></i>
+            
+											{{!-- Current Resist (Editable) --}}
+											<input type="number" 
+											class="inline-edit" 
+											data-field="system.resistance.value" 
+											data-item-id="{{item._id}}"
+											value="{{item.system.resistance.value}}" 
+											title="Current Resistance"
+											style="width: 35px; height: 20px; text-align: center; border: 1px solid #555; background: rgba(0,0,0,0.3); color: #fff;"/>
+            
+											<span style="color: #777;">/</span>
+            
+											{{!-- Max Resist (Read Only) --}}
+											<span title="Max Resistance" style="color: #aaa; font-weight: bold;">{{item.system.resistance.max}}</span>
+										</div>
+										{{/if}}
+
+										{{!-- WEAPON ACTIONS (EXISTING BLOCK) --}}
+										{{#if (eq item.type "weapon")}}
+										<div class="flexrow" style="align-items:center; justify-content:center; gap:5px;">
+            
+											{{!-- 1. Attack Button --}}
+											<a class="rollable" data-roll-type="item" title="Attack"><i class="fas fa-crosshairs" style="color:#222"></i></a>
+            
+											{{!-- 2. Reload Button --}}
+											<a class="item-reload" title="Reload"><i class="fas fa-sync-alt" style="color:#444; font-size:0.9em;"></i></a>
+            
+											{{!-- 3. Ammo Display --}}
+											<span style="font-size:0.8em; font-weight:bold; color:{{#if (eq item.system.maxAmmo 0)}}#d00{{else}}#444{{/if}};">
+											{{#if item.system.maxAmmo}}
+												{{item.system.ammo}}/{{item.system.maxAmmo}}
+											{{else}}
+												No Clip
+											{{/if}}
+											</span>
+										</div>
+										{{/if}}
+									</td>
 
                                         <td class="item-controls">
                                             <a class="item-edit"><i class="fas fa-edit" style="color:#444"></i></a>

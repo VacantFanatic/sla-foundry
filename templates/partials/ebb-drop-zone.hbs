@@ -1,0 +1,26 @@
+<div class="form-group" style="grid-column: 1 / -1; margin: 10px 0;">
+    <label style="color:#a8e; font-weight:bold; margin-bottom:5px; display:block;">Linked Discipline</label>
+    
+    <div class="discipline-drop-zone {{#if system.discipline}}filled{{/if}}">
+        {{#if system.discipline}}
+            {{!-- STATE: Item Linked --}}
+            <div class="linked-item">
+                {{#if linkedDisciplineImg}}
+                    <img src="{{linkedDisciplineImg}}" title="{{system.discipline}}"/>
+                {{else}}
+                    <img src="icons/svg/item-bag.svg" title="Default"/>
+                {{/if}}
+                <span class="linked-name">{{system.discipline}}</span>
+                <a class="remove-discipline" title="Remove Link"><i class="fas fa-times"></i></a>
+            </div>
+        {{else}}
+            {{!-- STATE: Empty --}}
+            <div class="drop-placeholder">
+                <i class="fas fa-download"></i> Drop Discipline Item Here
+            </div>
+        {{/if}}
+
+        {{!-- Hidden Input to Store the Name --}}
+        <input type="hidden" name="system.discipline" value="{{system.discipline}}">
+    </div>
+</div>

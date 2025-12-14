@@ -155,6 +155,24 @@ export class SlaActorSheet extends ActorSheet {
             }
         });
     });
+	
+	// --- NEW: INLINE ITEM EDITING (For Armor Resist) ---
+    html.find('.inline-edit').change(async ev => {
+        ev.preventDefault();
+        const input = ev.currentTarget;
+        const itemId = input.dataset.itemId || $(input).parents(".item").data("itemId");
+        
+        // Safety check if we can't find the item
+        if (!itemId) return;
+
+        const item = this.actor.items.get(itemId);
+        const field = input.dataset.field; // "system.resistance.value"
+        
+        if (item && field) {
+            // Use Number() to ensure it's saved as a number, not a string
+            await item.update({ [field]: Number(input.value) });
+        }
+    });
 
     html.find('.chip-delete[data-type="package"]').click(async ev => {
         ev.preventDefault(); ev.stopPropagation();
@@ -360,20 +378,6 @@ async _onRoll(event) {
     if (dataset.rollType === 'skill') {
         this._executeSkillRoll(element);
     }
-
-    if (dataset.rollType === 'item') {
-        const itemId = $(element).parents('.item').data('itemId');
-        const item = this.actor.items.get(itemId);
-        if (item.type === 'weapon') {
-            const skillKey = item.system.skill || "";
-            const isMelee = ["melee", "unarmed", "thrown"].includes(skillKey);
-            this._renderAttackDialog(item, isMelee);
-        } else if (item.type === 'ebbFormula') {
-            this._executeEbbRoll(item);
-        } else {
-            item.sheet.render(true);
-        }
-    }
     
     if (dataset.rollType === 'init') {
         await this.actor.rollInitiative({createCombatants: true});
@@ -403,6 +407,86 @@ async _onRoll(event) {
     }, {
       classes: ["sla-dialog", "sla-sheet"]
     }).render(true);
+  }
+  
+	async _executeSkillRoll(element) {
+      // 1. GET ITEM & DATA
+      const itemId = $(element).parents('.item').data('itemId');
+      const item = this.actor.items.get(itemId);
+      if (!item) return;
+
+      const statKey = item.system.stat || "dex";
+      const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
+      
+      // Default rank to 0 if missing
+      const rank = item.system.rank || 0;
+
+      // 2. MODIFIERS (Wounds, Prone, Stunned)
+      let globalMod = 0;
+      if (this.actor.system.conditions?.prone) globalMod -= 1;
+      if (this.actor.system.conditions?.stunned) globalMod -= 1;
+      const penalty = this.actor.system.wounds.penalty || 0;
+      
+      const baseModifier = statValue + rank + globalMod - penalty;
+
+      // 3. ROLL FORMULA
+      // CORRECTION: 1 Success Die + (Rank + 1) Skill Dice
+      const skillDiceCount = rank + 1;
+      const rollFormula = `1d10 + ${skillDiceCount}d10`;
+
+      let roll = new Roll(rollFormula);
+      await roll.evaluate();
+
+      // 4. CALCULATE SUCCESS
+      const TN = 11;
+      const sdRaw = roll.terms[0].results[0].result;
+      const sdTotal = sdRaw + baseModifier;
+      const isSuccess = sdTotal >= TN;
+      const resultColor = isSuccess ? '#39ff14' : '#f55';
+
+      // 5. PROCESS SKILL DICE (MOS)
+      let skillDiceData = [];
+      let skillSuccessCount = 0;
+      
+      if (roll.terms.length > 2) {
+           roll.terms[2].results.forEach(r => {
+               let val = r.result + baseModifier;
+               let isHit = val >= TN; 
+               if (isHit) skillSuccessCount++;
+               
+               skillDiceData.push({
+                   raw: r.result,
+                   total: val,
+                   borderColor: isHit ? "#39ff14" : "#555",
+                   textColor: isHit ? "#39ff14" : "#ccc"
+               });
+           });
+      }
+
+      // 6. RENDER TEMPLATE
+      const templateData = {
+          borderColor: resultColor,
+          headerColor: resultColor,
+          resultColor: resultColor,
+          itemName: item.name.toUpperCase(),
+          successTotal: sdTotal,
+          tooltip: this._generateTooltip(roll, baseModifier, 0),
+          skillDice: skillDiceData,
+          notes: "", 
+          showDamageButton: false, 
+          mos: {
+              isSuccess: isSuccess,
+              hits: skillSuccessCount,
+              effect: isSuccess ? `Margin of Success: ${skillSuccessCount}` : "Failed"
+          }
+      };
+
+      const chatContent = await renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+
+      roll.toMessage({
+           speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+           content: chatContent
+      });
   }
 
   // --- HELPERS: HTML GENERATION ---
@@ -487,172 +571,245 @@ async _onRoll(event) {
       await roll.evaluate();
 
       // 5. CALCULATE RESULTS
+      const TN = 11;
       const sdRaw = roll.terms[0].results[0].result;
       const sdTotal = sdRaw + baseModifier + mods.successDie;
-      const isSuccess = sdTotal > 10;
+      const isSuccess = sdTotal >= TN;
       const resultColor = isSuccess ? '#39ff14' : '#f55';
 
-      // Build Skill Dice HTML Manually (The Old Way)
-      let skillDiceHtml = "";
+      // --- MOS & SKILL DICE DATA PREP ---
+      let skillDiceData = [];
+      let skillSuccessCount = 0;
+      
       if (roll.terms.length > 2) {
            roll.terms[2].results.forEach(r => {
                let val = r.result + baseModifier;
-               let border = val >= 10 ? "1px solid #39ff14" : "1px solid #555";
-               let color = val >= 10 ? "#39ff14" : "#ccc"; // Added color logic
-               skillDiceHtml += `<div style="display:flex; flex-direction:column; align-items:center; margin:2px;"><span style="border:${border}; color:${color}; padding:2px 8px; border-radius:4px; font-weight:bold;">${val}</span><span style="font-size:0.7em; color:#555;">(${r.result})</span></div>`;
+               let isHit = val >= TN; 
+               if (isHit) skillSuccessCount++;
+               
+               skillDiceData.push({
+                   raw: r.result,
+                   total: val,
+                   borderColor: isHit ? "#39ff14" : "#555",
+                   textColor: isHit ? "#39ff14" : "#ccc"
+               });
            });
       }
 
-      // Add Auto-Successes (if any)
+      // Add Auto-Successes
+      skillSuccessCount += mods.autoSkillSuccesses;
       for(let i=0; i < mods.autoSkillSuccesses; i++) {
-          skillDiceHtml += `<div style="display:flex; flex-direction:column; align-items:center; margin:2px;"><span style="border:1px solid #39ff14; color:#39ff14; padding:2px 8px; border-radius:4px; font-weight:bold;">Auto</span><span style="font-size:0.7em; color:#555;">(-)</span></div>`;
+          skillDiceData.push({ raw: "-", total: "Auto", borderColor: "#39ff14", textColor: "#39ff14" });
       }
 
-      // Generate the standard tooltip HTML
-      const tooltipHtml = this._generateTooltip(roll, baseModifier, mods.successDie);
+      // Calculate MOS Bonus
+      let mosDamageBonus = 0;
+      let mosEffectText = "Standard Hit";
       
-      // Prepare Damage Data
-      let finalDmgFormula = item.system.dmg;
-      if (mods.damage !== 0 && finalDmgFormula) {
-          finalDmgFormula = `${item.system.dmg} + ${mods.damage}`;
-      }
-      
-      // Optional: Damage Button HTML (Only if success and damage exists)
-      let damageBtnHtml = "";
-      if (isSuccess && item.system.dmg && item.system.dmg !== "0") {
-          damageBtnHtml = `
-          <button class="roll-damage" data-damage="${finalDmgFormula}" data-ad="${item.system.ad || 0}" data-weapon="${item.name}" style="background:#300; color:#8a2be2; border:1px solid #8a2be2; cursor:pointer; width: 100%; margin-top:5px;">
-              <i class="fas fa-tint"></i> ROLL DAMAGE (${finalDmgFormula})
-          </button>`;
+      if (isSuccess) {
+          if (skillSuccessCount === 1) { mosDamageBonus = 1; mosEffectText = "+1 Damage"; }
+          else if (skillSuccessCount === 2) { mosDamageBonus = 2; mosEffectText = "+2 DMG or Hit Arm"; }
+          else if (skillSuccessCount === 3) { mosDamageBonus = 4; mosEffectText = "+4 DMG or Hit Leg"; }
+          else if (skillSuccessCount >= 4) { mosDamageBonus = 6; mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)"; }
       }
 
-      // 6. RENDER MESSAGE (Using Inline HTML String)
+      // --- DAMAGE CALCULATION (FIXED) ---
+      
+      // 1. Get Base Damage using the CORRECT property "damage"
+      // Fallback to "dmg" just in case, then default to "0"
+      let rawBase = item.system.damage || item.system.dmg || "0";
+      let baseDmg = String(rawBase);
+      
+      // 2. Calculate Total Modifier (Dialog Mods + MOS Bonus)
+      let totalMod = mods.damage + mosDamageBonus;
+      let finalDmgFormula = baseDmg;
+
+      // 3. Construct Formula
+      if (totalMod !== 0) {
+          if (baseDmg === "0" || baseDmg === "") {
+               // If base is 0/empty, the damage is JUST the modifier
+               finalDmgFormula = String(totalMod);
+          } else {
+               // If base exists (e.g., "1d10+2"), append the mod
+               let sign = totalMod > 0 ? "+" : "";
+               finalDmgFormula = `${baseDmg} ${sign} ${totalMod}`;
+          }
+      }
+
+      // 4. Decide Visibility
+      // Show if Successful AND Formula is not "0" AND Formula is not empty
+      let showButton = isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
+
+      // 6. RENDER TEMPLATE
+      const templateData = {
+          borderColor: resultColor,
+          headerColor: resultColor,
+          resultColor: resultColor,
+          itemName: item.name.toUpperCase(),
+          successTotal: sdTotal,
+          tooltip: this._generateTooltip(roll, baseModifier, mods.successDie),
+          skillDice: skillDiceData,
+          notes: notes.join(" "),
+          showDamageButton: showButton,
+          dmgFormula: finalDmgFormula,
+          adValue: item.system.ad || 0,
+          mos: {
+              isSuccess: isSuccess,
+              hits: skillSuccessCount,
+              effect: mosEffectText
+          }
+      };
+
+      const chatContent = await renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+
       roll.toMessage({
            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-           content: `
-           <div style="background: #222; border: 1px solid ${resultColor}; color: #eee; padding: 5px; font-family:'Roboto Condensed',sans-serif;">
-               <h3 style="color:${resultColor}; border-bottom:1px solid #555; margin:0 0 5px 0;">${item.name.toUpperCase()}</h3>
-               <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:5px; margin-bottom:5px;">
-                   <span style="font-size:0.9em; color:#aaa;">SUCCESS DIE</span>
-                   <span class="roll-toggle" style="font-size:1.5em; font-weight:bold; color:${resultColor}; cursor:pointer;">${sdTotal}</span>
-               </div>
-               
-               ${tooltipHtml}
-               
-               <div style="display:flex; flex-wrap:wrap;">${skillDiceHtml}</div>
-               
-               ${notes.length > 0 ? `<div style="margin-top:5px; font-size:0.8em; border-top:1px dashed #555; padding-top:2px;">${notes.join(" ")}</div>` : ""}
-               
-               ${damageBtnHtml}
-           </div>`
+           content: chatContent
       });
   }
 
-  async _executeEbbRoll(item) {
+	async _executeEbbRoll(item) {
       const formulaRating = item.system.formulaRating || 7;
       const currentFlux = this.actor.system.stats.flux?.value || 0;
-      const fluxCost = 1;
+      const fluxCost = 1; // Most formulas cost 1 Flux
 
-      if (currentFlux < fluxCost) { ui.notifications.error("Insufficient FLUX."); return; }
+      // 1. Check & Consume Flux
+      if (currentFlux < fluxCost) { 
+          ui.notifications.error("Insufficient FLUX."); 
+          return; 
+      }
       await this.actor.update({ "system.stats.flux.value": Math.max(0, currentFlux - fluxCost) });
 
+      // 2. Resolve Discipline Rank
+      // We need to find the parent Discipline to get the Rank
       const disciplineName = item.system.discipline;
-      const statKey = "conc"; 
+      const statKey = "conc"; // Ebb is usually Concentration based
       const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
       
       let targetName = disciplineName;
+      // Handle short names vs full names if you have a config map
       const ebbDisciplines = CONFIG.SLA?.ebbDisciplines || {};
       for (const [key, label] of Object.entries(ebbDisciplines)) {
           if (key === disciplineName || label === disciplineName) { targetName = label; break; }
       }
 
       const disciplineItem = this.actor.items.find(i => i.type === 'discipline' && i.name.toLowerCase() === targetName.toLowerCase());
-      if (!disciplineItem) { ui.notifications.warn(`Missing Discipline: ${targetName}`); return; }
+      if (!disciplineItem) { 
+          ui.notifications.warn(`Missing Discipline Item: ${targetName}`); 
+          return; 
+      }
 
       const rank = disciplineItem.system.rank || 0;
-      const effectiveName = disciplineItem.name;
-
+      
+      // 3. Modifiers
       let globalMod = 0;
       if (this.actor.system.conditions?.prone) globalMod -= 1;
       if (this.actor.system.conditions?.stunned) globalMod -= 1;
       const penalty = this.actor.system.wounds.penalty || 0;
+      
       const modifier = statValue + rank - penalty + globalMod;
 
-      // FIXED RULE: 1d10 + (Rank + 1)d10
+      // 4. Roll Formula: 1d10 + (Rank + 1)d10
       const skillDiceCount = rank + 1;
-      let formula = `1d10 + ${skillDiceCount}d10`;
+      const rollFormula = `1d10 + ${skillDiceCount}d10`;
 
-      let roll = new Roll(formula);
+      let roll = new Roll(rollFormula);
       await roll.evaluate();
 
+      // 5. Calculate Success (Target Number is the Formula Rating)
       const successRaw = roll.terms[0].results[0].result;
       const successTotal = successRaw + modifier;
       const isBaseSuccess = successTotal >= formulaRating;
       const resultColor = isBaseSuccess ? '#39ff14' : '#f55';
 
+      // 6. Process Skill/Flux Dice
+      let skillDiceData = [];
       let skillSuccesses = 0;
-      let skillDiceHtml = "";
-      
+
       if (roll.terms.length > 2) {
            roll.terms[2].results.forEach(r => {
-               const val = r.result + modifier;
-               const isSuccess = val >= formulaRating;
-               if (isSuccess) skillSuccesses++;
-               const border = isSuccess ? "1px solid #8a2be2" : "1px solid #555";
-               const color = isSuccess ? "#39ff14" : "#aaa";
-               skillDiceHtml += `<div style="display:flex; flex-direction:column; align-items:center; margin:2px;"><span style="border:${border}; padding:2px 8px; border-radius:4px; font-weight:bold; color:${color};">${val}</span><span style="font-size:0.7em; color:#555;">(${r.result})</span></div>`;
+               let val = r.result + modifier;
+               // For Ebb, the TN for skill dice is ALSO the Formula Rating
+               let isHit = val >= formulaRating; 
+               if (isHit) skillSuccesses++;
+               
+               skillDiceData.push({
+                   raw: r.result,
+                   total: val,
+                   borderColor: isHit ? "#39ff14" : "#555",
+                   textColor: isHit ? "#39ff14" : "#ccc"
+               });
            });
       }
 
-      let mosEffectText = "No effect.";
-      let failureConsequence = "";
+      // 7. Determine MOS Effects (Specific to Ebb)
+      let mosEffectText = "Standard Success";
+      let failureConsequence = "Failed";
+      
       const allDiceFailed = (!isBaseSuccess) && (skillSuccesses === 0);
-      const isSuccessful = isBaseSuccess || (skillSuccesses >= 1);
+      const isSuccessful = isBaseSuccess || (skillSuccesses >= 1); // Ebb succeeds if EITHER success die OR skill dice hit
 
       if (isSuccessful) {
-          if (skillSuccesses === 2) mosEffectText = "+1 Damage";
-          if (skillSuccesses === 3) mosEffectText = "+2 Damage / Repeat Ability";
-          if (skillSuccesses >= 4) mosEffectText = "+4 Damage | Regain 1 FLUX"; 
+          if (skillSuccesses === 2) mosEffectText = "+1 Damage / Effect";
+          else if (skillSuccesses === 3) mosEffectText = "+2 Damage / Repeat Ability";
+          else if (skillSuccesses >= 4) mosEffectText = "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX";
       } else {
           if (allDiceFailed) {
-              failureConsequence = "🤯 SEVERE FAILURE: -3 HP & -1 FLUX";
-              await this.actor.update({ 
-                  "system.hp.value": Math.max(0, this.actor.system.hp.value - 3),
-                  "system.stats.flux.value": Math.max(0, this.actor.system.stats.flux.value - 1)
-              });
-          } else {
-              failureConsequence = "Failed.";
+              failureConsequence = "<strong style='color:#ff5555'>SEVERE FAILURE:</strong> -3 HP & -1 Extra FLUX";
+              // Auto-apply punishment? Or just warn?
+              // await this.actor.update({ 
+              //    "system.hp.value": Math.max(0, this.actor.system.hp.value - 3),
+              //    "system.stats.flux.value": Math.max(0, this.actor.system.stats.flux.value - 1)
+              // });
           }
       }
 
-      const dmgFormula = item.system.dmg || "0";
-      const adValue = item.system.ad || 0;
-      const penaltyHtml = penalty > 0 ? `<span style="color:#f55;"> (Wounds: -${penalty})</span>` : "";
-      const tooltipHtml = this._generateTooltip(roll, modifier, 0);
+      // 8. Damage Calculation (For Offensive Formulas)
+      let rawBase = item.system.dmg || item.system.damage || "0";
+      let baseDmg = String(rawBase);
+      let mosDamageBonus = 0;
+
+      // Map MOS to damage if applicable
+      if (isSuccessful) {
+          if (skillSuccesses === 2) mosDamageBonus = 1;
+          if (skillSuccesses === 3) mosDamageBonus = 2;
+          if (skillSuccesses >= 4) mosDamageBonus = 4;
+      }
+
+      let finalDmgFormula = baseDmg;
+      if (baseDmg !== "0" && baseDmg !== "") {
+           let sign = mosDamageBonus > 0 ? "+" : "";
+           if (mosDamageBonus > 0) finalDmgFormula = `${baseDmg} ${sign} ${mosDamageBonus}`;
+      }
+
+      // Show damage button if formula exists AND not "0"
+      let showButton = isSuccessful && (finalDmgFormula && finalDmgFormula !== "0");
+
+      // 9. Render Template
+      const templateData = {
+          borderColor: resultColor,
+          headerColor: resultColor,
+          resultColor: resultColor,
+          itemName: item.name.toUpperCase(),
+          successTotal: successTotal,
+          tooltip: this._generateTooltip(roll, modifier, 0),
+          skillDice: skillDiceData,
+          notes: `<strong>Formula Rating:</strong> ${formulaRating}`, 
+          showDamageButton: showButton,
+          dmgFormula: finalDmgFormula,
+          adValue: item.system.ad || 0,
+          mos: {
+              isSuccess: isSuccessful,
+              hits: skillSuccesses,
+              effect: isSuccessful ? mosEffectText : failureConsequence
+          }
+      };
+
+      const chatContent = await renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
 
       roll.toMessage({
-          speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-          content: `
-            <div style="background: #111; border: 1px solid #8a2be2; color: #eee; padding: 5px; font-family:'Roboto Condensed',sans-serif;">
-                <h3 style="color:#8a2be2; margin:0; border-bottom:1px solid #8a2be2;">${item.name.toUpperCase()} (FR: ${formulaRating})</h3>
-                <div style="font-size: 0.8em; color: #aaa;">${effectiveName} (${rank}) | CONC ${statValue} ${penaltyHtml}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:5px; margin-bottom:5px;">
-                    <span style="font-size:0.9em; font-weight:bold; color:#fff;">SUCCESS DIE</span>
-                    <span class="roll-toggle" style="font-size:1.5em; font-weight:bold; color:${resultColor}; cursor:pointer;">${successTotal}</span>
-                </div>
-                ${tooltipHtml}
-                <div style="margin-bottom:10px;">
-                    <div style="display:flex; justify-content:space-between;"><span style="font-size:0.8em; color:#aaa;">FLUX DICE</span><span style="font-size:0.9em; font-weight:bold; color:#39ff14;">${skillSuccesses} Successes</span></div>
-                    <div style="display:flex; flex-wrap:wrap; margin-top:5px;">${skillDiceHtml}</div>
-                </div>
-                <div style="font-size: 0.9em; padding: 5px; background: ${isSuccessful ? '#003000' : '#300000'}; border: 1px solid ${isSuccessful ? '#39ff14' : '#f00'};">
-                    ${isSuccessful ? `✅ <strong>Success!</strong><br>${mosEffectText}` : `❌ <strong>Failure.</strong><br>${failureConsequence}`}
-                </div>
-                ${isSuccessful && dmgFormula !== "0" ? `
-                <button class="roll-damage" data-damage="${dmgFormula}" data-ad="${adValue}" data-weapon="${item.name}" style="background:#300; color:#8a2be2; border:1px solid #8a2be2; cursor:pointer; width: 100%; margin-top:5px;">
-                    <i class="fas fa-tint"></i> ROLL DAMAGE (${dmgFormula})
-                </button>` : ""}
-            </div>`
+           speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+           content: chatContent
       });
   }
 
