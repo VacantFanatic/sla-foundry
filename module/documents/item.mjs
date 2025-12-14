@@ -15,10 +15,107 @@ export class BoilerplateItem extends Item {
     return rollData;
   }
 
+  /* -------------------------------------------- */
+  /* NEW: Roll Function                          */
+  /* -------------------------------------------- */
+
+  /**
+   * Handle clickable rolls.
+   * @param {Object} options   Options which configure how the roll is handled
+   */
+  async roll(options={}) {
+    const item = this;
+    const system = this.system;
+    const actor = this.actor;
+
+    // 1. Initialize Base Stats (Change these property names to match your schema)
+    let baseDamage = system.damage || 0;
+    let baseAD = system.attackDice || 0; // Attack Dice
+    let modifiers = { damage: 0, ad: 0, pv: 0, name: "Standard" };
+
+    // 2. Find Loaded Magazine
+    // We assume the weapon stores the magazine's ID in 'system.magazineId'
+    if (system.magazineId) {
+      const magazine = actor.items.get(system.magazineId);
+      
+      if (magazine) {
+        // Get the ammo type from the magazine
+        const ammoType = magazine.system.ammoType || "standard";
+        
+        // Retrieve the modifiers from CONFIG (defined in config.mjs)
+        const configMods = CONFIG.SLA.ammoModifiers[ammoType];
+        
+        if (configMods) {
+          modifiers = { 
+            ...configMods, 
+            name: CONFIG.SLA.ammoTypes[ammoType] 
+          };
+          
+          // Debugging log
+          console.log(`SLA | Rolling with ${modifiers.name}: +${modifiers.damage} DMG, +${modifiers.ad} AD`);
+        }
+      }
+    }
+
+    // 3. Apply Modifiers
+    const finalDamage = baseDamage + modifiers.damage;
+    const finalAD = baseAD + modifiers.ad;
+
+    // 4. Create the Dialog (Without Ammo Select)
+    // We still use a dialog to let the player add situational modifiers
+    const content = await renderTemplate("systems/sla-industries/templates/chat/roll-dialog.hbs", {
+      item: item,
+      stats: { damage: finalDamage, ad: finalAD },
+      ammoName: modifiers.name // Show them what ammo is loaded
+    });
+
+    return new Promise(resolve => {
+      new Dialog({
+        title: `${item.name}: Attack Roll`,
+        content: content,
+        buttons: {
+          roll: {
+            label: "Roll",
+            callback: html => {
+              // 5. Execute the Roll logic
+              // Example Formula: (AD)d10 + Skill
+              // You will need to adjust this formula to match your exact rules
+              const rollFormula = `${finalAD}d10 + @skills.guns.value`;
+              
+              const roll = new Roll(rollFormula, actor.getRollData());
+              
+              roll.toMessage({
+                speaker: ChatMessage.getSpeaker({ actor: actor }),
+                flavor: `
+                  <h3>${item.name} Attack</h3>
+                  <p><strong>Ammo:</strong> ${modifiers.name}</p>
+                  <p><strong>Damage:</strong> ${finalDamage} (PV ${modifiers.pv})</p>
+                `,
+                flags: {
+                  sla: {
+                    isAP: modifiers.pv < 0 ? true : false,
+                    pvMod: modifiers.pv
+                  }
+                }
+              });
+              resolve(roll);
+            }
+          }
+        },
+        default: "roll"
+      }).render(true);
+    });
+  }
+
+  /* -------------------------------------------- */
+  /* End of New Roll Function                    */
+  /* -------------------------------------------- */
+
   /**
    * Toggle the Active state of a drug/item and create/delete Active Effects.
    */
   async toggleActive() {
+      // ... (Keep your existing toggleActive code here exactly as it was) ...
       // 1. Toggle Boolean
       const newState = !this.system.active;
       await this.update({ "system.active": newState });
@@ -29,7 +126,7 @@ export class BoilerplateItem extends Item {
       if (newState) {
           // ENABLED: Create Effect
           const effectData = {
-              name: this.name, // <--- FIXED: Changed 'label' to 'name' for V11+ compatibility
+              name: this.name, 
               icon: this.img,
               origin: this.uuid,
               disabled: false,
@@ -59,11 +156,11 @@ export class BoilerplateItem extends Item {
               }
               // Damage Reduction
               if (this.system.damageReduction !== 0) {
-                   effectData.changes.push({
+                    effectData.changes.push({
                       key: `system.wounds.damageReduction`,
                       mode: 2, // ADD
                       value: this.system.damageReduction
-                  });                 
+                  });                  
               }
           }
 
@@ -90,7 +187,7 @@ export class BoilerplateItem extends Item {
       if (s.includes("min")) return parseInt(s) * 60;
       return null;
   }
-  
+   
   /**
    * @override
    * Triggered before an Item is updated in the database.

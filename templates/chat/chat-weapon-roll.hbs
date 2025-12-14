@@ -1,0 +1,50 @@
+<div style="background: #222; border: 1px solid {{borderColor}}; color: #eee; padding: 5px; font-family:'Roboto Condensed',sans-serif;">
+    
+    {{!-- HEADER --}}
+    <h3 style="color:{{headerColor}}; border-bottom:1px solid #555; margin:0 0 5px 0;">
+        {{itemName}}
+    </h3>
+    
+    {{!-- RESULT BOX --}}
+    <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:5px; margin-bottom:5px;">
+        <span style="font-size:0.9em; color:#aaa;">SUCCESS DIE</span>
+        <span class="roll-toggle" style="font-size:1.5em; font-weight:bold; color:{{resultColor}}; cursor:pointer;">
+            {{successTotal}}
+        </span>
+    </div>
+
+    {{!-- TOOLTIP --}}
+    {{{tooltip}}}
+
+    {{!-- SKILL DICE DISPLAY --}}
+    {{#if skillDice}}
+    <div style="display:flex; flex-wrap:wrap; gap: 4px; margin-top: 5px;">
+        {{#each skillDice}}
+        <div style="display:flex; flex-direction:column; align-items:center;">
+            <span style="border:1px solid {{this.borderColor}}; padding:2px 8px; border-radius:4px; font-weight:bold; color: {{this.textColor}}">
+                {{this.total}}
+            </span>
+            <span style="font-size:0.7em; color:#555;">({{this.raw}})</span>
+        </div>
+        {{/each}}
+    </div>
+    {{/if}}
+
+    {{!-- NOTES --}}
+    {{#if notes}}
+    <div style="margin-top: 5px; font-size: 0.9em; border-top: 1px dashed #444; padding-top: 2px;">
+        {{{notes}}}
+    </div>
+    {{/if}}
+
+    {{!-- DAMAGE BUTTON --}}
+    {{#if showDamageButton}}
+    <button class="roll-damage" 
+            data-damage="{{dmgFormula}}" 
+            data-ad="{{adValue}}" 
+            data-weapon="{{itemName}}" 
+            style="background:#300; color:#8a2be2; border:1px solid #8a2be2; cursor:pointer; width: 100%; margin-top:10px;">
+        <i class="fas fa-tint"></i> ROLL DAMAGE ({{dmgFormula}})
+    </button>
+    {{/if}}
+</div>
