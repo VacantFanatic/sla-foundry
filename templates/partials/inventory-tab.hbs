@@ -1,0 +1,61 @@
+<div class="inventory-section flexcol">
+    
+    {{!-- INVENTORY HEADER --}}
+    <li class="item flexrow inventory-header">
+        <div class="item-image"></div>
+        <div class="item-name">Item Name</div>
+        <div class="item-detail">Qty</div>
+        <div class="item-detail">Weight</div>
+        <div class="item-controls">
+            <a class="item-control item-create" title="Create Item" data-type="item">
+                <i class="fas fa-plus"></i> Add
+            </a>
+        </div>
+    </li>
+
+    {{!-- SCROLLABLE LIST --}}
+    <ol class="item-list inventory-list">
+        {{#each gear as |item id|}}
+        <li class="item flexrow" data-item-id="{{item._id}}">
+            
+            {{!-- ITEM IMAGE --}}
+            <div class="item-image">
+                <img src="{{item.img}}" title="{{item.name}}" width="24" height="24"/>
+            </div>
+
+            {{!-- ITEM NAME (Click to toggle expand/roll/etc usually, or just edit) --}}
+            <h4 class="item-name item-edit clickable">{{item.name}}</h4>
+
+            {{!-- QUANTITY --}}
+            <div class="item-detail">
+                {{item.system.quantity}}
+            </div>
+
+            {{!-- WEIGHT (Optional: Assumes you have a weight field) --}}
+            <div class="item-detail">
+                {{item.system.weight}}
+            </div>
+
+            {{!-- CONTROLS --}}
+            <div class="item-controls">
+                {{!-- Equip Toggle (Optional) --}}
+                <a class="item-control item-toggle {{#if item.system.equipped}}active{{/if}}" title="Equip/Unequip">
+                    <i class="fas fa-shield-alt"></i>
+                </a>
+
+                {{!-- Edit --}}
+                <a class="item-control item-edit" title="Edit Item">
+                    <i class="fas fa-edit"></i>
+                </a>
+
+                {{!-- Delete --}}
+                <a class="item-control item-delete" title="Delete Item">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </div>
+        </li>
+        {{else}}
+            <li class="item flexrow notice">No gear owned.</li>
+        {{/each}}
+    </ol>
+</div>
