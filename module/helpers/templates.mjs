@@ -19,7 +19,8 @@ export const preloadHandlebarsTemplates = async function() {
 	"systems/sla-industries/templates/partials/ebb-drop-zone.hbs",
 	"systems/sla-industries/templates/partials/header-card.hbs",
     "systems/sla-industries/templates/partials/main-tab.hbs",
-    "systems/sla-industries/templates/partials/bio-gear-tab.hbs"
+	"systems/sla-industries/templates/partials/inventory-tab.hbs",
+    "systems/sla-industries/templates/partials/bio-traits-tab.hbs"
   ];
 
   // Load the template parts

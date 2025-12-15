@@ -9,13 +9,14 @@
         {{> "systems/sla-industries/templates/partials/stats.hbs"}}
     </div>
 
-    {{!-- ================================================= --}}
+	{{!-- ================================================= --}}
     {{!--                  NAVIGATION                       --}}
     {{!-- ================================================= --}}
     <nav class="sheet-tabs tabs" data-group="primary">
         <a class="item" data-tab="main">Main</a>
         <a class="item" data-tab="ebb">Ebb</a>
-        <a class="item" data-tab="biography">Bio & Gear</a>
+        <a class="item" data-tab="inventory">Inventory</a>
+        <a class="item" data-tab="biography">Bio & Traits</a>
     </nav>
 
     {{!-- ================================================= --}}
@@ -35,9 +36,15 @@
             </div>
         </div>
 
-        {{!-- BIO & GEAR TAB --}}
+        {{!-- NEW INVENTORY TAB --}}
+        <div class="tab" data-group="primary" data-tab="inventory">
+             {{> "systems/sla-industries/templates/partials/inventory-tab.hbs"}}
+        </div>
+
+        {{!-- BIO & TRAITS TAB --}}
         <div class="tab" data-group="primary" data-tab="biography">
-            {{> "systems/sla-industries/templates/partials/bio-gear-tab.hbs"}}
+            {{!-- You need to rename/edit your old file to match this --}}
+            {{> "systems/sla-industries/templates/partials/bio-traits-tab.hbs"}}
         </div>
 
     </section>
