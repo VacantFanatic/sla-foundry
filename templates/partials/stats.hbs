@@ -64,11 +64,15 @@
             <label>FLUX</label>
             <input type="number" name="system.stats.flux.value" value="{{system.stats.flux.value}}"/>
         </div>
-        <div class="side-box init">
-            <label>INIT</label>
+        
+        {{!-- INIT BOX (Fixed Click Target) --}}
+        {{!-- The 'rollable' class is now on the wrapper DIV --}}
+        <div class="side-box init rollable" data-roll-type="init" style="cursor:pointer;" title="Roll Initiative">
+            <label style="cursor:pointer;">INIT</label>
             <div class="flexrow" style="justify-content:center; align-items:center;">
+                {{!-- Display DEX as base init value if init.value is empty, or keep as is --}}
                 <span class="init-val">{{system.stats.init.value}}</span>
-                <a class="rollable" data-roll-type="init"><i class="fas fa-dice-d10"></i></a>
+                <i class="fas fa-dice-d10" style="margin-left:5px;"></i>
             </div>
         </div>
     </div>
