@@ -36,6 +36,7 @@ export class SlaActorSheet extends ActorSheet {
     context.system = actorData.system;
     context.flags = actorData.flags;
 
+    // ... (Keep your existing stats/ratings/wounds initialization) ...
     context.system.stats = context.system.stats || {};
     context.system.ratings = context.system.ratings || {};
     context.system.wounds = context.system.wounds || {};
@@ -48,14 +49,18 @@ export class SlaActorSheet extends ActorSheet {
 
     context.rollData = context.actor.getRollData();
 
-    const speciesList = CONFIG.SLA?.speciesStats || {};
-    context.speciesOptions = Object.keys(speciesList).reduce((acc, key) => {
-        acc[key] = speciesList[key].label;
-        return acc;
-    }, {});
+    // ... (Keep existing speciesList logic) ...
 
     context.speciesItem = this.actor.items.find(i => i.type === "species");
     context.packageItem = this.actor.items.find(i => i.type === "package");
+
+    // --- NEW: CHECK IF EBONITE ---
+    // Returns true if species exists AND name contains "ebonite" (case-insensitive)
+    if (context.speciesItem && context.speciesItem.name) {
+        context.isEbonite = context.speciesItem.name.toLowerCase().includes("ebonite");
+    } else {
+        context.isEbonite = false;
+    }
 
     context.enrichedBiography = await TextEditor.enrichHTML(this.actor.system.biography, {async: true, relativeTo: this.actor});
     context.enrichedAppearance = await TextEditor.enrichHTML(this.actor.system.appearance, {async: true, relativeTo: this.actor});
@@ -64,16 +69,21 @@ export class SlaActorSheet extends ActorSheet {
     return context;
   }
 
-	_prepareItems(context) {
-    const gear = [];
+_prepareItems(context) {
+    // 1. Initialize Containers
+    const inventory = {
+        weapon:   { label: "Weapons", items: [] },
+        armor:    { label: "Armor", items: [] },
+        magazine: { label: "Ammunition", items: [] },
+        drug:     { label: "Drugs", items: [] },
+        item:     { label: "Gear", items: [] }
+    };
+
     const traits = [];
     const ebbFormulas = [];
     const disciplines = [];
     
-    // NEW: Separate lists for Combat Loadout
-    const weapons = [];
-    const armors = [];
-    
+    // Skill Buckets
     const skillsByStat = {
         "str": { label: "STR", items: [] },
         "dex": { label: "DEX", items: [] },
@@ -84,19 +94,24 @@ export class SlaActorSheet extends ActorSheet {
         "other": { label: "OTHER", items: [] }
     };
 
+    // Separate Arrays for Combat Tab (Weapons/Armor only)
+    const weapons = [];
+    const armors = [];
+
+    // 2. Sort Items into Containers
     for (let i of context.items) {
       i.img = i.img || DEFAULT_TOKEN;
       
-      // 1. Populate General Gear List (for Inventory Tab)
-      if (['item', 'weapon', 'armor', 'drug', 'magazine'].includes(i.type)) {
-          gear.push(i);
+      // INVENTORY GROUPS
+      if (inventory[i.type]) {
+          inventory[i.type].items.push(i);
       }
-      
-      // 2. Populate Specific Combat Lists (for Combat Tab)
+
+      // COMBAT TAB SPECIFIC
       if (i.type === 'weapon') weapons.push(i);
       if (i.type === 'armor') armors.push(i);
 
-      // 3. Populate Other Lists
+      // OTHER ITEMS
       if (i.type === 'trait') traits.push(i);
       else if (i.type === 'ebbFormula') ebbFormulas.push(i);
       else if (i.type === 'discipline') disciplines.push(i);
@@ -108,9 +123,11 @@ export class SlaActorSheet extends ActorSheet {
       }
     }
 
+    // 3. Sorting Function (Alphabetical)
     const sortFn = (a, b) => a.name.localeCompare(b.name);
     
-    gear.sort(sortFn);
+    // Sort every list
+    Object.values(inventory).forEach(cat => cat.items.sort(sortFn));
     traits.sort(sortFn);
     ebbFormulas.sort(sortFn);
     disciplines.sort(sortFn);
@@ -121,7 +138,7 @@ export class SlaActorSheet extends ActorSheet {
         skillsByStat[key].items.sort(sortFn);
     }
 
-    // ... (Existing Ebb/Discipline nesting logic remains here) ...
+    // 4. Ebb Nesting Logic
     const configDis = CONFIG.SLA?.ebbDisciplines || {};
     const nestedDisciplines = [];
     const rawFormulas = [...ebbFormulas];
@@ -137,12 +154,13 @@ export class SlaActorSheet extends ActorSheet {
         if (parent) parent.formulas.push(f);
     });
 
-    context.gear = gear;
+    // 5. Assign to Context
+    context.inventory = inventory; // <--- The new grouped object
     context.traits = traits;
     context.disciplines = nestedDisciplines;
     context.skillsByStat = skillsByStat;
     
-    // NEW: Pass these to the template
+    // For Combat Tab
     context.weapons = weapons;
     context.armors = armors;
   }
