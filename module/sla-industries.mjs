@@ -58,6 +58,17 @@ Hooks.once('init', async function() {
     "species": "Species",
     "package": "Training Package"
   };
+  
+  // REGISTER HANDLEBARS HELPERS
+  Handlebars.registerHelper('capitalize', function(str) {
+    if (typeof str !== 'string') return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  });
+
+  Handlebars.registerHelper('upper', function(str) {
+    if (typeof str !== 'string') return '';
+    return str.toUpperCase();
+  });
 
   Actors.unregisterSheet("core", ActorSheet);
   Actors.registerSheet("sla-industries", SlaActorSheet, { types: ["character", "npc"], makeDefault: true, label: "SLA Operative Sheet" });

@@ -4,7 +4,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&display=swap');
 
 /* ==========================================
-   1. GLOBAL VARIABLES & WINDOW (Fixed Layout Lockdown)
+   1. GLOBAL VARIABLES & WINDOW
    ========================================== */
 :root {
     --sla-bg-dark: #1a1a25;   
@@ -18,42 +18,43 @@
     --sla-radius: 4px;
 }
 
-/* 1. Target the Foundry Window Wrapper */
-.sla-sheet.window-content,
-.app.window-app .window-content {
+/* ACTOR SHEET WRAPPER (Dark Theme) */
+.sla-industries.sheet.actor .window-content {
     background-image: none !important; 
     background: var(--sla-bg-dark) !important;
     background-color: var(--sla-bg-dark) !important;
     color: var(--sla-text-light);
     font-family: var(--sla-font-mono);
     font-size: 13px;
-    
-    /* CRITICAL: Remove padding and scroll from the window frame */
     padding: 0 !important; 
     overflow: hidden !important; 
     border: 2px solid var(--sla-border); 
 }
 
-/* 2. Target the Form inside */
+/* FORM LAYOUT */
 form.sla-sheet {
     height: 100%;
     display: flex;
     flex-direction: column;
-    /* CRITICAL: Ensure the form never scrolls itself */
     overflow: hidden !important; 
     background: transparent !important; 
     padding: 5px; 
 }
 
+/* PADDING UTILITY */
+.sla-pad {
+    padding: 8px !important;
+}
+
 /* ==========================================
-   2. INPUTS (High Contrast Readability)
+   2. INPUTS (Global High Contrast)
    ========================================== */
 .sla-sheet input[type="text"],
 .sla-sheet input[type="number"],
 .sla-sheet select {
-    background: #000 !important;       /* Pitch Black Background */
-    color: #e0e0e0 !important;         /* Bright White/Grey Text */
-    border: 1px solid #555;            /* Visible Border */
+    background: #000;       
+    color: #e0e0e0;         
+    border: 1px solid #555;            
     border-radius: var(--sla-radius);
     height: 26px;
     padding: 1px 5px;
@@ -62,7 +63,7 @@ form.sla-sheet {
 
 .sla-sheet input:focus {
     box-shadow: 0 0 5px var(--sla-accent);
-    background: #111 !important;
+    background: #111;
 }
 
 .sla-sheet select {
@@ -71,12 +72,10 @@ form.sla-sheet {
 }
 
 /* ==========================================
-   3. HEADER LAYOUT (Stacked & Readable)
+   3. HEADER LAYOUT
    ========================================== */
-
-/* Main Header Box */
 .sla-sheet .sheet-header {
-	flex: 0 0 auto; /* Don't shrink */
+    flex: 0 0 auto;
     margin-bottom: 10px;
     border: 2px solid var(--sla-border);
     background: #111;
@@ -89,11 +88,12 @@ form.sla-sheet {
 }
 
 /* --- COLUMN 1: THE CARD (Left) --- */
+/* WIDENED: 70% to give more room for names/chips */
 .header-left {
-    flex: 0 0 60%; /* Fixed 60% width */
+    flex: 0 0 70%; 
     display: flex;
     flex-direction: column;
-    background: var(--sla-bg-panel); /* Dark Panel Color */
+    background: var(--sla-bg-panel);
     border-right: 2px solid var(--sla-border);
     padding: 8px;
     color: #e0e0e0;
@@ -102,11 +102,11 @@ form.sla-sheet {
 .header-section-title {
     background: #111;
     color: var(--sla-accent);
-    font-family: var(--sla-font-header); /* Josefin Sans */
+    font-family: var(--sla-font-header);
     font-weight: 700;
     text-transform: uppercase;
     padding: 4px;
-    margin: -8px -8px 8px -8px; /* Touch edges */
+    margin: -8px -8px 8px -8px; 
     border-bottom: 1px solid var(--sla-border);
     text-align: center;
     letter-spacing: 1px;
@@ -118,7 +118,6 @@ form.sla-sheet {
     gap: 6px; 
 }
 
-/* Field Rows */
 .form-group {
     display: flex;
     align-items: center;
@@ -129,17 +128,15 @@ form.sla-sheet {
 .form-group label.label-bold {
     flex: 0 0 70px; 
     font-weight: 700;
-    font-family: var(--sla-font-header); /* Josefin Sans */
-    color: #aaa;    
+    font-family: var(--sla-font-header);
+    color: #ccc; 
     font-size: 13px;
     text-transform: uppercase;
 }
 
-.form-group input {
-    flex: 1; 
-}
+.form-group input { flex: 1; }
 
-/* Chips */
+/* CHIPS (Header) */
 .chip {
     flex: 1;
     display: flex;
@@ -151,7 +148,7 @@ form.sla-sheet {
     border-radius: var(--sla-radius);
     height: 30px;
 }
-/* FIX: Chip Image Stability */
+
 .chip img {
     flex: 0 0 24px;       
     width: 24px;          
@@ -165,11 +162,10 @@ form.sla-sheet {
 .chip-name { color: #fff; font-weight: bold; flex: 1; }
 .chip-delete { color: #d00; cursor: pointer; padding: 0 5px; }
 .chip-placeholder { 
-    flex: 1; background: #111; color: #777; border: 1px dashed #555; 
+    flex: 1; background: #111; color: #888; border: 1px dashed #555; 
     text-align: center; font-style: italic; height: 30px; display: flex; align-items: center; justify-content: center;
 }
 
-/* Bottom Bar (LAD/SCL) */
 .header-bottom-bar {
     display: flex;
     justify-content: space-between;
@@ -207,11 +203,13 @@ form.sla-sheet {
 .finance-box {
     flex: 1;
     background: var(--sla-bg-panel);
-    padding: 8px;
+    padding: 0; 
     color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
 }
 .finance-header {
-    color: #aaa;
+    color: #ccc; 
     font-weight: 700;
     font-family: var(--sla-font-header);
     font-size: 11px;
@@ -226,25 +224,26 @@ form.sla-sheet {
     border-bottom: 2px solid var(--sla-accent);
     margin-bottom: 5px;
 }
-.finance-body label { font-size: 0.8em; color: #aaa; margin-bottom: 2px; display: block; font-family: var(--sla-font-header); font-weight: 700;}
+/* Ensure Finance inputs don't touch edges */
+.finance-box .finance-body input {
+    width: 98% !important;
+    margin: 0 auto !important;
+    display: block !important;
+}
 
 
 /* ==========================================
-   4. STATS STRIP (Dark Dystopian Fix)
+   4. STATS STRIP
    ========================================== */
-
-/* 1. The Main Container Strip */
 .sla-sheet .stats-strip-container {
-    flex: 0 0 auto; /* Don't shrink */
-	margin-top: 5px;
+    flex: 0 0 auto;
+    margin-top: 5px;
     padding: 5px;
     background-color: var(--sla-bg-panel) !important; 
-    background-image: none !important;
     border-top: 2px solid var(--sla-border);
     border-bottom: 2px solid var(--sla-border);
 }
 
-/* 2. The Grid Layout */
 .stats-matrix, .stats-grid { 
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 100px; 
@@ -258,7 +257,6 @@ form.sla-sheet {
     gap: 5px;
 }
 
-/* 3. Rating Headers */
 .rating-header, .rating-block {
     display: flex;
     justify-content: space-between;
@@ -278,7 +276,7 @@ form.sla-sheet {
 .rating-label { 
     font-weight: 700; 
     font-family: var(--sla-font-header);
-    color: #999; 
+    color: #bbb; 
     font-size: 0.8em;
     background: transparent !important; 
 }
@@ -289,7 +287,6 @@ form.sla-sheet {
     font-weight: bold; font-size: 1.4em; text-shadow: none;
 }
 
-/* 4. Attribute Boxes */
 .stat-box, .stat-row {
     display: flex;
     align-items: center;
@@ -323,16 +320,13 @@ form.sla-sheet {
     color: #fff !important;
 }
 .stat-box .rollable, .stat-row .rollable { 
-    color: #555; cursor: pointer; 
+    color: #777; cursor: pointer; 
 }
 .stat-box .rollable:hover, .stat-row .rollable:hover { 
     color: var(--sla-accent); 
 }
 
-/* 5. Side Stats */
-.side-col { 
-    display: flex; flex-direction: column; gap: 5px; justify-content: space-between; 
-}
+.side-col { display: flex; flex-direction: column; gap: 5px; justify-content: space-between; }
 .side-box, .secondary-box { 
     background: #000 !important; 
     border: 1px solid var(--sla-border); 
@@ -340,7 +334,7 @@ form.sla-sheet {
     border-radius: var(--sla-radius);
 }
 .side-box label, .secondary-box label { 
-    display: block; color: #999; font-size: 0.7em; 
+    display: block; color: #bbb; font-size: 0.7em; 
     font-family: var(--sla-font-header);
     font-weight: 700; 
 }
@@ -350,7 +344,6 @@ form.sla-sheet {
     border: none !important;
 }
 
-/* --- Initiative Button Styling --- */
 .side-box.init, .secondary-box.init { 
     background: var(--sla-accent) !important;
     border: 1px solid var(--sla-accent);
@@ -374,64 +367,45 @@ form.sla-sheet {
     text-shadow: none;
 }
 
-
 /* ==========================================
-   5. MAIN LAYOUT (Scroll Container Fix)
+   5. MAIN LAYOUT
    ========================================== */
 .sla-sheet .sheet-body {
-    flex: 1; /* Fill the remaining window space */
-    
-    /* This creates the scroll frame */
+    flex: 1;
     overflow-y: auto !important; 
     overflow-x: hidden;
-    min-height: 0; /* Critical for Flexbox scrolling */
-    
+    min-height: 0; 
     padding: 5px; 
     padding-right: 5px; 
-    
-    /* Scrollbar Aesthetics */
     scrollbar-width: thin;
     scrollbar-color: var(--sla-accent) #000;
 }
 
-/* 1. THE TAB SWITCHING LOGIC (Must come first) */
-.sla-sheet .sheet-body .tab {
-    display: none; /* Hide by default */
-}
+.sla-sheet .sheet-body .tab { display: none; }
+.sla-sheet .sheet-body .tab.active { display: block; }
 
-.sla-sheet .sheet-body .tab.active {
-    display: block; /* Show ONLY if it has the 'active' class */
-}
-
-/* 2. THE HEIGHT FIX (Without breaking visibility) */
-/* We target the active tab and inner containers to ensure they grow */
 .sla-sheet .tab.active,
 .sla-sheet .tab .flexcol,
 .sla-sheet .tab .full-height {
     height: auto !important;
     min-height: min-content !important;
     overflow: visible !important;
-    
 }
 
-/* --- LAYOUT GRIDS --- */
+/* MAIN SPLIT RATIO */
+/* Adjusted: 2.2fr (Left/Skills) / 1fr (Right/Combat) */
 .sla-sheet .main-split {
     display: grid;
-    grid-template-columns: 1.6fr 1fr; 
+    grid-template-columns: 2.2fr 1fr; 
     gap: 10px;
     height: auto !important; 
     align-items: start; 
 }
 
-.sla-sheet .left-col, 
-.sla-sheet .right-col {
-    display: flex;
-    flex-direction: column;
-    height: auto !important;
-    min-width: 0; 
+.sla-sheet .left-col, .sla-sheet .right-col {
+    display: flex; flex-direction: column; height: auto !important; min-width: 0; 
 }
 
-/* --- PANELS --- */
 .sla-sheet .sla-panel {
     display: flex; flex-direction: column;
     width: 100%;
@@ -439,8 +413,8 @@ form.sla-sheet {
     border: 1px solid var(--sla-border);
     overflow: hidden;
     border-radius: var(--sla-radius);
-    flex: 0 0 auto; /* Don't squash panels */
-    margin-bottom: 5px; /* Add spacing between stacked panels */
+    flex: 0 0 auto; 
+    margin-bottom: 5px; 
 }
 
 .sla-sheet .sla-header-bar {
@@ -452,91 +426,43 @@ form.sla-sheet {
     border-bottom: 1px solid var(--sla-border);
 }
 
-/* Lists inside panels can auto-scroll if they get massive, 
-   but usually we want the page to scroll */
-.sla-sheet .scroll-list {
-    overflow-y: visible; 
-    height: auto;
-    padding: 0;
-}
+.sla-sheet .scroll-list { overflow-y: visible; height: auto; padding: 0; }
 
 /* ==========================================
-   6. TABS & EDITORS (Height Fix)
+   6. TABS & EDITORS
    ========================================== */
 .sla-sheet .sheet-tabs {
     display: flex; 
     border-bottom: 2px solid var(--sla-accent); 
     margin-bottom: 5px; 
     background: #1a1a25;
-    flex: 0 0 auto; /* Don't shrink */
+    flex: 0 0 auto; 
 }
 .sla-sheet .sheet-tabs .item {
     padding: 5px 15px; 
-    color: #aaa; 
+    color: #bbb; 
     font-family: var(--sla-font-header);
     font-weight: 700; 
     text-transform: uppercase;
     border-right: 1px solid #333; 
     cursor: pointer;
 }
-.sla-sheet .sheet-tabs .item:hover { 
-    color: var(--sla-text-light); 
-    background: rgba(255,255,255,0.05); 
-}
-.sla-sheet .sheet-tabs .item.active { 
-    color: #000; 
-    background: var(--sla-accent); 
-}
+.sla-sheet .sheet-tabs .item:hover { color: var(--sla-text-light); background: rgba(255,255,255,0.05); }
+.sla-sheet .sheet-tabs .item.active { color: #000; background: var(--sla-accent); }
 
-/* CRITICAL FIX: height: auto allows the tab to grow tall, triggering the body scroll */
-.sla-sheet .tab { 
-    display: none; 
-    height: auto !important; 
-    overflow: visible; 
+/* TAB EDITOR FIX (Min-Height 700px) */
+.sla-industries.item .tab.active[data-tab="description"] {
+    display: flex !important;      
+    flex-direction: column;
+    height: 100%;
+    min-height: 700px;
 }
-.sla-sheet .tab.active { 
-    display: block; 
+.sla-industries.item .tab[data-tab="description"] .editor {
+    flex: 1; height: 100%; display: flex; flex-direction: column;
 }
-
-/* Editor Containers */
-.sla-sheet .editor-container {
-    border: 1px solid #444; background: rgba(0, 0, 0, 0.2);
-    display: flex; flex-direction: column; position: relative;
-    min-height: 300px; /* Ensure editor has size even if empty */
-}
-
-/* Ensure editor contents fit */
-.sla-sheet .tab[data-tab="biography"] .editor-container .editor,
-.sla-sheet .tab[data-tab="biography"] .tox-edit-area {
-    min-height: 300px;
-}
-.sla-sheet .tab[data-tab="biography"] .editor-content {
-    color: #e0e0e0; font-family: "Arial", sans-serif; line-height: 1.4;
-    padding: 5px;
-}
-.sla-sheet .editor-edit {
-    background: #222; color: #39ff14; border: 1px solid #39ff14; padding: 2px 6px;
-    border-radius: 4px; position: absolute; top: 5px; right: 5px; z-index: 10;
-}
-
-/* Editor Containers */
-.sla-sheet .editor-container {
-    border: 1px solid #444; background: rgba(0, 0, 0, 0.2);
-    display: flex; flex-direction: column; position: relative;
-}
-.sla-sheet .editor-container.appearance,
-.sla-sheet .editor-container.biography { flex: 1; min-height: 250px; }
-.sla-sheet .editor-container.notes { height: 100%; min-height: 500px; }
-
-.sla-sheet .tab[data-tab="biography"] .editor-container .editor {
-    flex: 1; height: 100%; min-height: 0; border: none; background: transparent; padding: 5px;
-}
-.sla-sheet .tab[data-tab="biography"] .editor-content {
-    height: 100%; color: #e0e0e0; font-family: "Arial", sans-serif; line-height: 1.4; overflow-y: auto;
-}
-.sla-sheet .editor-edit {
-    background: #222; color: #39ff14; border: 1px solid #39ff14; padding: 2px 6px;
-    border-radius: 4px; position: absolute; top: 5px; right: 5px; z-index: 10;
+.sla-industries.item .tab[data-tab="description"] .tox-edit-area,
+.sla-industries.item .tab[data-tab="description"] .editor-content {
+    flex: 1; height: 100%; min-height: 600px; overflow-y: auto;
 }
 
 /* ==========================================
@@ -551,7 +477,6 @@ form.sla-sheet {
 .item-chip .chip-delete { color: #555; padding: 0 8px; cursor: pointer; }
 .item-chip .chip-delete:hover { color: #f00; }
 
-/* Item Controls in Lists */
 .sla-sheet .item-controls { display: flex; gap: 5px; min-width: 40px; justify-content: center; }
 .sla-sheet .item-controls a { width: 18px; text-align: center; color: #aaa; cursor: pointer; }
 .sla-sheet .item-controls .item-edit:hover { color: #fff; }
@@ -567,779 +492,337 @@ form.sla-sheet {
 .sla-dialog button:hover { background: #39ff14; color: #000; }
 
 /* ==========================================
-   9. UI POLISH (ROUNDED & COMPACT)
+   9. UI POLISH
    ========================================== */
-
-/* The Container Box */
 .sla-box {
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid #444;
-    border-radius: 8px; /* Rounded Corners */
+    border-radius: 8px; 
     padding: 8px;
     margin-bottom: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    display: flex; flex-direction: column; gap: 4px;
 }
-
-/* Header for the box */
 .sla-box-header {
-    font-size: 0.75em;
-    font-weight: 700;
-    font-family: var(--sla-font-header);
-    color: #888;
-    text-transform: uppercase;
-    border-bottom: 1px solid #333;
-    margin-bottom: 5px;
-    padding-bottom: 2px;
-    letter-spacing: 1px;
+    font-size: 0.75em; font-weight: 700; font-family: var(--sla-font-header);
+    color: #bbb; text-transform: uppercase; border-bottom: 1px solid #333;
+    margin-bottom: 5px; padding-bottom: 2px; letter-spacing: 1px;
 }
-
-/* Mini Input (2 digits) */
 .sla-input-mini {
-    width: 45px !important;
-    text-align: center;
-    border-radius: 4px !important;
-    background: #111 !important;
-    color: #fff !important;
-    border: 1px solid #555 !important;
-    height: 24px !important;
-    font-weight: bold;
+    width: 45px !important; text-align: center; border-radius: 4px !important;
+    background: #111 !important; color: #fff !important;
+    border: 1px solid #555 !important; height: 24px !important; font-weight: bold;
 }
-
-/* Flex rows for side-by-side stats */
 .compact-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.9em;
-    color: #ccc;
-    height: 26px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.9em; color: #ccc; height: 26px;
 }
 
 /* ==========================================
-   10. WOUNDS & CONDITIONS (Styled like Stats)
+   10. WOUNDS & CONDITIONS
    ========================================== */
-
-/* Section Headers (Wounds / Conditions) */
 .wound-section-title {
-    font-weight: 700;
-    font-family: var(--sla-font-header);
-    color: var(--sla-accent);
-    text-transform: uppercase;
+    font-weight: 700; font-family: var(--sla-font-header);
+    color: var(--sla-accent); text-transform: uppercase;
     border-bottom: 1px solid var(--sla-border);
-    margin-bottom: 5px;
-    padding-bottom: 2px;
-    font-size: 0.85em;
-    letter-spacing: 1px;
+    margin-bottom: 5px; padding-bottom: 2px; font-size: 0.85em; letter-spacing: 1px;
 }
-
-/* --- WOUNDS GRID --- */
 .wound-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Two Columns */
-    gap: 8px; /* Increased gap */
-    margin-bottom: 10px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;
 }
-
-/* Styled to match Stat Boxes */
 .wound-entry {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #000; /* Black Background */
-    border: 1px solid var(--sla-border); /* Standard Border */
-    padding: 4px 8px;
-    border-radius: var(--sla-radius);
+    display: flex; justify-content: space-between; align-items: center;
+    background: #000; border: 1px solid var(--sla-border); padding: 4px 8px; border-radius: var(--sla-radius);
 }
+.wound-entry label { font-size: 0.9em; font-weight: bold; color: var(--sla-text-light); cursor: pointer; }
+.wound-entry input[type="checkbox"] { height: 16px; width: 16px; margin: 0; cursor: pointer; accent-color: var(--sla-accent); }
 
-.wound-entry label {
-    font-size: 0.9em;
-    font-weight: bold;
-    color: var(--sla-text-light);
-    cursor: pointer;
-}
-
-/* Custom Checkbox Alignment */
-.wound-entry input[type="checkbox"] {
-    height: 16px;
-    width: 16px;
-    margin: 0;
-    cursor: pointer;
-    accent-color: var(--sla-accent); /* Makes the checkmark orange/system color */
-}
-
-/* --- CONDITIONS GRID --- */
 .condition-grid {
-    display: flex;
-    justify-content: space-between; /* Spread them out */
-    flex-wrap: wrap; /* Allow wrapping if resizing */
-    gap: 8px; /* Better spacing between icons */
-    padding-top: 10px;
-    border-top: 1px solid var(--sla-border); /* Separator line */
-    margin-top: 5px;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 10px; border-top: 1px solid var(--sla-border); margin-top: 5px;
 }
-
 .condition-toggle {
-    background: #1a1a25; /* Dark background */
-    border: 1px solid var(--sla-border);
-    width: 40px;  /* Larger touch target */
-    height: 40px; /* Larger touch target */
-    border-radius: var(--sla-radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #555; /* Dimmed when inactive */
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 1.5em; /* Larger Icon */
+    background: #1a1a25; border: 1px solid var(--sla-border);
+    width: 40px; height: 40px; border-radius: var(--sla-radius);
+    display: flex; align-items: center; justify-content: center;
+    color: #555; cursor: pointer; transition: all 0.2s ease; font-size: 1.5em; 
 }
-
-.condition-toggle:hover {
-    border-color: var(--sla-text-light);
-    color: var(--sla-text-light);
-    background: #222;
-}
-
-/* Active State (The Glow) */
+.condition-toggle:hover { border-color: var(--sla-text-light); color: var(--sla-text-light); background: #222; }
 .condition-toggle.active {
-    background: #333;
-    color: var(--sla-accent); 
-    border-color: var(--sla-accent);
-    box-shadow: 0 0 8px var(--sla-accent-faint);
-    text-shadow: 0 0 5px var(--sla-accent);
+    background: #333; color: var(--sla-accent); border-color: var(--sla-accent);
+    box-shadow: 0 0 8px var(--sla-accent-faint); text-shadow: 0 0 5px var(--sla-accent);
 }
+.condition-toggle[data-condition="bleeding"].active { color: #ff4444; border-color: #ff4444; box-shadow: 0 0 8px rgba(255,68,68,0.4); text-shadow: 0 0 5px #ff4444; }
+.condition-toggle[data-condition="burning"].active { color: #ffaa00; border-color: #ffaa00; box-shadow: 0 0 8px rgba(255,170,0,0.4); text-shadow: 0 0 5px #ffaa00; }
+.condition-toggle[data-condition="stunned"].active { color: #ffff00; border-color: #ffff00; box-shadow: 0 0 8px rgba(255,255,0,0.4); text-shadow: 0 0 5px #ffff00; }
+.condition-toggle[data-condition="immobile"].active { color: #00ccff; border-color: #00ccff; box-shadow: 0 0 8px rgba(0,204,255,0.4); text-shadow: 0 0 5px #00ccff; }
 
-/* Specific Colors for Conditions */
-.condition-toggle[data-condition="bleeding"].active { 
-    color: #ff4444; border-color: #ff4444; box-shadow: 0 0 8px rgba(255,68,68,0.4); text-shadow: 0 0 5px #ff4444; 
-}
-.condition-toggle[data-condition="burning"].active { 
-    color: #ffaa00; border-color: #ffaa00; box-shadow: 0 0 8px rgba(255,170,0,0.4); text-shadow: 0 0 5px #ffaa00; 
-}
-.condition-toggle[data-condition="stunned"].active { 
-    color: #ffff00; border-color: #ffff00; box-shadow: 0 0 8px rgba(255,255,0,0.4); text-shadow: 0 0 5px #ffff00; 
-}
-.condition-toggle[data-condition="immobile"].active { 
-    color: #00ccff; border-color: #00ccff; box-shadow: 0 0 8px rgba(0,204,255,0.4); text-shadow: 0 0 5px #00ccff; 
-}
-
-/* Critical is read-only */
-.condition-read-only {
-    width: 40px; height: 40px; /* Match toggle size */
-    display: flex; align-items: center; justify-content: center; 
-    border-radius: var(--sla-radius); 
-    background: #1a1a25; border: 1px solid var(--sla-border); color: #555;
-    font-size: 1.5em;
-}
-.condition-read-only.active {
-    color: #ff0000; border-color: #ff0000; background: #300; animation: pulse 1s infinite;
+/* CRITICAL BUTTON (New Skull) */
+.condition-toggle[data-condition="critical"].active { 
+    color: #ff0000; 
+    border-color: #ff0000; 
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.5); 
+    text-shadow: 0 0 5px #ff0000; 
+    background: #330000 !important;
 }
 
 /* ==========================================
    11. EBB DISCIPLINES STYLING
    ========================================== */
-
-/* Parent Row (The Discipline) */
-.discipline-row {
-    background-color: rgba(138, 43, 226, 0.15) !important; /* Purple Tint */
-    border-bottom: 1px solid #444;
-    border-top: 1px solid #444;
-}
-
-.discipline-row:hover {
-    background-color: rgba(138, 43, 226, 0.25) !important;
-}
-
-/* Child Row (The Formula) */
-.formula-row {
-    background-color: transparent !important;
-    border-bottom: 1px dotted #333;
-}
-
-.formula-row:hover {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-}
-
-.formula-row:last-child {
-    border-bottom: none;
-}
-
-.formula-row .rollable:hover {
-    color: #fff !important;
-    text-shadow: 0 0 5px #8a2be2;
-}
+.discipline-row { background-color: rgba(138, 43, 226, 0.15) !important; border-bottom: 1px solid #444; border-top: 1px solid #444; }
+.discipline-row:hover { background-color: rgba(138, 43, 226, 0.25) !important; }
+.formula-row { background-color: transparent !important; border-bottom: 1px dotted #333; }
+.formula-row:hover { background-color: rgba(255, 255, 255, 0.05) !important; }
+.formula-row:last-child { border-bottom: none; }
+.formula-row .rollable:hover { color: #fff !important; text-shadow: 0 0 5px #8a2be2; }
 
 /* ==========================================
-   12. THREAT SHEET (NPC RESTORATION)
+   13. ITEM SHEET THEMES (Refactored)
    ========================================== */
 
-/* 1. Reset Container to Light Theme */
-.sla-sheet.threat-sheet.window-content {
-    background: #e8e8e8 !important; /* Light Grey Paper */
-    color: #000 !important;         /* Black Text */
-    font-family: "Georgia", serif;  /* Book Font */
-    padding: 0;
-    border: 3px solid #800;         /* Red Border */
-}
-
-.threat-header {
-    background: #880000; /* Deep Red */
-    padding: 5px;
-    border-bottom: 2px solid #000;
-    display: flex;
-    align-items: center;
-    height: 90px;
-}
-
-.threat-header input {
-    background: transparent !important;
-    border: none !important;
-    color: #fff !important;
-    font-family: "Arial", sans-serif;
-    font-weight: bold;
-    font-size: 1.8em;
-    text-transform: uppercase;
-    box-shadow: none !important;
-}
-
-.threat-img {
-    flex: 0 0 80px;
-    height: 80px;
-    width: 80px;
-    border: 2px solid #fff;
-    background: #000;
-    margin-left: 10px;
-}
-
-/* 3. Stat Table */
-.threat-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 10px;
-    border: 1px solid #000;
-    table-layout: fixed; 
-}
-
-/* Header Cells (STR, DEX, etc) */
-.threat-row-label th {
-    background: #222;
-    color: #fff;
-    font-weight: bold;
-    text-align: center;
-    padding: 2px;
-    border-right: 1px solid #555;
-    font-family: "Arial", sans-serif;
-    font-size: 0.8em;
-}
-.threat-row-label th:last-child {
-    border-right: none;
-}
-
-/* Data Cells (Inputs) */
-.threat-row-value td {
-    padding: 0;
-    border-right: 1px solid #ccc;
-}
-.threat-row-value td:last-child {
-    border-right: none;
-}
-
-/* Inputs inside cells */
-.threat-row-value input {
-    width: 100%;
-    background: #fff !important;
-    color: #000 !important;
-    border: none !important;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.1em;
-    height: 30px;
-    border-radius: 0;
-}
-
-/* 4. Derived Stats Row */
-.threat-derived {
-    gap: 5px;
-    margin-bottom: 10px;
-}
-
-.threat-box {
-    background: #fff;
-    border: 1px solid #000;
-    padding: 2px;
-    flex: 1;
-    text-align: center;
-}
-
-.threat-box label {
-    display: block;
-    background: #ccc;
-    font-weight: bold;
-    font-size: 0.7em;
-    margin-bottom: 2px;
-}
-
-.threat-box input {
-    background: transparent !important;
-    color: #000 !important;
-    border: none !important;
-    text-align: center;
-    font-weight: bold;
-}
-
-/* 5. Lists & Content */
-.threat-section-bar {
-    background: #333;
-    color: #fff;
-    padding: 2px 5px;
-    font-weight: bold;
-    text-transform: uppercase;
-    border-top: 1px solid #000;
-    font-size: 0.9em;
-}
-
-.threat-content-box {
-    background: #fff;
-    padding: 5px;
-    border: 1px solid #ccc;
-    min-height: 50px;
-    margin-bottom: 5px;
-}
-
-.threat-item {
-    padding: 2px;
-    border-bottom: 1px dashed #ccc;
-    align-items: center;
-    display: flex; 
-}
-
-/* FIX: Force Image Size */
-.threat-item img {
-    flex: 0 0 24px; 
-    width: 24px;
-    height: 24px;
-    object-fit: cover;
-    margin-right: 5px;
-    border: 1px solid #000;
-}
-
-.threat-item .item-name {
-    flex: 1;
-    color: #000;
-    cursor: pointer;
-}
-.threat-item .item-name:hover {
-    color: #a00;
-    text-shadow: none;
-}
-
-.threat-item .item-controls {
-    display: flex;
-    gap: 5px;
-}
-.threat-item .item-controls a {
-    color: #555;
-}
-.threat-item .item-controls a:hover {
-    color: #d00;
-}
-
-/* 6. Editor Fix for White Paper */
-.threat-sheet .editor {
-    height: 100%;
-}
-.threat-sheet .editor-content {
-    color: #000 !important;
-    font-family: "Georgia", serif;
-}
-.threat-sheet .editor-edit {
-    background: #eee;
-    color: #000;
-    border: 1px solid #000;
-}
-
-/* ==========================================
-   13. ITEM SHEET THEMES
-   ========================================== */
-
-/* --- A. CATALOGUE THEME (Weapons, Gear, Armor, Drugs) --- */
-.item.weapon-theme, .item.item-theme, .item.armor-theme, .item.drug-theme, .item.magazine-theme {
-    background: #e0e0e0; /* Light Grey Industrial */
+/* A. BASE WHITE THEME (Applies to ALL Items by default) */
+.item .window-content {
+    background: #e0e0e0 !important; 
     border: 4px solid #333;
     font-family: "Arial", sans-serif;
     color: #111;
 }
-
-.item.weapon-theme .sheet-header, .item.item-theme .sheet-header, .item.armor-theme .sheet-header, .item.drug-theme .sheet-header, .item.magazine-theme .sheet-header {
-    background: #222;
-    color: #fff;
-    border-bottom: 4px solid #f90; /* Industrial Orange Accent */
+.item .sheet-header {
+    background: #222 !important;
+    color: #fff !important;
+    border-bottom: 4px solid #f90;
     padding: 10px;
 }
-
-.item.weapon-theme input, .item.item-theme input, 
-.item.armor-theme input, .item.drug-theme input {
-    background: #fff;
-    border: 1px solid #999;
-    color: #000;
+.item input {
+    background: #fff !important; 
+    border: 1px solid #999 !important;
+    color: #000 !important;
     font-family: "Courier New", monospace;
-}
-
-.catalogue-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    padding: 10px;
-    background: #ccc;
-    border: 1px solid #999;
-}
-
-.catalogue-grid label {
     font-weight: bold;
-    text-transform: uppercase;
-    font-size: 0.8em;
-    color: #444;
 }
 
-/* --- B. ACADEMIC THEME (Skills, Traits) --- */
-.item.skill-theme, .item.trait-theme {
-    background: #fdfbf7; /* Cream Paper */
+/* B. ACADEMIC THEME OVERRIDE (Skills, Traits) */
+.item.skill .window-content, 
+.item.trait .window-content {
+    background: #fdfbf7 !important; 
     color: #222;
     font-family: "Georgia", serif;
     border: 1px solid #aaa;
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
 }
-
-.item.skill-theme .sheet-header, .item.trait-theme .sheet-header {
-    background: transparent;
-    border-bottom: 2px solid #000;
-    color: #000;
-}
-
-.item.skill-theme input, .item.trait-theme input {
-    background: transparent;
+.item.skill .sheet-header, 
+.item.trait .sheet-header {
+    background: transparent !important;
     border: none;
-    border-bottom: 1px dotted #000;
-    color: #000;
+    border-bottom: 2px solid #000;
+    color: #000 !important;
+}
+.item.skill input, 
+.item.trait input {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px dotted #000 !important;
+    color: #000 !important;
     font-family: "Georgia", serif;
     font-style: italic;
+    font-weight: bold;
 }
+.academic-paper { padding: 10px; }
+.academic-paper .line-item { display: flex; justify-content: space-between; border-bottom: 1px solid #ddd; padding: 5px 0; }
+.academic-note { margin-top: 20px; font-size: 0.7em; text-align: center; color: #888; border-top: 1px solid #000; padding-top: 5px; }
 
-.academic-paper {
-    padding: 10px;
-}
+/* ==========================================
+   13-C. SPECTRAL THEME (Ebb, Discipline)
+   ========================================== */
 
-.academic-paper .line-item {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid #ddd;
-    padding: 5px 0;
-}
-
-.academic-note {
-    margin-top: 20px;
-    font-size: 0.7em;
-    text-align: center;
-    color: #888;
-    border-top: 1px solid #000;
-    padding-top: 5px;
-}
-
-/* --- C. SPECTRAL THEME (Ebb, Discipline) --- */
-.item.ebbFormula-theme, .item.discipline-theme {
-    background: #0a0011; /* Deep Void */
-    color: #d8bfff; /* Pale Purple */
+/* 1. Background & Window */
+.item.ebbFormula .window-content, 
+.item.ebbformula .window-content, 
+.item.discipline .window-content {
+    background-image: none !important; 
+    background: #0a0011 !important;    
+    background-color: #0a0011 !important;
+    color: #d8bfff !important;
     font-family: "Roboto", sans-serif;
     border: 2px solid #8a2be2;
-    box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
 }
 
-.item.ebbFormula-theme .sheet-header, .item.discipline-theme .sheet-header {
-    background: linear-gradient(90deg, #1a002a, #30004a);
+/* Header */
+.item.ebbFormula .sheet-header, 
+.item.ebbformula .sheet-header, 
+.item.discipline .sheet-header {
+    background: linear-gradient(90deg, #1a002a, #30004a) !important;
     border-bottom: 1px solid #8a2be2;
 }
 
-.item.ebbFormula-theme input, .item.discipline-theme input,
-.item.ebbFormula-theme select, .item.discipline-theme select {
-    background: rgba(0,0,0,0.5);
-    border: 1px solid #8a2be2;
-    color: #fff;
+/* 2. Inputs & Glows */
+.item.ebbFormula input, .item.ebbformula input,
+.item.discipline input,
+.item.ebbFormula select, .item.ebbformula select,
+.item.discipline select {
+    background: rgba(0,0,0,0.5) !important;
+    border: 1px solid #8a2be2 !important;
+    color: #fff !important;
     text-shadow: 0 0 5px #8a2be2;
 }
+.spectral-container { padding: 10px; }
+.glow-input { margin-bottom: 10px; padding: 5px; border: 1px solid rgba(138, 43, 226, 0.3); background: rgba(138, 43, 226, 0.05); }
+.glow-input label { color: #a855f7; text-transform: uppercase; font-size: 0.8em; letter-spacing: 1px; }
 
-.spectral-container {
-    padding: 10px;
+
+/* ==========================================
+   FIX: EBB DISCIPLINE DROP ZONE (Direct Targeting)
+   ========================================== */
+
+/* 1. The Container (The Box) */
+.discipline-drop-zone {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    
+    border: 1px solid #8a2be2 !important; 
+    background: rgba(42, 0, 58, 0.6) !important;
+    border-radius: 4px !important;
+    padding: 2px 8px !important;
+    
+    min-height: 32px !important;
+    width: auto !important;
+    max-width: 100%; 
+    cursor: pointer;
+    box-sizing: border-box !important;
 }
 
-.glow-input {
-    margin-bottom: 10px;
-    padding: 5px;
-    border: 1px solid rgba(138, 43, 226, 0.3);
-    background: rgba(138, 43, 226, 0.05);
+.discipline-drop-zone:hover {
+    background: rgba(138, 43, 226, 0.3) !important;
+    box-shadow: 0 0 5px #8a2be2;
 }
 
-.glow-input label {
-    color: #a855f7;
-    text-transform: uppercase;
-    font-size: 0.8em;
-    letter-spacing: 1px;
+/* 2. The Image (CRITICAL FIX: 24px) */
+/* Targeted directly with high specificity */
+.discipline-drop-zone img {
+    display: block !important;
+    width: 24px !important;
+    height: 24px !important;
+    
+    flex: 0 0 24px !important; 
+    min-width: 24px !important; 
+    max-width: 24px !important;
+    
+    object-fit: cover !important;
+    border: none !important;
+    margin: 0 8px 0 0 !important; 
+    padding: 0 !important;
+    background: transparent !important;
 }
 
-/* --- D. OFFICE DOSSIER THEME (Species, Package) --- */
-.item.species-theme, .item.package-theme {
-    background: #f4e4bc; /* Manila Folder Beige */
-    color: #333;
-    font-family: "Courier Prime", "Courier New", monospace;
-    border: 1px solid #c7b28a;
-}
-
-.item.species-theme .sheet-header, .item.package-theme .sheet-header {
-    background: rgba(0,0,0,0.05);
-    border-bottom: 2px solid #555;
-}
-
-.item.species-theme input, .item.package-theme input {
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid #555;
-    color: #000;
-    font-family: "Courier New", monospace;
+/* 3. The Text Name */
+.discipline-drop-zone .linked-name {
     font-weight: bold;
+    color: #d8bfff;
+    font-size: 1.1em;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 8px !important;
+    line-height: 24px;
 }
 
-.office-dossier {
-    padding: 10px;
-}
-
-.dossier-stamp {
-    border: 2px solid #d00;
+/* 4. The Close 'X' Button */
+.discipline-drop-zone .remove-discipline {
     color: #d00;
-    display: inline-block;
-    padding: 2px 10px;
-    font-weight: bold;
-    transform: rotate(-2deg);
-    margin-bottom: 15px;
-    font-family: "Arial Black", sans-serif;
-    opacity: 0.7;
-}
-
-.paper-section {
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    padding: 5px;
-    background: rgba(255,255,255,0.3);
-}
-
-.paper-header {
-    background: #333;
-    color: #fff;
-    padding: 2px 5px;
-    font-size: 0.8em;
-    text-transform: uppercase;
-    margin-bottom: 5px;
-}
-
-.paper-row {
+    font-size: 1.1em;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 5px;
+    justify-content: center;
+    height: 24px;
+    width: 16px; 
 }
 
-/* Stat Grid for Species/Package */
-.stat-limits-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5px;
+/* 5. Placeholder Text (When Empty) */
+.discipline-drop-zone:not(:has(img)) {
+    border: 2px dashed #666 !important; 
+    background: rgba(0,0,0,0.2) !important;
 }
 
-.limit-box {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px dotted #999;
-    padding: 2px;
+.discipline-drop-zone .placeholder {
+    color: #888;
+    font-style: italic;
+    font-size: 0.9em;
 }
-.limit-box label { font-size: 0.8em; font-weight: bold; }
+
+
+/* ==========================================
+   REMAINING THEMES (Dossier & Global)
+   ========================================== */
+
+/* D. DOSSIER THEME (Species, Package) */
+.item.species .window-content, .item.package .window-content {
+    background: #f4e4bc !important; color: #333; font-family: "Courier Prime", monospace; border: 1px solid #c7b28a;
+}
+.item.species .sheet-header, .item.package .sheet-header { background: rgba(0,0,0,0.05) !important; border-bottom: 2px solid #555; color: #000 !important; }
+.item.species input, .item.package input { background: transparent !important; border: none !important; border-bottom: 1px solid #555 !important; color: #000 !important; font-weight: bold; }
+
+/* Dossier Layouts */
+.office-dossier { padding: 10px; }
+.dossier-stamp { border: 2px solid #d00; color: #d00; display: inline-block; padding: 2px 10px; font-weight: bold; transform: rotate(-2deg); margin-bottom: 15px; opacity: 0.7; }
+.paper-section { margin-bottom: 15px; border: 1px solid #ccc; padding: 5px; background: rgba(255,255,255,0.3); }
+.paper-header { background: #333; color: #fff; padding: 2px 5px; font-size: 0.8em; font-weight:bold; margin-bottom: 5px; }
+.stat-limits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.limit-box { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dotted #999; padding: 2px; }
 .limit-box input { width: 30px; text-align: center; }
 
-/* Skill Granting Area */
+/* Skill Granting Area (Only for Dossier now) */
 .skill-grant-area {
     min-height: 60px;
     border: 2px dashed #999;
     padding: 5px;
     background: rgba(0,0,0,0.02);
+    display: flex; flex-wrap: wrap; align-items: center; width: 100%;
+}
+.granted-skill-chip { 
+    display: inline-flex; align-items: center; background: #e0e0e0; border: 1px solid #999; 
+    padding: 2px 6px; margin: 2px; border-radius: 3px; font-size: 0.9em; 
+}
+.granted-skill-chip img { 
+    height: 24px !important; width: 24px !important; margin-right: 5px !important; border: 1px solid #555 !important; 
+    object-fit: cover !important;
+}
+.delete-grant { margin-left: 5px; color: #d00; cursor: pointer; }
+.empty-dossier-text { width: 100%; text-align: center; color: #777; font-style: italic; padding-top: 15px; }
+
+/* Global Image Fix (List Images - Strict 30px Box) */
+/* This catches the inventory tab lists */
+.sla-industries.sheet.actor .item .item-image,
+.sla-sheet .item .item-image {
+    flex: 0 0 30px !important;
+    width: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    height: 30px !important;
+    
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    
+    margin-right: 5px !important;
+    padding: 0 !important;
+    overflow: hidden !important; 
 }
 
-.granted-skill-chip {
-    display: inline-flex;
-    align-items: center;
-    background: #e0e0e0;
-    border: 1px solid #999;
-    padding: 2px 6px;
-    margin: 2px;
-    border-radius: 3px;
-    font-size: 0.9em;
+.sla-industries.sheet.actor .item .item-image img,
+.sla-sheet .item .item-image img {
+    width: 24px !important;
+    height: 24px !important;
+    flex: 0 0 24px !important;
+    object-fit: cover !important; 
+    border: 1px solid #444 !important;
+    background: #000 !important;
+    margin: 0 !important;
+    display: block !important;
 }
 
-.delete-grant {
-    margin-left: 5px;
-    color: #d00;
-    cursor: pointer;
+/* Header Profile Image */
+.sla-industries.item .sheet-header .profile-img {
+    flex: 0 0 64px; width: 64px; height: 64px; object-fit: cover; border: 1px solid #000; margin-right: 10px; background: #000;      
 }
-.delete-grant:hover { color: #f00; }
-
-.empty-dossier-text {
-    width: 100%;
-    text-align: center;
-    color: #777;
-    font-style: italic;
-    padding-top: 15px;
-}
-
-/* --- E. ITEM SHEET IMAGE FIX --- */
-.sla-sheet.item .sheet-header .profile-img {
-    flex: 0 0 64px;          
-    width: 64px;           
-    height: 64px;         
-    object-fit: cover;     
-    border: 1px solid #000;
-    margin-right: 10px;    
-    background: #000;     
-}
-
-.sla-sheet.item .sheet-header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-.sla-sheet.item .header-details {
-    flex: 1;
-    overflow: hidden; 
-}
-
-/* ==========================================
-   17. SKILL LIST & TABLES
-   ========================================== */
-
-/* Header Row */
-.skill-group-header td,
-.sla-table thead th { /* Catch generic table headers too */
-    background: #111;
-    color: var(--sla-accent); 
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: 0.85em;
-    padding: 4px 5px;
-    border-bottom: 1px solid var(--sla-border);
-    letter-spacing: 1px;
-}
-
-/* "Add Item" Icons in Headers */
-.sla-header-bar .item-create,
-.sla-table .item-create {
-    color: var(--sla-text-light);
-    cursor: pointer;
-    font-size: 0.9em;
-}
-.sla-header-bar .item-create:hover,
-.sla-table .item-create:hover {
-    color: var(--sla-accent);
-    text-shadow: 0 0 5px var(--sla-accent);
-}
-
-/* General Table Text */
-.sla-table td {
-    color: var(--sla-text-light) !important;
-    padding: 2px 5px;
-    border-bottom: 1px solid #222; /* Subtle separator between rows */
-}
-
-/* Icons (Edit/Delete) */
-.sla-table .item-controls a { color: #555; transition: color 0.2s; }
-.sla-table .item-controls a:hover { color: var(--sla-accent); }
-
-/* Item Image Styling */
-.sla-table .item-name img {
-    flex: 0 0 24px;         
-    width: 24px;           
-    height: 24px;         
-    object-fit: cover;     
-    border: 1px solid var(--sla-border);
-    background: #000;     
-    margin-right: 5px;
-}
-
-.sla-table .item-name {
-    display: flex;
-    align-items: center;
-    color: #fff !important;
-}
-
-/* Loadout Buttons */
-.sla-table .item-toggle i { color: #444; } /* Default dark */
-.sla-table .item-toggle i.fa-check-circle { color: #4CAF50 !important; } /* Active Green */
-
-/* ==========================================
-   Z. UNIVERSAL BACKGROUND OVERRIDE FIX
-   ========================================== */
-
-/* 1. Target the absolute root window content */
-.sla-sheet.window-content,
-.app.window-app .window-content {
-    background-image: none !important; 
-    background: var(--sla-bg-dark) !important;
-    background-color: var(--sla-bg-dark) !important;
-    box-shadow: none !important; 
-}
-
-/* 2. Target the form and internal structure */
-.sla-sheet form,
-.sla-sheet .sheet-body {
-    background: transparent !important; /* Let the root dark color show through */
-    background-image: none !important;
-}
-
-/* 3. Target all Tabs and inner containers */
-.sla-sheet .tab,
-.sla-sheet .tab .full-height,
-.sla-sheet .tab > .flexcol.full-height {
-    background-image: none !important;
-    background-color: transparent !important; /* Transparent so they match the root */
-}
-
-/* Inventory Header Styling */
-.sla-sheet .inventory-header {
-    background: rgba(0, 0, 0, 0.5); /* Dark background for header */
-    border: 1px solid var(--sla-accent); /* Green border */
-    color: var(--sla-accent);
-    font-weight: bold;
-    padding: 5px;
-    margin-bottom: 2px;
-}
-
-/* List Row Styling */
-.sla-sheet .inventory-list .item {
-    background: rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid #333;
-    padding: 4px;
-    align-items: center; /* Vertically center content */
-}
-
-.sla-sheet .inventory-list .item:hover {
-    background: rgba(57, 255, 20, 0.1); /* Slight green glow on hover */
-}
-
-/* Column Widths */
-.sla-sheet .item-image { flex: 0 0 30px; text-align: center; }
-.sla-sheet .item-name { flex: 2; margin: 0 5px; color: #eee; }
-.sla-sheet .item-detail { flex: 0 0 50px; text-align: center; color: #aaa; font-size: 0.9em; }
-.sla-sheet .item-controls { flex: 0 0 60px; text-align: right; }
-
-.sla-sheet .item-control { color: #888; margin-left: 5px; }
-.sla-sheet .item-control:hover { color: var(--sla-accent); text-shadow: 0 0 5px var(--sla-accent); }
-.sla-sheet .item-control.active { color: var(--sla-accent); } /* For equipped items */
+.sla-industries.item .sheet-header { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; }
+.sla-industries.item .header-details { flex: 1; overflow: hidden; }

@@ -64,11 +64,15 @@ export class SlaActorSheet extends ActorSheet {
     return context;
   }
 
-  _prepareItems(context) {
+	_prepareItems(context) {
     const gear = [];
     const traits = [];
     const ebbFormulas = [];
     const disciplines = [];
+    
+    // NEW: Separate lists for Combat Loadout
+    const weapons = [];
+    const armors = [];
     
     const skillsByStat = {
         "str": { label: "STR", items: [] },
@@ -83,11 +87,17 @@ export class SlaActorSheet extends ActorSheet {
     for (let i of context.items) {
       i.img = i.img || DEFAULT_TOKEN;
       
-      // INCLUDES MAGAZINE IN GEAR LIST
-      if (i.type === 'item' || i.type === 'weapon' || i.type === 'armor' || i.type === 'drug' || i.type === 'magazine') {
+      // 1. Populate General Gear List (for Inventory Tab)
+      if (['item', 'weapon', 'armor', 'drug', 'magazine'].includes(i.type)) {
           gear.push(i);
       }
-      else if (i.type === 'trait') traits.push(i);
+      
+      // 2. Populate Specific Combat Lists (for Combat Tab)
+      if (i.type === 'weapon') weapons.push(i);
+      if (i.type === 'armor') armors.push(i);
+
+      // 3. Populate Other Lists
+      if (i.type === 'trait') traits.push(i);
       else if (i.type === 'ebbFormula') ebbFormulas.push(i);
       else if (i.type === 'discipline') disciplines.push(i);
       
@@ -104,11 +114,14 @@ export class SlaActorSheet extends ActorSheet {
     traits.sort(sortFn);
     ebbFormulas.sort(sortFn);
     disciplines.sort(sortFn);
+    weapons.sort(sortFn);
+    armors.sort(sortFn);
     
     for (const key in skillsByStat) {
         skillsByStat[key].items.sort(sortFn);
     }
 
+    // ... (Existing Ebb/Discipline nesting logic remains here) ...
     const configDis = CONFIG.SLA?.ebbDisciplines || {};
     const nestedDisciplines = [];
     const rawFormulas = [...ebbFormulas];
@@ -128,6 +141,10 @@ export class SlaActorSheet extends ActorSheet {
     context.traits = traits;
     context.disciplines = nestedDisciplines;
     context.skillsByStat = skillsByStat;
+    
+    // NEW: Pass these to the template
+    context.weapons = weapons;
+    context.armors = armors;
   }
 
   /* -------------------------------------------- */
@@ -507,7 +524,7 @@ async _onRoll(event) {
       return html;
   }
 
-	async _processWeaponRoll(item, html, isMelee) {
+async _processWeaponRoll(item, html, isMelee) {
       // 1. SETUP & INPUTS
       const form = html[0].querySelector("form");
       if (!form) return;
@@ -516,20 +533,48 @@ async _onRoll(event) {
       const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
       const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0); 
 
-      const skillKey = item.system.skill; 
+      // --- SKILL LOOKUP FIX (Debugged) ---
+      const skillInput = item.system.skill; 
       let rank = 0;
+      let targetSkillName = "";
+
       const combatSkills = CONFIG.SLA?.combatSkills || {};
-      if (skillKey && combatSkills[skillKey]) {
-          const targetName = combatSkills[skillKey];
-          const skillItem = this.actor.items.find(i => i.type === 'skill' && i.name.toLowerCase() === targetName.toLowerCase());
-          if (skillItem) rank = skillItem.system.rank;
+
+      // Step A: Determine the Name we are looking for
+      // Check if it matches a system key (e.g. "pistol" -> "Pistol")
+      if (skillInput && combatSkills[skillInput]) {
+          targetSkillName = combatSkills[skillInput];
+      } 
+      // Otherwise use the text directly (e.g. "Rifle")
+      else if (skillInput) {
+          targetSkillName = skillInput;
+      }
+
+      // Step B: Search the Actor for that Skill
+      if (targetSkillName) {
+          const cleanTarget = targetSkillName.trim().toLowerCase();
+          
+          const skillItem = this.actor.items.find(i => 
+              i.type === 'skill' && 
+              i.name.trim().toLowerCase() === cleanTarget
+          );
+
+          if (skillItem) {
+              // FORCE NUMBER: Convert string "3" to number 3
+              rank = Number(skillItem.system.rank) || 0;
+              console.log(`SLA | Found Skill "${skillItem.name}" with Rank: ${rank}`);
+          } else {
+              console.warn(`SLA | Warning: Weapon requires '${targetSkillName}' but no matching Skill found on Actor.`);
+              // Optional: UI Warning
+              // ui.notifications.warn(`Skill '${targetSkillName}' not found. Using Rank 0.`);
+          }
       }
 
       // Safe Input Reading
       let mods = {
           successDie: 0,
           allDice: Number(form.modifier?.value) || 0, 
-          rank: 0,
+          rank: 0, // This is the "Modifier" from the dialog, NOT the skill rank
           damage: 0,
           autoSkillSuccesses: 0
       };
@@ -563,9 +608,21 @@ async _onRoll(event) {
       mods.allDice -= penalty;
 
       // 4. ROLL EVALUATION
+      // baseModifier = Stat + Rank + Mods
       const baseModifier = statValue + rank + mods.allDice; 
+      
+      // Skill Dice Count = Rank + 1 + (Dialog Rank Modifiers)
+      // We ensure it can't go below 0
       const skillDiceCount = Math.max(0, rank + 1 + mods.rank);
       
+      console.log("SLA Roll Debug:", {
+          stat: statValue,
+          rank: rank,
+          mods: mods.allDice,
+          baseModifier: baseModifier,
+          diceCount: skillDiceCount
+      });
+
       const rollFormula = `1d10 + ${skillDiceCount}d10`;
       let roll = new Roll(rollFormula);
       await roll.evaluate();

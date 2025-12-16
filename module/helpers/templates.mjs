@@ -20,7 +20,11 @@ export const preloadHandlebarsTemplates = async function() {
 	"systems/sla-industries/templates/partials/header-card.hbs",
     "systems/sla-industries/templates/partials/main-tab.hbs",
 	"systems/sla-industries/templates/partials/inventory-tab.hbs",
-    "systems/sla-industries/templates/partials/bio-traits-tab.hbs"
+    "systems/sla-industries/templates/partials/bio-traits-tab.hbs",
+	"systems/sla-industries/templates/partials/item-catalogue.hbs",
+  "systems/sla-industries/templates/partials/item-academic.hbs",
+  "systems/sla-industries/templates/partials/item-spectral.hbs",
+  "systems/sla-industries/templates/partials/item-dossier.hbs"
   ];
 
   // Load the template parts
