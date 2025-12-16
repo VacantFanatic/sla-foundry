@@ -1,61 +1,67 @@
-<div class="inventory-section flexcol">
-    
-    {{!-- INVENTORY HEADER --}}
-    <li class="item flexrow inventory-header">
-        <div class="item-image"></div>
-        <div class="item-name">Item Name</div>
-        <div class="item-detail">Qty</div>
-        <div class="item-detail">Weight</div>
-        <div class="item-controls">
-            <a class="item-control item-create" title="Create Item" data-type="item">
-                <i class="fas fa-plus"></i> Add
-            </a>
+<div class="sla-panel full-height">
+    <div class="sla-header-bar">
+        INVENTORY
+        <div class="item-controls" style="float:right;">
+            <a class="item-create" data-type="item" title="Create Item"><i class="fas fa-plus"></i></a>
         </div>
-    </li>
+    </div>
+    
+    <div class="scroll-list">
+        <table class="sla-table">
+            {{!-- Loop through each Category (Weapons, Armor, etc.) --}}
+            {{#each inventory as |section key|}}
+            {{#if section.items.length}}
+                <thead>
+                    <tr style="background:#111; color:#D05E1A; border-bottom:1px solid #444;">
+                        <th style="text-align:left; padding:4px 8px; font-size:0.85em; letter-spacing:1px;" colspan="2">{{section.label}}</th>
+                        <th style="width:60px; text-align:center;">Qty</th>
+                        <th style="width:60px; text-align:center;">Wt.</th>
+                        <th style="width:50px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each section.items as |item|}}
+                    <tr class="item" data-item-id="{{item._id}}" style="border-bottom:1px solid #333;">
+                        
+                        {{!-- IMAGE --}}
+                        <td class="item-image" style="width:30px; padding:2px;">
+                            <img src="{{item.img}}" width="24" height="24"/>
+                        </td>
 
-    {{!-- SCROLLABLE LIST --}}
-    <ol class="item-list inventory-list">
-        {{#each gear as |item id|}}
-        <li class="item flexrow" data-item-id="{{item._id}}">
-            
-            {{!-- ITEM IMAGE --}}
-            <div class="item-image">
-                <img src="{{item.img}}" title="{{item.name}}" width="24" height="24"/>
+                        {{!-- NAME --}}
+                        <td class="item-name" style="padding-left:5px; font-weight:bold; color:#e0e0e0;">
+                            <a class="rollable" data-roll-type="item">
+                                {{item.name}}
+                            </a>
+                        </td>
+
+                        {{!-- QTY --}}
+                        <td style="text-align:center; color:#aaa;">
+                            {{item.system.quantity}}
+                        </td>
+
+                        {{!-- WEIGHT --}}
+                        <td style="text-align:center; color:#aaa;">
+                            {{item.system.weight}}
+                        </td>
+
+                        {{!-- CONTROLS --}}
+                        <td class="item-controls" style="text-align:right; padding-right:5px;">
+                            <a class="item-edit" title="Edit Item"><i class="fas fa-edit" style="color:#444;"></i></a>
+                            <a class="item-delete" title="Delete Item"><i class="fas fa-trash" style="color:#444;"></i></a>
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            {{/if}}
+            {{/each}}
+        </table>
+        
+        {{!-- EMPTY STATE --}}
+        {{#unless (or inventory.weapon.items.length (or inventory.armor.items.length (or inventory.item.items.length (or inventory.drug.items.length inventory.magazine.items.length))))}}
+            <div style="padding:20px; text-align:center; color:#555; font-style:italic;">
+                No items in inventory. Drag items here or click + to add.
             </div>
-
-            {{!-- ITEM NAME (Click to toggle expand/roll/etc usually, or just edit) --}}
-            <h4 class="item-name item-edit clickable">{{item.name}}</h4>
-
-            {{!-- QUANTITY --}}
-            <div class="item-detail">
-                {{item.system.quantity}}
-            </div>
-
-            {{!-- WEIGHT (Optional: Assumes you have a weight field) --}}
-            <div class="item-detail">
-                {{item.system.weight}}
-            </div>
-
-            {{!-- CONTROLS --}}
-            <div class="item-controls">
-                {{!-- Equip Toggle (Optional) --}}
-                <a class="item-control item-toggle {{#if item.system.equipped}}active{{/if}}" title="Equip/Unequip">
-                    <i class="fas fa-shield-alt"></i>
-                </a>
-
-                {{!-- Edit --}}
-                <a class="item-control item-edit" title="Edit Item">
-                    <i class="fas fa-edit"></i>
-                </a>
-
-                {{!-- Delete --}}
-                <a class="item-control item-delete" title="Delete Item">
-                    <i class="fas fa-trash"></i>
-                </a>
-            </div>
-        </li>
-        {{else}}
-            <li class="item flexrow notice">No gear owned.</li>
-        {{/each}}
-    </ol>
+        {{/unless}}
+    </div>
 </div>

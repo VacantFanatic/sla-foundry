@@ -1,0 +1,87 @@
+<div class="flexcol full-height">
+    
+    {{!-- 1. STATUS & WOUNDS --}}
+    {{> "systems/sla-industries/templates/partials/wounds.hbs"}}
+
+    {{!-- 2. COMBAT LOADOUT --}}
+    <div class="sla-panel" style="margin-top: 5px;">
+        <div class="sla-header-bar">COMBAT LOADOUT</div>
+        <div class="scroll-list">
+            
+            {{!-- WEAPONS --}}
+            {{#if weapons.length}}
+            <div class="group-header" style="background:#111; color:#D05E1A; font-size:0.85em; padding:2px 8px; font-weight:bold; border-bottom:1px solid #444; letter-spacing:1px;">
+                WEAPONS
+            </div>
+            <div class="combat-list">
+                {{#each weapons as |item|}}
+                <div class="item" data-item-id="{{item._id}}" style="display:flex; align-items:center; padding:4px 8px; border-bottom:1px solid #333;">
+                    
+                    <div class="item-name" style="flex:2; font-weight:bold; color:#e0e0e0;">
+                        <a class="item-edit">{{item.name}}</a>
+                    </div>
+
+                    <div class="item-detail" style="flex:1.5; text-align:center; font-size:0.9em; color:#aaa; display:flex; justify-content:center; gap:10px;">
+                        <span style="color:#fff;" title="Damage">{{item.system.damage}}</span>
+                        {{#if item.system.maxAmmo}}
+                            <span style="font-family:'Courier New', monospace; font-weight:bold; {{#if (eq item.system.ammo 0)}}color:#ff5555;{{else}}color:#888;{{/if}}">
+                                [{{item.system.ammo}}/{{item.system.maxAmmo}}]
+                            </span>
+                        {{/if}}
+                    </div>
+
+                    <div class="item-controls" style="flex:0 0 90px; text-align:right; display:flex; justify-content:flex-end; gap:8px;">
+                        <a class="rollable" data-roll-type="item" title="Attack"><i class="fas fa-crosshairs" style="color:#D05E1A"></i></a>
+                        {{#if item.system.ammoCapacity}}
+                        <a class="item-reload" title="Reload"><i class="fas fa-sync-alt" style="color:#aaa;"></i></a>
+                        {{/if}}
+                        <a class="item-toggle" title="Equip/Holster">
+                            {{#if item.system.equipped}}<i class="fas fa-check-circle" style="color:#39ff14;"></i>{{else}}<i class="fas fa-circle" style="color:#444;"></i>{{/if}}
+                        </a>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+
+            {{!-- ARMOR --}}
+            {{#if armors.length}}
+            <div class="group-header" style="background:#111; color:#D05E1A; font-size:0.85em; padding:2px 8px; font-weight:bold; border-bottom:1px solid #444; margin-top:5px; letter-spacing:1px;">
+                ARMOR
+            </div>
+            <div class="combat-list">
+                {{#each armors as |item|}}
+                <div class="item" data-item-id="{{item._id}}" style="display:flex; align-items:center; padding:4px 8px; border-bottom:1px solid #333;">
+                    <div class="item-name" style="flex:2; font-weight:bold; color:#e0e0e0;">
+                        <a class="item-edit">{{item.name}}</a>
+                    </div>
+                    <div class="item-detail" style="flex:1.5; display:flex; align-items:center; justify-content:center; gap:10px; font-size:0.9em; color:#aaa;">
+                        <span>PV: {{item.system.pv}}</span>
+                        <div style="display:flex; align-items:center; gap:3px;">
+                            <i class="fas fa-shield-alt" style="color:#8a2be2; font-size:0.8em;"></i>
+                            <input type="number" class="inline-edit" data-field="system.resistance.value" data-item-id="{{item._id}}"
+                                   value="{{item.system.resistance.value}}" style="width:30px; height:20px; text-align:center; background:#222; border:1px solid #555; color:#fff;" />
+                            <span>/ {{item.system.resistance.max}}</span>
+                        </div>
+                    </div>
+                    <div class="item-controls" style="flex:0 0 40px; text-align:right;">
+                        <a class="item-toggle" title="Wear/Remove">
+                            {{#if item.system.equipped}}<i class="fas fa-check-circle" style="color:#39ff14;"></i>{{else}}<i class="fas fa-circle" style="color:#444;"></i>{{/if}}
+                        </a>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+        </div>
+    </div>
+
+    {{!-- 3. EBB DISCIPLINES (CONDITIONAL) --}}
+    {{!-- Only show if the character is an Ebonite --}}
+    {{#if isEbonite}}
+    <div style="margin-top: 5px;">
+        {{> "systems/sla-industries/templates/partials/disciplines.hbs"}}
+    </div>
+    {{/if}}
+
+</div>
