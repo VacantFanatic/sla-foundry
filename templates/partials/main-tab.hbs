@@ -1,4 +1,6 @@
 <div class="flexcol full-height">
+    
+    {{!-- TOP SECTION: Split Columns --}}
     <div class="main-split">
         <div class="left-col flexcol full-height">
             <div style="flex: 1; min-height: 400px;">
@@ -11,98 +13,110 @@
         </div>
     </div>
     
-    {{!-- COMBAT LOADOUT (Weapons/Armor ONLY) --}}
+    {{!-- BOTTOM SECTION: COMBAT LOADOUT --}}
     <div class="sla-panel" style="margin-top: 5px; flex: 1; min-height: 200px;">
-        <div class="sla-header-bar">COMBAT LOADOUT (Weapons & Armor)</div>
+        <div class="sla-header-bar">COMBAT LOADOUT</div>
         <div class="scroll-list">
-            <table class="sla-table">
-                <thead>
-                    <tr>
-                        <th style="text-align:left; padding-left:5px;">Name</th>
-                        <th style="width:40px;">Eqp</th>
-                        <th style="width:100px;">Stats</th>
-                        <th style="width:110px;">Actions/Ammo</th> {{!-- WIDENED COLUMN --}}
-                        <th style="width:50px;"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each gear as |item|}}
-                        {{#if (or (eq item.type "weapon") (eq item.type "armor"))}}
-                        <tr class="item" data-item-id="{{item._id}}">
-                            <td class="item-name rollable" data-roll-type="item" style="font-weight:bold; color:#000; padding-left:5px;">
-                                <div class="flexrow" style="align-items:center;">
-                                    <img src="{{item.img}}" width="24" height="24" style="border:1px solid #000; margin-right:5px;"/>
-                                    {{item.name}}
-                                </div>
-                            </td>
-                            
-                            {{!-- EQUIP COLUMN --}}
-                            <td style="text-align:center;">
-                                <a class="item-toggle" title="{{#if item.system.equipped}}Unequip{{else}}Equip{{/if}}">
-                                    <i class="fas {{#if item.system.equipped}}fa-check-circle{{else}}fa-circle{{/if}}" style="color:{{#if item.system.equipped}}#222{{else}}#ccc{{/if}}"></i>
-                                </a>
-                            </td>
+            
+            {{!-- 1. WEAPONS GROUP --}}
+            {{#if weapons.length}}
+            <div class="group-header" style="background:#111; color:#D05E1A; font-size:0.85em; padding:2px 8px; font-weight:bold; border-bottom:1px solid #444; letter-spacing:1px;">
+                WEAPONS
+            </div>
+            <div class="combat-list">
+                {{#each weapons as |item|}}
+                <div class="item" data-item-id="{{item._id}}" style="display:flex; align-items:center; padding:4px 8px; border-bottom:1px solid #333;">
+                    
+                    {{!-- Name --}}
+                    <div class="item-name" style="flex:2; font-weight:bold; color:#e0e0e0;">
+                        <a class="item-edit">{{item.name}}</a>
+                    </div>
 
-                            {{!-- STATS COLUMN --}}
-                            <td style="text-align:center; font-size:0.9em; color:#444;">
-                                {{#if (eq item.type "weapon")}}{{item.system.damage}}{{/if}}
-                                {{#if (eq item.type "armor")}}PV: {{item.system.pv}}{{/if}}
-                            </td>
-
-                            {{!-- ACTIONS/AMMO/RESIST COLUMN --}}
-                            <td style="text-align:center;">
-                            {{!-- ARMOR STATS (NEW BLOCK) --}}
-                            {{#if (eq item.type "armor")}}
-                            <div class="flexrow armor-resist-stats" style="align-items:center; justify-content:center; gap:5px; font-size:0.9em;">
-                                <i class="fas fa-shield-alt" title="Resistance" style="color: #8a2be2;"></i>
-                                
-                                {{!-- Current Resist (Editable) --}}
-                                <input type="number" 
-                                class="inline-edit" 
-                                data-field="system.resistance.value" 
-                                data-item-id="{{item._id}}"
-                                value="{{item.system.resistance.value}}" 
-                                title="Current Resistance"
-                                style="width: 35px; height: 20px; text-align: center; border: 1px solid #555; background: rgba(0,0,0,0.3); color: #fff;"/>
-                                
-                                <span style="color: #777;">/</span>
-                                
-                                {{!-- Max Resist (Read Only) --}}
-                                <span title="Max Resistance" style="color: #aaa; font-weight: bold;">{{item.system.resistance.max}}</span>
-                            </div>
-                            {{/if}}
-
-                            {{!-- WEAPON ACTIONS (EXISTING BLOCK) --}}
-							{{#if (eq item.type "weapon")}}
-							<div class="flexrow" style="align-items:center; justify-content:center; gap:5px;">
-    
-								{{!-- 1. Attack Button (Color changed to Accent Orange) --}}
-								<a class="rollable" data-roll-type="item" title="Attack"><i class="fas fa-crosshairs" style="color:#D05E1A"></i></a>
-    
-								{{!-- 2. Reload Button (Color changed to Accent Orange) --}}
-								<a class="item-reload" title="Reload"><i class="fas fa-sync-alt" style="color:#D05E1A; font-size:0.9em;"></i></a>
-    
-								{{!-- 3. Ammo Display --}}
-								<span style="font-size:0.8em; font-weight:bold; color:{{#if (eq item.system.maxAmmo 0)}}#d00{{else}}#e0e0e0{{/if}};">
-								{{#if item.system.maxAmmo}}
-									{{item.system.ammo}}/{{item.system.maxAmmo}}
-								{{else}}
-									No Clip
-								{{/if}}
-								</span>
-							</div>
-							{{/if}}
-                            </td>
-
-                            <td class="item-controls">
-                                <a class="item-edit"><i class="fas fa-edit" style="color:#444"></i></a>
-                                <a class="item-delete"><i class="fas fa-trash" style="color:#444"></i></a>
-                            </td>
-                        </tr>
+                    {{!-- Stats & Ammo --}}
+                    <div class="item-detail" style="flex:1.5; text-align:center; font-size:0.9em; color:#aaa; display:flex; justify-content:center; gap:10px;">
+                        <span style="color:#fff;" title="Damage">{{item.system.damage}}</span>
+                        
+                        {{!-- AMMO COUNTER FIX --}}
+                        {{!-- Checks if maxAmmo exists (is a gun that has been loaded/initialized) --}}
+                        {{#if item.system.maxAmmo}}
+                            <span style="font-family:'Courier New', monospace; font-weight:bold; {{#if (eq item.system.ammo 0)}}color:#ff5555;{{else}}color:#888;{{/if}}">
+                                [{{item.system.ammo}}/{{item.system.maxAmmo}}]
+                            </span>
                         {{/if}}
-                    {{/each}}
-                </tbody>
-            </table>
+                    </div>
+
+                    {{!-- Controls --}}
+                    <div class="item-controls" style="flex:0 0 90px; text-align:right; display:flex; justify-content:flex-end; gap:8px;">
+                        {{!-- Attack --}}
+                        <a class="rollable" data-roll-type="item" title="Attack">
+                            <i class="fas fa-crosshairs" style="color:#D05E1A"></i>
+                        </a>
+                        
+                        {{!-- Reload (Always visible for weapons) --}}
+                        <a class="item-reload" title="Reload">
+                            <i class="fas fa-sync-alt" style="color:#aaa;"></i>
+                        </a>
+
+                        {{!-- Equip (Green Checkmark Fix) --}}
+                        <a class="item-toggle" title="Equip/Holster">
+                            {{#if item.system.equipped}}
+                                <i class="fas fa-check-circle" style="color:#39ff14;"></i> {{!-- Neon Green --}}
+                            {{else}}
+                                <i class="fas fa-circle" style="color:#444;"></i>
+                            {{/if}}
+                        </a>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+
+            {{!-- 2. ARMOR GROUP --}}
+            {{#if armors.length}}
+            <div class="group-header" style="background:#111; color:#D05E1A; font-size:0.85em; padding:2px 8px; font-weight:bold; border-bottom:1px solid #444; margin-top:5px; letter-spacing:1px;">
+                ARMOR
+            </div>
+            <div class="combat-list">
+                {{#each armors as |item|}}
+                <div class="item" data-item-id="{{item._id}}" style="display:flex; align-items:center; padding:4px 8px; border-bottom:1px solid #333;">
+                    
+                    {{!-- Name --}}
+                    <div class="item-name" style="flex:2; font-weight:bold; color:#e0e0e0;">
+                        <a class="item-edit">{{item.name}}</a>
+                    </div>
+
+                    {{!-- Stats & Inline Edit --}}
+                    <div class="item-detail" style="flex:1.5; display:flex; align-items:center; justify-content:center; gap:10px; font-size:0.9em; color:#aaa;">
+                        <span>PV: {{item.system.pv}}</span>
+                        
+                        {{!-- Resistance Input --}}
+                        <div style="display:flex; align-items:center; gap:3px;">
+                            <i class="fas fa-shield-alt" style="color:#8a2be2; font-size:0.8em;"></i>
+                            <input type="number" 
+                                   class="inline-edit" 
+                                   data-field="system.resistance.value" 
+                                   data-item-id="{{item._id}}"
+                                   value="{{item.system.resistance.value}}" 
+                                   style="width:30px; height:20px; text-align:center; background:#222; border:1px solid #555; color:#fff;" />
+                            <span>/ {{item.system.resistance.max}}</span>
+                        </div>
+                    </div>
+
+                    {{!-- Controls --}}
+                    <div class="item-controls" style="flex:0 0 40px; text-align:right;">
+                        <a class="item-toggle" title="Wear/Remove">
+                            {{#if item.system.equipped}}
+                                <i class="fas fa-check-circle" style="color:#39ff14;"></i>
+                            {{else}}
+                                <i class="fas fa-circle" style="color:#444;"></i>
+                            {{/if}}
+                        </a>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+
         </div>
     </div>
 </div>

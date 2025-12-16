@@ -1,88 +1,84 @@
 <header class="sheet-header">
     <div class="header-grid">
         
-        {{!-- 1. LEFT: SLA OPERATIVE CARD --}}
+        {{!-- LEFT: BIO & TRAITS --}}
         <div class="header-left">
-            <div class="header-section-title">SLA OPERATIVE SECURITY CLEARANCE CARD</div>
+            <h1 class="charname">
+                <input name="name" type="text" value="{{actor.name}}" placeholder="Operative Name"/>
+            </h1>
             
+            {{!-- Sub-Header Details --}}
             <div class="header-fields">
+                <div class="form-group">
+                    <label class="label-bold">Species</label>
+                    <div class="chip">
+                        {{#if speciesItem}}
+                            <img src="{{speciesItem.img}}"/>
+                            <span class="chip-name">{{speciesItem.name}}</span>
+                            <a class="chip-delete" data-type="species"><i class="fas fa-times"></i></a>
+                        {{else}}
+                            <div class="chip-placeholder">Drop Species Here</div>
+                        {{/if}}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="label-bold">Package</label>
+                    <div class="chip">
+                        {{#if packageItem}}
+                            <img src="{{packageItem.img}}"/>
+                            <span class="chip-name">{{packageItem.name}}</span>
+                            <a class="chip-delete" data-type="package"><i class="fas fa-times"></i></a>
+                        {{else}}
+                            <div class="chip-placeholder">Drop Training Package</div>
+                        {{/if}}
+                    </div>
+                </div>
+            </div>
+
+            {{!-- Bottom Bar (LAD Checkbox Restored) --}}
+            <div class="header-bottom-bar">
+                <div class="lad-wrapper" style="display:flex; align-items:center;">
+                    <label style="margin-right: 5px; cursor:pointer;" for="lad-check">LAD</label>
+                    <input type="checkbox" id="lad-check" name="system.bio.lad" {{checked system.bio.lad}} 
+                           style="height:16px; width:16px; margin:0; cursor:pointer; accent-color:#D05E1A;"/>
+                </div>
                 
-                {{!-- ROW 1: NAME --}}
-                <div class="form-group">
-                    <label class="label-bold">NAME:</label>
-                    <input name="name" type="text" value="{{actor.name}}" placeholder="Operative Name"/>
-                </div>
-
-                {{!-- ROW 2: SQUAD --}}
-                <div class="form-group">
-                    <label class="label-bold">SQUAD:</label>
-                    <input name="system.bio.squad" type="text" value="{{system.bio.squad}}"/>
-                </div>
-
-                {{!-- ROW 3: SPECIES --}}
-                <div class="form-group chip-row">
-                    <label class="label-bold">SPECIES:</label>
-                    {{#if speciesItem}}
-                    <div class="chip" data-item-id="{{speciesItem._id}}">
-                        <img src="{{speciesItem.img}}"/>
-                        <span class="chip-name">{{speciesItem.name}}</span>
-                        <a class="chip-delete" data-type="species"><i class="fas fa-times"></i></a>
-                    </div>
-                    {{else}}
-                    <div class="chip-placeholder">Drag Species</div>
-                    {{/if}}
-                </div>
-
-                {{!-- ROW 4: PACKAGE --}}
-                <div class="form-group chip-row">
-                    <label class="label-bold">PACKAGE:</label>
-                    {{#if packageItem}}
-                    <div class="chip" data-item-id="{{packageItem._id}}">
-                        <img src="{{packageItem.img}}"/>
-                        <span class="chip-name">{{packageItem.name}}</span>
-                        <a class="chip-delete" data-type="package"><i class="fas fa-times"></i></a>
-                    </div>
-                    {{else}}
-                    <div class="chip-placeholder">Drag Package</div>
-                    {{/if}}
-                </div>
-
-                {{!-- ROW 5: LAD & SCL (Side by Side) --}}
-                <div class="header-bottom-bar">
-                    <div class="lad-wrapper">
-                        <input type="checkbox" name="system.bio.ladAccount" id="ladCheck" {{checked system.bio.ladAccount}}/>
-                        <label for="ladCheck">LAD ACCOUNT</label>
-                    </div>
-                    <div class="scl-wrapper">
-                        <label>SCL</label>
-                        <input type="text" name="system.bio.scl" value="{{system.bio.scl}}" data-dtype="Number"/>
-                    </div>
+                <div class="scl-wrapper">
+                    SCL: <input type="text" name="system.bio.scl" value="{{system.bio.scl}}" data-dtype="String"/>
                 </div>
             </div>
         </div>
 
-        {{!-- 2. CENTER: PORTRAIT --}}
+        {{!-- CENTER: PORTRAIT --}}
         <div class="portrait-container">
             <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
         </div>
 
-        {{!-- 3. RIGHT: FINANCE --}}
-        <div class="finance-box sla-panel">
-            <div class="finance-header">SLA INDUSTRIES</div>
-            <div class="finance-title">Finance</div>
-            <div class="finance-body">
-                <div class="fin-row">
-                    <label>CREDITS:</label>
-                    <input type="number" name="system.finance.credits" value="{{system.finance.credits}}"/>
+        {{!-- RIGHT: FINANCE --}}
+        <div class="finance-box">
+            <div class="finance-header" style="text-align:center; padding-top:5px; border-bottom:1px solid #444;">FINANCE</div>
+            
+            <div class="sla-pad" style="flex:1; display:flex; flex-direction:column; justify-content:space-evenly;">
+                
+                {{!-- Credits --}}
+                <div style="margin-bottom:5px;">
+                    <label style="font-size:0.8em; font-weight:bold; color:#aaa; display:block; margin-bottom:2px;">CREDITS</label>
+                    <input type="number" name="system.finance.credits" value="{{system.finance.credits}}" style="width:100%; text-align:right; color:#39ff14; font-weight:bold;"/>
                 </div>
-                <div class="fin-row">
-                    <label>UNIS:</label>
-                    <input type="number" name="system.finance.unis" value="{{system.finance.unis}}"/>
+
+                {{!-- UNIS --}}
+                <div style="margin-bottom:5px;">
+                    <label style="font-size:0.8em; font-weight:bold; color:#aaa; display:block; margin-bottom:2px;">UNIS</label>
+                    <input type="number" name="system.finance.unis" value="{{system.finance.unis}}" style="width:100%; text-align:right;"/>
                 </div>
-                <div class="fin-row">
-                    <label>LAD BAL:</label>
-                    <input type="text" name="system.finance.lad" value="{{system.finance.lad}}"/>
+
+                {{!-- Debt --}}
+                <div>
+                    <label style="font-size:0.8em; font-weight:bold; color:#d00; display:block; margin-bottom:2px;">DEBT</label>
+                    <input type="number" name="system.finance.debt" value="{{system.finance.debt}}" style="width:100%; text-align:right; color:#ff5555;"/>
                 </div>
+
             </div>
         </div>
 

@@ -1,0 +1,71 @@
+<div class="office-dossier">
+    <div class="dossier-stamp">CONFIDENTIAL</div>
+
+    {{!-- SPECIES STATS --}}
+    {{#if (eq item.type "species")}}
+    <div class="paper-section">
+        <div class="paper-header">BIOLOGICAL DATA</div>
+        <div class="form-group paper-row">
+            <label>Base HP</label>
+            <input type="number" name="system.hp" value="{{system.hp}}"/>
+        </div>
+        <div class="form-group paper-row">
+            <label>Movement (Close / Rush)</label>
+            <div class="flexrow">
+                <input type="number" name="system.move.closing" value="{{system.move.closing}}"/> / 
+                <input type="number" name="system.move.rushing" value="{{system.move.rushing}}"/>
+            </div>
+        </div>
+        
+        <div class="paper-header" style="margin-top: 5px;">STAT LIMITS (MIN - MAX)</div>
+        <div class="stat-limits-grid">
+            {{#each system.stats as |stat key|}}
+            <div class="limit-box">
+                <label>{{upper key}}</label>
+                <div class="flexrow">
+                    <input type="number" name="system.stats.{{key}}.min" value="{{stat.min}}"/>-
+                    <input type="number" name="system.stats.{{key}}.max" value="{{stat.max}}"/>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
+
+    {{!-- PACKAGE REQUIREMENTS --}}
+    {{#if (eq item.type "package")}}
+    <div class="paper-section">
+        <div class="paper-header">TRAINING PREREQUISITES</div>
+        <div class="stat-limits-grid">
+            {{#each system.requirements as |val key|}}
+            <div class="limit-box">
+                <label>{{upper key}}</label>
+                <input type="number" name="system.requirements.{{key}}" value="{{val}}"/>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
+
+    {{!-- SKILL GRANTING DROP ZONE --}}
+    <div class="paper-section">
+        <div class="paper-header">GRANTED SKILLS</div>
+        
+        <div class="drop-zone skill-grant-area">
+            {{#each system.skills as |skill idx|}}
+                <div class="granted-skill-chip">
+                    {{!-- Image --}}
+                    <img src="{{skill.img}}" title="{{skill.name}}" width="24" height="24"/>
+                    
+                    {{!-- Name & Rank --}}
+                    <span class="skill-name">{{skill.name}} ({{skill.rank}})</span>
+                    
+                    {{!-- Delete Button --}}
+                    <a class="delete-grant" data-index="{{idx}}"><i class="fas fa-times"></i></a>
+                </div>
+            {{else}}
+                <div class="empty-dossier-text">Drag Skill Items Here</div>
+            {{/each}}
+        </div>
+    </div>
+</div>
