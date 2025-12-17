@@ -82,6 +82,7 @@ _prepareItems(context) {
     const traits = [];
     const ebbFormulas = [];
     const disciplines = [];
+    const skills = [];
     
     // Skill Buckets
     const skillsByStat = {
@@ -94,7 +95,7 @@ _prepareItems(context) {
         "other": { label: "OTHER", items: [] }
     };
 
-    // Separate Arrays for Combat Tab (Weapons/Armor only)
+    // Separate Arrays for Combat Tab
     const weapons = [];
     const armors = [];
 
@@ -108,7 +109,15 @@ _prepareItems(context) {
       }
 
       // COMBAT TAB SPECIFIC
-      if (i.type === 'weapon') weapons.push(i);
+      if (i.type === 'weapon') {
+          // --- NEW: RELOAD LOGIC ---
+          // Hide reload button if skill is melee or unarmed
+          const skillKey = (i.system.skill || "").toLowerCase();
+          i.isReloadable = !["melee", "unarmed"].includes(skillKey);
+          
+          weapons.push(i);
+      }
+      
       if (i.type === 'armor') armors.push(i);
 
       // OTHER ITEMS
@@ -120,6 +129,7 @@ _prepareItems(context) {
           const stat = (i.system.stat || "dex").toLowerCase();
           if (skillsByStat[stat]) skillsByStat[stat].items.push(i);
           else skillsByStat["other"].items.push(i);
+          skills.push(i);
       }
     }
 
@@ -133,6 +143,7 @@ _prepareItems(context) {
     disciplines.sort(sortFn);
     weapons.sort(sortFn);
     armors.sort(sortFn);
+    skills.sort(sortFn);
     
     for (const key in skillsByStat) {
         skillsByStat[key].items.sort(sortFn);
@@ -155,14 +166,14 @@ _prepareItems(context) {
     });
 
     // 5. Assign to Context
-    context.inventory = inventory; // <--- The new grouped object
+    context.inventory = inventory; 
     context.traits = traits;
     context.disciplines = nestedDisciplines;
     context.skillsByStat = skillsByStat;
     
-    // For Combat Tab
     context.weapons = weapons;
     context.armors = armors;
+    context.skills = skills;
   }
 
   /* -------------------------------------------- */
