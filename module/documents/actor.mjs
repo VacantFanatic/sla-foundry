@@ -217,18 +217,21 @@ export class BoilerplateActor extends Actor {
     return data;
   }
 
-  async _onUpdate(changed, options, userId) {
-      await super._onUpdate(changed, options, userId);
-      if (game.user.id !== userId) return;
-      const sync = async (key, overlay = false) => {
-          const isSet = this.system.conditions[key];
-          const hasEffect = this.effects.some(e => e.statuses.has(key));
-          if (isSet && !hasEffect) await this.toggleStatusEffect(key, { active: true, overlay: overlay });
-          else if (!isSet && hasEffect) await this.toggleStatusEffect(key, { active: false });
-      };
-      await sync("critical");
-      await sync("dead", true);
-      await sync("immobile");
-      await sync("stunned");
+  /** @override */
+  async _onUpdate(data, options, userId) {
+    super._onUpdate(data, options, userId);
+    
+    // Only sync if the status exists in the config to prevent crashes
+    const hasCriticalConfig = CONFIG.statusEffects.some(e => e.id === "critical");
+    
+    if (hasCriticalConfig) {
+        // Check if we actually need to sync (prevent infinite loops)
+        const isCritical = this.system.conditions?.critical;
+        const hasEffect = this.effects.some(e => e.statuses.has("critical"));
+
+        if (isCritical !== hasEffect) {
+             await this.toggleStatusEffect("critical", { active: isCritical });
+        }
+    }
   }
 }

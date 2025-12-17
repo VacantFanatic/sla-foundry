@@ -554,56 +554,33 @@ async _onRoll(event) {
   }
 
 async _processWeaponRoll(item, html, isMelee) {
-      // 1. SETUP & INPUTS
       const form = html[0].querySelector("form");
       if (!form) return;
 
+      // 1. SETUP
       const statKey = "dex"; 
       const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
       const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0); 
 
-      // --- SKILL LOOKUP FIX (Debugged) ---
+      // Skill Lookup
       const skillInput = item.system.skill; 
       let rank = 0;
       let targetSkillName = "";
-
       const combatSkills = CONFIG.SLA?.combatSkills || {};
 
-      // Step A: Determine the Name we are looking for
-      // Check if it matches a system key (e.g. "pistol" -> "Pistol")
-      if (skillInput && combatSkills[skillInput]) {
-          targetSkillName = combatSkills[skillInput];
-      } 
-      // Otherwise use the text directly (e.g. "Rifle")
-      else if (skillInput) {
-          targetSkillName = skillInput;
-      }
+      if (skillInput && combatSkills[skillInput]) targetSkillName = combatSkills[skillInput];
+      else if (skillInput) targetSkillName = skillInput;
 
-      // Step B: Search the Actor for that Skill
       if (targetSkillName) {
-          const cleanTarget = targetSkillName.trim().toLowerCase();
-          
-          const skillItem = this.actor.items.find(i => 
-              i.type === 'skill' && 
-              i.name.trim().toLowerCase() === cleanTarget
-          );
-
-          if (skillItem) {
-              // FORCE NUMBER: Convert string "3" to number 3
-              rank = Number(skillItem.system.rank) || 0;
-              console.log(`SLA | Found Skill "${skillItem.name}" with Rank: ${rank}`);
-          } else {
-              console.warn(`SLA | Warning: Weapon requires '${targetSkillName}' but no matching Skill found on Actor.`);
-              // Optional: UI Warning
-              // ui.notifications.warn(`Skill '${targetSkillName}' not found. Using Rank 0.`);
-          }
+          const skillItem = this.actor.items.find(i => i.type === 'skill' && i.name.trim().toLowerCase() === targetSkillName.trim().toLowerCase());
+          if (skillItem) rank = Number(skillItem.system.rank) || 0;
       }
 
-      // Safe Input Reading
+      // Input Reading
       let mods = {
           successDie: 0,
           allDice: Number(form.modifier?.value) || 0, 
-          rank: 0, // This is the "Modifier" from the dialog, NOT the skill rank
+          rank: 0, 
           damage: 0,
           autoSkillSuccesses: 0
       };
@@ -611,7 +588,7 @@ async _processWeaponRoll(item, html, isMelee) {
       let notes = []; 
       let flags = { rerollSD: false, rerollAll: false };
 
-      // 2. CONDITIONS
+      // Conditions
       if (this.actor.system.conditions?.prone) mods.allDice -= 1;
       if (this.actor.system.conditions?.stunned) mods.allDice -= 1;
 
@@ -626,44 +603,29 @@ async _processWeaponRoll(item, html, isMelee) {
           }
       }
 
-      // 3. APPLY MODIFIERS
-      if (isMelee) {
-          this._applyMeleeModifiers(form, strValue, mods);
-      } else {
-          await this._applyRangedModifiers(item, form, mods, notes, flags);
-      }
+      // Apply Modifiers
+      if (isMelee) this._applyMeleeModifiers(form, strValue, mods);
+      else await this._applyRangedModifiers(item, form, mods, notes, flags);
 
       const penalty = this.actor.system.wounds.penalty || 0;
       mods.allDice -= penalty;
 
-      // 4. ROLL EVALUATION
-      // baseModifier = Stat + Rank + Mods
+      // 4. ROLL
       const baseModifier = statValue + rank + mods.allDice; 
-      
-      // Skill Dice Count = Rank + 1 + (Dialog Rank Modifiers)
-      // We ensure it can't go below 0
       const skillDiceCount = Math.max(0, rank + 1 + mods.rank);
-      
-      console.log("SLA Roll Debug:", {
-          stat: statValue,
-          rank: rank,
-          mods: mods.allDice,
-          baseModifier: baseModifier,
-          diceCount: skillDiceCount
-      });
-
       const rollFormula = `1d10 + ${skillDiceCount}d10`;
+      
       let roll = new Roll(rollFormula);
       await roll.evaluate();
 
-      // 5. CALCULATE RESULTS
+      // 5. RESULTS
       const TN = 11;
       const sdRaw = roll.terms[0].results[0].result;
       const sdTotal = sdRaw + baseModifier + mods.successDie;
       const isSuccess = sdTotal >= TN;
       const resultColor = isSuccess ? '#39ff14' : '#f55';
 
-      // --- MOS & SKILL DICE DATA PREP ---
+      // MOS Calculation
       let skillDiceData = [];
       let skillSuccessCount = 0;
       
@@ -672,7 +634,6 @@ async _processWeaponRoll(item, html, isMelee) {
                let val = r.result + baseModifier;
                let isHit = val >= TN; 
                if (isHit) skillSuccessCount++;
-               
                skillDiceData.push({
                    raw: r.result,
                    total: val,
@@ -681,53 +642,57 @@ async _processWeaponRoll(item, html, isMelee) {
                });
            });
       }
-
-      // Add Auto-Successes
       skillSuccessCount += mods.autoSkillSuccesses;
       for(let i=0; i < mods.autoSkillSuccesses; i++) {
           skillDiceData.push({ raw: "-", total: "Auto", borderColor: "#39ff14", textColor: "#39ff14" });
       }
 
-      // Calculate MOS Bonus
+      // --- NEW MOS LOGIC ---
       let mosDamageBonus = 0;
       let mosEffectText = "Standard Hit";
+      let mosChoiceData = { hasChoice: false, choiceType: "", choiceDmg: 0 };
       
       if (isSuccess) {
-          if (skillSuccessCount === 1) { mosDamageBonus = 1; mosEffectText = "+1 Damage"; }
-          else if (skillSuccessCount === 2) { mosDamageBonus = 2; mosEffectText = "+2 DMG or Hit Arm"; }
-          else if (skillSuccessCount === 3) { mosDamageBonus = 4; mosEffectText = "+4 DMG or Hit Leg"; }
-          else if (skillSuccessCount >= 4) { mosDamageBonus = 6; mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)"; }
-      }
-
-      // --- DAMAGE CALCULATION (FIXED) ---
-      
-      // 1. Get Base Damage using the CORRECT property "damage"
-      // Fallback to "dmg" just in case, then default to "0"
-      let rawBase = item.system.damage || item.system.dmg || "0";
-      let baseDmg = String(rawBase);
-      
-      // 2. Calculate Total Modifier (Dialog Mods + MOS Bonus)
-      let totalMod = mods.damage + mosDamageBonus;
-      let finalDmgFormula = baseDmg;
-
-      // 3. Construct Formula
-      if (totalMod !== 0) {
-          if (baseDmg === "0" || baseDmg === "") {
-               // If base is 0/empty, the damage is JUST the modifier
-               finalDmgFormula = String(totalMod);
-          } else {
-               // If base exists (e.g., "1d10+2"), append the mod
-               let sign = totalMod > 0 ? "+" : "";
-               finalDmgFormula = `${baseDmg} ${sign} ${totalMod}`;
+          if (skillSuccessCount === 1) { 
+              mosDamageBonus = 1; 
+              mosEffectText = "+1 Damage"; 
+          }
+          else if (skillSuccessCount === 2) { 
+              // CHOICE: Wound (Arm) OR +2 Dmg
+              mosEffectText = "MOS 2: Choose Effect";
+              mosChoiceData = { hasChoice: true, choiceType: "arm", choiceDmg: 2 };
+          }
+          else if (skillSuccessCount === 3) { 
+              // CHOICE: Wound (Leg) OR +4 Dmg
+              mosEffectText = "MOS 3: Choose Effect";
+              mosChoiceData = { hasChoice: true, choiceType: "leg", choiceDmg: 4 };
+          }
+          else if (skillSuccessCount >= 4) { 
+              mosDamageBonus = 6; 
+              mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)"; 
           }
       }
 
-      // 4. Decide Visibility
-      // Show if Successful AND Formula is not "0" AND Formula is not empty
+      // Damage Calculation
+      // Note: If user has a choice, we DO NOT add the bonus yet. They must click the button.
+      let rawBase = item.system.damage || item.system.dmg || "0";
+      let baseDmg = String(rawBase);
+      let totalMod = mods.damage + mosDamageBonus;
+      
+      let finalDmgFormula = baseDmg;
+      if (totalMod !== 0) {
+          if (baseDmg === "0" || baseDmg === "") finalDmgFormula = String(totalMod);
+          else finalDmgFormula = `${baseDmg} ${totalMod > 0 ? "+" : ""} ${totalMod}`;
+      }
+
       let showButton = isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
 
-      // 6. RENDER TEMPLATE
+      // 1. CAPTURE AD VALUE (Ensure it's a number)
+      const adValue = Number(item.system.ad) || 0;
+
+      // Render
       const templateData = {
+          actorUuid: this.actor.uuid, 
           borderColor: resultColor,
           headerColor: resultColor,
           resultColor: resultColor,
@@ -738,11 +703,14 @@ async _processWeaponRoll(item, html, isMelee) {
           notes: notes.join(" "),
           showDamageButton: showButton,
           dmgFormula: finalDmgFormula,
-          adValue: item.system.ad || 0,
+          
+          adValue: adValue, // <--- CRITICAL FIX: Pass AD to template
+          
           mos: {
               isSuccess: isSuccess,
               hits: skillSuccessCount,
-              effect: mosEffectText
+              effect: mosEffectText,
+              ...mosChoiceData 
           }
       };
 

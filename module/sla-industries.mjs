@@ -32,6 +32,17 @@ Hooks.once('init', async function() {
     formula: "1d10 + @stats.init.value",
     decimals: 2
   };
+  
+  CONFIG.statusEffects = [
+    { id: "dead", label: "EFFECT.StatusDead", icon: "icons/svg/skull.svg" },
+    { id: "prone", label: "Prone", icon: "icons/svg/falling.svg" },
+    { id: "stunned", label: "Stunned", icon: "icons/svg/daze.svg" },
+    { id: "blind", label: "Blind", icon: "icons/svg/blind.svg" },
+    { id: "burning", label: "Burning", icon: "icons/svg/fire.svg" },
+    { id: "bleeding", label: "Bleeding", icon: "icons/svg/blood.svg" },
+    { id: "immobile", label: "Immobile", icon: "icons/svg/net.svg" },
+    { id: "critical", label: "Critical", icon: "icons/svg/skull.svg" }
+  ];
 
   CONFIG.Actor.trackableAttributes = {
     character: {
@@ -89,116 +100,183 @@ Handlebars.registerHelper('gt', function (a, b) { return a > b; });
 Handlebars.registerHelper('and', function (a, b) { return a && b; });
 
 /* -------------------------------------------- */
-/* Chat Listeners (Buttons & Toggles)           */
+/* Global Listeners (Rolling & Applying Damage) */
 /* -------------------------------------------- */
-Hooks.on('renderChatMessage', (message, html, data) => {
+Hooks.once("ready", function() {
     
-    // 1. ROLL DAMAGE BUTTON
-    const damageButton = html.find('.roll-damage');
-    if (damageButton.length > 0) {
-        damageButton.click(async ev => {
-            ev.preventDefault();
-            const damageFormula = ev.currentTarget.dataset.damage;
-            const weaponName = ev.currentTarget.dataset.weapon || "Weapon";
-            const ad = ev.currentTarget.dataset.ad || 0; 
+    // =========================================================
+    // PART 1: ROLL DAMAGE (Standard Button & Tactical Choices)
+    // =========================================================
+    $(document.body).on("click", ".chat-btn-wound, .chat-btn-damage, .damage-roll", async (ev) => {
+        ev.preventDefault();
+        const btn = $(ev.currentTarget);
+        const card = btn.closest(".sla-chat-card");
+        
+        // Determine Action Type
+        const action = btn.data("action") || "standard";
+        
+        // 1. Get Actor
+        const uuid = card.data("actor-uuid");
+        const actorId = card.data("actor-id");
+        let actor = uuid ? await fromUuid(uuid) : game.actors.get(actorId);
 
-            if (!damageFormula) return;
+        if (!actor) return ui.notifications.error("SLA | Actor not found.");
+        if (!actor.isOwner) return ui.notifications.warn("You do not own this actor.");
 
-            let roll = new Roll(damageFormula);
-            await roll.evaluate();
+        // 2. Data Setup
+        let rollFormula = "";
+        let flavorText = "";
+        let adValue = Number(btn.data("ad") || 0);
 
-            // --- USE RENDER TEMPLATE HERE ---
-            const templateData = {
-                weaponName: weaponName.toUpperCase(),
-                damageTotal: roll.total,
-                ad: ad
-            };
-            
-            // Render the new partial
-            const chatContent = await renderTemplate("systems/sla-industries/templates/chat/chat-damage.hbs", templateData);
+        // Disable button to prevent double clicks
+        btn.prop("disabled", true);
 
-            roll.toMessage({
-                speaker: message.speaker,
-                content: chatContent
-            });
-        });
-    }
+        // --- BRANCH A: TACTICAL CHOICE (MOS 2/3) ---
+        if (action === "damage" || action === "wound") {
+            const baseFormula = String(btn.data("base-formula") || "0");
+            const bonus = Number(btn.data("damage-bonus") || 0);
 
-    // 2. APPLY DAMAGE BUTTON
-    const applyButton = html.find('.apply-damage');
-    if (applyButton.length > 0) {
-        applyButton.click(async ev => {
-            // ... (Your existing Apply Damage logic remains exactly the same) ...
-            ev.preventDefault();
-            const rawDamage = parseInt(ev.currentTarget.dataset.damage);
-            const ad = parseInt(ev.currentTarget.dataset.ad) || 0;
-            const targets = canvas.tokens.controlled;
-
-            if (targets.length === 0) return ui.notifications.warn("Select a token on the map to apply damage.");
-
-            for (let token of targets) {
-                const actor = token.actor;
-                if (!actor) continue;
-
-                // A. ARMOR DAMAGE
-                let armorMsg = "";
-                const armors = actor.items.filter(i => i.type === 'armor' && i.system.equipped);
-                armors.sort((a, b) => (b.system.pv || 0) - (a.system.pv || 0));
-                let highestPV = 0;
-
-                if (armors.length > 0) {
-                    const mainArmor = armors[0];
-                    const currentRes = mainArmor.system.resistance?.value || 0;
-                    
-                    if (ad > 0 && currentRes > 0) {
-                        const newRes = Math.max(0, currentRes - ad);
-                        if (currentRes !== newRes) {
-                            await mainArmor.update({ "system.resistance.value": newRes });
-                            armorMsg = `<br><em>${mainArmor.name} degraded by ${ad} AD.</em>`;
-                        }
-                    }
-                    
-                    const updatedRes = (ad > 0) ? Math.max(0, currentRes - ad) : currentRes;
-                    const basePV = mainArmor.system.pv || 0;
-                    let effectivePV = basePV;
-                    
-                    if (updatedRes <= 0) effectivePV = 0;
-                    else if (updatedRes < (mainArmor.system.resistance?.max / 2)) effectivePV = Math.floor(basePV / 2);
-                    
-                    highestPV = effectivePV;
+            // DAMAGE CHOICE
+            if (action === "damage") {
+                flavorText = `<span style="color:#39ff14">Tactical Choice: +${bonus} Damage</span>`;
+                rollFormula = `${baseFormula} + ${bonus}`;
+            } 
+            // WOUND CHOICE
+            else if (action === "wound") {
+                const location = btn.data("location");
+                let woundSuccess = false;
+                
+                // Update Wounds Logic
+                const wounds = actor.system.wounds;
+                if (location === "arm") {
+                    if (!wounds.larm) { await actor.update({"system.wounds.larm": true}); woundSuccess = true; flavorText = `<span style="color:#ff4444">Snapped Left Arm!</span>`; }
+                    else if (!wounds.rarm) { await actor.update({"system.wounds.rarm": true}); woundSuccess = true; flavorText = `<span style="color:#ff4444">Snapped Right Arm!</span>`; }
+                } else if (location === "leg") {
+                    if (!wounds.lleg) { await actor.update({"system.wounds.lleg": true}); woundSuccess = true; flavorText = `<span style="color:#ff4444">Broken Left Leg!</span>`; }
+                    else if (!wounds.rleg) { await actor.update({"system.wounds.rleg": true}); woundSuccess = true; flavorText = `<span style="color:#ff4444">Broken Right Leg!</span>`; }
                 }
 
-                // B. APPLY HP DAMAGE
-                const finalDamage = Math.max(0, rawDamage - highestPV);
-                const currentHP = actor.system.hp.value;
-                await actor.update({ "system.hp.value": currentHP - finalDamage });
-
-                // C. NOTIFY
-                if (finalDamage > 0) {
-                    let woundWarning = "";
-                    if (finalDamage > (currentHP / 2)) {
-                        woundWarning = `<div style="color:#f55; font-weight:bold; margin-top:5px; border-top:1px solid #555;">⚠️ MASSIVE DAMAGE: Apply a Wound!</div>`;
-                    }
-                    
-                    ui.notifications.info(`${actor.name} takes ${finalDamage} damage! (Roll ${rawDamage} - PV ${highestPV})${armorMsg}`);
-                    
-                    ChatMessage.create({
-                        content: `<div style="background:#220000; color:#fff; padding:5px; border:1px solid #a00;"><strong>${actor.name}</strong> takes ${finalDamage} Damage.<br><span style="font-size:0.8em; color:#aaa;">(Roll ${rawDamage} - PV ${highestPV})</span>${armorMsg}${woundWarning}</div>`,
-                        speaker: message.speaker
-                    });
+                if (woundSuccess) {
+                    // Success: Roll Base Only
+                    rollFormula = baseFormula;
                 } else {
-                    ui.notifications.info(`${actor.name} resisted all damage (PV ${highestPV}).${armorMsg}`);
+                    // Failure: Fallback to Damage
+                    flavorText = `<span style="color:orange">Limbs Gone! Reverting to +${bonus} Dmg.</span>`;
+                    rollFormula = `${baseFormula} + ${bonus}`;
                 }
             }
-        });
-    }
+        }
 
-    // 3. TOGGLE ROLL BREAKDOWN (Keep as is)
-    html.find('.roll-toggle').click(ev => {
-        ev.preventDefault();
-        const toggler = $(ev.currentTarget);
-        const tooltip = toggler.parents('.message-content').find('.dice-tooltip');
-        if (tooltip.is(':visible')) tooltip.slideUp(200);
-        else tooltip.slideDown(200);
+        // --- BRANCH B: STANDARD ROLL (Normal Hit) ---
+        else {
+            rollFormula = String(btn.data("formula") || "0");
+            flavorText = "Standard Damage Roll";
+        }
+
+        // 3. EXECUTE ROLL & RENDER CARD
+        console.log("SLA | Rolling Damage:", rollFormula);
+        let roll = new Roll(rollFormula);
+        await roll.evaluate();
+
+        const templateData = {
+            damageTotal: roll.total,
+            adValue: adValue,
+            flavor: flavorText
+        };
+        
+        const content = await renderTemplate("systems/sla-industries/templates/chat/chat-damage.hbs", templateData);
+
+        roll.toMessage({
+            speaker: ChatMessage.getSpeaker({ actor: actor }),
+            content: content
+        });
     });
+
+
+    // =========================================================
+    // PART 2: APPLY DAMAGE (Reduces HP & Armor)
+    // =========================================================
+    $(document.body).on("click", ".apply-damage-btn", async (ev) => {
+        ev.preventDefault();
+        const btn = $(ev.currentTarget);
+        
+        // 1. Get Data from Button
+        const rawDamage = Number(btn.data("dmg"));
+        const ad = Number(btn.data("ad"));
+        const type = btn.data("target"); 
+
+        // 2. Find Victim (Selected or Target)
+        let victim = null;
+        if (type === "selected") {
+            victim = canvas.tokens.controlled[0]?.actor;
+            if (!victim) return ui.notifications.warn("No token selected.");
+        } else {
+            victim = game.user.targets.first()?.actor;
+            if (!victim) return ui.notifications.warn("No target designated.");
+        }
+
+        // 3. ARMOR LOGIC (Find Equipped Armor)
+        const armorItem = victim.items.find(i => i.type === "armor" && i.system.equipped);
+        
+        let targetPV = 0;
+        let armorUpdateMsg = "";
+
+        // A. Determine PV (Protection Value)
+        if (armorItem) {
+            targetPV = armorItem.system.pv || 0;
+        } else if (victim.system.armor?.pv) {
+            // Natural Armor Fallback (NPCs)
+            targetPV = victim.system.armor.pv || 0;
+        }
+
+        // B. Apply AD (Armor Degradation)
+        if (armorItem && ad > 0) {
+            const currentRes = armorItem.system.resistance?.value || 0;
+            const newRes = Math.max(0, currentRes - ad);
+            
+            // Update the Item
+            await armorItem.update({ "system.resistance.value": newRes });
+            
+            armorUpdateMsg = `<div style="font-size:0.8em; color:#aaa; margin-top:2px;">
+                                <i class="fas fa-shield-alt"></i> Armor Res: ${currentRes} &rarr; ${newRes} (-${ad})
+                              </div>`;
+        }
+
+        // 4. DAMAGE CALCULATION (Dmg - PV)
+        let finalDamage = Math.max(0, rawDamage - targetPV);
+
+        // 5. APPLY TO HP
+        let currentHP = victim.system.hp.value;
+        let newHP = currentHP - finalDamage;
+
+        await victim.update({ "system.hp.value": newHP });
+
+        // 6. CHAT REPORT
+        ChatMessage.create({
+            content: `
+                <div style="background:#330000; color:#fff; padding:5px; border:1px solid #d00; font-family:'Roboto Condensed';">
+                    <div style="font-size:1.1em; font-weight:bold; border-bottom:1px solid #d00; margin-bottom:4px;">
+                        ${victim.name} Hit!
+                    </div>
+                    
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Raw Damage:</span> <strong>${rawDamage}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; color:#ffaaaa;">
+                        <span>PV Reduction:</span> <strong>-${targetPV}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-top:1px solid #d00; margin-top:2px; padding-top:2px;">
+                        <span>Final HP Loss:</span> <strong style="color:#ff5555; font-size:1.2em;">${finalDamage}</strong>
+                    </div>
+                    
+                    <div style="text-align:right; font-size:0.9em; margin-top:5px; color:#ccc;">
+                        HP: ${currentHP} &rarr; <strong>${newHP}</strong>
+                    </div>
+
+                    ${armorUpdateMsg}
+                </div>
+            `
+        });
+    });
+
 });

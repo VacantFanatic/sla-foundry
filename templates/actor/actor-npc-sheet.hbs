@@ -5,7 +5,18 @@
         <div class="header-name">
             <input name="name" type="text" value="{{actor.name}}" placeholder="Threat Name"/>
         </div>
-        <img class="threat-img profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
+        
+        <div style="display:flex; align-items:center;">
+            {{!-- CRITICAL TOGGLE BUTTON --}}
+            <a class="condition-toggle {{#if system.conditions.critical}}active{{/if}}" 
+               data-condition="critical" 
+               title="Critical Status"
+               style="margin-right:10px; font-size:1.5em; color:{{#if system.conditions.critical}}#ff0000{{else}}#555{{/if}};">
+                <i class="fas fa-skull"></i>
+            </a>
+
+            <img class="threat-img profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
+        </div>
     </div>
 
     {{!-- STATS BLOCK --}}

@@ -1,21 +1,45 @@
-<div style="background:#110000; border:1px solid #a00; color:#eee; padding:5px; font-family:'Roboto Condensed',sans-serif;">
-    <h3 style="color:#f00; margin:0; border-bottom:1px solid #500;">
-        DAMAGE: {{weaponName}}
-    </h3>
+<div class="sla-chat-card" style="background:#222; border:1px solid #D05E1A; color:#eee; font-family:'Roboto Condensed'; padding:5px;">
     
-    <div style="text-align:center; margin:10px 0;">
-        <div style="font-size:2em; font-weight:bold; color:#fff;">
-            {{damageTotal}} <span style="font-size:0.4em; color:#777;">DMG</span>
+    <h3 style="color:#D05E1A; border-bottom:1px solid #555; margin:0 0 5px 0;">
+        DAMAGE ROLL
+    </h3>
+
+    {{!-- RESULT BOXES --}}
+    <div style="display:flex; gap:5px; margin-bottom:10px;">
+        
+        {{!-- DAMAGE TOTAL --}}
+        <div style="flex:1; background:rgba(0,0,0,0.3); padding:5px; text-align:center; border:1px solid #555;">
+            <div style="font-size:0.8em; color:#aaa;">DAMAGE</div>
+            <div style="font-size:1.8em; font-weight:bold; color:#fff;">{{damageTotal}}</div>
         </div>
-        {{#if (gt ad 0)}}
-        <div style="font-size:1em; color:#f88;">(AD: {{ad}})</div>
-        {{/if}}
+
+        {{!-- AD VALUE (The value passed from the button) --}}
+        <div style="flex:0 0 60px; background:rgba(0,0,0,0.3); padding:5px; text-align:center; border:1px solid #555;">
+            <div style="font-size:0.8em; color:#aaa;">AD</div>
+            <div style="font-size:1.8em; font-weight:bold; color:#D05E1A;">{{adValue}}</div>
+        </div>
     </div>
 
-    <button class="apply-damage" 
-            data-damage="{{damageTotal}}" 
-            data-ad="{{ad}}" 
-            style="background:#8b0000; color:#fff; border:1px solid #ff4444; font-weight:bold; cursor:pointer; width:100%; padding:5px;">
-        <i class="fas fa-skull"></i> APPLY DAMAGE & AD
-    </button>
+    {{!-- APPLY BUTTONS (Passes the AD along to the listener) --}}
+    <div style="display:flex; flex-direction:column; gap:4px;">
+        <button class="apply-damage-btn" 
+                data-target="target" 
+                data-dmg="{{damageTotal}}" 
+                data-ad="{{adValue}}"
+                style="background:#333; border:1px solid #555; color:#fff;">
+            <i class="fas fa-crosshairs"></i> Apply to Target
+        </button>
+        
+        <button class="apply-damage-btn" 
+                data-target="selected" 
+                data-dmg="{{damageTotal}}" 
+                data-ad="{{adValue}}"
+                style="background:#333; border:1px solid #555; color:#fff;">
+            <i class="fas fa-expand"></i> Apply to Selected
+        </button>
+    </div>
+
+    <div style="margin-top:5px; font-size:0.8em; color:#777; font-style:italic; text-align:center;">
+        {{{flavor}}}
+    </div>
 </div>
