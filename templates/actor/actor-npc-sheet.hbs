@@ -30,7 +30,7 @@
         </table>
 
         {{!-- DERIVED STATS --}}
-        <div class="threat-derived flexrow">
+        <div class="threat-derived">
             <div class="threat-box">
                 <label>HP</label>
                 <div class="flexrow">
@@ -63,7 +63,17 @@
 
         {{!-- SKILLS & GEAR --}}
         <div class="threat-section-bar">SKILLS & WEAPONS</div>
-        <div class="threat-content-box">
+        
+        <div class="threat-content-box" style="min-height: 50px;">
+            
+            {{!-- EMPTY STATE --}}
+            {{#unless (or gear.length skills.length)}}
+                <div style="text-align:center; color:#888; font-style:italic; padding:10px;">
+                    Drop Skills or Weapons Here
+                </div>
+            {{/unless}}
+
+            {{!-- GEAR LIST --}}
             {{#each gear as |item|}}
             <div class="item threat-item flexrow" data-item-id="{{item._id}}">
                 <img src="{{item.img}}"/>
@@ -74,21 +84,36 @@
                 </div>
             </div>
             {{/each}}
-            {{#each skills as |skill|}}
-            <div class="item threat-item flexrow" data-item-id="{{skill._id}}">
-                <span class="item-name rollable" data-roll-type="skill" style="padding-left:5px;">{{skill.name}}</span>
-                <span style="color:#666; margin-right:5px;"> ({{skill.system.rank}})</span>
-                <div class="item-controls">
-                    <a class="item-edit"><i class="fas fa-edit"></i></a>
-                    <a class="item-delete"><i class="fas fa-trash"></i></a>
-                </div>
-            </div>
+
+            {{!-- SKILLS GROUPED BY STAT --}}
+            {{#each skillsByStat as |data key|}}
+                {{#if data.items.length}}
+                    {{!-- Stat Header (e.g. DEX) --}}
+                    <div style="background:rgba(0,0,0,0.1); color:#800000; font-weight:bold; font-size:0.75em; padding:2px 5px; border-bottom:1px solid #ccc; margin-top:2px;">
+                        {{data.label}}
+                    </div>
+
+                    {{!-- List of Skills in this Stat --}}
+                    {{#each data.items as |skill|}}
+                    <div class="item threat-item flexrow" data-item-id="{{skill._id}}">
+                        <span class="item-name rollable" data-roll-type="skill" style="padding-left:10px;">{{skill.name}}</span>
+                        <span style="color:#444; margin-right:5px;">: {{skill.system.rank}}</span>
+                        <div class="item-controls">
+                            <a class="item-edit"><i class="fas fa-edit"></i></a>
+                            <a class="item-delete"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </div>
+                    {{/each}}
+                {{/if}}
             {{/each}}
+
         </div>
 
-        {{!-- DESCRIPTION --}}
+        {{!-- DESCRIPTION / NOTES --}}
         <div class="threat-section-bar">NOTES</div>
-        <div class="threat-content-box" style="height: 150px; overflow-y: auto;">
+        
+        {{!-- Removed inline style; CSS now handles height --}}
+        <div class="threat-content-box editor">
             {{editor enrichedBiography target="system.biography" button=true owner=owner editable=editable}}
         </div>
     </div>
