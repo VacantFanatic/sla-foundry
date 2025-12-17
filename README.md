@@ -41,8 +41,9 @@ A fully automated, fan-made system implementation for playing SLA Industries 2nd
 * https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json
   
 ## ⚙️ Setup Guide
-(https://github.com/VacantFanatic/sla-foundry/blob/main/item_setup.md)
+https://github.com/VacantFanatic/sla-foundry/blob/main/item_setup.md
 
 ## ⚖️ Legal & Credits
  Unofficial System: This system is a fan creation and is not endorsed by Nightfall Games. Copyright: SLA Industries is a registered trademark of Nightfall Games. All rights reserved. This system is intended for personal use only.
+
 
