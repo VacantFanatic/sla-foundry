@@ -41,25 +41,8 @@ A fully automated, fan-made system implementation for playing SLA Industries 2nd
 * https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json
   
 ## ⚙️ Setup Guide
-1. Creating an Operative
-   * Create a new Actor (Type: Operative).
-   * Select a Species from the dropdown in the header. This sets your Min/Max stats and Movement speeds.
-   * Enter your Base Stats (STR, DEX, etc.). Body, Brains, and Bravado will calculate automatically.
-   * Click the Inventory tab (bottom) to add Weapons, Armor, and Gear.
-
-2. Setting up Combat
-* Armor: Create an Armor item, set the PV and Resistance. Click the Shield Icon in the inventory to Equip it (The icon will turn Green and your Total PV will update).
-* Weapons: Create a Weapon.
-* Set the Linked Skill (e.g., Pistol) in the item details.
-* Ensure you have the corresponding Skill on your character sheet.
-* Attacking: Click the Weapon Name in your inventory. Select your modifiers in the dialog and click Roll.
-* Damage: Click the "Roll Damage" button in the chat card.
-
-3. Using Ebb Powers
-* Create a Discipline item (e.g., "Telekinesis") and set your Rank.
-* Create an Ebb Formula item (e.g., "Push").
-* Edit the Formula and link it to the Discipline via the dropdown.
-* Click the Formula in your inventory to cast. Flux will be deducted automatically.
+(https://github.com/VacantFanatic/sla-foundry/blob/main/item_setup.md)
 
 ## ⚖️ Legal & Credits
  Unofficial System: This system is a fan creation and is not endorsed by Nightfall Games. Copyright: SLA Industries is a registered trademark of Nightfall Games. All rights reserved. This system is intended for personal use only.
+
