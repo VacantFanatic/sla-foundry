@@ -1,58 +1,87 @@
-<div style="background: #222; border: 1px solid {{borderColor}}; color: #eee; padding: 5px; font-family:'Roboto Condensed',sans-serif;">
+<div class="sla-chat-card" data-actor-uuid="{{actorUuid}}" style="background:#222; border:1px solid {{borderColor}}; color:#eee; font-family:'Roboto Condensed'; padding:5px;">
     
     {{!-- HEADER --}}
-    <h3 style="color:{{headerColor}}; border-bottom:1px solid #555; margin:0 0 5px 0;">
-        {{itemName}}
+    <h3 style="color:{{headerColor}}; border-bottom:1px solid #555; margin:0 0 5px 0; font-size:1.1em;">
+        {{itemName}} CHECK
     </h3>
-    
+
     {{!-- RESULT BOX --}}
-    <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:5px; margin-bottom:5px;">
+    <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:5px; align-items:center;">
         <span style="font-size:0.9em; color:#aaa;">SUCCESS DIE</span>
-        <span class="roll-toggle" style="font-size:1.5em; font-weight:bold; color:{{resultColor}}; cursor:pointer;">
-            {{successTotal}}
-        </span>
+        <div style="text-align:right;">
+             <span style="font-size:1.5em; font-weight:bold; color:{{resultColor}};">{{successTotal}}</span>
+        </div>
     </div>
 
-    {{!-- TOOLTIP --}}
+    {{!-- TOOLTIP (Hidden by default, standard Foundry behavior) --}}
     {{{tooltip}}}
 
-    {{!-- SKILL DICE DISPLAY --}}
-    {{#if skillDice}}
-    <div style="display:flex; flex-wrap:wrap; gap: 4px; margin-top: 5px;">
-        {{#each skillDice}}
-        <div style="display:flex; flex-direction:column; align-items:center;">
-            <span style="border:1px solid {{this.borderColor}}; padding:2px 8px; border-radius:4px; font-weight:bold; color: {{this.textColor}}">
-                {{this.total}}
+    {{!-- SKILL DICE RESULTS --}}
+    {{#if skillDice.length}}
+    <div style="margin-top:5px; font-size:0.85em;">
+        <div style="color:#aaa; border-bottom:1px dotted #444;">SKILL DICE</div>
+        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:2px;">
+            {{#each skillDice as |die|}}
+            <span style="border:1px solid {{die.borderColor}}; color:{{die.textColor}}; padding:1px 4px; background:#111;">
+                {{die.total}}
             </span>
-            <span style="font-size:0.7em; color:#555;">({{this.raw}})</span>
+            {{/each}}
         </div>
-        {{/each}}
     </div>
     {{/if}}
 
-    {{!-- MOS OUTCOME SECTION --}}
-    {{#if mos.isSuccess}}
-    <div style="margin-top:8px; padding:4px; background:#333; border-left:3px solid #39ff14;">
-        <span style="font-size:0.8em; color:#aaa;">OUTCOME ({{mos.hits}} Skill Hits):</span><br>
-        <span style="font-size:1em; color:#fff;">{{{mos.effect}}}</span>
+    {{!-- MOS / EFFECT TEXT --}}
+    <div style="margin-top:8px; padding:4px; background:rgba(255,255,255,0.05); font-size:0.9em;">
+        {{{mos.effect}}}
+    </div>
+
+    {{!-- CRITICAL: MOS CHOICE BUTTONS --}}
+    {{#if mos.hasChoice}}
+    <div class="mos-choice-container" style="margin-top:8px; border-top:1px solid #555; padding-top:5px;">
+        <div style="font-weight:bold; color:#D05E1A; margin-bottom:4px;">TACTICAL CHOICE:</div>
+        <div style="display:flex; gap:5px;">
+            {{!-- Button 1: Inflict Wound --}}
+            <button class="chat-btn-wound" 
+                    data-action="wound" 
+                    data-location="{{mos.choiceType}}" 
+                    data-damage-bonus="{{mos.choiceDmg}}"
+                    data-base-formula="{{dmgFormula}}"
+                    data-ad="{{adValue}}" {{!-- PASSING AD HERE --}}
+                    style="background:#330000; border:1px solid #ff4444; color:#ffcccc;">
+                Inflict {{capitalize mos.choiceType}} Wound
+            </button>
+            
+            {{!-- Button 2: Extra Damage --}}
+            <button class="chat-btn-damage" 
+                    data-action="damage" 
+                    data-damage-bonus="{{mos.choiceDmg}}"
+                    data-base-formula="{{dmgFormula}}"
+                    data-ad="{{adValue}}" {{!-- PASSING AD HERE --}}
+                    style="background:#000; border:1px solid #39ff14; color:#39ff14;">
+                +{{mos.choiceDmg}} Damage
+            </button>
+        </div>
+    </div>
+    {{/if}}
+
+    {{!-- DAMAGE FORMULA (Standard Hit) --}}
+    {{#if showDamageButton}}
+    <div style="margin-top:8px; text-align:center;">
+        <div style="font-size:0.8em; color:#aaa; margin-bottom:2px;">DAMAGE</div>
+        <button class="damage-roll" 
+                data-formula="{{dmgFormula}}"
+                data-ad="{{adValue}}"
+                style="background:#333; color:#fff; border:1px solid #999;">
+            {{dmgFormula}}
+        </button>
     </div>
     {{/if}}
 
     {{!-- NOTES --}}
     {{#if notes}}
-    <div style="margin-top: 5px; font-size: 0.9em; border-top: 1px dashed #444; padding-top: 2px;">
+    <div style="margin-top:5px; font-size:0.8em; color:#aaa; font-style:italic; border-top:1px solid #444; padding-top:2px;">
         {{{notes}}}
     </div>
     {{/if}}
 
-{{!-- DAMAGE BUTTON --}}
-    {{#if showDamageButton}}
-    <button class="roll-damage" 
-            data-damage="{{dmgFormula}}" 
-            data-ad="{{adValue}}" 
-            data-weapon="{{itemName}}" 
-            style="background: #8b0000; color: #ffffff; border: 1px solid #ff4444; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; padding: 5px;">
-        <i class="fas fa-tint"></i> ROLL DAMAGE ({{dmgFormula}})
-    </button>
-    {{/if}}
 </div>
