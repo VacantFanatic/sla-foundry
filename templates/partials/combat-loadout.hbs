@@ -33,9 +33,12 @@
                         <i class="fas fa-crosshairs" style="color:#D05E1A"></i>
                     </a>
                     
+                    {{!-- RELOAD: Only show if NOT Melee/Unarmed --}}
+                    {{#if item.isReloadable}}
                     <a class="item-reload" title="Reload">
                         <i class="fas fa-sync-alt" style="color:#aaa;"></i>
                     </a>
+                    {{/if}}
 
                     <a class="item-toggle" title="Equip/Holster">
                         {{#if item.system.equipped}}
