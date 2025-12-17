@@ -826,3 +826,159 @@ form.sla-sheet {
 }
 .sla-industries.item .sheet-header { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; }
 .sla-industries.item .header-details { flex: 1; overflow: hidden; }
+
+/* ==========================================
+   THREAT SHEET THEME (NPC / Bestiary Style)
+   ========================================== */
+
+/* 1. Base Window Styling (Paper Look) */
+.sla-industries.sheet.actor .threat-sheet {
+    background: #fdfbf7 !important; /* Off-white paper */
+    color: #111 !important;         /* Dark text */
+    font-family: "Georgia", "Times New Roman", serif !important;
+    border: 2px solid #333 !important;
+    padding: 0 !important;
+}
+
+/* 2. Headers (Deep Red Bars) */
+.threat-header,
+.threat-section-bar, 
+.threat-row-label th {
+    background: #800000 !important; /* Deep Red */
+    color: #fff !important;
+    font-family: "Georgia", serif !important;
+    text-transform: uppercase;
+    font-weight: bold;
+    border-bottom: 2px solid #000 !important;
+    padding: 2px 5px !important;
+    letter-spacing: 1px;
+    text-align: left !important;
+}
+
+/* Header Name Input Styling */
+.threat-header input {
+    background: transparent !important;
+    border: none !important;
+    color: #fff !important;
+    font-family: "Georgia", serif !important;
+    font-size: 1.4em !important;
+    font-weight: bold;
+    text-transform: uppercase;
+    width: 100%;
+}
+.threat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+}
+.threat-img {
+    height: 40px; 
+    width: 40px; 
+    object-fit: cover; 
+    border: 1px solid #fff;
+    margin-left: 10px;
+}
+
+/* 3. Stats Table (Grid Look) */
+.threat-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 5px;
+}
+.threat-table th {
+    font-size: 0.8em;
+    border-right: 1px solid #fff; /* White separators in red header */
+}
+.threat-table td {
+    border: 1px solid #000; /* Black grid lines */
+    padding: 0 !important;
+}
+.threat-table input {
+    width: 100%;
+    border: none !important;
+    background: transparent !important;
+    color: #000 !important;
+    font-family: "Georgia", serif !important;
+    font-weight: normal !important;
+    padding-left: 5px !important;
+}
+
+/* 4. Derived Stats (Hit Points, etc.) */
+.threat-derived {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 Columns */
+    gap: 0 !important; /* Borders handle separation */
+    border: 1px solid #000;
+    margin-bottom: 5px;
+    background: #fff;
+}
+.threat-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #000; /* Grid borders */
+    padding: 2px 5px;
+}
+.threat-box label {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8em;
+}
+.threat-box input {
+    width: 40px;
+    text-align: center;
+    border: none !important;
+    background: transparent !important;
+    color: #000 !important;
+    font-weight: bold;
+}
+
+/* 5. Skills & Gear List (Striped) */
+.threat-content-box {
+    border: 1px solid #000;
+    padding: 0 !important;
+    margin-bottom: 5px;
+    background: #fff;
+}
+.threat-item {
+    border-bottom: 1px dotted #999;
+    padding: 2px 5px;
+    align-items: center;
+}
+.threat-item:nth-child(even) {
+    background: rgba(0,0,0,0.05); /* Zebra striping */
+}
+.threat-item img {
+    height: 20px; 
+    width: 20px; 
+    border: 1px solid #000; 
+    margin-right: 5px;
+}
+.threat-item .item-controls a {
+    color: #555;
+    margin-left: 5px;
+}
+
+/* Make the editor look like a document & ensure height */
+.threat-sheet .editor {
+    background: #fff !important;
+    color: #000 !important;
+    font-family: "Georgia", serif !important;
+    
+    min-height: 300px !important;  /* Forces the box open */
+    height: auto !important;       /* Allows it to grow if text is long */
+    position: relative !important; /* Ensures the Edit button stays inside */
+    overflow: visible !important;  /* Prevents clipping the button */
+}
+
+/* Ensure the text area inside fills the space */
+.threat-sheet .tox-edit-area {
+    background: #fff !important;
+    min-height: 260px !important;
+}
+.threat-sheet .editor-content {
+    padding: 10px !important;
+    color: #000 !important;
+    min-height: 100%;
+}
