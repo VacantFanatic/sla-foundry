@@ -107,6 +107,10 @@ Hooks.once("ready", function() {
     // =========================================================
     // PART 1: ROLL DAMAGE (Standard Button & Tactical Choices)
     // =========================================================
+    
+    // FIX: Remove existing listener before adding new one to prevent double rolls
+    $(document.body).off("click", ".chat-btn-wound, .chat-btn-damage, .damage-roll");
+    
     $(document.body).on("click", ".chat-btn-wound, .chat-btn-damage, .damage-roll", async (ev) => {
         ev.preventDefault();
         const btn = $(ev.currentTarget);
@@ -196,6 +200,10 @@ Hooks.once("ready", function() {
     // =========================================================
     // PART 2: APPLY DAMAGE (Reduces HP & Armor)
     // =========================================================
+    
+    // FIX: Remove existing listener first
+    $(document.body).off("click", ".apply-damage-btn");
+
     $(document.body).on("click", ".apply-damage-btn", async (ev) => {
         ev.preventDefault();
         const btn = $(ev.currentTarget);
@@ -277,6 +285,24 @@ Hooks.once("ready", function() {
                 </div>
             `
         });
+    });
+    
+    // =========================================================
+    // PART 3: TOGGLE ROLL TOOLTIP (Click the Number)
+    // =========================================================
+    
+    // FIX: Remove existing listener first
+    $(document.body).off("click", ".roll-toggle");
+
+    $(document.body).on("click", ".roll-toggle", (ev) => {
+        ev.preventDefault();
+        const btn = $(ev.currentTarget);
+        const card = btn.closest(".sla-chat-card");
+        const tooltip = card.find(".dice-tooltip");
+        
+        if (tooltip.length) {
+            tooltip.slideToggle(200);
+        }
     });
 
 });
