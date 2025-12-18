@@ -1,4 +1,4 @@
-<div class="sla-chat-card" data-actor-uuid="{{actorUuid}}" style="background:#222; border:1px solid {{borderColor}}; color:#eee; font-family:'Roboto Condensed'; padding:5px;">
+<div class="sla-chat-card" data-actor-uuid="{{actorUuid}}" style="background:#222; border:1px solid {{borderColor}}; padding:5px;">
     
     {{!-- HEADER --}}
     <h3 style="color:{{headerColor}}; border-bottom:1px solid #555; margin:0 0 5px 0; font-size:1.1em;">
@@ -9,7 +9,12 @@
     <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:5px; align-items:center;">
         <span style="font-size:0.9em; color:#aaa;">SUCCESS DIE</span>
         <div style="text-align:right;">
-             <span style="font-size:1.5em; font-weight:bold; color:{{resultColor}};">{{successTotal}}</span>
+             {{!-- UPDATE: Added 'roll-toggle' class, pointer cursor, and title --}}
+             <span class="roll-toggle" 
+                   style="font-size:1.5em; font-weight:bold; color:{{resultColor}}; cursor:pointer; text-decoration:underline; text-decoration-style:dotted;" 
+                   title="Click to Toggle Dice Breakdown">
+                {{successTotal}}
+             </span>
         </div>
     </div>
 

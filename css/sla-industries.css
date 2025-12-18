@@ -982,3 +982,26 @@ form.sla-sheet {
     color: #000 !important;
     min-height: 100%;
 }
+
+/* ----------------------------------------- */
+/* Chat Card Styling                         */
+/* ----------------------------------------- */
+.sla-chat-card {
+    /* MATCH YOUR SHEET FONT HERE */
+    font-family: "Josefin Sans", sans-serif;
+    font-size: 14px;
+    color: #eee;
+}
+
+.sla-chat-card h3 {
+    /* Header Font (if different) */
+    font-family: "Josefin Sans", sans-serif; 
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 0 0 5px 0;
+    border-bottom: 1px solid #555;
+}
+
+.sla-chat-card .roll-toggle {
+    font-family: "Josefin Sans", sans-serif;
+}
