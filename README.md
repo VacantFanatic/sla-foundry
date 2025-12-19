@@ -7,7 +7,7 @@ A fully automated, fan-made system implementation for playing SLA Industries 2nd
 - Threat Sheet: A high-contrast, red-header "Stat Block" design for NPCs and enemies, designed for quick GM reference.
 
 ## 🎲 S5S Dice Engine
-- Automatically rolls the Success Die (1d10 + Stat + Rank) and Skill Dice (Rank d10).
+- Automatically rolls the Success Die (1d10 + Stat + Rank) and Skill Dice (Rank + 1 d10).
 - Calculates margins of success and displays them in a custom Chat Card.
 - Handles Wound Penalties and Global Modifiers (Prone, Stunned) automatically.
 
@@ -45,5 +45,6 @@ https://github.com/VacantFanatic/sla-foundry/blob/main/item_setup.md
 
 ## ⚖️ Legal & Credits
  Unofficial System: This system is a fan creation and is not endorsed by Nightfall Games. Copyright: SLA Industries is a registered trademark of Nightfall Games. All rights reserved. This system is intended for personal use only.
+
 
 
