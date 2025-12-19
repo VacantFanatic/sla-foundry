@@ -6,14 +6,35 @@
             <span class="rating-label">BODY</span>
             <input type="number" class="rating-val" name="system.ratings.body.value" value="{{system.ratings.body.value}}"/>
         </div>
+        
+        {{!-- STR --}}
         <div class="stat-box">
             <label>STR</label>
-            <input type="number" name="system.stats.str.value" value="{{system.stats.str.value}}"/>
+            <div class="flexrow" style="align-items:center; justify-content:center; gap:4px;">
+                {{!-- Base Input (Small & Grey) --}}
+                <input type="number" name="system.stats.str.value" value="{{system.stats.str.value}}" 
+                       style="width:30px; font-size:0.9em; color:#888; border-bottom:1px solid #444;" title="Base Score"/>
+                
+                {{!-- Total (Big & Colored) --}}
+                <span style="font-size:1.3em; font-weight:bold; width:30px; text-align:center;
+                      color:{{#if (lt system.stats.str.total system.stats.str.value)}}#ff5555{{else}}{{#if (gt system.stats.str.total system.stats.str.value)}}#39ff14{{else}}#eee{{/if}}{{/if}};">
+                    {{system.stats.str.total}}
+                </span>
+            </div>
             <a class="rollable" data-roll-type="stat" data-key="str"><i class="fas fa-dice-d20"></i></a>
         </div>
+
+        {{!-- DEX --}}
         <div class="stat-box">
             <label>DEX</label>
-            <input type="number" name="system.stats.dex.value" value="{{system.stats.dex.value}}"/>
+            <div class="flexrow" style="align-items:center; justify-content:center; gap:4px;">
+                <input type="number" name="system.stats.dex.value" value="{{system.stats.dex.value}}" 
+                       style="width:30px; font-size:0.9em; color:#888; border-bottom:1px solid #444;" title="Base Score"/>
+                <span style="font-size:1.3em; font-weight:bold; width:30px; text-align:center;
+                      color:{{#if (lt system.stats.dex.total system.stats.dex.value)}}#ff5555{{else}}{{#if (gt system.stats.dex.total system.stats.dex.value)}}#39ff14{{else}}#eee{{/if}}{{/if}};">
+                    {{system.stats.dex.total}}
+                </span>
+            </div>
             <a class="rollable" data-roll-type="stat" data-key="dex"><i class="fas fa-dice-d20"></i></a>
         </div>
     </div>
@@ -24,14 +45,32 @@
             <span class="rating-label">BRAINS</span>
             <input type="number" class="rating-val" name="system.ratings.brains.value" value="{{system.ratings.brains.value}}"/>
         </div>
+
+        {{!-- KNOW --}}
         <div class="stat-box">
             <label>KNOW</label>
-            <input type="number" name="system.stats.know.value" value="{{system.stats.know.value}}"/>
+            <div class="flexrow" style="align-items:center; justify-content:center; gap:4px;">
+                <input type="number" name="system.stats.know.value" value="{{system.stats.know.value}}" 
+                       style="width:30px; font-size:0.9em; color:#888; border-bottom:1px solid #444;" title="Base Score"/>
+                <span style="font-size:1.3em; font-weight:bold; width:30px; text-align:center;
+                      color:{{#if (lt system.stats.know.total system.stats.know.value)}}#ff5555{{else}}{{#if (gt system.stats.know.total system.stats.know.value)}}#39ff14{{else}}#eee{{/if}}{{/if}};">
+                    {{system.stats.know.total}}
+                </span>
+            </div>
             <a class="rollable" data-roll-type="stat" data-key="know"><i class="fas fa-dice-d20"></i></a>
         </div>
+
+        {{!-- CONC --}}
         <div class="stat-box">
             <label>CONC</label>
-            <input type="number" name="system.stats.conc.value" value="{{system.stats.conc.value}}"/>
+            <div class="flexrow" style="align-items:center; justify-content:center; gap:4px;">
+                <input type="number" name="system.stats.conc.value" value="{{system.stats.conc.value}}" 
+                       style="width:30px; font-size:0.9em; color:#888; border-bottom:1px solid #444;" title="Base Score"/>
+                <span style="font-size:1.3em; font-weight:bold; width:30px; text-align:center;
+                      color:{{#if (lt system.stats.conc.total system.stats.conc.value)}}#ff5555{{else}}{{#if (gt system.stats.conc.total system.stats.conc.value)}}#39ff14{{else}}#eee{{/if}}{{/if}};">
+                    {{system.stats.conc.total}}
+                </span>
+            </div>
             <a class="rollable" data-roll-type="stat" data-key="conc"><i class="fas fa-dice-d20"></i></a>
         </div>
     </div>
@@ -42,19 +81,37 @@
             <span class="rating-label">BRAVADO</span>
             <input type="number" class="rating-val" name="system.ratings.bravado.value" value="{{system.ratings.bravado.value}}"/>
         </div>
+
+        {{!-- CHA --}}
         <div class="stat-box">
             <label>CHA</label>
-            <input type="number" name="system.stats.cha.value" value="{{system.stats.cha.value}}"/>
+            <div class="flexrow" style="align-items:center; justify-content:center; gap:4px;">
+                <input type="number" name="system.stats.cha.value" value="{{system.stats.cha.value}}" 
+                       style="width:30px; font-size:0.9em; color:#888; border-bottom:1px solid #444;" title="Base Score"/>
+                <span style="font-size:1.3em; font-weight:bold; width:30px; text-align:center;
+                      color:{{#if (lt system.stats.cha.total system.stats.cha.value)}}#ff5555{{else}}{{#if (gt system.stats.cha.total system.stats.cha.value)}}#39ff14{{else}}#eee{{/if}}{{/if}};">
+                    {{system.stats.cha.total}}
+                </span>
+            </div>
             <a class="rollable" data-roll-type="stat" data-key="cha"><i class="fas fa-dice-d20"></i></a>
         </div>
+
+        {{!-- COOL --}}
         <div class="stat-box">
             <label>COOL</label>
-            <input type="number" name="system.stats.cool.value" value="{{system.stats.cool.value}}"/>
+            <div class="flexrow" style="align-items:center; justify-content:center; gap:4px;">
+                <input type="number" name="system.stats.cool.value" value="{{system.stats.cool.value}}" 
+                       style="width:30px; font-size:0.9em; color:#888; border-bottom:1px solid #444;" title="Base Score"/>
+                <span style="font-size:1.3em; font-weight:bold; width:30px; text-align:center;
+                      color:{{#if (lt system.stats.cool.total system.stats.cool.value)}}#ff5555{{else}}{{#if (gt system.stats.cool.total system.stats.cool.value)}}#39ff14{{else}}#eee{{/if}}{{/if}};">
+                    {{system.stats.cool.total}}
+                </span>
+            </div>
             <a class="rollable" data-roll-type="stat" data-key="cool"><i class="fas fa-dice-d20"></i></a>
         </div>
     </div>
 
-    {{!-- COLUMN 4: SIDE STATS --}}
+    {{!-- COLUMN 4: SIDE STATS (Pools don't need derived totals) --}}
     <div class="side-col">
         <div class="side-box">
             <label>LUCK</label>
@@ -65,12 +122,11 @@
             <input type="number" name="system.stats.flux.value" value="{{system.stats.flux.value}}"/>
         </div>
         
-        {{!-- INIT BOX (Fixed Click Target) --}}
-        {{!-- The 'rollable' class is now on the wrapper DIV --}}
+        {{!-- INIT BOX --}}
         <div class="side-box init rollable" data-roll-type="init" style="cursor:pointer;" title="Roll Initiative">
             <label style="cursor:pointer;">INIT</label>
             <div class="flexrow" style="justify-content:center; align-items:center;">
-                {{!-- Display DEX as base init value if init.value is empty, or keep as is --}}
+                {{!-- INIT is always derived, so we just show the value --}}
                 <span class="init-val">{{system.stats.init.value}}</span>
                 <i class="fas fa-dice-d10" style="margin-left:5px;"></i>
             </div>
