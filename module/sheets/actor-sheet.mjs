@@ -397,6 +397,16 @@ async _onRoll(event) {
         const finalMod = statValue - penalty + globalMod;
 
         let roll = new Roll("1d10");
+		// --- DICE SO NICE: FORCE BLACK SUCCESS DIE ---
+		// Target the first term (1d10)
+		if (roll.terms.length > 0 && roll.terms[0].constructor.name === "Die") {
+          roll.terms[0].options.appearance = {
+              foreground: "#FFFFFF", // White Text
+              background: "#000000", // Black Body
+              edge: "#333333"        // Dark Grey Outline
+          };
+		}
+		// ---------------------------------------------
         await roll.evaluate();
         
         let rawDie = roll.terms[0].results[0].result;
@@ -481,6 +491,16 @@ async _onRoll(event) {
       const rollFormula = `1d10 + ${skillDiceCount}d10`;
 
       let roll = new Roll(rollFormula);
+	  // --- DICE SO NICE: FORCE BLACK SUCCESS DIE ---
+		// Target the first term (1d10)
+		if (roll.terms.length > 0 && roll.terms[0].constructor.name === "Die") {
+          roll.terms[0].options.appearance = {
+              foreground: "#FFFFFF", // White Text
+              background: "#000000", // Black Body
+              edge: "#333333"        // Dark Grey Outline
+          };
+		}
+		// ---------------------------------------------
       await roll.evaluate();
 
       // 4. CALCULATE SUCCESS
@@ -616,6 +636,16 @@ async _processWeaponRoll(item, html, isMelee) {
       const rollFormula = `1d10 + ${skillDiceCount}d10`;
       
       let roll = new Roll(rollFormula);
+	  // --- DICE SO NICE: FORCE BLACK SUCCESS DIE ---
+		// Target the first term (1d10)
+		if (roll.terms.length > 0 && roll.terms[0].constructor.name === "Die") {
+          roll.terms[0].options.appearance = {
+              foreground: "#FFFFFF", // White Text
+              background: "#000000", // Black Body
+              edge: "#333333"        // Dark Grey Outline
+          };
+		}
+		// ---------------------------------------------
       await roll.evaluate();
 
       // 5. RESULTS
@@ -768,6 +798,16 @@ async _processWeaponRoll(item, html, isMelee) {
       const rollFormula = `1d10 + ${skillDiceCount}d10`;
 
       let roll = new Roll(rollFormula);
+	  // --- DICE SO NICE: FORCE BLACK SUCCESS DIE ---
+		// Target the first term (1d10)
+		if (roll.terms.length > 0 && roll.terms[0].constructor.name === "Die") {
+          roll.terms[0].options.appearance = {
+              foreground: "#FFFFFF", // White Text
+              background: "#000000", // Black Body
+              edge: "#333333"        // Dark Grey Outline
+          };
+		}
+		// ---------------------------------------------
       await roll.evaluate();
 
       // 5. Calculate Success (Target Number is the Formula Rating)
