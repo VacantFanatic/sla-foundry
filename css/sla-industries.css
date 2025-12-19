@@ -52,8 +52,8 @@ form.sla-sheet {
 .sla-sheet input[type="text"],
 .sla-sheet input[type="number"],
 .sla-sheet select {
-    background: #000;       
-    color: #e0e0e0;         
+    background: #000;        
+    color: #e0e0e0;          
     border: 1px solid #555;            
     border-radius: var(--sla-radius);
     height: 26px;
@@ -150,7 +150,7 @@ form.sla-sheet {
 }
 
 .chip img {
-    flex: 0 0 24px;       
+    flex: 0 0 24px;        
     width: 24px;          
     height: 24px;         
     object-fit: cover;    
@@ -822,7 +822,7 @@ form.sla-sheet {
 
 /* Header Profile Image */
 .sla-industries.item .sheet-header .profile-img {
-    flex: 0 0 64px; width: 64px; height: 64px; object-fit: cover; border: 1px solid #000; margin-right: 10px; background: #000;      
+    flex: 0 0 64px; width: 64px; height: 64px; object-fit: cover; border: 1px solid #000; margin-right: 10px; background: #000;       
 }
 .sla-industries.item .sheet-header { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; }
 .sla-industries.item .header-details { flex: 1; overflow: hidden; }
@@ -1004,4 +1004,63 @@ form.sla-sheet {
 
 .sla-chat-card .roll-toggle {
     font-family: "Josefin Sans", sans-serif;
+}
+
+/* ==========================================
+   14. PAUSE ANIMATION
+   ========================================== */
+
+/* Target the Pause Container */
+#pause {
+    background: rgba(0, 0, 0, 0.7); /* Dark background matching the theme vibe */
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid var(--sla-border);
+}
+
+/* Style the "Game Paused" Text */
+#pause figcaption {
+    font-family: var(--sla-font-header); /* Josefin Sans */
+    font-weight: 700;
+    font-size: 2em;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    
+    /* Apply the animation */
+    animation: slaRedPulse 2s infinite ease-in-out;
+}
+
+/* Optional: Add a red glow to the spinning icon as well */
+#pause img {
+    animation: slaIconPulse 2s infinite ease-in-out;
+}
+
+/* Define the Pulse Animation */
+@keyframes slaRedPulse {
+    0% {
+        color: #aaaaaa; /* Start Grey/White */
+        text-shadow: 0 0 2px #300;
+        transform: scale(1);
+    }
+    50% {
+        color: #ff0000; /* Peak Red */
+        text-shadow: 0 0 15px #ff0000, 0 0 30px #800000; /* Red Glow */
+        transform: scale(1.1); /* Subtle growth */
+    }
+    100% {
+        color: #aaaaaa; /* Return to Grey/White */
+        text-shadow: 0 0 2px #300;
+        transform: scale(1);
+    }
+}
+
+@keyframes slaIconPulse {
+    0%, 100% {
+        filter: drop-shadow(0 0 0px rgba(255, 0, 0, 0));
+        opacity: 0.7;
+    }
+    50% {
+        filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
+        opacity: 1;
+    }
 }
