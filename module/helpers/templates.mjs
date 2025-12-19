@@ -26,6 +26,7 @@ export const preloadHandlebarsTemplates = async function() {
   "systems/sla-industries/templates/partials/item-spectral.hbs",
   "systems/sla-industries/templates/partials/item-dossier.hbs",
   "systems/sla-industries/templates/partials/combat-tab.hbs",
+  "systems/sla-industries/templates/chat/chat-damage-result.hbs",
   "systems/sla-industries/templates/partials/combat-loadout.hbs"
   ];
 
