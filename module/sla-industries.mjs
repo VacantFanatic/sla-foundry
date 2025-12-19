@@ -227,7 +227,7 @@ Hooks.once("ready", function() {
         const armorItem = victim.items.find(i => i.type === "armor" && i.system.equipped);
         
         let targetPV = 0;
-        let armorUpdateMsg = "";
+        let armorData = null; // Replaces 'armorUpdateMsg' string
 
         // A. Determine PV (Protection Value)
         if (armorItem) {
@@ -245,9 +245,12 @@ Hooks.once("ready", function() {
             // Update the Item
             await armorItem.update({ "system.resistance.value": newRes });
             
-            armorUpdateMsg = `<div style="font-size:0.8em; color:#aaa; margin-top:2px;">
-                                <i class="fas fa-shield-alt"></i> Armor Res: ${currentRes} &rarr; ${newRes} (-${ad})
-                              </div>`;
+            // Prepare Data for Template
+            armorData = {
+                current: currentRes,
+                new: newRes,
+                ad: ad
+            };
         }
 
         // 4. DAMAGE CALCULATION (Dmg - PV)
@@ -259,31 +262,23 @@ Hooks.once("ready", function() {
 
         await victim.update({ "system.hp.value": newHP });
 
-        // 6. CHAT REPORT
-        ChatMessage.create({
-            content: `
-                <div style="background:#330000; color:#fff; padding:5px; border:1px solid #d00; font-family:'Roboto Condensed';">
-                    <div style="font-size:1.1em; font-weight:bold; border-bottom:1px solid #d00; margin-bottom:4px;">
-                        ${victim.name} Hit!
-                    </div>
-                    
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>Raw Damage:</span> <strong>${rawDamage}</strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; color:#ffaaaa;">
-                        <span>PV Reduction:</span> <strong>-${targetPV}</strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; border-top:1px solid #d00; margin-top:2px; padding-top:2px;">
-                        <span>Final HP Loss:</span> <strong style="color:#ff5555; font-size:1.2em;">${finalDamage}</strong>
-                    </div>
-                    
-                    <div style="text-align:right; font-size:0.9em; margin-top:5px; color:#ccc;">
-                        HP: ${currentHP} &rarr; <strong>${newHP}</strong>
-                    </div>
+        // 6. CHAT REPORT (Moved to Partial)
+        const templateData = {
+            victimName: victim.name,
+            rawDamage: rawDamage,
+            targetPV: targetPV,
+            finalDamage: finalDamage,
+            hpData: {
+                old: currentHP,
+                new: newHP
+            },
+            armorData: armorData
+        };
 
-                    ${armorUpdateMsg}
-                </div>
-            `
+        const content = await renderTemplate("systems/sla-industries/templates/chat/chat-damage-result.hbs", templateData);
+
+        ChatMessage.create({
+            content: content
         });
     });
     
