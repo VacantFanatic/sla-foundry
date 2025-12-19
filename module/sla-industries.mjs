@@ -99,6 +99,8 @@ Handlebars.registerHelper('or', function (a, b) { return a || b; });
 Handlebars.registerHelper('gt', function (a, b) { return a > b; });
 Handlebars.registerHelper('and', function (a, b) { return a && b; });
 
+
+
 /* -------------------------------------------- */
 /* Global Listeners (Rolling & Applying Damage) */
 /* -------------------------------------------- */
