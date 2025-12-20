@@ -1064,3 +1064,248 @@ form.sla-sheet {
         opacity: 1;
     }
 }
+
+/* ==========================================
+   WEAPON FIRING MODES
+   ========================================== */
+
+/* 1. The Container Panel */
+.sla-panel {
+    background: #000;
+    border: 1px solid var(--sla-border);
+    margin-top: 10px;
+    border-radius: var(--sla-radius);
+    overflow: hidden; /* Keeps the children inside the rounded corners */
+}
+
+/* 2. The Panel Title ("Firing Modes & Recoil") */
+.sla-header-bar {
+    background-color: var(--sla-bg-panel);
+    color: var(--sla-text-light);
+    font-family: var(--sla-font-header);
+    padding: 4px 8px;
+    font-weight: 700;
+    font-size: 0.9em;
+    border-bottom: 1px solid var(--sla-border);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* 3. The Column Headers ("Enable Mode Rounds Recoil") */
+/* FIX: Added specific text color and background to ensure visibility */
+.firing-mode-grid.header {
+    display: grid;
+    /* Columns: Checkbox(40px) | Name(Flex) | Rounds(60px) | Recoil(60px) */
+    grid-template-columns: 40px 1fr 60px 60px;
+    gap: 5px;
+    align-items: center;
+    padding: 2px 4px;
+    
+    background: #111; /* Slightly lighter than black for contrast */
+    border-bottom: 1px solid #333;
+    
+    /* Text Styling */
+    color: #888; /* Distinct grey for headers */
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 0.75em; 
+    text-transform: uppercase;
+}
+
+/* 4. The Data Rows */
+.firing-mode-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 60px 60px; /* MUST MATCH HEADER */
+    gap: 5px;
+    align-items: center;
+    padding: 4px;
+    border-bottom: 1px solid #222;
+    transition: background 0.2s;
+    min-height: 30px;
+}
+
+/* 5. Disabled Row State */
+.firing-mode-row:not(.enabled) {
+    opacity: 0.4;
+}
+.firing-mode-row:not(.enabled) .col-name {
+    font-style: italic;
+    color: #555;
+}
+/* Hide inputs when disabled to reduce clutter */
+.firing-mode-row:not(.enabled) input[type="number"] {
+    display: none;
+}
+
+/* 6. Enabled Row State */
+.firing-mode-row.enabled {
+    background: rgba(208, 94, 26, 0.1); /* Subtle Orange Tint */
+    border-left: 3px solid var(--sla-accent); /* Orange indicator bar */
+}
+.firing-mode-row.enabled .col-name {
+    color: var(--sla-accent);
+    font-weight: 700;
+    text-shadow: 0 0 5px rgba(0,0,0,1);
+}
+
+/* 7. Column Alignment Helpers */
+.col-active { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+}
+.col-name { 
+    padding-left: 5px; 
+    white-space: nowrap; 
+}
+.col-stat {
+    display: flex;
+    justify-content: center;
+}
+
+/* 8. Input Overrides (Specific to this table) */
+.firing-mode-row input[type="number"] {
+    height: 22px !important;
+    width: 100% !important;
+    font-size: 0.9em;
+    background: #000 !important;
+    border: 1px solid #444 !important;
+    text-align: center;
+    color: #fff !important;
+    border-radius: 3px;
+}
+.firing-mode-row input[type="number"]:focus {
+    border-color: var(--sla-accent) !important;
+    box-shadow: 0 0 3px var(--sla-accent);
+}
+
+/* ==========================================
+   ATTACK DIALOG THEME (Overrides Default)
+   ========================================== */
+
+/* 1. The Main Window Container */
+.sla-dialog-window.dialog {
+    background: url('') !important; /* Remove parchment texture */
+    background-color: var(--sla-bg-dark) !important; /* #1a1a25 */
+    border: 2px solid var(--sla-border) !important;
+    box-shadow: 0 0 20px #000;
+    color: var(--sla-text-light);
+    border-radius: 5px;
+}
+
+/* 2. Window Header (Title Bar) */
+.sla-dialog-window .window-header {
+    background: #111 !important;
+    border-bottom: 2px solid var(--sla-accent);
+    color: #fff !important;
+    font-family: var(--sla-font-header); /* Josefin Sans */
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 4px 4px 0 0;
+}
+
+.sla-dialog-window .window-title {
+    font-size: 1.1em;
+    letter-spacing: 1px;
+    flex: 1;
+}
+
+/* Close 'X' button */
+.sla-dialog-window .window-header .close {
+    color: #fff;
+    text-shadow: none;
+}
+.sla-dialog-window .window-header .close:hover {
+    color: var(--sla-accent);
+    text-shadow: 0 0 5px var(--sla-accent);
+}
+
+/* 3. Content Area */
+.sla-dialog-window .window-content {
+    background: var(--sla-bg-dark) !important;
+    color: var(--sla-text-light);
+    padding: 10px;
+    font-family: "Roboto Condensed", sans-serif;
+}
+
+/* 4. Inputs, Selects & Checkboxes */
+.sla-dialog-window select,
+.sla-dialog-window input[type="number"],
+.sla-dialog-window input[type="text"] {
+    background-color: #000 !important;
+    color: #fff !important;
+    border: 1px solid var(--sla-border) !important;
+    border-radius: var(--sla-radius);
+    /* Using Roboto Condensed for inputs to keep data compact and readable */
+    font-family: "Roboto Condensed", sans-serif; 
+    height: 28px;
+    padding-left: 5px;
+}
+
+/* FIX: Force the dropdown menu items to be dark */
+.sla-dialog-window select option {
+    background-color: #1a1a25 !important; /* Matches window background */
+    color: #fff !important;
+    padding: 4px;
+}
+
+.sla-dialog-window select:focus,
+.sla-dialog-window input:focus {
+    border-color: var(--sla-accent) !important;
+    box-shadow: 0 0 8px var(--sla-accent-faint);
+    outline: none;
+}
+
+/* 5. Labels & Text */
+.sla-dialog-window label {
+    font-family: var(--sla-font-header); /* Josefin Sans */
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #ccc;
+    font-size: 0.9em;
+    margin-bottom: 3px;
+    display: block;
+}
+
+/* Specific fix for checkbox labels to align properly */
+.sla-dialog-window label:has(input[type="checkbox"]) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+.sla-dialog-window input[type="checkbox"] {
+    margin: 0;
+    height: 16px;
+    width: 16px;
+    accent-color: var(--sla-accent);
+}
+
+/* 6. The "ROLL" Button */
+.sla-dialog-window .dialog-buttons .dialog-button {
+    background: #2a2a35; /* Panel BG */
+    border: 1px solid var(--sla-accent);
+    color: var(--sla-accent);
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 15px;
+    transition: all 0.2s ease-in-out;
+}
+
+.sla-dialog-window .dialog-buttons .dialog-button:hover,
+.sla-dialog-window .dialog-buttons .dialog-button:focus {
+    background: var(--sla-accent);
+    color: #000;
+    box-shadow: 0 0 15px var(--sla-accent-faint);
+    border-color: var(--sla-accent);
+}
+
+/* 7. Section Dividers */
+.sla-dialog-window hr {
+    border: 0;
+    border-top: 1px solid var(--sla-border);
+    margin: 10px 0;
+}

@@ -50,14 +50,15 @@
         </div>
         
         <div class="form-group">
-            <label>Mode</label>
-            <select name="mode" style="background:#333; color:#fff; float:right;">
-                <option value="single">Single</option>
-                <option value="burst">Burst</option>
-                <option value="auto">Auto</option>
-                <option value="suppress">Suppress</option>
-            </select>
-        </div>
+			<label>Mode</label>
+			<select id="fire-mode" style="background:#333; color:#fff; float:right; width: 60%;">
+				{{#each validModes as |mode key|}}
+					<option value="{{key}}" data-recoil="{{mode.recoil}}" data-rounds="{{mode.rounds}}">
+						{{mode.label}} ({{mode.rounds}} rnds / -{{mode.recoil}} Recoil)
+					</option>
+				{{/each}}
+			</select>
+		</div>
         
         <div class="form-group">
             <label>Aiming</label>

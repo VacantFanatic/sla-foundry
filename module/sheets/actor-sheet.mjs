@@ -440,12 +440,32 @@ async _onRoll(event) {
     }
   }
 
- // --- DIALOG ---
+  // --- DIALOG ---
   async _renderAttackDialog(item, isMelee) {
+    // 1. Prepare Firing Modes (Ranged Only)
+    let validModes = {};
+    if (!isMelee && item.system.firingModes) {
+       // Filter down to only active modes
+       validModes = Object.entries(item.system.firingModes)
+         .filter(([key, data]) => data.active)
+         .reduce((obj, [key, data]) => {
+             obj[key] = data;
+             return obj;
+         }, {});
+
+       // Safety Fallback: If no modes active, default to Single
+       if (Object.keys(validModes).length === 0) {
+           validModes["single"] = { label: "Single", active: true, rounds: 1, recoil: 0 };
+       }
+    }
+
+    // 2. Prepare Template Data
     const templateData = {
       item: item,
       isMelee: isMelee,
-      recoil: item.system.recoil || 0
+      validModes: validModes,
+      // Pass current recoil only if melee (ranged handles it per mode now)
+      recoil: isMelee ? (item.system.recoil || 0) : 0 
     };
 
     const content = await renderTemplate("systems/sla-industries/templates/dialogs/attack-dialog.hbs", templateData);
@@ -461,7 +481,7 @@ async _onRoll(event) {
       },
       default: "roll"
     }, {
-      classes: ["sla-dialog", "sla-sheet"]
+      classes: ["sla-dialog-window", "dialog"] // Updated Class Name
     }).render(true);
   }
   
@@ -623,10 +643,15 @@ async _processWeaponRoll(item, html, isMelee) {
           }
       }
 
-      // Apply Modifiers
-      if (isMelee) this._applyMeleeModifiers(form, strValue, mods);
-      else await this._applyRangedModifiers(item, form, mods, notes, flags);
-
+    // Apply Modifiers
+      if (isMelee) {
+          this._applyMeleeModifiers(form, strValue, mods);
+      } else {
+          // Check for false return to stop execution
+          const canFire = await this._applyRangedModifiers(item, form, mods, notes, flags);
+          if (canFire === false) return; 
+      }
+	  
       const penalty = this.actor.system.wounds.penalty || 0;
       mods.allDice -= penalty;
 
@@ -998,57 +1023,76 @@ async _processWeaponRoll(item, html, isMelee) {
       mods.allDice -= ((Number(form.acroDef?.value) || 0) * 2);
   }
 
-  // --- HELPER: RANGED LOGIC ---
-  async _applyRangedModifiers(item, form, mods, notes, flags) {
-      // Use ?.value. If mode is missing, default to "single"
-      const mode = form.mode?.value || "single";
+   // --- HELPER: RANGED LOGIC ---
+   async _applyRangedModifiers(item, form, mods, notes, flags) {
+      const modeSelect = $(form).find('#fire-mode').find(':selected');
+      const modeKey = modeSelect.val() || "single";
       
-      const parseSlashVal = (valStr, index) => {
-          const parts = String(valStr).split('/');
-          if (parts.length === 1) return Number(parts[0]) || 0;
-          const val = parts[index] !== undefined ? parts[index] : parts[parts.length - 1];
-          return Number(val) || 0;
-      };
-
-      // 1. Fire Modes
-      let recoilIndex = 0;
-      let ammoCost = 1;
-
-      switch (mode) {
-          case "burst":
-              recoilIndex = 1; ammoCost = 3; mods.damage += 2; 
-              notes.push("Burst."); flags.rerollSD = true;
-              break;
-          case "auto":
-              recoilIndex = 2; ammoCost = 10; mods.damage += 4; 
-              notes.push("Full Auto."); flags.rerollAll = true;
-              break;
-          case "suppress":
-              recoilIndex = 2; ammoCost = 20; mods.autoSkillSuccesses += 2; mods.damage += 4; 
-              notes.push("Suppressive."); flags.rerollAll = true;
-              break;
-      }
-
-      // 2. Recoil
-      const recoilVal = parseSlashVal(item.system.recoil, recoilIndex);
-      if (recoilVal > 0) mods.successDie -= recoilVal;
-
-      // 3. Ammo Consumption
+      const roundsUsed = parseInt(modeSelect.data("rounds")) || 1;
+      const recoilPenalty = parseInt(modeSelect.data("recoil")) || 0;
       const currentAmmo = item.system.ammo || 0;
-      if (currentAmmo < ammoCost) { 
-          ammoCost = currentAmmo; 
+
+      // 1. VALIDATE AMMO RULES
+      // Find the round count of the weapon's LOWEST active mode
+      const activeModes = Object.values(item.system.firingModes || {}).filter(m => m.active);
+      const minDeviceRounds = activeModes.reduce((min, m) => Math.min(min, m.rounds), 999);
+
+      // Rule A: If we selected a mode that needs more ammo than we have...
+      if (currentAmmo < roundsUsed) {
+          // Rule B: ...We can ONLY proceed if this is the weapon's lowest possible mode.
+          if (roundsUsed > minDeviceRounds) {
+              ui.notifications.error(`Not enough ammo for ${modeSelect.text().split('(')[0].trim()}. Switch to a lower mode.`);
+              // Return false to stop the roll (You need to update _processWeaponRoll to handle this)
+              return false; 
+          }
+
+          // Rule C: If it IS the lowest mode, we fire what's left with a penalty.
           mods.damage -= 2; 
           notes.push("Low Ammo (-2 DMG)."); 
+          
+          // Ensure Min Damage is observed (Text Rule)
+          const minDmg = item.system.minDamage || "0";
+          if (minDmg !== "0") notes.push(`(Min DMG ${minDmg} applies)`);
       }
-      await item.update({ "system.ammo": currentAmmo - ammoCost });
 
-      // 4. Other Ranged Inputs (Use ?.value or ?.checked)
+      // 2. APPLY MODE BONUSES
+      switch (modeKey) {
+          case "burst":
+              mods.damage += 2; 
+              notes.push("Burst (+2 Dmg)."); 
+              flags.rerollSD = true;
+              break;
+          case "auto":
+              mods.damage += 4; 
+              notes.push("Full Auto (+4 Dmg)."); 
+              flags.rerollAll = true;
+              break;
+          case "suppressive": 
+          case "suppress":
+              mods.autoSkillSuccesses += 2; 
+              mods.damage += 4; 
+              notes.push("Suppressive (+4 Dmg, +2 Auto Hits)."); 
+              flags.rerollAll = true;
+              break;
+      }
+
+      // 3. APPLY RECOIL (Subtracts from Modifier)
+      if (recoilPenalty > 0) {
+          mods.allDice -= recoilPenalty;
+          notes.push(`Recoil -${recoilPenalty}.`);
+      }
+
+      // 4. CONSUME AMMO
+      // Cap consumption at what is actually in the mag
+      const actualCost = Math.min(currentAmmo, roundsUsed);
+      await item.update({ "system.ammo": currentAmmo - actualCost });
+
+      // 5. OTHER INPUTS
       mods.successDie += (Number(form.cover?.value) || 0);
       mods.successDie += (Number(form.dual?.value) || 0);
       
       if (form.targetMoved?.checked) mods.successDie -= 1;
       if (form.blind?.checked) mods.allDice -= 1;
-      // Note: Prone exists in both Melee and Ranged in your HBS, so this is safe, but ?.checked is safer
       if (form.prone?.checked) mods.successDie += 1;
       
       if (form.longRange?.checked) { 
@@ -1056,11 +1100,13 @@ async _processWeaponRoll(item, html, isMelee) {
           notes.push("Long Range."); 
       }
       
-      if (mode !== "suppress") {
+      if (modeKey !== "suppressive" && modeKey !== "suppress") {
           const aimVal = form.aiming?.value;
           if (aimVal === "sd") mods.successDie += 1;
           if (aimVal === "skill") mods.autoSkillSuccesses += 1;
       }
+      
+      return true; // Return true to indicate success
   }
   
   // --- HELPERS: HTML GENERATION ---

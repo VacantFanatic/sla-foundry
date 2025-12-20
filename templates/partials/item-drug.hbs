@@ -1,0 +1,27 @@
+<div class="form-group"><label>Duration</label><input type="number" name="system.duration" value="{{system.duration}}"/></div>
+<div class="form-group"><label>Addiction</label><input type="number" name="system.addiction" value="{{system.addiction}}"/></div>
+
+{{!-- Section Header --}}
+<div class="form-group" style="grid-column: 1 / -1; margin-top: 10px; border-top: 2px solid #555; padding-top: 5px;">
+    <label style="width:100%; text-align:center;">STAT MODIFIERS</label>
+</div>
+
+{{!-- Mod 1 --}}
+<div class="form-group">
+    <label>Mod 1</label>
+    <select name="system.mods.first.stat">
+        <option value="">- None -</option>
+        {{selectOptions @root.config.stats selected=system.mods.first.stat}}
+    </select>
+</div>
+<div class="form-group"><label>Value</label><input type="number" name="system.mods.first.value" value="{{system.mods.first.value}}"/></div>
+
+{{!-- Mod 2 --}}
+<div class="form-group">
+    <label>Mod 2</label>
+    <select name="system.mods.second.stat">
+        <option value="">- None -</option>
+        {{selectOptions @root.config.stats selected=system.mods.second.stat}}
+    </select>
+</div>
+<div class="form-group"><label>Value</label><input type="number" name="system.mods.second.value" value="{{system.mods.second.value}}"/></div>

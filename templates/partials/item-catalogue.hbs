@@ -1,101 +1,45 @@
 <div class="catalogue-grid">
-    {{!-- Common Fields --}}
-    <div class="form-group"><label>Weight</label><input type="number" name="system.weight" value="{{system.weight}}" step="0.1"/></div>
-    <div class="form-group"><label>Cost</label><input type="number" name="system.price" value="{{system.price}}"/></div>
-    <div class="form-group"><label>Qty</label><input type="number" name="system.quantity" value="{{system.quantity}}"/></div>
+    {{!-- COMMON FIELDS (Shared by all physical items) --}}
+    <div class="form-group">
+        <label>Weight</label>
+        <input type="number" name="system.weight" value="{{system.weight}}" step="0.1"/>
+    </div>
+    <div class="form-group">
+        <label>Cost</label>
+        <input type="number" name="system.price" value="{{system.price}}"/>
+    </div>
+    <div class="form-group">
+        <label>Qty</label>
+        <input type="number" name="system.quantity" value="{{system.quantity}}"/>
+    </div>
 
-    {{!-- WEAPON --}}
+    {{!-- DYNAMIC PARTIALS --}}
+    
+    {{!-- Weapon --}}
     {{#if (eq item.type "weapon")}}
-        <div class="form-group"><label>Dmg</label><input type="text" name="system.damage" value="{{system.damage}}"/></div>
-        <div class="form-group"><label>Min</label><input type="text" name="system.minDamage" value="{{system.minDamage}}"/></div>
-        <div class="form-group"><label>AD</label><input type="number" name="system.ad" value="{{system.ad}}"/></div>
-        <div class="form-group"><label>Recoil</label><input type="text" name="system.recoil" value="{{system.recoil}}"/></div>
-        <div class="form-group"><label>ROF</label><input type="text" name="system.rof" value="{{system.rof}}"/></div>
-        <div class="form-group"><label>Range</label><input type="text" name="system.range" value="{{system.range}}"/></div>
-        
-        {{!-- Skill Drop Zone --}}
-        <div class="form-group" style="grid-column: 1 / -1;">
-            <label>Required Skill</label>
-            <div class="drop-zone skill-link" style="border: 2px dashed #999; padding: 5px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.05); cursor: pointer; min-height: 30px;">
-                {{#if system.skill}}
-                    <span style="font-weight:bold; color:#222; font-size:1.1em; margin-right: 10px;">{{system.skill}}</span>
-                    <a class="remove-skill-link" title="Unlink Skill" style="color:#d00;"><i class="fas fa-times"></i></a>
-                {{else}}
-                    <span style="font-style:italic; color:#777;">Drop Skill Item Here</span>
-                {{/if}}
-            </div>
-        </div>
+        {{> "systems/sla-industries/templates/partials/item-weapon.hbs"}}
     {{/if}}
 
-    {{!-- ARMOR --}}
+    {{!-- Armor --}}
     {{#if (eq item.type "armor")}}
-        <div class="form-group"><label>PV</label><input type="number" name="system.pv" value="{{system.pv}}"/></div>
-        <div class="form-group"><label>Resist</label>
-            <div class="flexrow"><input type="number" name="system.resistance.value" value="{{system.resistance.value}}"/> / <input type="number" name="system.resistance.max" value="{{system.resistance.max}}"/></div>
-        </div>
+        {{> "systems/sla-industries/templates/partials/item-armor.hbs"}}
     {{/if}}
     
-    {{!-- MAGAZINE --}}
+    {{!-- Magazine --}}
     {{#if (eq item.type "magazine")}}
-        {{!-- Capacity --}}
-        <div class="form-group" style="grid-column: 1 / -1;">
-            <label>Capacity</label>
-            <input type="number" name="system.ammoCapacity" value="{{system.ammoCapacity}}" placeholder="10"/>
-        </div>
-
-        {{!-- NEW: AMMO TYPE SELECTOR --}}
-        <div class="form-group" style="grid-column: 1 / -1;">
-            <label>Ammo Type</label>
-            <select name="system.ammoType">
-                <option value="">- Select Type -</option>
-                {{!-- Pulls from config.mjs --}}
-                {{selectOptions @root.config.ammoTypes selected=system.ammoType localize=false}}
-            </select>
-        </div>
-
-        {{!-- Linked Weapon --}}
-        <div class="form-group" style="grid-column: 1 / -1;">
-             <label>Linked:</label>
-             <div class="drop-zone weapon-link" style="border:1px dashed #555; padding:5px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                 {{#if system.linkedWeapon}}
-                    <b>{{system.linkedWeapon}}</b> 
-                    <a class="remove-link" style="margin-left:5px; color:#d00;"><i class="fas fa-times"></i></a>
-                 {{else}}
-                    <span style="color:#777; font-style:italic;">Drop Weapon Here</span>
-                 {{/if}}
-             </div>
-        </div>
+        {{> "systems/sla-industries/templates/partials/item-magazine.hbs"}}
     {{/if}}
 
-    {{!-- DRUG (The Missing Section) --}}
+    {{!-- Drug --}}
     {{#if (eq item.type "drug")}}
-        <div class="form-group"><label>Duration</label><input type="number" name="system.duration" value="{{system.duration}}"/></div>
-        <div class="form-group"><label>Addiction</label><input type="number" name="system.addiction" value="{{system.addiction}}"/></div>
-        
-        {{!-- Section Header --}}
-        <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px; border-top: 2px solid #555; padding-top: 5px;">
-            <label style="width:100%; text-align:center;">STAT MODIFIERS</label>
-        </div>
-
-        {{!-- Mod 1 --}}
-        <div class="form-group">
-            <label>Mod 1</label>
-            <select name="system.mods.first.stat">
-                <option value="">- None -</option>
-                {{selectOptions @root.config.stats selected=system.mods.first.stat}}
-            </select>
-        </div>
-        <div class="form-group"><label>Value</label><input type="number" name="system.mods.first.value" value="{{system.mods.first.value}}"/></div>
-
-        {{!-- Mod 2 --}}
-        <div class="form-group">
-            <label>Mod 2</label>
-            <select name="system.mods.second.stat">
-                <option value="">- None -</option>
-                {{selectOptions @root.config.stats selected=system.mods.second.stat}}
-            </select>
-        </div>
-        <div class="form-group"><label>Value</label><input type="number" name="system.mods.second.value" value="{{system.mods.second.value}}"/></div>
+        {{> "systems/sla-industries/templates/partials/item-drug.hbs"}}
     {{/if}}
 
+    {{!-- Generic Item Notes (Fallback for type "item") --}}
+    {{#if (eq item.type "item")}}
+        <div class="form-group" style="grid-column: 1 / -1;">
+            <label>Notes</label>
+            <input type="text" name="system.typeNote" value="{{system.typeNote}}"/>
+        </div>
+    {{/if}}
 </div>
