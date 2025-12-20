@@ -22,12 +22,16 @@ export const preloadHandlebarsTemplates = async function() {
 	"systems/sla-industries/templates/partials/inventory-tab.hbs",
     "systems/sla-industries/templates/partials/bio-traits-tab.hbs",
 	"systems/sla-industries/templates/partials/item-catalogue.hbs",
-  "systems/sla-industries/templates/partials/item-academic.hbs",
-  "systems/sla-industries/templates/partials/item-spectral.hbs",
-  "systems/sla-industries/templates/partials/item-dossier.hbs",
-  "systems/sla-industries/templates/partials/combat-tab.hbs",
-  "systems/sla-industries/templates/chat/chat-damage-result.hbs",
-  "systems/sla-industries/templates/partials/combat-loadout.hbs"
+    "systems/sla-industries/templates/partials/item-weapon.hbs",
+    "systems/sla-industries/templates/partials/item-armor.hbs",
+    "systems/sla-industries/templates/partials/item-magazine.hbs",
+    "systems/sla-industries/templates/partials/item-drug.hbs",
+	"systems/sla-industries/templates/partials/item-academic.hbs",
+	"systems/sla-industries/templates/partials/item-spectral.hbs",
+	"systems/sla-industries/templates/partials/item-dossier.hbs",
+	"systems/sla-industries/templates/partials/combat-tab.hbs",
+	"systems/sla-industries/templates/chat/chat-damage-result.hbs",
+	"systems/sla-industries/templates/partials/combat-loadout.hbs"
   ];
 
   // Load the template parts
