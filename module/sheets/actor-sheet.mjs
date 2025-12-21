@@ -1014,6 +1014,7 @@ async _processWeaponRoll(item, html, isMelee) {
     // 2. DROP PACKAGE
     if (itemData.type === "package") {
         const reqs = itemData.system.requirements || {};
+        // Validate Requirements
         for (const [key, minVal] of Object.entries(reqs)) {
             const actorStat = this.actor.system.stats[key]?.value || 0;
             if (actorStat < minVal) { 
@@ -1032,6 +1033,7 @@ async _processWeaponRoll(item, html, isMelee) {
         return;
     }
 
+    // Default Drop Handler
     return super._onDropItem(event, data);
   }
 
