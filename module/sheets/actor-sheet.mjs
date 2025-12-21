@@ -202,36 +202,77 @@ _prepareItems(context) {
         });
     });
 	
-	// --- NEW: INLINE ITEM EDITING (For Armor Resist) ---
-    html.find('.inline-edit').change(async ev => {
-        ev.preventDefault();
-        const input = ev.currentTarget;
-        const itemId = input.dataset.itemId || $(input).parents(".item").data("itemId");
-        
-        // Safety check if we can't find the item
-        if (!itemId) return;
+/* -------------------------------------------- */
+  /* EVENT LISTENERS                              */
+  /* -------------------------------------------- */
 
-        const item = this.actor.items.get(itemId);
-        const field = input.dataset.field; // "system.resistance.value"
+  /** @override */
+  activateListeners(html) {
+    super.activateListeners(html);
+    if (!this.isEditable) return;
+
+    // --- HEADER DELETE (SPECIES) ---
+    html.find('.chip-delete[data-type="species"]').click(async ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        const speciesItem = this.actor.items.find(i => i.type === "species");
+        if (!speciesItem) return;
         
-        if (item && field) {
-            // Use Number() to ensure it's saved as a number, not a string
-            await item.update({ [field]: Number(input.value) });
-        }
+        Dialog.confirm({
+            title: "Remove Species?", 
+            content: `<p>Remove <strong>${speciesItem.name}</strong>?</p>`,
+            yes: async () => {
+                // 1. Find all skills linked to this species
+                const skillsToDelete = this.actor.items
+                    .filter(i => i.getFlag("sla-industries", "fromSpecies"))
+                    .map(i => i.id);
+                
+                // 2. Delete Items -> PREVENT RENDER HERE ({ render: false })
+                // This stops the sheet from refreshing halfway through, preventing the crash.
+                await this.actor.deleteEmbeddedDocuments("Item", [speciesItem.id, ...skillsToDelete], { render: false });
+                
+                // 3. Reset Stats -> THIS triggers the single, final render
+                const resets = { "system.bio.species": "" };
+                ["str","dex","know","conc","cha","cool"].forEach(k => resets[`system.stats.${k}.value`] = 1);
+                
+                await this.actor.update(resets);
+            }
+        });
     });
-
+    
+    // --- HEADER DELETE (PACKAGE) ---
     html.find('.chip-delete[data-type="package"]').click(async ev => {
         ev.preventDefault(); ev.stopPropagation();
         const packageItem = this.actor.items.find(i => i.type === "package");
         if (!packageItem) return;
+        
         Dialog.confirm({
-            title: "Remove Package?", content: `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
+            title: "Remove Package?", 
+            content: `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
             yes: async () => {
-                const skillsToDelete = this.actor.items.filter(i => i.getFlag("sla-industries", "fromPackage")).map(i => i.id);
-                await this.actor.deleteEmbeddedDocuments("Item", [packageItem.id, ...skillsToDelete]);
+                const skillsToDelete = this.actor.items
+                    .filter(i => i.getFlag("sla-industries", "fromPackage"))
+                    .map(i => i.id);
+                
+                // Fix applied here as well:
+                await this.actor.deleteEmbeddedDocuments("Item", [packageItem.id, ...skillsToDelete], { render: false });
                 await this.actor.update({ "system.bio.package": "" });
             }
         });
+    });
+
+    // --- INLINE ITEM EDITING ---
+    html.find('.inline-edit').change(async ev => {
+        ev.preventDefault();
+        const input = ev.currentTarget;
+        const itemId = input.dataset.itemId || $(input).parents(".item").data("itemId");
+        if (!itemId) return;
+
+        const item = this.actor.items.get(itemId);
+        const field = input.dataset.field;
+        
+        if (item && field) {
+            await item.update({ [field]: Number(input.value) });
+        }
     });
 
     html.find('.item-edit').click(ev => {
@@ -253,9 +294,7 @@ _prepareItems(context) {
       else item.update({ "system.equipped": !item.system.equipped });
     });
 
-    // RELOAD HANDLER
     html.find('.item-reload').click(this._onReloadWeapon.bind(this));
-
     html.find('.item-create').click(this._onItemCreate.bind(this));
     html.find('.rollable').click(this._onRoll.bind(this));
     
