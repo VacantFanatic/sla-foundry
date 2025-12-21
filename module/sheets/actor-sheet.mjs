@@ -932,7 +932,7 @@ async _processWeaponRoll(item, html, isMelee) {
       });
   }
 
-  // ... (Existing Drop/Create Logic) ...
+// --- DROP ITEM HANDLER ---
   async _onDropItem(event, data) {
     if ( !this.actor.isOwner ) return false;
     const item = await Item.implementation.fromDropData(data);
@@ -941,56 +941,96 @@ async _processWeaponRoll(item, html, isMelee) {
     // Helper: Handle Skill Array
     const processSkills = async (skillsArray, sourceFlag) => {
         if (!skillsArray || !Array.isArray(skillsArray) || skillsArray.length === 0) return;
+        
         const toCreate = [];
         const toUpdate = [];
+
         for (const skillData of skillsArray) {
+            // Safety check: skip if skillData is null/undefined
+            if (!skillData) continue;
+
             const existing = this.actor.items.find(i => i.name.toLowerCase() === skillData.name.toLowerCase() && i.type === skillData.type);
+            
             if (existing) {
-                const currentRank = existing.system.rank || 0;
+                // Update Existing Skill
+                // Safety check: ensure system exists
+                const currentRank = existing.system?.rank || 0;
                 toUpdate.push({ _id: existing.id, "system.rank": currentRank + 1 });
                 ui.notifications.info(`Upgraded ${existing.name} to Rank ${currentRank + 1}`);
             } else {
+                // Create New Skill
                 const newSkill = foundry.utils.deepClone(skillData);
                 delete newSkill._id;
+                
+                // --- FIX: DEFENSIVE CODING HERE ---
+                // If 'system' is missing, create it.
+                if (!newSkill.system) newSkill.system = {};
+                
+                // Now safely assign rank
                 if (!newSkill.system.rank) newSkill.system.rank = 1;
+                
+                // Ensure flags exist
                 if (!newSkill.flags) newSkill.flags = {};
                 if (!newSkill.flags["sla-industries"]) newSkill.flags["sla-industries"] = {};
                 newSkill.flags["sla-industries"][sourceFlag] = true;
+                
                 toCreate.push(newSkill);
             }
         }
+
         if (toCreate.length > 0) await this.actor.createEmbeddedDocuments("Item", toCreate);
         if (toUpdate.length > 0) await this.actor.updateEmbeddedDocuments("Item", toUpdate);
     };
 
+    // 1. DROP SPECIES
     if (itemData.type === "species") {
         const existing = this.actor.items.find(i => i.type === "species");
         if (existing) await existing.delete();
+        
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.species": itemData.name });
+        
+        // Update Stats from Species Data
         if (itemData.system.stats) {
             const updates = {};
-            for (const [key, val] of Object.entries(itemData.system.stats)) updates[`system.stats.${key}.value`] = val.min;
+            // Map Species Stats (min/max) to Actor Stats (value)
+            for (const [key, val] of Object.entries(itemData.system.stats)) {
+                // Ensure we are grabbing the 'min' value, or the raw value if it's a number
+                const valueToSet = (typeof val === 'object' && val.min !== undefined) ? val.min : val;
+                updates[`system.stats.${key}.value`] = valueToSet;
+            }
             await this.actor.update(updates);
         }
+        
+        // Process the Skills
         await processSkills(itemData.system.skills, "fromSpecies");
         return;
     }
     
+    // 2. DROP PACKAGE
     if (itemData.type === "package") {
         const reqs = itemData.system.requirements || {};
+        // Validate Requirements
         for (const [key, minVal] of Object.entries(reqs)) {
             const actorStat = this.actor.system.stats[key]?.value || 0;
-            if (actorStat < minVal) { ui.notifications.error(`Req: ${key.toUpperCase()} must be ${minVal}+`); return; }
+            if (actorStat < minVal) { 
+                ui.notifications.error(`Requirement not met: ${key.toUpperCase()} must be ${minVal}+`); 
+                return; 
+            }
         }
+        
         const existing = this.actor.items.find(i => i.type === "package");
         if (existing) await existing.delete();
+        
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.package": itemData.name });
+        
+        // Process the Skills
         await processSkills(itemData.system.skills, "fromPackage");
         return;
     }
 
+    // Default Drop Handler
     return super._onDropItem(event, data);
   }
 
