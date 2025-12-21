@@ -932,7 +932,7 @@ async _processWeaponRoll(item, html, isMelee) {
       });
   }
 
-  // ... (Existing Drop/Create Logic) ...
+  // --- DROP ITEM HANDLER ---
   async _onDropItem(event, data) {
     if ( !this.actor.isOwner ) return false;
     const item = await Item.implementation.fromDropData(data);
@@ -941,52 +941,93 @@ async _processWeaponRoll(item, html, isMelee) {
     // Helper: Handle Skill Array
     const processSkills = async (skillsArray, sourceFlag) => {
         if (!skillsArray || !Array.isArray(skillsArray) || skillsArray.length === 0) return;
+        
         const toCreate = [];
         const toUpdate = [];
+
         for (const skillData of skillsArray) {
-            const existing = this.actor.items.find(i => i.name.toLowerCase() === skillData.name.toLowerCase() && i.type === skillData.type);
+            // 1. Safety check: skip if data is missing
+            if (!skillData || !skillData.name) continue;
+
+            const existing = this.actor.items.find(i => i.name.toLowerCase() === skillData.name.toLowerCase() && i.type === "skill");
+            
             if (existing) {
-                const currentRank = existing.system.rank || 0;
+                // Update Existing Skill Rank
+                const currentRank = existing.system?.rank || 0;
                 toUpdate.push({ _id: existing.id, "system.rank": currentRank + 1 });
                 ui.notifications.info(`Upgraded ${existing.name} to Rank ${currentRank + 1}`);
             } else {
-                const newSkill = foundry.utils.deepClone(skillData);
-                delete newSkill._id;
-                if (!newSkill.system.rank) newSkill.system.rank = 1;
-                if (!newSkill.flags) newSkill.flags = {};
-                if (!newSkill.flags["sla-industries"]) newSkill.flags["sla-industries"] = {};
-                newSkill.flags["sla-industries"][sourceFlag] = true;
+                // 2. Prepare New Skill Object
+                // We create a FRESH object to guarantee structure, rather than just cloning
+                const newSkill = {
+                    name: skillData.name,
+                    type: "skill", // <--- CRITICAL FIX: Explicitly set the type
+                    img: skillData.img || "icons/svg/book.svg",
+                    system: {
+                        rank: 1, // Default to rank 1
+                        stat: skillData.system?.stat || "dex", // Fallback if missing
+                        description: skillData.system?.description || ""
+                    },
+                    flags: {
+                        "sla-industries": {
+                            [sourceFlag]: true
+                        }
+                    }
+                };
+
                 toCreate.push(newSkill);
             }
         }
-        if (toCreate.length > 0) await this.actor.createEmbeddedDocuments("Item", toCreate);
-        if (toUpdate.length > 0) await this.actor.updateEmbeddedDocuments("Item", toUpdate);
+
+        if (toCreate.length > 0) {
+            console.log("Creating Skills:", toCreate); // Debug log to verify data
+            await this.actor.createEmbeddedDocuments("Item", toCreate);
+        }
+        if (toUpdate.length > 0) {
+            await this.actor.updateEmbeddedDocuments("Item", toUpdate);
+        }
     };
 
+    // 1. DROP SPECIES
     if (itemData.type === "species") {
         const existing = this.actor.items.find(i => i.type === "species");
         if (existing) await existing.delete();
+        
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.species": itemData.name });
+        
+        // Update Stats
         if (itemData.system.stats) {
             const updates = {};
-            for (const [key, val] of Object.entries(itemData.system.stats)) updates[`system.stats.${key}.value`] = val.min;
+            for (const [key, val] of Object.entries(itemData.system.stats)) {
+                const valueToSet = (typeof val === 'object' && val.min !== undefined) ? val.min : val;
+                updates[`system.stats.${key}.value`] = valueToSet;
+            }
             await this.actor.update(updates);
         }
+        
+        // Process Skills
         await processSkills(itemData.system.skills, "fromSpecies");
         return;
     }
     
+    // 2. DROP PACKAGE
     if (itemData.type === "package") {
         const reqs = itemData.system.requirements || {};
         for (const [key, minVal] of Object.entries(reqs)) {
             const actorStat = this.actor.system.stats[key]?.value || 0;
-            if (actorStat < minVal) { ui.notifications.error(`Req: ${key.toUpperCase()} must be ${minVal}+`); return; }
+            if (actorStat < minVal) { 
+                ui.notifications.error(`Requirement not met: ${key.toUpperCase()} must be ${minVal}+`); 
+                return; 
+            }
         }
+        
         const existing = this.actor.items.find(i => i.type === "package");
         if (existing) await existing.delete();
+        
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.package": itemData.name });
+        
         await processSkills(itemData.system.skills, "fromPackage");
         return;
     }
