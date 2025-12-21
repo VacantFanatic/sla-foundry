@@ -932,7 +932,7 @@ async _processWeaponRoll(item, html, isMelee) {
       });
   }
 
-// --- DROP ITEM HANDLER ---
+  // --- DROP ITEM HANDLER ---
   async _onDropItem(event, data) {
     if ( !this.actor.isOwner ) return false;
     const item = await Item.implementation.fromDropData(data);
@@ -946,40 +946,46 @@ async _processWeaponRoll(item, html, isMelee) {
         const toUpdate = [];
 
         for (const skillData of skillsArray) {
-            // Safety check: skip if skillData is null/undefined
-            if (!skillData) continue;
+            // 1. Safety check: skip if data is missing
+            if (!skillData || !skillData.name) continue;
 
-            const existing = this.actor.items.find(i => i.name.toLowerCase() === skillData.name.toLowerCase() && i.type === skillData.type);
+            const existing = this.actor.items.find(i => i.name.toLowerCase() === skillData.name.toLowerCase() && i.type === "skill");
             
             if (existing) {
-                // Update Existing Skill
-                // Safety check: ensure system exists
+                // Update Existing Skill Rank
                 const currentRank = existing.system?.rank || 0;
                 toUpdate.push({ _id: existing.id, "system.rank": currentRank + 1 });
                 ui.notifications.info(`Upgraded ${existing.name} to Rank ${currentRank + 1}`);
             } else {
-                // Create New Skill
-                const newSkill = foundry.utils.deepClone(skillData);
-                delete newSkill._id;
-                
-                // --- FIX: DEFENSIVE CODING HERE ---
-                // If 'system' is missing, create it.
-                if (!newSkill.system) newSkill.system = {};
-                
-                // Now safely assign rank
-                if (!newSkill.system.rank) newSkill.system.rank = 1;
-                
-                // Ensure flags exist
-                if (!newSkill.flags) newSkill.flags = {};
-                if (!newSkill.flags["sla-industries"]) newSkill.flags["sla-industries"] = {};
-                newSkill.flags["sla-industries"][sourceFlag] = true;
-                
+                // 2. Prepare New Skill Object
+                // We create a FRESH object to guarantee structure, rather than just cloning
+                const newSkill = {
+                    name: skillData.name,
+                    type: "skill", // <--- CRITICAL FIX: Explicitly set the type
+                    img: skillData.img || "icons/svg/book.svg",
+                    system: {
+                        rank: 1, // Default to rank 1
+                        stat: skillData.system?.stat || "dex", // Fallback if missing
+                        description: skillData.system?.description || ""
+                    },
+                    flags: {
+                        "sla-industries": {
+                            [sourceFlag]: true
+                        }
+                    }
+                };
+
                 toCreate.push(newSkill);
             }
         }
 
-        if (toCreate.length > 0) await this.actor.createEmbeddedDocuments("Item", toCreate);
-        if (toUpdate.length > 0) await this.actor.updateEmbeddedDocuments("Item", toUpdate);
+        if (toCreate.length > 0) {
+            console.log("Creating Skills:", toCreate); // Debug log to verify data
+            await this.actor.createEmbeddedDocuments("Item", toCreate);
+        }
+        if (toUpdate.length > 0) {
+            await this.actor.updateEmbeddedDocuments("Item", toUpdate);
+        }
     };
 
     // 1. DROP SPECIES
@@ -990,19 +996,17 @@ async _processWeaponRoll(item, html, isMelee) {
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.species": itemData.name });
         
-        // Update Stats from Species Data
+        // Update Stats
         if (itemData.system.stats) {
             const updates = {};
-            // Map Species Stats (min/max) to Actor Stats (value)
             for (const [key, val] of Object.entries(itemData.system.stats)) {
-                // Ensure we are grabbing the 'min' value, or the raw value if it's a number
                 const valueToSet = (typeof val === 'object' && val.min !== undefined) ? val.min : val;
                 updates[`system.stats.${key}.value`] = valueToSet;
             }
             await this.actor.update(updates);
         }
         
-        // Process the Skills
+        // Process Skills
         await processSkills(itemData.system.skills, "fromSpecies");
         return;
     }
@@ -1025,7 +1029,6 @@ async _processWeaponRoll(item, html, isMelee) {
         await this.actor.createEmbeddedDocuments("Item", [itemData]);
         await this.actor.update({ "system.bio.package": itemData.name });
         
-        // Process the Skills
         await processSkills(itemData.system.skills, "fromPackage");
         return;
     }
