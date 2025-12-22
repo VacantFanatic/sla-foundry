@@ -176,32 +176,6 @@ _prepareItems(context) {
     context.skills = skills;
   }
 
-  /* -------------------------------------------- */
-  /* EVENT LISTENERS                             */
-  /* -------------------------------------------- */
-
-  /** @override */
-  activateListeners(html) {
-    super.activateListeners(html);
-    if (!this.isEditable) return;
-
-    // HEADER DELETE
-    html.find('.chip-delete[data-type="species"]').click(async ev => {
-        ev.preventDefault(); ev.stopPropagation();
-        const speciesItem = this.actor.items.find(i => i.type === "species");
-        if (!speciesItem) return;
-        Dialog.confirm({
-            title: "Remove Species?", content: `<p>Remove <strong>${speciesItem.name}</strong>?</p>`,
-            yes: async () => {
-                const skillsToDelete = this.actor.items.filter(i => i.getFlag("sla-industries", "fromSpecies")).map(i => i.id);
-                await this.actor.deleteEmbeddedDocuments("Item", [speciesItem.id, ...skillsToDelete]);
-                const resets = { "system.bio.species": "" };
-                ["str","dex","know","conc","cha","cool"].forEach(k => resets[`system.stats.${k}.value`] = 1);
-                await this.actor.update(resets);
-            }
-        });
-    });
-	
 /* -------------------------------------------- */
   /* EVENT LISTENERS                              */
   /* -------------------------------------------- */
@@ -661,7 +635,8 @@ async _processWeaponRoll(item, html, isMelee) {
           allDice: Number(form.modifier?.value) || 0, 
           rank: 0, 
           damage: 0,
-          autoSkillSuccesses: 0
+          autoSkillSuccesses: 0,
+		  reservedDice: 0
       };
 
       let notes = []; 
@@ -685,6 +660,17 @@ async _processWeaponRoll(item, html, isMelee) {
     // Apply Modifiers
       if (isMelee) {
           this._applyMeleeModifiers(form, strValue, mods);
+		  
+		  // --- NEW VALIDATION: CLAMP RESERVED DICE ---
+          if (mods.reservedDice > rank) {
+              ui.notifications.warn(`Cannot reserve more dice (${mods.reservedDice}) than Skill Rank (${rank}). Reduced to ${rank}.`);
+              mods.reservedDice = rank;
+          }
+          if (mods.reservedDice > 0) {
+              notes.push(`Reserved ${mods.reservedDice} Dice.`);
+          }
+          // -------------------------------------------
+		  
       } else {
           // Check for false return to stop execution
           const canFire = await this._applyRangedModifiers(item, form, mods, notes, flags);
@@ -696,7 +682,11 @@ async _processWeaponRoll(item, html, isMelee) {
 
       // 4. ROLL
       const baseModifier = statValue + rank + mods.allDice; 
-      const skillDiceCount = Math.max(0, rank + 1 + mods.rank);
+
+	  // OLD LINE: const skillDiceCount = Math.max(0, rank + 1 + mods.rank);
+      // NEW LINE: Subtract reservedDice from the pool
+      const skillDiceCount = Math.max(0, rank + 1 + mods.rank - mods.reservedDice);
+	  
       const rollFormula = `1d10 + ${skillDiceCount}d10`;
       
       let roll = new Roll(rollFormula);
@@ -1100,7 +1090,10 @@ async _processWeaponRoll(item, html, isMelee) {
       if (form.natural?.checked) mods.successDie += 1;
       if (form.prone?.checked) mods.successDie += 2;
 
-      // Defense Inputs (Use ?.value)
+      // NEW: Read Reserved Dice Input
+      mods.reservedDice = Number(form.reservedDice?.value) || 0;
+	  
+	  // Defense Inputs (Use ?.value)
       mods.allDice -= (Number(form.combatDef?.value) || 0); 
       mods.allDice -= ((Number(form.acroDef?.value) || 0) * 2);
   }

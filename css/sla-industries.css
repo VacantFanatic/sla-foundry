@@ -1309,3 +1309,23 @@ form.sla-sheet {
     border-top: 1px solid var(--sla-border);
     margin: 10px 0;
 }
+
+.sla-dialog-panel {
+    background: #000;
+    border: 1px solid var(--sla-border);
+    border-radius: var(--sla-radius);
+    overflow: hidden;
+}
+
+/* A smaller header bar specifically for inside dialog sections */
+.sla-header-bar-small {
+    background-color: rgba(208, 94, 26, 0.2); /* Faint orange background */
+    color: #ddd;
+    font-family: var(--sla-font-header);
+    padding: 2px 5px;
+    font-weight: 700;
+    font-size: 0.8em;
+    border-bottom: 1px solid #333;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
