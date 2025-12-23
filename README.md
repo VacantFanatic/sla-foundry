@@ -1,50 +1,78 @@
-SLA Industries 2nd Edition (Foundry VTT)
-A fully automated, fan-made system implementation for playing SLA Industries 2nd Edition on Foundry Virtual Tabletop. This system automates the S5S dice mechanics, combat math, flux management, and movement rules.
+# SLA Industries 2nd Edition - Foundry VTT System
 
-# 🌟 Key Features
-## 🗂️ Character & Threat Sheets
-- Operative Sheet: Styled to look like a Security Clearance Card. Automatically calculates Ratings Points (2-1-0 rule), Initiative, Encumbrance, and Movement based on Stats.
-- Threat Sheet: A high-contrast, red-header "Stat Block" design for NPCs and enemies, designed for quick GM reference.
+A custom game system implementation for playing **SLA Industries 2nd Edition** on Foundry Virtual Tabletop. This system features a high-contrast dark UI, automated combat mechanics, and drag-and-drop character creation tools.
 
-## 🎲 S5S Dice Engine
-- Automatically rolls the Success Die (1d10 + Stat + Rank) and Skill Dice (Rank + 1 d10).
-- Calculates margins of success and displays them in a custom Chat Card.
-- Handles Wound Penalties and Global Modifiers (Prone, Stunned) automatically.
+🌟 Key Features
 
-## ⚔️ Combat Automation
-*Tactical Attack Dialog: Apply modifiers for Cover, Aiming, Charging, Dual Wielding, and Firing Modes (Burst/Auto/Suppress).
-* Smart Damage: Auto-calculates damage bonuses based on Strength (Melee), Rate of Fire, and Ammo Type (HE/AP).
-* One-Click Application: Chat cards feature "Apply Damage" buttons that automatically:
-     * Deduct Resistance via Weapon armor damage (AD).
-     * Apply remaining damage (DMG-PV) to Hit Points (HP).
-     * Warn the GM if Massive Damage (>50% HP) occurs.
+### Character Sheet
+* **Custom UI:** A "Dark/Orange" high-contrast theme (`#1a1a25` background) designed to match the *SLA Industries* aesthetic.
+* **Tabbed Navigation:** Organized sections for Stats, Skills, Combat, Inventory, and Biography.
+* **Rich Text Editors:** Full support for HTML/Text editing in Biographies, Notes, and Item descriptions.
 
-## 🔮 The Ebb & Drugs
-* Ebb Formulas: Tracks Flux usage automatically. Rolls Calculation Tests based on the Linked Discipline's rank.
-* Combat Drugs: Toggleable "Active" state that applies stat buffs/debuffs and tracks addiction ratings.
+### 🎥 Automation & Mechanics
+* **Species & Packages:**
+    * Drag-and-drop a **Species** item (e.g., *Shaktar*, *Ebonite*) to automatically set Base Stats, Movement Rates, HP, and starting Skills.
+    * Drag-and-drop a **Package** to apply training package requirements and bonus skills.
 
-## 📏 Tactical Movement
-* Includes a Custom Ruler that changes color based on the character's speed:
-    * Green: Closing Speed (Walk)
-    * Yellow: Rushing Speed (Run)
-    * Red: Maximum Range exceeded
+* **Combat & Weaponry:**
+    * **Firing Modes:** Weapons support specific modes (Single, Burst, Full-Auto, Suppressive).
+    * **Ammo & Recoil:** The system automatically tracks ammo usage per mode and applies the correct Recoil penalty to the dice pool.
+    * **Low Ammo Logic:** Prevents firing high-cost modes if ammo is insufficient, or applies a **-2 Damage** penalty if emptying the clip on the lowest mode.
+    * **Melee Combat:**
+        * **Reserve Dice:** Players can manually reserve combat dice to lower their attack pool for later defense (Combat/Acrobatic Defense).
+        * **Target Defense:** Input fields to subtract target's Combat Defense (-1/point) or Acrobatics (-2/rank) from the attacker's pool.
 
-## 📦 Installation
+* **Inventory Management:**
+    * **Drugs:** Dedicated "Consume" button (<i class="fas fa-syringe"></i>) in the inventory that reduces quantity and posts an effect card to chat.
+    * **Reloading:** Context-aware reload button that checks your inventory for matching magazines.
 
-### Local
-* Download the sla-industries.zip file.
-* Extract the contents into your Foundry Data folder: .../FoundryVTT/Data/systems/sla-industries/.
-* Restart Foundry VTT.
-* Create a new World and select SLA Industries 2nd Edition as the Game System.
+* **The Ebb:**
+    * Support for **Flux** tracking.
+    * Discipline and Formula rolls calculate Success Die + Skill Dice automatically.
 
-### Manifest
-* https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json
+## 🛠️ Installation
+
+1.  Download the system files.
+2.  Extract the folder into your Foundry VTT `Data/systems/` directory.
+3.  Rename the folder to `sla-industries`.
+4.  Restart Foundry VTT.
+
+## Manifest
+https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json
   
 ## ⚙️ Setup Guide
 https://github.com/VacantFanatic/sla-foundry/blob/main/item_setup.md
 
-## ⚖️ Legal & Credits
- Unofficial System: This system is a fan creation and is not endorsed by Nightfall Games. Copyright: SLA Industries is a registered trademark of Nightfall Games. All rights reserved. This system is intended for personal use only.
+## 🎲 Usage Guide
+
+### Character Creation
+1.  Create a new Actor (Type: `Character`).
+2.  Open the **Compendium Packs** and find **SLA Species**.
+3.  Drag a Species (e.g., *Human*) onto the sheet. This will:
+    * Set Min/Max Stats.
+    * Set Base HP and Movement.
+    * Add starting Skills (Rank 1).
+4.  Manually adjust stats within the Min/Max limits.
+
+### Combat Rolls
+1.  Click the **Die Icon** next to a weapon in the "Combat" tab.
+2.  **Ranged:** Select your Firing Mode from the dropdown. The system will calculate modifiers based on Recoil, Cover, and Range.
+3.  **Melee:** Enter any **Reserved Dice** you wish to withhold for defense. Enter the target's Defense ratings if known.
+4.  Click **Roll**. The result will show:
+    * **Success Die** (Black/White).
+    * **Skill Dice** (Matches or Hits).
+    * **Margin of Success (MOS)** effects (e.g., +Damage or Headshots).
+
+### Drugs & Consumables
+1.  Add a Drug item (e.g., *Shatter*) to your inventory.
+2.  Click the **Syringe Icon** (<i class="fas fa-syringe"></i>) on the item line.
+3.  This consumes 1 dose and prints the drug's Duration and Effects to the chat log for reference.
+
+## ⚖️ License & Credits
+
+This system is an unofficial fan creation.
+* **Game System:** Based on *SLA Industries 2nd Edition* by Nightfall Games.
+* **Code:** Built on the Foundry VTT Boilerplate system.
 
 
 
