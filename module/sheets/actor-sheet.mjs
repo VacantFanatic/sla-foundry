@@ -213,6 +213,48 @@ _prepareItems(context) {
         });
     });
     
+// DRUG USE ICON
+    html.find('.item-use-drug').click(async ev => {
+        ev.preventDefault();
+        const li = $(ev.currentTarget).parents(".item");
+        const item = this.actor.items.get(li.data("itemId"));
+        
+        if (!item || item.type !== "drug") return;
+
+        const currentQty = item.system.quantity || 0;
+        
+        // Safety check
+        if (currentQty <= 0) {
+            // If it's 0, just delete it immediately to clean up
+            return item.delete();
+        }
+
+        const newQty = currentQty - 1;
+
+        // 1. Post Chat Message (Do this first while item exists)
+        ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+            content: `
+                <div style="background:#1a1a25; border:1px solid #d05e1a; color:#eee; padding:5px; font-family:'Roboto Condensed';">
+                    <h3 style="color:#d05e1a; border-bottom:1px solid #555; margin:0 0 5px 0;">DRUG USED: ${item.name.toUpperCase()}</h3>
+                    <div>${this.actor.name} consumes a dose.</div>
+                    <div style="font-size:0.9em; color:#aaa; margin-top:5px;">
+                        <strong>Duration:</strong> ${item.system.duration || "Unknown"}<br>
+                        <strong>Remaining:</strong> ${newQty}
+                    </div>
+                </div>
+            `
+        });
+
+        // 2. Update or Delete
+        if (newQty <= 0) {
+            await item.delete();
+            ui.notifications.info(`Used the last dose of ${item.name}.`);
+        } else {
+            await item.update({ "system.quantity": newQty });
+        }
+    });
+    
     // --- HEADER DELETE (PACKAGE) ---
     html.find('.chip-delete[data-type="package"]').click(async ev => {
         ev.preventDefault(); ev.stopPropagation();

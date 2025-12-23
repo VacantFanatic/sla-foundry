@@ -1,27 +1,30 @@
-<div class="form-group"><label>Duration</label><input type="number" name="system.duration" value="{{system.duration}}"/></div>
-<div class="form-group"><label>Addiction</label><input type="number" name="system.addiction" value="{{system.addiction}}"/></div>
+<div class="sla-panel" style="background-color: #000; color: #e0e0e0; padding: 5px;">
+    
+    {{!-- Top Row: Addiction Rating & Duration --}}
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+        <div class="form-group">
+            <label style="color:var(--sla-accent);">Addiction Rating</label>
+            <input type="number" name="system.addiction" value="{{system.addiction}}" placeholder="10"/>
+        </div>
+        <div class="form-group">
+            <label style="color:var(--sla-accent);">Duration</label>
+            <input type="text" name="system.duration" value="{{system.duration}}" placeholder="e.g. 4 Hours"/>
+        </div>
+    </div>
 
-{{!-- Section Header --}}
-<div class="form-group" style="grid-column: 1 / -1; margin-top: 10px; border-top: 2px solid #555; padding-top: 5px;">
-    <label style="width:100%; text-align:center;">STAT MODIFIERS</label>
-</div>
+    {{!-- Addiction Dose --}}
+    <div class="form-group" style="flex-direction: column; align-items: flex-start; margin-bottom: 8px;">
+        <label style="color:var(--sla-accent); margin-bottom: 2px;">Addiction Dose</label>
+        <input type="text" name="system.addictionDose" value="{{system.addictionDose}}" placeholder="e.g. Every 6 hours plus every combat..."/>
+    </div>
 
-{{!-- Mod 1 --}}
-<div class="form-group">
-    <label>Mod 1</label>
-    <select name="system.mods.first.stat">
-        <option value="">- None -</option>
-        {{selectOptions @root.config.stats selected=system.mods.first.stat}}
-    </select>
-</div>
-<div class="form-group"><label>Value</label><input type="number" name="system.mods.first.value" value="{{system.mods.first.value}}"/></div>
+    {{!-- Detox Effects --}}
+    <div class="form-group" style="flex-direction: column; align-items: flex-start;">
+        <label style="color:var(--sla-accent); margin-bottom: 2px;">Detox Effects</label>
+        <textarea name="system.detoxEffects" rows="3" style="width:100%; background:#111; color:#fff; border:1px solid #444; resize:vertical;">{{system.detoxEffects}}</textarea>
+    </div>
 
-{{!-- Mod 2 --}}
-<div class="form-group">
-    <label>Mod 2</label>
-    <select name="system.mods.second.stat">
-        <option value="">- None -</option>
-        {{selectOptions @root.config.stats selected=system.mods.second.stat}}
-    </select>
+    <div style="margin-top: 10px; font-size: 0.8em; color: #777; text-align: center; font-style: italic;">
+        Drug effects are managed manually via the Description tab.
+    </div>
 </div>
-<div class="form-group"><label>Value</label><input type="number" name="system.mods.second.value" value="{{system.mods.second.value}}"/></div>
