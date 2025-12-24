@@ -26,7 +26,7 @@ export class SlaActorSheet extends ActorSheet {
   /* DATA PREPARATION                            */
   /* -------------------------------------------- */
 
-  /** @override */
+/** @override */
   async getData() {
     const context = await super.getData();
     const actorData = context.data;
@@ -43,6 +43,23 @@ export class SlaActorSheet extends ActorSheet {
     context.system.move = context.system.move || {}; 
     context.system.conditions = context.system.conditions || {};
 
+    // ======================================================
+    // START NEW LOGIC: SYNC CONDITIONS FOR DISPLAY
+    // ======================================================
+    // This forces the sheet to look at the actual Active Effects 
+    // on the token and update the context so the buttons light up.
+    const conditionIds = ["bleeding", "burning", "stunned", "prone", "immobile", "critical"];
+    
+    for (const statusId of conditionIds) {
+        // Check if the actor has an Active Effect with this statusId
+        // We use 'this.actor' to get the live document instance
+        const hasEffect = this.actor.effects.some(e => e.statuses.has(statusId));
+        context.system.conditions[statusId] = hasEffect;
+    }
+    // ======================================================
+    // END NEW LOGIC
+    // ======================================================
+
     if (actorData.type == 'character' || actorData.type == 'npc') {
       this._prepareItems(context);
     }
@@ -54,8 +71,7 @@ export class SlaActorSheet extends ActorSheet {
     context.speciesItem = this.actor.items.find(i => i.type === "species");
     context.packageItem = this.actor.items.find(i => i.type === "package");
 
-    // --- NEW: CHECK IF EBONITE ---
-    // Returns true if species exists AND name contains "ebonite" (case-insensitive)
+    // --- CHECK IF EBONITE ---
     if (context.speciesItem && context.speciesItem.name) {
         context.isEbonite = context.speciesItem.name.toLowerCase().includes("ebonite");
     } else {
@@ -314,25 +330,45 @@ _prepareItems(context) {
     html.find('.item-create').click(this._onItemCreate.bind(this));
     html.find('.rollable').click(this._onRoll.bind(this));
     
+    // --- CONDITIONS TOGGLE ---
     html.find('.condition-toggle').click(async ev => {
       ev.preventDefault();
       const conditionId = ev.currentTarget.dataset.condition;
+      // This toggles the Active Effect on the Token
       await this.actor.toggleStatusEffect(conditionId);
+      // The sheet will re-render, and getData() will now see the effect and light up the icon.
     });
 
+// --- WOUND CHECKBOXES (Fixed Stale Data Error) ---
     html.find('.wound-checkbox').change(async ev => {
         const target = ev.currentTarget;
         const isChecked = target.checked;
         const field = target.name; 
+        
+        // 1. Update the wound checkbox state in the database
+        // We await this so the data is saved before we check wound counts
         await this.actor.update({ [field]: isChecked });
         
-        const isBleeding = this.actor.effects.some(e => e.statuses.has("bleeding"));
+        // 2. Fetch the Bleeding Effect FRESH (Crucial Fix)
+        // We do this AFTER the update to ensure we get the live object, not a stale one.
+        const bleedingEffect = this.actor.effects.find(e => e.statuses.has("bleeding"));
+
         if (isChecked) {
-             if (!isBleeding) await this.actor.toggleStatusEffect("bleeding", { active: true });
+             // If we checked a wound and are NOT bleeding, add the effect
+             if (!bleedingEffect) {
+                 await this.actor.toggleStatusEffect("bleeding", { active: true });
+             }
         } else {
-             const newState = { ...this.actor.system.wounds, [field.split('.').pop()]: false }; 
-             let activeWounds = Object.values(newState).filter(v => v === true).length;
-             if (activeWounds === 0 && isBleeding) await this.actor.toggleStatusEffect("bleeding", { active: false });
+             // If we unchecked, check if we have any wounds left.
+             // Since we awaited the update above, 'this.actor.system.wounds' is now current.
+             const currentWounds = this.actor.system.wounds;
+             const activeWounds = Object.values(currentWounds).filter(v => v === true).length;
+
+             // If 0 wounds left, and we have a bleeding effect, remove it.
+             if (activeWounds === 0 && bleedingEffect) {
+                 // Safe deletion using the fresh reference
+                 await bleedingEffect.delete();
+             }
         }
     });
   }
