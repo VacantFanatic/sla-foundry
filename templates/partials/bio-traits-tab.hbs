@@ -34,11 +34,12 @@
         </div>
     </div>
 
-    {{!-- Notes (Updated with Title Bar) --}}
+    {{!-- Notes Section --}}
     <div class="sla-panel" style="flex: 1; min-height: 300px; display: flex; flex-direction: column;">
         <div class="sla-header-bar">NOTES</div>
-        <div class="editor-container" style="flex: 1; border: none; padding: 5px; background: #000;">
-            {{editor enrichedBiography target="system.biography" button=true owner=owner editable=editable}}
+        {{!-- Added class 'sla-editor-container' and forced height --}}
+        <div class="sla-editor-container" style="flex: 1; height: 100%; border: none; padding: 5px; background: #000;">
+            {{editor enrichedNotes target="system.notes" engine="prosemirror" button=true owner=owner editable=editable}}
         </div>
     </div>
 </div>
