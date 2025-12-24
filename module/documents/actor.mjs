@@ -303,26 +303,64 @@ export class BoilerplateActor extends Actor {
     return data;
   }
 
-  /** @override */
-  async _onUpdate(data, options, userId) {
-    super._onUpdate(data, options, userId);
+/** @override */
+  async _onUpdate(changed, options, userId) {
+    super._onUpdate(changed, options, userId);
+
+    // 1. STOP if the update didn't touch conditions.
+    // This prevents HP updates or Bio updates from triggering the condition loop.
+    const conditionChanges = foundry.utils.getProperty(changed, "system.conditions");
     
-    // Sync Token Status Icons
-    // Ensure CONFIG is ready to avoid crashes
-    const hasCriticalConfig = CONFIG.statusEffects && CONFIG.statusEffects.some(e => e.id === "critical");
-    
-    if (hasCriticalConfig) {
+    // If we have changes to conditions, sync ONLY the ones that changed
+    if (conditionChanges) {
+        
+        // Helper to sync a specific ID
         const syncStatus = async (id, isState) => {
+             // We check the 'isState' explicitly. If it is undefined, it means that specific condition wasn't changed
+             if (isState === undefined) return;
+             
              const hasEffect = this.effects.some(e => e.statuses.has(id));
-             if (isState !== hasEffect) await this.toggleStatusEffect(id, { active: isState });
+             
+             // Only toggle if there is a mismatch
+             if (isState !== hasEffect) {
+                 await this.toggleStatusEffect(id, { active: isState });
+             }
         };
 
-        await syncStatus("critical", this.system.conditions?.critical);
-        await syncStatus("prone", this.system.conditions?.prone);
-        await syncStatus("stunned", this.system.conditions?.stunned);
-        await syncStatus("bleeding", this.system.conditions?.bleeding);
-        await syncStatus("burning", this.system.conditions?.burning);
-        await syncStatus("immobile", this.system.conditions?.immobile);
+        // We only check the specific keys found in the 'changed' object
+        // This prevents us from overwriting "Prone" when we only meant to click "Critical"
+        for (const [key, value] of Object.entries(conditionChanges)) {
+             await syncStatus(key, value);
+        }
     }
+
+    // 2. SEPARATE LOGIC: Handle HP Auto-Wounding
+    // If you want HP to apply wounds, do it here, separately.
+    if (foundry.utils.hasProperty(changed, "system.hp.value")) {
+        await this._handleWoundThresholds();
+    }
+  }
+
+  /**
+   * Separate function to handle HP math logic
+   */
+  async _handleWoundThresholds() {
+      // Calculate your thresholds
+      const hp = this.system.hp.value;
+      const max = this.system.hp.max;
+      
+      // Example logic - adjust for SLA rules
+      // Note: We use the Effect ID (e.g., 'critical') not the boolean
+      const isCritical = hp <= (max / 2) && hp > 0;
+
+      // Check if effect exists
+      const hasCritical = this.effects.some(e => e.statuses.has("critical"));
+
+      // Apply only if needed to avoid infinite loops
+      if (isCritical && !hasCritical) {
+          await this.toggleStatusEffect("critical", { active: true });
+      } else if (!isCritical && hasCritical) {
+          await this.toggleStatusEffect("critical", { active: false });
+      }
   }
 }

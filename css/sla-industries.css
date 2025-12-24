@@ -554,6 +554,7 @@ form.sla-sheet {
 .condition-toggle[data-condition="burning"].active { color: #ffaa00; border-color: #ffaa00; box-shadow: 0 0 8px rgba(255,170,0,0.4); text-shadow: 0 0 5px #ffaa00; }
 .condition-toggle[data-condition="stunned"].active { color: #ffff00; border-color: #ffff00; box-shadow: 0 0 8px rgba(255,255,0,0.4); text-shadow: 0 0 5px #ffff00; }
 .condition-toggle[data-condition="immobile"].active { color: #00ccff; border-color: #00ccff; box-shadow: 0 0 8px rgba(0,204,255,0.4); text-shadow: 0 0 5px #00ccff; }
+.condition-toggle[data-condition="prone"].active { color: #39ff14; border-color: #39ff14; box-shadow: 0 0 8px rgba(57,255,20,0.4); text-shadow: 0 0 5px #39ff14; }
 
 /* CRITICAL BUTTON (New Skull) */
 .condition-toggle[data-condition="critical"].active { 
