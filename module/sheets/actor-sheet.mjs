@@ -1192,31 +1192,29 @@ async _processWeaponRoll(item, html, isMelee) {
   }
 
 	// --- HELPER: RANGED LOGIC ---
-    async _applyRangedModifiers(item, form, mods, notes, flags) {
-      // Use jQuery to safely find the option inside the passed DOM element
+	async _applyRangedModifiers(item, form, mods, notes, flags) {
       const modeSelect = $(form).find('#fire-mode').find(':selected');
       const modeKey = modeSelect.val() || "single";
       
       const roundsUsed = parseInt(modeSelect.data("rounds")) || 1;
       const recoilPenalty = parseInt(modeSelect.data("recoil")) || 0;
 
-      // FIX 1: Safely access .value (Fallback to 0 if undefined)
-      const currentAmmo = item.system.ammo?.value ?? 0;
+      // FIX 1: Read 'ammo' directly as a number (matches your HBS partial)
+      const currentAmmo = Number(item.system.ammo) || 0; 
 
       // 1. VALIDATE AMMO RULES
-      // Find the round count of the weapon's LOWEST active mode
       const activeModes = Object.values(item.system.firingModes || {}).filter(m => m.active);
       const minDeviceRounds = activeModes.reduce((min, m) => Math.min(min, m.rounds), 999);
 
-      // Rule A: If we selected a mode that needs more ammo than we have...
+      // Rule A: Not enough ammo
       if (currentAmmo < roundsUsed) {
-          // Rule B: ...We can ONLY proceed if this is the weapon's lowest possible mode.
+          // Rule B: Only allow if this is the lowest mode
           if (roundsUsed > minDeviceRounds) {
               ui.notifications.error(`Not enough ammo for ${modeSelect.text().split('(')[0].trim()}. Switch to a lower mode.`);
               return false; // STOP THE ROLL
           }
 
-          // Rule C: If it IS the lowest mode, we fire what's left with a penalty.
+          // Rule C: Lowest mode penalty
           mods.damage -= 2; 
           notes.push("Low Ammo (-2 DMG)."); 
           
@@ -1229,12 +1227,12 @@ async _processWeaponRoll(item, html, isMelee) {
           case "burst":
               mods.damage += 2; 
               notes.push("Burst (+2 Dmg)."); 
-              flags.rerollSD = true; // Make sure your Roll Formula handles this!
+              flags.rerollSD = true; 
               break;
           case "auto":
               mods.damage += 4; 
               notes.push("Full Auto (+4 Dmg)."); 
-              flags.rerollAll = true; // Make sure your Roll Formula handles this!
+              flags.rerollAll = true; 
               break;
           case "suppressive": 
           case "suppress":
@@ -1245,20 +1243,20 @@ async _processWeaponRoll(item, html, isMelee) {
               break;
       }
 
-      // 3. APPLY RECOIL (Subtracts from Modifier)
+      // 3. APPLY RECOIL
       if (recoilPenalty > 0) {
           mods.allDice -= recoilPenalty;
           notes.push(`Recoil -${recoilPenalty}.`);
       }
 
       // 4. CONSUME AMMO
-      // FIX 2: Update only the 'value' key, do not overwrite the whole object
       const actualCost = Math.min(currentAmmo, roundsUsed);
       if (actualCost > 0) {
-          await item.update({ "system.ammo.value": currentAmmo - actualCost });
+          // FIX 2: Update 'system.ammo' directly (Removed .value)
+          await item.update({ "system.ammo": currentAmmo - actualCost });
       }
 
-      // 5. OTHER INPUTS
+      // 5. OTHER INPUTS (Cover, Aiming, etc.)
       mods.successDie += (Number(form.cover?.value) || 0);
       mods.successDie += (Number(form.dual?.value) || 0);
       
@@ -1277,7 +1275,7 @@ async _processWeaponRoll(item, html, isMelee) {
           if (aimVal === "skill") mods.autoSkillSuccesses += 1;
       }
       
-      return true; // Return true to indicate success
+      return true; 
   }
   
   // --- HELPERS: HTML GENERATION ---

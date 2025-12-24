@@ -20,10 +20,13 @@
                 <div class="item-detail" style="flex:1.5; text-align:center; font-size:0.9em; color:#aaa; display:flex; justify-content:center; gap:10px;">
                     <span style="color:#fff;" title="Damage">{{item.system.damage}}</span>
                     
-                    {{#if item.system.maxAmmo}}
-                        <span style="font-family:'Courier New', monospace; font-weight:bold; {{#if (eq item.system.ammo 0)}}color:#ff5555;{{else}}color:#888;{{/if}}">
-                            [{{item.system.ammo}}/{{item.system.maxAmmo}}]
-                        </span>
+                    {{!-- FIX: Only show Ammo if the weapon is Ranged --}}
+                    {{#if (eq item.system.attackType "ranged")}}
+                        {{#if item.system.maxAmmo}}
+                            <span style="font-family:'Courier New', monospace; font-weight:bold; {{#if (eq item.system.ammo 0)}}color:#ff5555;{{else}}color:#888;{{/if}}">
+                                [{{item.system.ammo}}/{{item.system.maxAmmo}}]
+                            </span>
+                        {{/if}}
                     {{/if}}
                 </div>
 
