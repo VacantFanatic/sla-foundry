@@ -13,6 +13,8 @@ import { SLATokenRuler } from "./canvas/sla-ruler.mjs";
 import { preloadHandlebarsTemplates } from "./helpers/templates.mjs";
 import { SLA } from "./config.mjs";
 
+import { migrateWorld, CURRENT_MIGRATION_VERSION } from "./migration.mjs";
+
 /* -------------------------------------------- */
 /* Init Hook                                   */
 /* -------------------------------------------- */
@@ -32,6 +34,14 @@ Hooks.once('init', async function() {
     formula: "1d10 + @stats.init.value",
     decimals: 2
   };
+  
+  game.settings.register("sla-industries", "systemMigrationVersion", {
+    name: "System Migration Version",
+    scope: "world",
+    config: false,  // Hide from UI
+    type: String,
+    default: "0.0.0"
+  });
   
   CONFIG.statusEffects = [
     { id: "dead", label: "EFFECT.StatusDead", icon: "icons/svg/skull.svg" },
@@ -104,9 +114,19 @@ Handlebars.registerHelper('and', function (a, b) { return a && b; });
 /* -------------------------------------------- */
 /* Global Listeners (Rolling & Applying Damage) */
 /* -------------------------------------------- */
-Hooks.once("ready", function() {
+Hooks.once("ready", async function() {
     
-    // =========================================================
+    // 1. Check current schema version
+    const currentVersion = game.settings.get("sla-industries", "systemMigrationVersion");
+
+    // 2. If world is older than our code, Run Migration
+    // Note: This is a simple string check. For complex versioning (1.10 vs 1.9), 
+    // you might need `isNewerVersion()` helper provided by Foundry.
+    if (foundry.utils.isNewerVersion(CURRENT_MIGRATION_VERSION, currentVersion)) {
+        await migrateWorld();
+    }
+	
+	// =========================================================
     // PART 1: ROLL DAMAGE (Standard Button & Tactical Choices)
     // =========================================================
     
