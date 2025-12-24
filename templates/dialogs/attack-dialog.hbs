@@ -71,14 +71,21 @@
     <div class="sla-panel" style="padding: 5px;">
         <div style="display:grid; grid-template-columns: 1fr; gap: 8px;">
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-                <label>Fire Mode</label>
-                <select id="fire-mode" style="width: 65%;">
-                    {{#each validModes as |mode key|}}
-                        <option value="{{key}}" data-recoil="{{mode.recoil}}" data-rounds="{{mode.rounds}}">
-                            {{mode.label}} ({{mode.rounds}} rnds | -{{mode.recoil}} Recoil)
-                        </option>
-                    {{/each}}
-                </select>
+                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+					<label>Fire Mode</label>
+					{{!-- ADDED: name="fireMode" so we can find it in the JS --}}
+					<select name="fireMode" id="fire-mode" style="width: 65%;">
+						{{#each validModes as |mode key|}}
+							{{!-- ADDED: The {{#if}} block to handle the default selection --}}
+							<option value="{{key}}" 
+							data-recoil="{{mode.recoil}}" 
+							data-rounds="{{mode.rounds}}"
+							{{#if (eq key ../selectedMode)}}selected{{/if}}>
+							{{mode.label}} ({{mode.rounds}} rnds | -{{mode.recoil}} Recoil)
+							</option>
+						{{/each}}
+					</select>
+				</div>
             </div>
 
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">

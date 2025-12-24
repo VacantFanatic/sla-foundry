@@ -461,14 +461,19 @@ async _onRoll(event) {
 	if (dataset.rollType === 'item') {
         const itemId = $(element).parents('.item').data('itemId');
         const item = this.actor.items.get(itemId);
-        if (item.type === 'weapon') {
-            const skillKey = item.system.skill || "";
-            const isMelee = ["melee", "unarmed", "thrown"].includes(skillKey);
-            
-            // ADD AWAIT HERE
-            await this._renderAttackDialog(item, isMelee);
-            
-        } else if (item.type === 'ebbFormula') {
+		if (item.type === 'weapon') {
+           // NEW LOGIC: Check the explicit 'attackType' property
+           // We default to "melee" if the property is missing (e.g. on old items)
+           const attackType = item.system.attackType || "melee";
+           
+           // Determine boolean for your dialog function
+           const isMelee = (attackType === "melee");
+
+           // Pass the flag to your existing dialog renderer
+           await this._renderAttackDialog(item, isMelee);
+           
+		} 
+		else if (item.type === 'ebbFormula') {
             this._executeEbbRoll(item);
         } else {
             item.sheet.render(true);
@@ -531,16 +536,19 @@ async _onRoll(event) {
     }
   }
 
-  // --- DIALOG ---
+// --- DIALOG ---
   async _renderAttackDialog(item, isMelee) {
+    
     // 1. Prepare Firing Modes (Ranged Only)
     let validModes = {};
+    let defaultModeKey = "";
+
     if (!isMelee && item.system.firingModes) {
        // Filter down to only active modes
        validModes = Object.entries(item.system.firingModes)
          .filter(([key, data]) => data.active)
          .reduce((obj, [key, data]) => {
-             obj[key] = data;
+             obj[key] = data; // Keep the full data object so we can read recoil later
              return obj;
          }, {});
 
@@ -548,6 +556,9 @@ async _onRoll(event) {
        if (Object.keys(validModes).length === 0) {
            validModes["single"] = { label: "Single", active: true, rounds: 1, recoil: 0 };
        }
+       
+       // Pick the first valid mode as the default selection
+       defaultModeKey = Object.keys(validModes)[0];
     }
 
     // 2. Prepare Template Data
@@ -555,8 +566,12 @@ async _onRoll(event) {
       item: item,
       isMelee: isMelee,
       validModes: validModes,
-      // Pass current recoil only if melee (ranged handles it per mode now)
-      recoil: isMelee ? (item.system.recoil || 0) : 0 
+      selectedMode: defaultModeKey, // Pass this to HBS for the <select>
+      
+      // Melee uses item recoil (usually 0), Ranged uses the recoil of the default mode
+      recoil: isMelee 
+          ? (item.system.recoil || 0) 
+          : (validModes[defaultModeKey]?.recoil || 0) 
     };
 
     const content = await renderTemplate("systems/sla-industries/templates/dialogs/attack-dialog.hbs", templateData);
@@ -572,7 +587,7 @@ async _onRoll(event) {
       },
       default: "roll"
     }, {
-      classes: ["sla-dialog-window", "dialog"] // Updated Class Name
+      classes: ["sla-dialog-window", "dialog"]
     }).render(true);
   }
   
@@ -1176,14 +1191,17 @@ async _processWeaponRoll(item, html, isMelee) {
       mods.allDice -= ((Number(form.acroDef?.value) || 0) * 2);
   }
 
-   // --- HELPER: RANGED LOGIC ---
-   async _applyRangedModifiers(item, form, mods, notes, flags) {
+	// --- HELPER: RANGED LOGIC ---
+    async _applyRangedModifiers(item, form, mods, notes, flags) {
+      // Use jQuery to safely find the option inside the passed DOM element
       const modeSelect = $(form).find('#fire-mode').find(':selected');
       const modeKey = modeSelect.val() || "single";
       
       const roundsUsed = parseInt(modeSelect.data("rounds")) || 1;
       const recoilPenalty = parseInt(modeSelect.data("recoil")) || 0;
-      const currentAmmo = item.system.ammo || 0;
+
+      // FIX 1: Safely access .value (Fallback to 0 if undefined)
+      const currentAmmo = item.system.ammo?.value ?? 0;
 
       // 1. VALIDATE AMMO RULES
       // Find the round count of the weapon's LOWEST active mode
@@ -1195,15 +1213,13 @@ async _processWeaponRoll(item, html, isMelee) {
           // Rule B: ...We can ONLY proceed if this is the weapon's lowest possible mode.
           if (roundsUsed > minDeviceRounds) {
               ui.notifications.error(`Not enough ammo for ${modeSelect.text().split('(')[0].trim()}. Switch to a lower mode.`);
-              // Return false to stop the roll (You need to update _processWeaponRoll to handle this)
-              return false; 
+              return false; // STOP THE ROLL
           }
 
           // Rule C: If it IS the lowest mode, we fire what's left with a penalty.
           mods.damage -= 2; 
           notes.push("Low Ammo (-2 DMG)."); 
           
-          // Ensure Min Damage is observed (Text Rule)
           const minDmg = item.system.minDamage || "0";
           if (minDmg !== "0") notes.push(`(Min DMG ${minDmg} applies)`);
       }
@@ -1213,12 +1229,12 @@ async _processWeaponRoll(item, html, isMelee) {
           case "burst":
               mods.damage += 2; 
               notes.push("Burst (+2 Dmg)."); 
-              flags.rerollSD = true;
+              flags.rerollSD = true; // Make sure your Roll Formula handles this!
               break;
           case "auto":
               mods.damage += 4; 
               notes.push("Full Auto (+4 Dmg)."); 
-              flags.rerollAll = true;
+              flags.rerollAll = true; // Make sure your Roll Formula handles this!
               break;
           case "suppressive": 
           case "suppress":
@@ -1236,9 +1252,11 @@ async _processWeaponRoll(item, html, isMelee) {
       }
 
       // 4. CONSUME AMMO
-      // Cap consumption at what is actually in the mag
+      // FIX 2: Update only the 'value' key, do not overwrite the whole object
       const actualCost = Math.min(currentAmmo, roundsUsed);
-      await item.update({ "system.ammo": currentAmmo - actualCost });
+      if (actualCost > 0) {
+          await item.update({ "system.ammo.value": currentAmmo - actualCost });
+      }
 
       // 5. OTHER INPUTS
       mods.successDie += (Number(form.cover?.value) || 0);

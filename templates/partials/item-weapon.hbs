@@ -1,9 +1,20 @@
+{{!-- 1. NEW: Weapon Type Selector --}}
+<div class="form-group">
+    <label>Type</label>
+    <select name="system.attackType">
+        {{!-- Using standard Handlebars logic for the options --}}
+        <option value="melee" {{#if (eq system.attackType "melee")}}selected{{/if}}>Melee</option>
+        <option value="ranged" {{#if (eq system.attackType "ranged")}}selected{{/if}}>Ranged</option>
+    </select>
+</div>
+
+{{!-- Standard Stats (Always Visible) --}}
 <div class="form-group"><label>Dmg</label><input type="text" name="system.damage" value="{{system.damage}}"/></div>
 <div class="form-group"><label>Min</label><input type="text" name="system.minDamage" value="{{system.minDamage}}"/></div>
 <div class="form-group"><label>AD</label><input type="number" name="system.ad" value="{{system.ad}}"/></div>
 <div class="form-group"><label>Range</label><input type="text" name="system.range" value="{{system.range}}"/></div>
 
-{{!-- Skill Drop Zone --}}
+{{!-- Skill Drop Zone (Always Visible) --}}
 <div class="form-group" style="grid-column: 1 / -1;">
     <label>Required Skill</label>
     <div class="drop-zone skill-link" style="border: 2px dashed #999; padding: 5px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.05); cursor: pointer; min-height: 30px;">
@@ -16,7 +27,8 @@
     </div>
 </div>
 
-{{!-- NEW FIRING MODES BLOCK (Replaces old ROF/Recoil text fields) --}}
+{{!-- 2. CONDITIONAL: Only show Firing Modes if type is 'ranged' --}}
+{{#if (eq system.attackType "ranged")}}
 <div class="sla-panel" style="grid-column: 1 / -1; margin-top: 10px;">
     <div class="sla-header-bar">Firing Modes & Recoil</div>
     
@@ -42,3 +54,4 @@
     </div>
     {{/each}}
 </div>
+{{/if}}

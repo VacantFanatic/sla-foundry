@@ -126,6 +126,7 @@
       "damage": "1d10",
       "minDamage": "0",
       "ad": 0,
+	  "attackType": "melee",
       "firingModes": {
         "single": {
           "label": "Single",
