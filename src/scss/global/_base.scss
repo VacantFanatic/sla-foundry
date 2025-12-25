@@ -1,0 +1,126 @@
+/* ==========================================
+   0. FONTS
+   ========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&display=swap');
+
+
+/* ==========================================
+   1. GLOBAL VARIABLES & WINDOW STYLES
+   ========================================== */
+/* WINDOW CONTENT (Dark Theme) */
+.sla-industries.sheet.actor .window-content,
+.sla-industries.sheet.item .window-content {
+    background-image: none !important;
+    background: var(--sla-bg-dark) !important;
+    background-color: var(--sla-bg-dark) !important;
+    color: var(--sla-text-light);
+    font-family: var(--sla-font-mono);
+    font-size: 13px;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 2px solid var(--sla-border);
+}
+
+/* FORM LAYOUT */
+form.sla-sheet {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important;
+    background: transparent !important;
+    padding: 5px;
+}
+
+/* UTILITIES */
+.sla-pad {
+    padding: 8px !important;
+}
+
+/* ==========================================
+   2. INPUTS (Global High Contrast)
+   ========================================== */
+.sla-sheet input[type="text"],
+.sla-sheet input[type="number"],
+.sla-sheet select {
+    background: #000;
+    color: #e0e0e0;
+    border: 1px solid #555;
+    border-radius: var(--sla-radius);
+    height: 26px;
+    padding: 1px 5px;
+    font-family: var(--sla-font-mono);
+}
+
+.sla-sheet input:focus,
+.sla-sheet select:focus {
+    box-shadow: 0 0 5px var(--sla-accent);
+    background: #111;
+    outline: none;
+}
+
+/* ==========================================
+   12. PAUSE ANIMATION
+   ========================================== */
+#pause {
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid var(--sla-border);
+
+    figcaption {
+        font-family: var(--sla-font-header);
+        font-weight: 700;
+        font-size: 2em;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        animation: slaRedPulse 2s infinite ease-in-out;
+    }
+}
+
+@keyframes slaRedPulse {
+    0% {
+        color: #aaa;
+        text-shadow: 0 0 2px #300;
+        transform: scale(1);
+    }
+
+    50% {
+        color: #f00;
+        text-shadow: 0 0 15px #f00;
+        transform: scale(1.1);
+    }
+
+    100% {
+        color: #aaa;
+        text-shadow: 0 0 2px #300;
+        transform: scale(1);
+    }
+}
+
+@keyframes slaIconPulse {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 0px #000);
+        opacity: 0.7;
+    }
+
+    50% {
+        filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
+        opacity: 1;
+    }
+}
+
+/* ==========================================
+   15. DROPDOWN CONTRAST FIX
+   ========================================== */
+select {
+    background-color: #222;
+    color: #fff;
+    border: 1px solid #444;
+
+    option {
+        background-color: #222;
+        color: #fff;
+    }
+}

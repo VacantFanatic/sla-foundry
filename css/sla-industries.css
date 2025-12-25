@@ -1,1332 +1,1253 @@
 /* ==========================================
+   SLA Industries 2E - Main SCSS
+   ========================================== */
+@import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&display=swap");
+:root {
+  --sla-bg-dark: #1a1a25;
+  --sla-bg-panel: #2a2a35;
+  --sla-border: #444455;
+  --sla-text-light: #e0e0e0;
+  --sla-accent: #D05E1A;
+  --sla-accent-faint: #D05E1A40;
+  --sla-font-mono: Josefin Sans, sans-serif;
+  --sla-font-header: Josefin Sans, sans-serif;
+  --sla-radius: 4px;
+}
+
+/* ==========================================
    0. FONTS
    ========================================== */
-@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap');
-
 /* ==========================================
    1. GLOBAL VARIABLES & WINDOW STYLES
    ========================================== */
-:root {
-    --sla-bg-dark: #1a1a25;
-    --sla-bg-panel: #2a2a35;
-    --sla-border: #444455;
-    --sla-text-light: #e0e0e0;
-    --sla-accent: #D05E1A;
-    --sla-accent-faint: #D05E1A40;
-    --sla-font-mono: "Josefin Sans", sans-serif;
-    --sla-font-header: "Josefin Sans", sans-serif;
-    --sla-radius: 4px;
-}
-
 /* WINDOW CONTENT (Dark Theme) */
 .sla-industries.sheet.actor .window-content,
 .sla-industries.sheet.item .window-content {
-    background-image: none !important;
-    background: var(--sla-bg-dark) !important;
-    background-color: var(--sla-bg-dark) !important;
-    color: var(--sla-text-light);
-    font-family: var(--sla-font-mono);
-    font-size: 13px;
-    padding: 0 !important;
-    overflow: hidden !important;
-    border: 2px solid var(--sla-border);
+  background-image: none !important;
+  background: var(--sla-bg-dark) !important;
+  background-color: var(--sla-bg-dark) !important;
+  color: var(--sla-text-light);
+  font-family: var(--sla-font-mono);
+  font-size: 13px;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 2px solid var(--sla-border);
 }
 
 /* FORM LAYOUT */
 form.sla-sheet {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden !important;
-    background: transparent !important;
-    padding: 5px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden !important;
+  background: transparent !important;
+  padding: 5px;
 }
 
 /* UTILITIES */
 .sla-pad {
-    padding: 8px !important;
+  padding: 8px !important;
 }
 
 /* ==========================================
    2. INPUTS (Global High Contrast)
    ========================================== */
-.sla-sheet input[type="text"],
-.sla-sheet input[type="number"],
+.sla-sheet input[type=text],
+.sla-sheet input[type=number],
 .sla-sheet select {
-    background: #000;
-    color: #e0e0e0;
-    border: 1px solid #555;
-    border-radius: var(--sla-radius);
-    height: 26px;
-    padding: 1px 5px;
-    font-family: var(--sla-font-mono);
+  background: #000;
+  color: #e0e0e0;
+  border: 1px solid #555;
+  border-radius: var(--sla-radius);
+  height: 26px;
+  padding: 1px 5px;
+  font-family: var(--sla-font-mono);
 }
 
 .sla-sheet input:focus,
 .sla-sheet select:focus {
-    box-shadow: 0 0 5px var(--sla-accent);
-    background: #111;
-    outline: none;
-}
-
-/* ==========================================
-   3. HEADER LAYOUT
-   ========================================== */
-.sla-sheet .sheet-header {
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: row;
-    margin-bottom: 10px;
-    border: 2px solid var(--sla-border);
-    background: #111;
-}
-
-.header-grid {
-    display: flex;
-    width: 100%;
-    min-height: 180px;
-}
-
-/* COLUMN 1: THE CARD (Left) */
-.header-left {
-    flex: 0 0 70%;
-    display: flex;
-    flex-direction: column;
-    background: var(--sla-bg-panel);
-    border-right: 2px solid var(--sla-border);
-    padding: 8px;
-    color: #e0e0e0;
-}
-
-.header-section-title {
-    background: #111;
-    color: var(--sla-accent);
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-    text-transform: uppercase;
-    padding: 4px;
-    margin: -8px -8px 8px -8px;
-    border-bottom: 1px solid var(--sla-border);
-    text-align: center;
-    letter-spacing: 1px;
-}
-
-.header-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex: 1;
-}
-
-.form-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-}
-
-.form-group label.label-bold {
-    flex: 0 0 70px;
-    font-weight: 700;
-    font-family: var(--sla-font-header);
-    color: #ccc;
-    font-size: 13px;
-    text-transform: uppercase;
-}
-
-.form-group input {
-    flex: 1;
-}
-
-.header-bottom-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 5px;
-    border-top: 1px solid var(--sla-border);
-    margin-top: 5px;
-}
-
-.lad-wrapper,
-.scl-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: #e0e0e0;
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-}
-
-.scl-wrapper input {
-    width: 50px !important;
-    text-align: center;
-}
-
-/* COLUMN 2: PORTRAIT (Center) */
-.portrait-container {
-    flex: 0 0 130px;
-    background: #000;
-    border-right: 2px solid var(--sla-border);
-    overflow: hidden;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.profile-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top center;
-    border: none;
-    display: block;
-}
-
-/* COLUMN 3: FINANCE (Right) */
-.finance-box {
-    flex: 1;
-    background: var(--sla-bg-panel);
-    padding: 0;
-    color: #e0e0e0;
-    display: flex;
-    flex-direction: column;
-}
-
-.finance-header {
-    color: #ccc;
-    font-weight: 700;
-    font-family: var(--sla-font-header);
-    font-size: 11px;
-    text-transform: uppercase;
-    margin-bottom: 2px;
-}
-
-.finance-title {
-    color: var(--sla-accent);
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-    font-size: 16px;
-    border-bottom: 2px solid var(--sla-accent);
-    margin-bottom: 5px;
-}
-
-.finance-box .finance-body input {
-    width: 98% !important;
-    margin: 0 auto !important;
-    display: block !important;
-}
-
-/* CHIPS (Header) */
-.chip {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    background: #000;
-    border: 1px solid var(--sla-accent);
-    padding: 2px;
-    gap: 5px;
-    border-radius: var(--sla-radius);
-    height: 30px;
-}
-
-.chip img {
-    flex: 0 0 24px;
-    width: 24px;
-    height: 24px;
-    object-fit: cover;
-    border: 1px solid #555;
-    background: #000;
-    margin: 0;
-}
-
-.chip-name {
-    color: #fff;
-    font-weight: bold;
-    flex: 1;
-}
-
-.chip-delete {
-    color: #d00;
-    cursor: pointer;
-    padding: 0 5px;
-}
-
-.chip-placeholder {
-    flex: 1;
-    background: #111;
-    color: #888;
-    border: 1px dashed #555;
-    text-align: center;
-    font-style: italic;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* ==========================================
-   4. STATS STRIP
-   ========================================== */
-.sla-sheet .stats-strip-container {
-    flex: 0 0 auto;
-    margin-top: 5px;
-    padding: 5px;
-    background-color: var(--sla-bg-panel) !important;
-    border-top: 2px solid var(--sla-border);
-    border-bottom: 2px solid var(--sla-border);
-}
-
-.stats-matrix {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 100px;
-    gap: 15px;
-    background: transparent !important;
-}
-
-.stat-col {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.rating-block {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #000 !important;
-    border: 1px solid var(--sla-border);
-    padding: 2px 5px;
-    height: 30px;
-    position: relative;
-    border-radius: var(--sla-radius);
-}
-
-.rating-block::after {
-    content: "";
-    position: absolute;
-    bottom: 2px;
-    left: 5px;
-    right: 5px;
-    height: 2px;
-    background: var(--sla-accent);
-}
-
-.rating-label {
-    font-weight: 700;
-    font-family: var(--sla-font-header);
-    color: #bbb;
-    font-size: 0.8em;
-}
-
-.rating-val {
-    width: 50px !important;
-    text-align: center;
-    background: transparent !important;
-    border: none !important;
-    color: var(--sla-accent) !important;
-    font-weight: bold;
-    font-size: 1.4em;
-    text-shadow: none;
-}
-
-.stat-box {
-    display: flex;
-    align-items: center;
-    background: #000 !important;
-    border: 1px solid var(--sla-border);
-    height: 28px;
-    padding-right: 5px;
-    border-radius: var(--sla-radius);
-}
-
-.stat-box label {
-    flex: 0 0 50px;
-    background: var(--sla-bg-panel) !important;
-    color: #e0e0e0;
-    font-weight: 700;
-    font-family: var(--sla-font-header);
-    font-size: 0.8em;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 5px;
-    border-right: 1px solid var(--sla-border);
-}
-
-.stat-box input {
-    flex: 1;
-    background: transparent !important;
-    border: none !important;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.1em;
-    color: #fff !important;
-}
-
-.stat-box .rollable,
-.stat-row .rollable {
-    color: #777;
-    cursor: pointer;
-}
-
-.stat-box .rollable:hover,
-.stat-row .rollable:hover {
-    color: var(--sla-accent);
-}
-
-.side-col {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    justify-content: space-between;
-}
-
-.side-box {
-    background: #000 !important;
-    border: 1px solid var(--sla-border);
-    text-align: center;
-    padding: 2px;
-    border-radius: var(--sla-radius);
-}
-
-.side-box label {
-    display: block;
-    color: #bbb;
-    font-size: 0.7em;
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-}
-
-.side-box input {
-    width: 100%;
-    background: transparent !important;
-    color: #fff !important;
-    font-weight: bold;
-    text-align: center;
-    border: none !important;
-}
-
-.side-box.init {
-    background: var(--sla-accent) !important;
-    border: 1px solid var(--sla-accent);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 0 5px var(--sla-accent-faint);
-}
-
-.side-box.init:hover {
-    background: #ff5722 !important;
-    box-shadow: 0 0 15px var(--sla-accent);
-}
-
-.side-box.init label,
-.side-box.init .init-val {
-    color: #000 !important;
-    font-weight: 900;
-    text-shadow: none;
-}
-
-.side-box.init .init-val {
-    font-size: 1.6em;
-}
-
-/* ==========================================
-   5. MAIN LAYOUT & PANELS
-   ========================================== */
-.sla-sheet .sheet-body {
-    flex: 1;
-    overflow-y: auto !important;
-    min-height: 0;
-    padding: 5px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--sla-accent) #000;
-}
-
-.sla-sheet .sheet-body .tab {
-    display: none;
-}
-
-.sla-sheet .sheet-body .tab.active {
-    display: block;
-}
-
-.sla-sheet .main-split {
-    display: grid;
-    grid-template-columns: 2.2fr 1fr;
-    gap: 10px;
-    height: auto !important;
-    align-items: start;
-}
-
-.sla-sheet .left-col,
-.sla-sheet .right-col {
-    display: flex;
-    flex-direction: column;
-    height: auto !important;
-    min-width: 0;
-}
-
-/* GENERIC SLA PANEL */
-.sla-panel,
-.sla-dialog-panel {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    background: #000;
-    border: 1px solid var(--sla-border);
-    overflow: hidden;
-    border-radius: var(--sla-radius);
-    flex: 0 0 auto;
-    margin-bottom: 5px;
-}
-
-.sla-header-bar {
-    background-color: var(--sla-bg-panel);
-    color: var(--sla-text-light);
-    font-family: var(--sla-font-header);
-    padding: 2px 5px;
-    font-weight: 700;
-    border-bottom: 1px solid var(--sla-border);
-}
-
-.sla-header-bar-small {
-    background-color: rgba(208, 94, 26, 0.2);
-    color: #ddd;
-    font-family: var(--sla-font-header);
-    padding: 2px 5px;
-    font-weight: 700;
-    font-size: 0.8em;
-    border-bottom: 1px solid #333;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.sla-sheet .scroll-list {
-    overflow-y: visible;
-    height: auto;
-    padding: 0;
-}
-
-/* ==========================================
-   6. TABS & EDITOR
-   ========================================== */
-.sla-sheet .sheet-tabs {
-    display: flex;
-    border-bottom: 2px solid var(--sla-accent);
-    margin-bottom: 5px;
-    background: #1a1a25;
-    flex: 0 0 auto;
-}
-
-.sla-sheet .sheet-tabs .item {
-    padding: 5px 15px;
-    color: #bbb;
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-    text-transform: uppercase;
-    border-right: 1px solid #333;
-    cursor: pointer;
-}
-
-.sla-sheet .sheet-tabs .item:hover {
-    color: var(--sla-text-light);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.sla-sheet .sheet-tabs .item.active {
-    color: #000;
-    background: var(--sla-accent);
-}
-
-/* PROSEMIRROR EDITOR STYLING */
-.sla-editor-container .editor {
-    background: #000;
-    color: #e0e0e0;
-    height: 100%;
-    min-height: 200px;
-}
-
-.sla-sheet .prosemirror-menu {
-    background: #1a1a1a;
-    border-bottom: 1px solid #333;
-}
-
-.sla-sheet .prosemirror-menu button {
-    color: #e0e0e0 !important;
-}
-
-.sla-sheet .prosemirror-menu button svg {
-    color: #e0e0e0 !important;
-    fill: #e0e0e0 !important;
-    filter: invert(1) !important;
-}
-
-.sla-sheet .prosemirror-menu button:hover {
-    background: #333;
-    color: #fff !important;
-}
-
-/* ==========================================
-   7. LIST ITEMS (Inventory, Skills)
-   ========================================== */
-.sla-sheet .item-controls {
-    display: flex;
-    gap: 5px;
-    min-width: 40px;
-    justify-content: center;
-}
-
-.sla-sheet .item-controls a {
-    width: 18px;
-    text-align: center;
-    color: #aaa;
-    cursor: pointer;
-}
-
-.sla-sheet .item-controls a:hover {
-    color: #fff;
-}
-
-.sla-sheet .item-controls .item-delete:hover {
-    color: #f00;
-}
-
-.item-chip {
-    flex: 1;
-    height: 100%;
-    background: #222;
-    border: 1px solid #39ff14;
-    display: flex;
-    align-items: center;
-    padding: 2px;
-    color: #fff;
-}
-
-.item-chip img,
-.sla-sheet .item .item-image img {
-    height: 24px !important;
-    width: 24px !important;
-    margin-right: 5px;
-    border: 1px solid #555;
-    background: #000;
-    object-fit: cover;
-}
-
-.sla-sheet .item .item-image {
-    flex: 0 0 30px !important;
-    width: 30px !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.item-chip .chip-name {
-    flex: 1;
-    font-weight: bold;
-    color: #39ff14;
-}
-
-/* ==========================================
-   8. WOUNDS & CONDITIONS
-   ========================================== */
-.wound-section-title {
-    font-weight: 700;
-    font-family: var(--sla-font-header);
-    color: var(--sla-accent);
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--sla-border);
-    margin-bottom: 5px;
-    padding-bottom: 2px;
-    font-size: 0.85em;
-    letter-spacing: 1px;
-}
-
-.wound-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
-.wound-entry {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #000;
-    border: 1px solid var(--sla-border);
-    padding: 4px 8px;
-    border-radius: var(--sla-radius);
-}
-
-.wound-entry label {
-    font-size: 0.9em;
-    font-weight: bold;
-    color: var(--sla-text-light);
-    cursor: pointer;
-}
-
-.condition-grid {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding-top: 10px;
-    border-top: 1px solid var(--sla-border);
-}
-
-.condition-toggle {
-    background: #1a1a25;
-    border: 1px solid var(--sla-border);
-    width: 40px;
-    height: 40px;
-    border-radius: var(--sla-radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #555;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 1.5em;
-}
-
-.condition-toggle:hover {
-    border-color: var(--sla-text-light);
-    color: var(--sla-text-light);
-    background: #222;
-}
-
-/* Condition Colors */
-.condition-toggle.active {
-    background: #333;
-    color: var(--sla-accent);
-    border-color: var(--sla-accent);
-    box-shadow: 0 0 8px var(--sla-accent-faint);
-}
-
-.condition-toggle[data-condition="bleeding"].active {
-    color: #ff4444;
-    border-color: #ff4444;
-    text-shadow: 0 0 5px #ff4444;
-}
-
-.condition-toggle[data-condition="burning"].active {
-    color: #ffaa00;
-    border-color: #ffaa00;
-    text-shadow: 0 0 5px #ffaa00;
-}
-
-.condition-toggle[data-condition="stunned"].active {
-    color: #ffff00;
-    border-color: #ffff00;
-    text-shadow: 0 0 5px #ffff00;
-}
-
-.condition-toggle[data-condition="immobile"].active {
-    color: #00ccff;
-    border-color: #00ccff;
-    text-shadow: 0 0 5px #00ccff;
-}
-
-.condition-toggle[data-condition="prone"].active {
-    color: #39ff14;
-    border-color: #39ff14;
-    text-shadow: 0 0 5px #39ff14;
-}
-
-.condition-toggle[data-condition="critical"].active {
-    color: #ff0000;
-    border-color: #ff0000;
-    background: #330000 !important;
-}
-
-/* ==========================================
-   9. WEAPON FIRING MODES GRID
-   ========================================== */
-.firing-mode-grid.header {
-    display: grid;
-    grid-template-columns: 40px 1fr 60px 60px;
-    gap: 5px;
-    align-items: center;
-    padding: 2px 4px;
-    background: #111;
-    border-bottom: 1px solid #333;
-    color: #888;
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-    font-size: 0.75em;
-    text-transform: uppercase;
-}
-
-.firing-mode-row {
-    display: grid;
-    grid-template-columns: 40px 1fr 60px 60px;
-    gap: 5px;
-    align-items: center;
-    padding: 4px;
-    border-bottom: 1px solid #222;
-    transition: background 0.2s;
-    min-height: 30px;
-}
-
-.firing-mode-row:not(.enabled) {
-    opacity: 0.4;
-    pointer-events: none;
-}
-
-.firing-mode-row.enabled {
-    background: rgba(208, 94, 26, 0.1);
-    border-left: 3px solid var(--sla-accent);
-}
-
-.firing-mode-row.enabled .col-name {
-    color: var(--sla-accent);
-    font-weight: 700;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 1);
-}
-
-.firing-mode-row input[type="number"] {
-    height: 22px !important;
-    width: 100% !important;
-    font-size: 0.9em;
-    background: #000 !important;
-    border: 1px solid #444 !important;
-    text-align: center;
-    color: #fff !important;
-    border-radius: 3px;
-}
-
-/* ==========================================
-   10. CHAT CARD STYLING
-   ========================================== */
-.sla-chat-card {
-    font-family: "Josefin Sans", sans-serif;
-    font-size: 14px;
-    color: #eee;
-}
-
-.sla-chat-card h3 {
-    font-family: "Josefin Sans", sans-serif;
-    font-weight: bold;
-    text-transform: uppercase;
-    margin: 0 0 5px 0;
-    border-bottom: 1px solid #555;
-}
-
-/* ==========================================
-   11. DIALOG THEME (Attack & Luck)
-   ========================================== */
-.sla-dialog-window.dialog {
-    background: url('') !important;
-    background-color: var(--sla-bg-dark) !important;
-    border: 2px solid var(--sla-border) !important;
-    box-shadow: 0 0 20px #000;
-    color: var(--sla-text-light);
-    border-radius: 5px;
-}
-
-.sla-dialog-window .window-header {
-    background: #111 !important;
-    border-bottom: 2px solid var(--sla-accent);
-    color: #fff !important;
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-    text-transform: uppercase;
-    padding: 5px 10px;
-}
-
-.sla-dialog-window .window-content {
-    background: var(--sla-bg-dark) !important;
-    color: var(--sla-text-light);
-    padding: 10px;
-    font-family: "Roboto Condensed", sans-serif;
-}
-
-.sla-dialog-window select,
-.sla-dialog-window input {
-    background-color: #000 !important;
-    color: #fff !important;
-    border: 1px solid var(--sla-border) !important;
-    border-radius: var(--sla-radius);
-    height: 28px;
-    padding-left: 5px;
-}
-
-.sla-dialog-window .dialog-buttons .dialog-button {
-    background: #2a2a35;
-    border: 1px solid var(--sla-accent);
-    color: var(--sla-accent);
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-    text-transform: uppercase;
-    margin-top: 15px;
-}
-
-.sla-dialog-window .dialog-buttons .dialog-button:hover {
-    background: var(--sla-accent);
-    color: #000;
-    box-shadow: 0 0 15px var(--sla-accent-faint);
+  box-shadow: 0 0 5px var(--sla-accent);
+  background: #111;
+  outline: none;
 }
 
 /* ==========================================
    12. PAUSE ANIMATION
    ========================================== */
 #pause {
-    background: rgba(0, 0, 0, 0.7);
-    border-radius: 10px;
-    padding: 10px;
-    border: 1px solid var(--sla-border);
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid var(--sla-border);
 }
-
 #pause figcaption {
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-    font-size: 2em;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    animation: slaRedPulse 2s infinite ease-in-out;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 2em;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: slaRedPulse 2s infinite ease-in-out;
 }
 
 @keyframes slaRedPulse {
-    0% {
-        color: #aaa;
-        text-shadow: 0 0 2px #300;
-        transform: scale(1);
-    }
-
-    50% {
-        color: #f00;
-        text-shadow: 0 0 15px #f00;
-        transform: scale(1.1);
-    }
-
-    100% {
-        color: #aaa;
-        text-shadow: 0 0 2px #300;
-        transform: scale(1);
-    }
+  0% {
+    color: #aaa;
+    text-shadow: 0 0 2px #300;
+    transform: scale(1);
+  }
+  50% {
+    color: #f00;
+    text-shadow: 0 0 15px #f00;
+    transform: scale(1.1);
+  }
+  100% {
+    color: #aaa;
+    text-shadow: 0 0 2px #300;
+    transform: scale(1);
+  }
 }
-
 @keyframes slaIconPulse {
-
-    0%,
-    100% {
-        filter: drop-shadow(0 0 0px #000);
-        opacity: 0.7;
-    }
-
-    50% {
-        filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
-        opacity: 1;
-    }
+  0%, 100% {
+    filter: drop-shadow(0 0 0px #000);
+    opacity: 0.7;
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
+    opacity: 1;
+  }
+}
+/* ==========================================
+   15. DROPDOWN CONTRAST FIX
+   ========================================== */
+select {
+  background-color: #222;
+  color: #fff;
+  border: 1px solid #444;
+}
+select option {
+  background-color: #222;
+  color: #fff;
 }
 
 /* ==========================================
-   13. ITEM SHEET & THREAT SHEET THEMES
+   11. DIALOG THEME (Attack & Luck)
    ========================================== */
-/* Basic Item */
-.item .window-content {
-    background: #e0e0e0 !important;
-    border: 4px solid #333;
-    font-family: "Arial", sans-serif;
-    color: #111;
+.sla-dialog-window.dialog {
+  background: url("") !important;
+  background-color: var(--sla-bg-dark) !important;
+  border: 2px solid var(--sla-border) !important;
+  box-shadow: 0 0 20px #000;
+  color: var(--sla-text-light);
+  border-radius: 5px;
+}
+.sla-dialog-window.dialog .window-header {
+  background: #111 !important;
+  border-bottom: 2px solid var(--sla-accent);
+  color: #fff !important;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 5px 10px;
+}
+.sla-dialog-window.dialog .window-content {
+  background: var(--sla-bg-dark) !important;
+  color: var(--sla-text-light);
+  padding: 10px;
+  font-family: var(--sla-font-header);
+}
+.sla-dialog-window.dialog select,
+.sla-dialog-window.dialog input {
+  background-color: #000 !important;
+  color: #fff !important;
+  border: 1px solid var(--sla-border) !important;
+  border-radius: var(--sla-radius);
+  height: 28px;
+  padding-left: 5px;
+}
+.sla-dialog-window.dialog .dialog-buttons .dialog-button {
+  background: #2a2a35;
+  border: 1px solid var(--sla-accent);
+  color: var(--sla-accent);
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-top: 15px;
+}
+.sla-dialog-window.dialog .dialog-buttons .dialog-button:hover {
+  background: var(--sla-accent);
+  color: #000;
+  box-shadow: 0 0 15px var(--sla-accent-faint);
 }
 
-.item .sheet-header {
-    background: #222 !important;
-    color: #fff !important;
-    border-bottom: 4px solid #f90;
-    padding: 10px;
-    display: flex;
-    align-items: center;
+/* ==========================================
+   10. CHAT CARD STYLING
+   ========================================== */
+.sla-chat-card {
+  font-family: "Josefin Sans", sans-serif;
+  font-size: 14px;
+  color: #eee;
+}
+.sla-chat-card h3 {
+  font-family: "Josefin Sans", sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin: 0 0 5px 0;
+  border-bottom: 1px solid #555;
 }
 
-.item .sheet-header img.profile-img {
-    flex: 0 0 64px;
-    width: 64px;
-    height: 64px;
-    object-fit: cover;
-    border: 1px solid #000;
-    margin-right: 10px;
-    background: #000;
+/* ==========================================
+   3. HEADER LAYOUT
+   ========================================== */
+.sla-sheet .sheet-header {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 10px;
+  border: 2px solid var(--sla-border);
+  background: #111;
 }
 
-/* Academic Theme (Skills/Traits) */
-.item.skill .window-content,
-.item.trait .window-content {
-    background: #fdfbf7 !important;
-    font-family: "Georgia", serif;
+.header-grid {
+  display: flex;
+  width: 100%;
+  min-height: 180px;
 }
 
-.item.skill .sheet-header,
-.item.trait .sheet-header {
-    background: transparent !important;
-    border: none;
-    border-bottom: 2px solid #000;
-    color: #000 !important;
+/* COLUMN 1: THE CARD (Left) */
+.header-left {
+  flex: 0 0 70%;
+  display: flex;
+  flex-direction: column;
+  background: var(--sla-bg-panel);
+  border-right: 2px solid var(--sla-border);
+  padding: 8px;
+  color: #e0e0e0;
 }
 
-.item.skill input,
-.item.trait input {
-    background: transparent !important;
-    border: none !important;
-    border-bottom: 1px dotted #000 !important;
-    color: #000 !important;
-    font-family: "Georgia", serif;
-    font-weight: bold;
+.header-section-title {
+  background: #111;
+  color: var(--sla-accent);
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px;
+  margin: -8px -8px 8px -8px;
+  border-bottom: 1px solid var(--sla-border);
+  text-align: center;
+  letter-spacing: 1px;
 }
 
-/* Spectral Theme (Ebb) */
-.item.ebbFormula .window-content,
-.item.discipline .window-content {
-    background: #0a0011 !important;
-    color: #d8bfff !important;
-    border: 2px solid #8a2be2;
+.header-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
 }
 
-.item.ebbFormula .sheet-header,
-.item.discipline .sheet-header {
-    background: linear-gradient(90deg, #1a002a, #30004a) !important;
-    border-bottom: 1px solid #8a2be2;
+.form-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.form-group label.label-bold {
+  flex: 0 0 70px;
+  font-weight: 700;
+  font-family: var(--sla-font-header);
+  color: #ccc;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+.form-group input {
+  flex: 1;
 }
 
-.item.ebbFormula input,
-.item.discipline input {
-    background: rgba(0, 0, 0, 0.5) !important;
-    border: 1px solid #8a2be2 !important;
-    color: #fff !important;
-    text-shadow: 0 0 5px #8a2be2;
+.header-bottom-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 5px;
+  border-top: 1px solid var(--sla-border);
+  margin-top: 5px;
 }
 
+.lad-wrapper,
+.scl-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #e0e0e0;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+}
+.lad-wrapper input,
+.scl-wrapper input {
+  width: 50px !important;
+  text-align: center;
+}
+
+/* COLUMN 2: PORTRAIT (Center) */
+.portrait-container {
+  flex: 0 0 130px;
+  background: #000;
+  border-right: 2px solid var(--sla-border);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  border: none;
+  display: block;
+}
+
+/* COLUMN 3: FINANCE (Right) */
+.finance-box {
+  flex: 1;
+  background: var(--sla-bg-panel);
+  padding: 0;
+  color: #e0e0e0;
+  display: flex;
+  flex-direction: column;
+}
+.finance-box .finance-header {
+  color: #ccc;
+  font-weight: 700;
+  font-family: var(--sla-font-header);
+  font-size: 11px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.finance-box .finance-title {
+  color: var(--sla-accent);
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 16px;
+  border-bottom: 2px solid var(--sla-accent);
+  margin-bottom: 5px;
+}
+.finance-box .finance-body input {
+  width: 98% !important;
+  margin: 0 auto !important;
+  display: block !important;
+}
+
+/* CHIPS (Header) */
+.chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #000;
+  border: 1px solid var(--sla-accent);
+  padding: 2px;
+  gap: 5px;
+  border-radius: var(--sla-radius);
+  height: 30px;
+}
+.chip img {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  border: 1px solid #555;
+  background: #000;
+  margin: 0;
+}
+
+.chip-name {
+  color: #fff;
+  font-weight: bold;
+  flex: 1;
+}
+
+.chip-delete {
+  color: #d00;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+.chip-placeholder {
+  flex: 1;
+  background: #111;
+  color: #888;
+  border: 1px dashed #555;
+  text-align: center;
+  font-style: italic;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================
+   4. STATS STRIP
+   ========================================== */
+.sla-sheet .stats-strip-container {
+  flex: 0 0 auto;
+  margin-top: 5px;
+  padding: 5px;
+  background-color: var(--sla-bg-panel) !important;
+  border-top: 2px solid var(--sla-border);
+  border-bottom: 2px solid var(--sla-border);
+}
+
+.stats-matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 100px;
+  gap: 15px;
+  background: transparent !important;
+}
+
+.stat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rating-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #000 !important;
+  border: 1px solid var(--sla-border);
+  padding: 2px 5px;
+  height: 30px;
+  position: relative;
+  border-radius: var(--sla-radius);
+}
+.rating-block::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 5px;
+  right: 5px;
+  height: 2px;
+  background: var(--sla-accent);
+}
+
+.rating-label {
+  font-weight: 700;
+  font-family: var(--sla-font-header);
+  color: #bbb;
+  font-size: 0.8em;
+}
+
+.rating-val {
+  width: 50px !important;
+  text-align: center;
+  background: transparent !important;
+  border: none !important;
+  color: var(--sla-accent) !important;
+  font-weight: bold;
+  font-size: 1.4em;
+  text-shadow: none;
+}
+
+.stat-box {
+  display: flex;
+  align-items: center;
+  background: #000 !important;
+  border: 1px solid var(--sla-border);
+  height: 28px;
+  padding-right: 5px;
+  border-radius: var(--sla-radius);
+}
+.stat-box label {
+  flex: 0 0 50px;
+  background: var(--sla-bg-panel) !important;
+  color: #e0e0e0;
+  font-weight: 700;
+  font-family: var(--sla-font-header);
+  font-size: 0.8em;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 5px;
+  border-right: 1px solid var(--sla-border);
+}
+.stat-box input {
+  flex: 1;
+  background: transparent !important;
+  border: none !important;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #fff !important;
+}
+.stat-box .rollable,
+.stat-box .stat-row .rollable {
+  color: #777;
+  cursor: pointer;
+}
+.stat-box .rollable:hover,
+.stat-box .stat-row .rollable:hover {
+  color: var(--sla-accent);
+}
+
+.side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  justify-content: space-between;
+}
+
+.side-box {
+  background: #000 !important;
+  border: 1px solid var(--sla-border);
+  text-align: center;
+  padding: 2px;
+  border-radius: var(--sla-radius);
+}
+.side-box label {
+  display: block;
+  color: #bbb;
+  font-size: 0.7em;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+}
+.side-box input {
+  width: 100%;
+  background: transparent !important;
+  color: #fff !important;
+  font-weight: bold;
+  text-align: center;
+  border: none !important;
+}
+.side-box.init {
+  background: var(--sla-accent) !important;
+  border: 1px solid var(--sla-accent);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 5px var(--sla-accent-faint);
+}
+.side-box.init:hover {
+  background: #ff5722 !important;
+  box-shadow: 0 0 15px var(--sla-accent);
+}
+.side-box.init label,
+.side-box.init .init-val {
+  color: #000 !important;
+  font-weight: 900;
+  text-shadow: none;
+}
+.side-box.init .init-val {
+  font-size: 1.6em;
+}
+
+/* ==========================================
+   5. MAIN LAYOUT & PANELS
+   ========================================== */
+.sla-sheet .sheet-body {
+  flex: 1;
+  overflow-y: auto !important;
+  min-height: 0;
+  padding: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sla-accent) #000;
+}
+.sla-sheet .sheet-body .tab {
+  display: none;
+}
+.sla-sheet .sheet-body .tab.active {
+  display: block;
+}
+
+.sla-sheet .main-split {
+  display: grid;
+  grid-template-columns: 2.2fr 1fr;
+  gap: 10px;
+  height: auto !important;
+  align-items: start;
+}
+
+.sla-sheet .left-col,
+.sla-sheet .right-col {
+  display: flex;
+  flex-direction: column;
+  height: auto !important;
+  min-width: 0;
+}
+
+/* GENERIC SLA PANEL */
+.sla-panel,
+.sla-dialog-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #000;
+  border: 1px solid var(--sla-border);
+  overflow: hidden;
+  border-radius: var(--sla-radius);
+  flex: 0 0 auto;
+  margin-bottom: 5px;
+}
+
+.sla-header-bar {
+  background-color: var(--sla-bg-panel);
+  color: var(--sla-text-light);
+  font-family: var(--sla-font-header);
+  padding: 2px 5px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--sla-border);
+}
+
+.sla-header-bar-small {
+  background-color: rgba(208, 94, 26, 0.2);
+  color: #ddd;
+  font-family: var(--sla-font-header);
+  padding: 2px 5px;
+  font-weight: 700;
+  font-size: 0.8em;
+  border-bottom: 1px solid #333;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sla-sheet .scroll-list {
+  overflow-y: visible;
+  height: auto;
+  padding: 0;
+}
+
+/* ==========================================
+   6. TABS & EDITOR
+   ========================================== */
+.sla-sheet .sheet-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--sla-accent);
+  margin-bottom: 5px;
+  background: #1a1a25;
+  flex: 0 0 auto;
+}
+.sla-sheet .sheet-tabs .item {
+  padding: 5px 15px;
+  color: #bbb;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  text-transform: uppercase;
+  border-right: 1px solid #333;
+  cursor: pointer;
+}
+.sla-sheet .sheet-tabs .item:hover {
+  color: var(--sla-text-light);
+  background: rgba(255, 255, 255, 0.05);
+}
+.sla-sheet .sheet-tabs .item.active {
+  color: #000;
+  background: var(--sla-accent);
+}
+
+/* PROSEMIRROR EDITOR STYLING */
+.sla-editor-container .editor {
+  background: #000;
+  color: #e0e0e0;
+  height: 100%;
+  min-height: 200px;
+}
+
+.sla-sheet .prosemirror-menu {
+  background: #1a1a1a;
+  border-bottom: 1px solid #333;
+}
+.sla-sheet .prosemirror-menu button {
+  color: #e0e0e0 !important;
+}
+.sla-sheet .prosemirror-menu button svg {
+  color: #e0e0e0 !important;
+  fill: #e0e0e0 !important;
+  filter: invert(1) !important;
+}
+.sla-sheet .prosemirror-menu button:hover {
+  background: #333;
+  color: #fff !important;
+}
+
+/* ==========================================
+   7. LIST ITEMS (Inventory, Skills)
+   ========================================== */
+.sla-sheet .item-controls {
+  display: flex;
+  gap: 5px;
+  min-width: 40px;
+  justify-content: center;
+}
+.sla-sheet .item-controls a {
+  width: 18px;
+  text-align: center;
+  color: #aaa;
+  cursor: pointer;
+}
+.sla-sheet .item-controls a:hover {
+  color: #fff;
+}
+.sla-sheet .item-controls .item-delete:hover {
+  color: #f00;
+}
+
+.item-chip {
+  flex: 1;
+  height: 100%;
+  background: #222;
+  border: 1px solid #39ff14;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  color: #fff;
+}
+.item-chip img {
+  height: 24px !important;
+  width: 24px !important;
+  margin-right: 5px;
+  border: 1px solid #555;
+  background: #000;
+  object-fit: cover;
+}
+.item-chip .chip-name {
+  flex: 1;
+  font-weight: bold;
+  color: #39ff14;
+}
+
+.sla-sheet .item .item-image {
+  flex: 0 0 30px !important;
+  width: 30px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sla-sheet .item .item-image img {
+  height: 24px !important;
+  width: 24px !important;
+  margin-right: 5px;
+  border: 1px solid #555;
+  background: #000;
+  object-fit: cover;
+}
+
+/* ==========================================
+   8. WOUNDS & CONDITIONS
+   ========================================== */
+.wound-section-title {
+  font-weight: 700;
+  font-family: var(--sla-font-header);
+  color: var(--sla-accent);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--sla-border);
+  margin-bottom: 5px;
+  padding-bottom: 2px;
+  font-size: 0.85em;
+  letter-spacing: 1px;
+}
+
+.wound-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.wound-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #000;
+  border: 1px solid var(--sla-border);
+  padding: 4px 8px;
+  border-radius: var(--sla-radius);
+}
+.wound-entry label {
+  font-size: 0.9em;
+  font-weight: bold;
+  color: var(--sla-text-light);
+  cursor: pointer;
+}
+
+.condition-grid {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--sla-border);
+}
+
+.condition-toggle {
+  background: #1a1a25;
+  border: 1px solid var(--sla-border);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--sla-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.5em;
+  /* Condition Colors */
+}
+.condition-toggle:hover {
+  border-color: var(--sla-text-light);
+  color: var(--sla-text-light);
+  background: #222;
+}
+.condition-toggle.active {
+  background: #333;
+  color: var(--sla-accent);
+  border-color: var(--sla-accent);
+  box-shadow: 0 0 8px var(--sla-accent-faint);
+}
+.condition-toggle[data-condition=bleeding].active {
+  color: #ff4444;
+  border-color: #ff4444;
+  text-shadow: 0 0 5px #ff4444;
+}
+.condition-toggle[data-condition=burning].active {
+  color: #ffaa00;
+  border-color: #ffaa00;
+  text-shadow: 0 0 5px #ffaa00;
+}
+.condition-toggle[data-condition=stunned].active {
+  color: #ffff00;
+  border-color: #ffff00;
+  text-shadow: 0 0 5px #ffff00;
+}
+.condition-toggle[data-condition=immobile].active {
+  color: #00ccff;
+  border-color: #00ccff;
+  text-shadow: 0 0 5px #00ccff;
+}
+.condition-toggle[data-condition=prone].active {
+  color: #39ff14;
+  border-color: #39ff14;
+  text-shadow: 0 0 5px #39ff14;
+}
+.condition-toggle[data-condition=critical].active {
+  color: #ff0000;
+  border-color: #ff0000;
+  background: #330000 !important;
+}
+
+/* ==========================================
+   9. WEAPON FIRING MODES GRID
+   ========================================== */
+.firing-mode-grid.header {
+  display: grid;
+  grid-template-columns: 40px 1fr 60px 60px;
+  gap: 5px;
+  align-items: center;
+  padding: 2px 4px;
+  background: #111;
+  border-bottom: 1px solid #333;
+  color: #888;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 0.75em;
+  text-transform: uppercase;
+}
+
+.firing-mode-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 60px 60px;
+  gap: 5px;
+  align-items: center;
+  padding: 4px;
+  border-bottom: 1px solid #222;
+  transition: background 0.2s;
+  min-height: 30px;
+}
+.firing-mode-row:not(.enabled) {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.firing-mode-row.enabled {
+  background: rgba(208, 94, 26, 0.1);
+  border-left: 3px solid var(--sla-accent);
+}
+.firing-mode-row.enabled .col-name {
+  color: var(--sla-accent);
+  font-weight: 700;
+  text-shadow: 0 0 5px rgb(0, 0, 0);
+}
+.firing-mode-row input[type=number] {
+  height: 22px !important;
+  width: 100% !important;
+  font-size: 0.9em;
+  background: #000 !important;
+  border: 1px solid #444 !important;
+  text-align: center;
+  color: #fff !important;
+  border-radius: 3px;
+}
+
+/* ==========================================
+   13. THREAT SHEET THEMES 
+   ========================================== */
 /* Threat (NPC) Sheet */
 .sla-industries.sheet.actor .threat-sheet {
-    background: #fdfbf7 !important;
-    color: #111 !important;
-    font-family: "Georgia", serif !important;
-    border: 2px solid #333 !important;
-    padding: 0 !important;
+  background: #fdfbf7 !important;
+  color: #111 !important;
+  font-family: "Georgia", serif !important;
+  border: 2px solid #333 !important;
+  padding: 0 !important;
 }
 
 .threat-header {
-    background: #800000 !important;
-    color: #fff !important;
-    font-family: "Georgia", serif !important;
-    border-bottom: 2px solid #000 !important;
-    padding: 5px;
-    display: flex;
-    align-items: center;
+  background: #800000 !important;
+  color: #fff !important;
+  font-family: "Georgia", serif !important;
+  border-bottom: 2px solid #000 !important;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+}
+.threat-header .header-name input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.4em;
+  font-weight: bold;
+  font-family: "Georgia", serif;
 }
 
 .threat-body {
-    flex: 1;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--sla-accent) #000;
-}
-
-.threat-body {
-    flex: 1;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--sla-accent) #000;
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sla-accent) #000;
 }
 
 .threat-logo {
-    flex: 0 0 50px;
-    width: 50px;
-    height: 50px;
-    border: none;
-    margin-right: 10px;
-    object-fit: cover;
-    background: #000;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.threat-header .header-name input {
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 1.4em;
-    font-weight: bold;
-    font-family: "Georgia", serif;
+  flex: 0 0 50px;
+  width: 50px;
+  height: 50px;
+  border: none;
+  margin-right: 10px;
+  object-fit: cover;
+  background: #000;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .threat-section-bar {
-    background: #800000;
-    color: #fff;
-    font-family: "Georgia", serif;
-    font-weight: bold;
-    padding: 2px 5px;
-    border-top: 2px solid #000;
-    border-bottom: 1px solid #000;
-    margin-top: 10px;
-    text-transform: uppercase;
+  background: #800000;
+  color: #fff;
+  font-family: "Georgia", serif;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-top: 2px solid #000;
+  border-bottom: 1px solid #000;
+  margin-top: 10px;
+  text-transform: uppercase;
 }
 
 /* Threat Stats Table */
 .threat-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 10px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
 }
 
 .threat-row-label th {
-    background: #800000;
-    color: #fff;
-    border: 1px solid #999;
-    padding: 2px;
-    font-size: 0.9em;
-    font-weight: bold;
-    font-family: "Georgia", serif;
-    text-transform: uppercase;
+  background: #800000;
+  color: #fff;
+  border: 1px solid #999;
+  padding: 2px;
+  font-size: 0.9em;
+  font-weight: bold;
+  font-family: "Georgia", serif;
+  text-transform: uppercase;
 }
 
 .threat-row-value td {
-    padding: 0;
-    border: 1px solid #999;
+  padding: 0;
+  border: 1px solid #999;
 }
-
 .threat-row-value input {
-    width: 100%;
-    background: #fff !important;
-    color: #000 !important;
-    border: none;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.1em;
+  width: 100%;
+  background: #fff !important;
+  color: #000 !important;
+  border: none;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1em;
 }
 
 /* Threat Derived Stats */
 .threat-derived {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
 }
 
 .threat-box {
-    background: #fff;
-    border: 1px solid #000;
-    padding: 2px 5px;
-    flex: 1;
-    min-width: 80px;
+  background: #fff;
+  border: 1px solid #000;
+  padding: 2px 5px;
+  flex: 1;
+  min-width: 80px;
 }
-
 .threat-box label {
-    display: block;
-    font-size: 0.8em;
-    font-weight: bold;
-    text-transform: uppercase;
-    border-bottom: 1px solid #ccc;
-    margin-bottom: 2px;
+  display: block;
+  font-size: 0.8em;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 2px;
 }
-
 .threat-box input {
-    background: transparent !important;
-    border: none !important;
-    /* Let them look cleaner inside the box */
-    border-bottom: 1px dotted #ccc !important;
-    color: #000 !important;
-    font-weight: bold;
-    width: 100%;
+  background: transparent !important;
+  border: none !important;
+  /* Let them look cleaner inside the box */
+  border-bottom: 1px dotted #ccc !important;
+  color: #000 !important;
+  font-weight: bold;
+  width: 100%;
 }
-
 .threat-box .flexrow {
-    align-items: center;
-    gap: 2px;
+  align-items: center;
+  gap: 2px;
 }
 
 /* Threat Content Lists */
 .threat-content-box {
-    background: #fff;
-    border: 1px solid #999;
-    padding: 2px;
+  background: #fff;
+  border: 1px solid #999;
+  padding: 2px;
 }
 
 .threat-item {
-    padding: 3px;
-    border-bottom: 1px dotted #ccc;
-    align-items: center;
+  padding: 3px;
+  border-bottom: 1px dotted #ccc;
+  align-items: center;
 }
-
 .threat-item:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
-
 .threat-item .item-name {
-    color: #000;
+  color: #000;
 }
-
-.sla-industries.sheet.actor .threat-sheet {
-    background: #fdfbf7 !important;
-    color: #111 !important;
-    font-family: "Georgia", serif !important;
-    border: 2px solid #333 !important;
-    padding: 0 !important;
-}
-
-
 
 /* ==========================================
    14. STATS MATRIX (Body/Brains/Bravado)
    ========================================== */
 .stats-matrix {
-    display: flex;
-    gap: 5px;
-    width: 100%;
+  display: flex;
+  gap: 5px;
+  width: 100%;
 }
 
 .stat-col {
-    flex: 1;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid #333;
-    border-radius: 4px;
-    padding: 4px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .rating-header {
-    background: #222;
-    border: 1px solid #444;
-    border-radius: 4px;
-    padding: 2px 4px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2px;
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 2px 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
 }
 
 .rating-label {
-    font-weight: bold;
-    color: #f90;
-    font-size: 0.9em;
+  font-weight: bold;
+  color: #f90;
+  font-size: 0.9em;
 }
 
 .rating-val {
-    width: 30px;
-    text-align: center;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid #555;
-    color: #f90;
-    font-weight: bold;
+  width: 30px;
+  text-align: center;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #555;
+  color: #f90;
+  font-weight: bold;
 }
 
 .stat-box {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid #333;
-    border-radius: 3px;
-    padding: 4px;
-    text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #333;
+  border-radius: 3px;
+  padding: 4px;
+  text-align: center;
 }
-
 .stat-box label {
-    display: block;
-    font-size: 0.8em;
-    color: #aaa;
-    margin-bottom: 2px;
-    text-transform: uppercase;
+  display: block;
+  font-size: 0.8em;
+  color: #aaa;
+  margin-bottom: 2px;
+  text-transform: uppercase;
 }
 
 .side-col {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    width: 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 70px;
 }
 
 .side-box {
-    background: #111;
-    border: 1px solid #444;
-    border-radius: 4px;
-    padding: 4px;
-    text-align: center;
+  background: #111;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 4px;
+  text-align: center;
 }
-
 .side-box label {
-    display: block;
-    font-size: 0.75em;
-    color: #f90;
+  display: block;
+  font-size: 0.75em;
+  color: #f90;
 }
-
 .side-box input {
-    width: 100%;
-    text-align: center;
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-weight: bold;
-    font-size: 1.1em;
-}
-
-/* ==========================================
-   15. DROPDOWN CONTRAST FIX
-   ========================================== */
-select {
-    background-color: #222;
-    color: #fff;
-    border: 1px solid #444;
-}
-
-select option {
-    background-color: #222;
-    color: #fff;
+  width: 100%;
+  text-align: center;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1em;
 }
 
 /* ==========================================
    16. SLA SPECIFIC WIDGETS (Movement/Vitals)
    ========================================== */
 .sla-box {
-    border: 1px solid #777;
-    border-radius: 4px;
-    padding: 5px;
-    margin-bottom: 5px;
-    background: rgba(30, 30, 40, 0.8);
-    position: relative;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  border: 1px solid #777;
+  border-radius: 4px;
+  padding: 5px;
+  margin-bottom: 5px;
+  background: rgba(30, 30, 40, 0.8);
+  position: relative;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
-
 .sla-box-header {
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-    font-size: 0.8em;
-    text-transform: uppercase;
-    color: #aab;
-    border-bottom: 1px solid #555;
-    margin-bottom: 5px;
-    letter-spacing: 0.5px;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  color: #aab;
+  border-bottom: 1px solid #555;
+  margin-bottom: 5px;
+  letter-spacing: 0.5px;
 }
-
 .sla-box .compact-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
 }
-
 .sla-box .compact-row label {
-    font-size: 0.85em;
-    color: #ccc;
+  font-size: 0.85em;
+  color: #ccc;
 }
 
 .sla-input-mini {
-    width: 45px !important;
-    height: 22px !important;
-    border-radius: 3px !important;
-    background: #111 !important;
-    border: 1px solid #555 !important;
-    color: #fff !important;
-    text-align: center;
-    font-weight: bold;
-    padding: 0 !important;
+  width: 45px !important;
+  height: 22px !important;
+  border-radius: 3px !important;
+  background: #111 !important;
+  border: 1px solid #555 !important;
+  color: #fff !important;
+  text-align: center;
+  font-weight: bold;
+  padding: 0 !important;
+}
+.sla-input-mini:focus {
+  border-color: var(--sla-accent) !important;
+  box-shadow: 0 0 4px var(--sla-accent);
 }
 
-.sla-input-mini:focus {
-    border-color: var(--sla-accent) !important;
-    box-shadow: 0 0 4px var(--sla-accent);
+/* ==========================================
+   13. ITEM SHEET THEMES
+   ========================================== */
+/* Basic Item */
+.item .window-content {
+  background: #e0e0e0 !important;
+  border: 4px solid #333;
+  font-family: "Arial", sans-serif;
+  color: #111;
+}
+
+.item .sheet-header {
+  background: #222 !important;
+  color: #fff !important;
+  border-bottom: 4px solid #f90;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+}
+.item .sheet-header img.profile-img {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border: 1px solid #000;
+  margin-right: 10px;
+  background: #000;
+}
+
+/* Academic Theme (Skills/Traits) */
+.item.skill .window-content,
+.item.trait .window-content {
+  background: #fdfbf7 !important;
+  font-family: "Georgia", serif;
+}
+
+.item.skill .sheet-header,
+.item.trait .sheet-header {
+  background: transparent !important;
+  border: none;
+  border-bottom: 2px solid #000;
+  color: #000 !important;
+}
+
+.item.skill input,
+.item.trait input {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px dotted #000 !important;
+  color: #000 !important;
+  font-family: "Georgia", serif;
+  font-weight: bold;
+}
+
+/* Spectral Theme (Ebb) */
+.item.ebbFormula .window-content,
+.item.discipline .window-content {
+  background: #0a0011 !important;
+  color: #d8bfff !important;
+  border: 2px solid #8a2be2;
+}
+
+.item.ebbFormula .sheet-header,
+.item.discipline .sheet-header {
+  background: linear-gradient(90deg, #1a002a, #30004a) !important;
+  border-bottom: 1px solid #8a2be2;
+}
+
+.item.ebbFormula input,
+.item.discipline input {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid #8a2be2 !important;
+  color: #fff !important;
+  text-shadow: 0 0 5px #8a2be2;
 }
