@@ -1,41 +1,52 @@
-<form class="luck-dialog">
-    <p class="notes">Select a benefit to apply. You have <strong>{{luck.value}}</strong> / {{luck.max}} Luck remaining.
-    </p>
+<form class="luck-dialog" style="color:#eee;">
+    <p class="notes" style="margin-bottom:10px;">Select a benefit to apply. You have <strong>{{luck.value}}</strong> /
+        {{luck.max}} Luck remaining.</p>
 
-    <div class="form-group">
-        <label>Generic Options:</label>
-        <div class="luck-options">
-            <button type="button" data-action="reroll-sd" {{#if (or (lt luck.value 1) rofRerollSD)}}disabled{{/if}}>
-                Reroll Success Die {{#if rofRerollSD}}(ROF Rerolled){{else}}(Cost: 1){{/if}}
-            </button>
-
-            <div class="flexrow" style="align-items: center; margin-top: 5px;">
-                <button type="button" data-action="add-mod" {{#if (lt luck.value 1)}}disabled{{/if}}>
-                    Add Modifier (Cost: Variable)
+    <!-- SECTION 1: GENERIC OPTIONS -->
+    <div class="sla-panel sla-dialog-panel" style="margin-bottom: 10px;">
+        <div class="sla-header-bar-small">Generic Options</div>
+        <div style="padding: 5px;">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <button type="button" data-action="reroll-sd"
+                    style="background:#111; border:1px solid #444; color:#fff;" {{#if (or (lt luck.value 1)
+                    rofRerollSD)}}disabled{{/if}}>
+                    Reroll Success Die {{#if rofRerollSD}}(ROF Rerolled){{else}}(Cost: 1){{/if}}
                 </button>
-                <input type="number" name="modAmount" value="1" min="1" max="{{luck.value}}"
-                    style="max-width: 50px; text-align: center; margin-left: 5px;">
+
+                <div class="flexrow" style="align-items: center; justify-content: space-between; gap: 5px;">
+                    <button type="button" data-action="add-mod"
+                        style="flex:1; background:#111; border:1px solid #444; color:#fff;" {{#if (lt luck.value
+                        1)}}disabled{{/if}}>
+                        Add Modifier (Cost: Variable)
+                    </button>
+                    <input type="number" name="modAmount" value="1" min="1" max="{{luck.value}}"
+                        style="max-width: 50px; text-align: center; background:#333; color:#fff; border:1px solid #555; height: 26px;">
+                </div>
             </div>
         </div>
     </div>
 
-    <hr>
+    <!-- SECTION 2: REROLL SKILL DICE -->
+    <div class="sla-panel sla-dialog-panel">
+        <div class="sla-header-bar-small">Reroll Skill Dice (Cost: 1 Total)</div>
+        <div style="padding: 5px;">
+            <p class="notes" style="font-size: 0.8em; margin: 0 0 5px 0;">Select dice to reroll:</p>
+            <div class="skill-dice-list" style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px;">
+                {{#each skillDice}}
+                <label class="dice-checkbox"
+                    style="border: 1px solid #555; padding: 5px; border-radius: 4px; display: flex; align-items: center; cursor: pointer; background:#222; {{#if this.disabled}}opacity:0.5; cursor:not-allowed;{{/if}}">
+                    <input type="checkbox" name="rerollSelect" value="{{@index}}" {{#if this.disabled}}disabled{{/if}}>
+                    <span
+                        style="font-weight: bold; margin-left: 5px; color: {{this.borderColor}};">{{this.total}}</span>
+                </label>
+                {{/each}}
+            </div>
 
-    <div class="form-group">
-        <label>Reroll Skill Dice (Cost: 1 Total):</label>
-        <p class="notes" style="font-size: 0.8em; margin: 0;">Select dice to reroll:</p>
-        <div class="skill-dice-list" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
-            {{#each skillDice}}
-            <label class="dice-checkbox"
-                style="border: 1px solid #555; padding: 5px; border-radius: 4px; display: flex; align-items: center; cursor: pointer; {{#if this.disabled}}opacity:0.5; cursor:not-allowed;{{/if}}">
-                <input type="checkbox" name="rerollSelect" value="{{@index}}" {{#if this.disabled}}disabled{{/if}}>
-                <span style="font-weight: bold; margin-left: 5px; color: {{this.borderColor}};">{{this.total}}</span>
-            </label>
-            {{/each}}
+            <button type="button" data-action="reroll-skill"
+                style="background:#111; border:1px solid #444; color:#fff; width: 100%;" {{#if (lt luck.value
+                1)}}disabled{{/if}}>
+                Reroll Selected Dice
+            </button>
         </div>
-        <button type="button" data-action="reroll-skill" style="margin-top: 5px;" {{#if (lt luck.value
-            1)}}disabled{{/if}}>
-            Reroll Selected
-        </button>
     </div>
 </form>
