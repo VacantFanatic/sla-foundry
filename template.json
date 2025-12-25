@@ -1,6 +1,9 @@
 {
   "Actor": {
-    "types": ["character", "npc"],
+    "types": [
+      "character",
+      "npc"
+    ],
     "character": {
       "biography": "",
       "appearance": "",
@@ -18,25 +21,60 @@
         "lad": 0
       },
       "ratings": {
-        "body": { "value": 0 },
-        "brains": { "value": 0 },
-        "bravado": { "value": 0 }
+        "body": {
+          "value": 0
+        },
+        "brains": {
+          "value": 0
+        },
+        "bravado": {
+          "value": 0
+        }
       },
       "stats": {
-        "str": { "value": 10 },
-        "dex": { "value": 10 },
-        "know": { "value": 10 },
-        "conc": { "value": 10 },
-        "cha": { "value": 10 },
-        "cool": { "value": 10 },
-        "init": { "value": 0 },
-        "luck": { "value": 0 },
-        "flux": { "value": 0 }
+        "str": {
+          "value": 1
+        },
+        "dex": {
+          "value": 1
+        },
+        "know": {
+          "value": 1
+        },
+        "conc": {
+          "value": 1
+        },
+        "cha": {
+          "value": 1
+        },
+        "cool": {
+          "value": 1
+        },
+        "init": {
+          "value": 0
+        },
+        "luck": {
+          "value": 0
+        },
+        "flux": {
+          "value": 0
+        }
       },
-      "move": { "closing": 0, "rushing": 0 },
-      "hp": { "value": 10, "max": 10 },
-      "xp": { "value": 0 },
-      "encumbrance": { "value": 0, "max": 10 },
+      "move": {
+        "closing": 0,
+        "rushing": 0
+      },
+      "hp": {
+        "value": 10,
+        "max": 10
+      },
+      "xp": {
+        "value": 0
+      },
+      "encumbrance": {
+        "value": 0,
+        "max": 10
+      },
       "wounds": {
         "head": false,
         "lArm": false,
@@ -56,24 +94,56 @@
         "immobile": false,
         "critical": false
       },
-      "armor": { "pv": 0, "resist": 0 }
+      "armor": {
+        "pv": 0,
+        "resist": 0
+      }
     },
     "npc": {
-      "bio": { "species": "", "scl": "" },
-      "stats": {
-        "str": { "value": 10 },
-        "dex": { "value": 10 },
-        "know": { "value": 10 },
-        "conc": { "value": 10 },
-        "cha": { "value": 10 },
-        "cool": { "value": 10 },
-        "init": { "value": 0 },
-        "luck": { "value": 0 },
-        "flux": { "value": 0 }
+      "bio": {
+        "species": "",
+        "scl": ""
       },
-      "hp": { "value": 10, "max": 10 },
-      "wounds": { "penalty": 0 },
-      "armor": { "pv": 0, "resist": 0 }
+      "stats": {
+        "str": {
+          "value": 1
+        },
+        "dex": {
+          "value": 1
+        },
+        "know": {
+          "value": 1
+        },
+        "conc": {
+          "value": 1
+        },
+        "cha": {
+          "value": 1
+        },
+        "cool": {
+          "value": 1
+        },
+        "init": {
+          "value": 0
+        },
+        "luck": {
+          "value": 0
+        },
+        "flux": {
+          "value": 0
+        }
+      },
+      "hp": {
+        "value": 10,
+        "max": 10
+      },
+      "wounds": {
+        "penalty": 0
+      },
+      "armor": {
+        "pv": 0,
+        "resist": 0
+      }
     }
   },
   "Item": {
@@ -91,7 +161,9 @@
       "magazine"
     ],
     "item": {
-      "templates": ["base"],
+      "templates": [
+        "base"
+      ],
       "weight": 0,
       "price": 0,
       "quantity": 1,
@@ -99,7 +171,9 @@
       "description": ""
     },
     "magazine": {
-      "templates": ["base"],
+      "templates": [
+        "base"
+      ],
       "weight": 0.5,
       "price": 10,
       "quantity": 1,
@@ -108,25 +182,31 @@
       "linkedWeapon": ""
     },
     "skill": {
-      "templates": ["base"],
+      "templates": [
+        "base"
+      ],
       "rank": 0,
       "stat": "dex",
       "xpCost": 0,
       "description": ""
     },
     "trait": {
-      "templates": ["base"],
+      "templates": [
+        "base"
+      ],
       "rank": 0,
       "type": "",
       "xpCost": 0,
       "description": ""
     },
     "weapon": {
-      "templates": ["base"],
+      "templates": [
+        "base"
+      ],
       "damage": "1d10",
       "minDamage": "0",
       "ad": 0,
-	  "attackType": "melee",
+      "attackType": "melee",
       "firingModes": {
         "single": {
           "label": "Single",
@@ -164,16 +244,23 @@
       "ammoType": ""
     },
     "armor": {
-      "templates": ["base"],
+      "templates": [
+        "base"
+      ],
       "pv": 0,
-      "resistance": { "value": 10, "max": 10 },
+      "resistance": {
+        "value": 10,
+        "max": 10
+      },
       "weight": 2,
       "price": 200,
       "equipped": false,
       "description": ""
     },
     "ebbFormula": {
-      "templates": ["base"],
+      "templates": [
+        "base"
+      ],
       "cost": 1,
       "formulaRating": 7,
       "discipline": "blast",
@@ -187,40 +274,69 @@
       "skill": ""
     },
     "discipline": {
-      "templates": ["base"],
+      "templates": [
+        "base"
+      ],
       "rank": 0,
       "cost": 0,
       "description": ""
     },
     "drug": {
-      "templates": ["base"],
+      "templates": [
+        "base"
+      ],
       "price": 50,
       "weight": 0.1,
       "quantity": 1,
       "equipped": false,
-      "addiction": 10,          
-      "addictionDose": "",      
-      "detoxEffects": "",       
-      "duration": "",           
+      "addiction": 10,
+      "addictionDose": "",
+      "detoxEffects": "",
+      "duration": "",
       "description": ""
     },
     "species": {
-      "templates": ["base"],
+      "templates": [
+        "base"
+      ],
       "hp": 10,
-      "move": { "closing": 0, "rushing": 0 },
+      "move": {
+        "closing": 0,
+        "rushing": 0
+      },
       "stats": {
-        "str": { "min": 1, "max": 10 },
-        "dex": { "min": 1, "max": 10 },
-        "know": { "min": 1, "max": 10 },
-        "conc": { "min": 1, "max": 10 },
-        "cha": { "min": 1, "max": 10 },
-        "cool": { "min": 1, "max": 10 }
+        "str": {
+          "min": 1,
+          "max": 10
+        },
+        "dex": {
+          "min": 1,
+          "max": 10
+        },
+        "know": {
+          "min": 1,
+          "max": 10
+        },
+        "conc": {
+          "min": 1,
+          "max": 10
+        },
+        "cha": {
+          "min": 1,
+          "max": 10
+        },
+        "cool": {
+          "min": 1,
+          "max": 10
+        }
       },
       "skills": [],
       "description": ""
     },
     "package": {
-      "templates": ["base"],
+      "templates": [
+        "base"
+      ],
       "requirements": {
         "str": 0,
         "dex": 0,
