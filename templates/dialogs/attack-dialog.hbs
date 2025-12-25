@@ -1,16 +1,14 @@
-<form style="color:#eee; font-family:'Roboto Condensed';">
+<form style="color:#eee;">
     {{!-- COMMON HEADER --}}
-    <div class="form-group" style="margin-bottom:5px; display: flex; justify-content: space-between; align-items: center;">
+    <div class="form-group"
+        style="margin-bottom:5px; display: flex; justify-content: space-between; align-items: center;">
         <label style="font-weight: bold;">Generic Modifier (+/-)</label>
-        <input type="number" name="modifier" value="0" placeholder="0" style="background:#333; color:#fff; border:1px solid #555; text-align:center; width:50px; height: 28px;"/>
+        <input type="number" name="modifier" value="0" placeholder="0"
+            style="background:#333; color:#fff; border:1px solid #555; text-align:center; width:50px; height: 28px;" />
     </div>
-    
-    <div class="form-group">
-        <label style="color:#39ff14; display: flex; align-items: center;">
-            <input type="checkbox" name="spendLuck" style="margin-right: 5px;"/> Spend Luck (Reroll All)
-        </label>
-    </div>
-    
+
+
+
     <hr style="border:1px solid #444; margin: 10px 0;">
 
     {{!-- MELEE SECTION --}}
@@ -20,20 +18,22 @@
         <div class="sla-header-bar-small">Attacker Stance & Options</div>
         <div style="padding: 5px;">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px;">
-                <div><label><input type="checkbox" name="charging"/> Charging</label></div>
-                <div><label><input type="checkbox" name="targetCharged"/> Target Charged</label></div>
-                <div><label><input type="checkbox" name="sameTarget"/> Same Target</label></div>
-                <div><label><input type="checkbox" name="breakOff"/> Break Off</label></div>
-                <div><label><input type="checkbox" name="natural"/> Natural Wpn</label></div>
-                <div><label><input type="checkbox" name="prone"/> Target Prone (+2)</label></div>
+                <div><label><input type="checkbox" name="charging" /> Charging</label></div>
+                <div><label><input type="checkbox" name="targetCharged" /> Target Charged</label></div>
+                <div><label><input type="checkbox" name="sameTarget" /> Same Target</label></div>
+                <div><label><input type="checkbox" name="breakOff" /> Break Off</label></div>
+                <div><label><input type="checkbox" name="natural" /> Natural Wpn</label></div>
+                <div><label><input type="checkbox" name="prone" /> Target Prone (+2)</label></div>
             </div>
 
             {{!-- NEW FIELD: Reserved Dice --}}
             <div class="form-group" style="border-top: 1px solid #333; padding-top: 5px;">
                 <label style="color: var(--sla-accent); font-weight: bold;">Reserve Combat Dice</label>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 0.8em; color: #aaa; font-style: italic;">Subtracted from your Skill Dice pool.</div>
-                    <input type="number" name="reservedDice" value="0" min="0" placeholder="0" style="width:50px; text-align: center;"/>
+                    <div style="font-size: 0.8em; color: #aaa; font-style: italic;">Subtracted from your Skill Dice
+                        pool.</div>
+                    <input type="number" name="reservedDice" value="0" min="0" placeholder="0"
+                        style="width:50px; text-align: center;" />
                 </div>
             </div>
         </div>
@@ -47,14 +47,16 @@
                 <label style="font-weight: bold;">Target Combat Def Rating</label>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div style="font-size: 0.8em; color: #aaa;">Applies -1 modifier per point.</div>
-                    <input type="number" name="combatDef" value="0" min="0" placeholder="0" style="width:50px; text-align: center;"/>
+                    <input type="number" name="combatDef" value="0" min="0" placeholder="0"
+                        style="width:50px; text-align: center;" />
                 </div>
             </div>
             <div class="form-group">
                 <label style="font-weight: bold;">Target Acrobatics Rank</label>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div style="font-size: 0.8em; color: #aaa;">Applies -2 modifier per rank.</div>
-                    <input type="number" name="acroDef" value="0" min="0" placeholder="0" style="width:50px; text-align: center;"/>
+                    <input type="number" name="acroDef" value="0" min="0" placeholder="0"
+                        style="width:50px; text-align: center;" />
                 </div>
             </div>
         </div>
@@ -67,25 +69,23 @@
     <div style="font-size:0.8em; color:#aaa; margin-bottom: 10px;">
         <span style="color:var(--sla-accent)">Base Recoil for this weapon:</span> -{{recoil}} SD
     </div>
-    
+
     <div class="sla-panel" style="padding: 5px;">
         <div style="display:grid; grid-template-columns: 1fr; gap: 8px;">
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
                 <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-					<label>Fire Mode</label>
-					{{!-- ADDED: name="fireMode" so we can find it in the JS --}}
-					<select name="fireMode" id="fire-mode" style="width: 65%;">
-						{{#each validModes as |mode key|}}
-							{{!-- ADDED: The {{#if}} block to handle the default selection --}}
-							<option value="{{key}}" 
-							data-recoil="{{mode.recoil}}" 
-							data-rounds="{{mode.rounds}}"
-							{{#if (eq key ../selectedMode)}}selected{{/if}}>
-							{{mode.label}} ({{mode.rounds}} rnds | -{{mode.recoil}} Recoil)
-							</option>
-						{{/each}}
-					</select>
-				</div>
+                    <label>Fire Mode</label>
+                    {{!-- ADDED: name="fireMode" so we can find it in the JS --}}
+                    <select name="fireMode" id="fire-mode" style="width: 65%;">
+                        {{#each validModes as |mode key|}}
+                        {{!-- ADDED: The {{#if}} block to handle the default selection --}}
+                        <option value="{{key}}" data-recoil="{{mode.recoil}}" data-rounds="{{mode.rounds}}" {{#if (eq
+                            key ../selectedMode)}}selected{{/if}}>
+                            {{mode.label}} ({{mode.rounds}} rnds | -{{mode.recoil}} Recoil)
+                        </option>
+                        {{/each}}
+                    </select>
+                </div>
             </div>
 
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
@@ -96,7 +96,7 @@
                     <option value="-2">Heavy Cover (-2 SD)</option>
                 </select>
             </div>
-            
+
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
                 <label>Aiming Actions</label>
                 <select name="aiming" style="width: 65%;">
@@ -105,7 +105,7 @@
                     <option value="skill">Concentrate (+1 Auto Skill Hit)</option>
                 </select>
             </div>
-            
+
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
                 <label>Dual Wielding</label>
                 <select name="dual" style="width: 65%;">
@@ -115,14 +115,14 @@
                 </select>
             </div>
         </div>
-        
+
         <hr style="border-top:1px dashed #333; margin: 10px 0;">
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-            <div><label><input type="checkbox" name="targetMoved"/> Target Moving Fast</label></div>
-            <div><label><input type="checkbox" name="blind"/> Blind Firing</label></div>
-            <div><label><input type="checkbox" name="longRange"/> Long Range</label></div>
-            <div><label><input type="checkbox" name="prone"/> Firer Prone</label></div>
+            <div><label><input type="checkbox" name="targetMoved" /> Target Moving Fast</label></div>
+            <div><label><input type="checkbox" name="blind" /> Blind Firing</label></div>
+            <div><label><input type="checkbox" name="longRange" /> Long Range</label></div>
+            <div><label><input type="checkbox" name="prone" /> Firer Prone</label></div>
         </div>
     </div>
     {{/if}}

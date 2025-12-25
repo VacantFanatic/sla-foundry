@@ -13,7 +13,7 @@
     --sla-text-light: #e0e0e0;
     --sla-accent: #D05E1A;
     --sla-accent-faint: #D05E1A40;
-    --sla-font-mono: "Roboto Condensed", "Arial Narrow", sans-serif;
+    --sla-font-mono: "Josefin Sans", sans-serif;
     --sla-font-header: "Josefin Sans", sans-serif;
     --sla-radius: 4px;
 }
@@ -671,7 +671,6 @@ form.sla-sheet {
     background: #1a1a1a !important;
     color: #eee !important;
     border: 2px solid #444;
-    font-family: "Roboto Condensed";
 }
 
 .sla-dialog input,
@@ -1922,6 +1921,7 @@ form.sla-sheet {
     color: #e0e0e0;
     padding: 5px;
 }
+
 /* ==========================================
    PROSEMIRROR EDITOR FIXES
    ========================================== */
@@ -1941,7 +1941,8 @@ form.sla-sheet {
 
 /* 3. Icons Visibility (Invert Colors) */
 .sla-sheet .prosemirror-menu button {
-    color: #e0e0e0 !important; /* Text buttons (H1, H2, etc) */
+    color: #e0e0e0 !important;
+    /* Text buttons (H1, H2, etc) */
 }
 
 /* SVG Icons - Force to White/Light Gray */
@@ -1949,7 +1950,8 @@ form.sla-sheet {
 .sla-sheet .prosemirror-menu button svg {
     color: #e0e0e0 !important;
     fill: #e0e0e0 !important;
-    filter: invert(1) !important; /* Forces black icons to white */
+    filter: invert(1) !important;
+    /* Forces black icons to white */
 }
 
 /* Hover State */
@@ -1963,4 +1965,3 @@ form.sla-sheet {
     background: #1a1a1a;
     color: #e0e0e0;
 }
-
