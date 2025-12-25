@@ -374,7 +374,8 @@ export class LuckDialog extends Dialog {
                 ...mosChoiceData
             },
             // Hide the button after use
-            luckSpent: true
+            luckSpent: true,
+            actorUuid: this.actor.uuid
         };
 
         const chatContent = await renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);

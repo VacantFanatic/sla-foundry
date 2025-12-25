@@ -68,8 +68,9 @@
     {{!-- LUCK BUTTON --}}
     {{#if (and canUseLuck (not luckSpent))}}
     <div style="margin-top:8px; text-align:center; border-top:1px solid #555; padding-top:5px;">
-        <button class="chat-btn-luck" style="background:#111; color:#39ff14; border:1px solid #39ff14;">
-            USE LUCK ({{luckValue}})
+        <button class="chat-btn-luck"
+            style="background:#39ff14; color:#000; border:1px solid #005500; font-weight:bold;">
+            <i class="fas fa-clover"></i> USE LUCK ({{luckValue}})
         </button>
     </div>
     {{/if}}
@@ -79,8 +80,8 @@
     <div style="margin-top:8px; text-align:center;">
         <div style="font-size:0.8em; color:#aaa; margin-bottom:2px;">DAMAGE</div>
         <button class="damage-roll" data-formula="{{dmgFormula}}" data-ad="{{adValue}}"
-            style="background:#333; color:#fff; border:1px solid #999;">
-            {{dmgFormula}}
+            style="background:#ff4444; color:#000; border:1px solid #990000; font-weight:bold;">
+            <i class="fas fa-droplet"></i> {{dmgFormula}}
         </button>
     </div>
     {{/if}}
