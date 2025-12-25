@@ -872,6 +872,32 @@ form.sla-sheet {
     justify-content: space-between;
     align-items: center;
     padding: 5px;
+    flex: 0 0 auto; /* Ensure header doesn't shrink */
+}
+
+/* Scrollable Body */
+.threat-body {
+    flex: 1; /* Fills remaining height */
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden;
+    padding: 5px;
+
+    /* Custom Scrollbar (Firefox) */
+    scrollbar-width: thin;
+    scrollbar-color: #800000 #fdfbf7; /* Thumb Track */
+}
+
+/* Custom Scrollbar (Webkit/Chrome) */
+.threat-body::-webkit-scrollbar {
+    width: 8px;
+}
+.threat-body::-webkit-scrollbar-track {
+    background: #fdfbf7;
+}
+.threat-body::-webkit-scrollbar-thumb {
+    background-color: #800000;
+    border: 1px solid #fdfbf7;
+    border-radius: 4px;
 }
 .threat-img {
     height: 40px; 
