@@ -1,10 +1,10 @@
 <form class="{{cssClass}} sla-sheet sheet item {{item.type}}-theme" autocomplete="off">
-    
+
     {{!-- HEADER --}}
     <header class="sheet-header">
-        <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}"/>
+        <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
         <div class="header-details">
-            <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Item Name"/></h1>
+            <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Item Name" /></h1>
             <div class="item-subtitle">
                 {{!-- FIX: Removed 'capitalize' and changed prefix to match en.json --}}
                 <span class="type-label">{{localize (concat "TYPES.Item." item.type)}}</span>
@@ -23,32 +23,34 @@
 
         {{!-- ATTRIBUTES TAB --}}
         <div class="tab attributes" data-group="primary" data-tab="attributes">
-            
+
             {{!-- 1. CATALOGUE THEME (Weapons, Armor, Gear, Drugs, Ammo) --}}
-            {{#if (or (eq item.type "weapon") (or (eq item.type "item") (or (eq item.type "armor") (or (eq item.type "drug") (eq item.type "magazine")))))}}
-                {{> "systems/sla-industries/templates/partials/item-catalogue.hbs"}}
+            {{#if (or (eq item.type "weapon") (or (eq item.type "item") (or (eq item.type "armor") (or (eq item.type
+            "drug") (eq item.type "magazine")))))}}
+            {{> "systems/sla-industries/templates/partials/item-catalogue.hbs"}}
             {{/if}}
 
             {{!-- 2. ACADEMIC THEME (Skills, Traits) --}}
             {{#if (or (eq item.type "skill") (eq item.type "trait"))}}
-                {{> "systems/sla-industries/templates/partials/item-academic.hbs"}}
+            {{> "systems/sla-industries/templates/partials/item-academic.hbs"}}
             {{/if}}
 
             {{!-- 3. SPECTRAL THEME (Ebb, Discipline) --}}
             {{#if (or (eq item.type "ebbFormula") (eq item.type "discipline"))}}
-                {{> "systems/sla-industries/templates/partials/item-spectral.hbs"}}
+            {{> "systems/sla-industries/templates/partials/item-spectral.hbs"}}
             {{/if}}
 
             {{!-- 4. DOSSIER THEME (Species, Package) --}}
             {{#if (or (eq item.type "species") (eq item.type "package"))}}
-                {{> "systems/sla-industries/templates/partials/item-dossier.hbs"}}
+            {{> "systems/sla-industries/templates/partials/item-dossier.hbs"}}
             {{/if}}
 
         </div>
 
         {{!-- DESCRIPTION TAB --}}
         <div class="tab description" data-group="primary" data-tab="description">
-            {{editor enrichedDescription target="system.description" button=true owner=owner editable=editable}}
+            {{editor enrichedDescription target="system.description" engine="prosemirror" button=true owner=owner
+            editable=editable}}
         </div>
 
     </section>

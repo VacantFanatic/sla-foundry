@@ -3,7 +3,7 @@
     {{!-- THREAT HEADER --}}
     <div class="threat-header">
         <div class="header-name">
-            <input name="name" type="text" value="{{actor.name}}" placeholder="Threat Name"/>
+            <input name="name" type="text" value="{{actor.name}}" placeholder="Threat Name" />
         </div>
     </div>
 
@@ -12,18 +12,28 @@
         <table class="threat-table">
             <thead>
                 <tr class="threat-row-label">
-                    <th>STR</th> <th>DEX</th> <th>KNOW</th>
-                    <th>CONC</th> <th>CHA</th> <th>COOL</th>
+                    <th>STR <a class="rollable" data-roll-type="stat" data-key="str" data-label="Strength"><i
+                                class="fas fa-dice-d10"></i></a></th>
+                    <th>DEX <a class="rollable" data-roll-type="stat" data-key="dex" data-label="Dexterity"><i
+                                class="fas fa-dice-d10"></i></a></th>
+                    <th>KNOW <a class="rollable" data-roll-type="stat" data-key="know" data-label="Knowledge"><i
+                                class="fas fa-dice-d10"></i></a></th>
+                    <th>CONC <a class="rollable" data-roll-type="stat" data-key="conc" data-label="Concentration"><i
+                                class="fas fa-dice-d10"></i></a></th>
+                    <th>CHA <a class="rollable" data-roll-type="stat" data-key="cha" data-label="Charisma"><i
+                                class="fas fa-dice-d10"></i></a></th>
+                    <th>COOL <a class="rollable" data-roll-type="stat" data-key="cool" data-label="Cool"><i
+                                class="fas fa-dice-d10"></i></a></th>
                 </tr>
             </thead>
             <tbody>
                 <tr class="threat-row-value">
-                    <td><input type="number" name="system.stats.str.value" value="{{system.stats.str.value}}"/></td>
-                    <td><input type="number" name="system.stats.dex.value" value="{{system.stats.dex.value}}"/></td>
-                    <td><input type="number" name="system.stats.know.value" value="{{system.stats.know.value}}"/></td>
-                    <td><input type="number" name="system.stats.conc.value" value="{{system.stats.conc.value}}"/></td>
-                    <td><input type="number" name="system.stats.cha.value" value="{{system.stats.cha.value}}"/></td>
-                    <td><input type="number" name="system.stats.cool.value" value="{{system.stats.cool.value}}"/></td>
+                    <td><input type="number" name="system.stats.str.value" value="{{system.stats.str.value}}" /></td>
+                    <td><input type="number" name="system.stats.dex.value" value="{{system.stats.dex.value}}" /></td>
+                    <td><input type="number" name="system.stats.know.value" value="{{system.stats.know.value}}" /></td>
+                    <td><input type="number" name="system.stats.conc.value" value="{{system.stats.conc.value}}" /></td>
+                    <td><input type="number" name="system.stats.cha.value" value="{{system.stats.cha.value}}" /></td>
+                    <td><input type="number" name="system.stats.cool.value" value="{{system.stats.cool.value}}" /></td>
                 </tr>
             </tbody>
         </table>
@@ -33,78 +43,80 @@
             <div class="threat-box">
                 <label>HP</label>
                 <div class="flexrow">
-                    <input type="number" name="system.hp.value" value="{{system.hp.value}}"/>
+                    <input type="number" name="system.hp.value" value="{{system.hp.value}}" />
                     <span>/</span>
-                    <input type="number" name="system.hp.max" value="{{system.hp.max}}"/>
+                    <input type="number" name="system.hp.max" value="{{system.hp.max}}" />
                 </div>
             </div>
             <div class="threat-box">
                 <label>ARMOR</label>
-                <input type="number" name="system.armor.pv" value="{{system.armor.pv}}"/>
+                <input type="number" name="system.armor.pv" value="{{system.armor.pv}}" />
             </div>
             <div class="threat-box">
                 <label>INIT</label>
                 <div class="flexrow">
                     {{!-- FIX: Changed from Span to Input --}}
-                    <input type="number" name="system.stats.init.value" value="{{system.stats.init.value}}" style="font-weight:bold; font-size:1.2em; border:none; background:transparent; text-align:center; width: 50px;"/>
+                    <input type="number" name="system.stats.init.value" value="{{system.stats.init.value}}"
+                        style="font-weight:bold; font-size:1.2em; border:none; background:transparent; text-align:center; width: 50px;" />
                     <a class="rollable" data-roll-type="init"><i class="fas fa-dice-d10"></i></a>
                 </div>
             </div>
             <div class="threat-box">
                 <label>MOVE (Close/Rush)</label>
                 <div class="flexrow">
-                    <input type="number" name="system.move.closing" value="{{system.move.closing}}" placeholder="0"/>
+                    <input type="number" name="system.move.closing" value="{{system.move.closing}}" placeholder="0" />
                     <span>/</span>
-                    <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" placeholder="0"/>
+                    <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" placeholder="0" />
                 </div>
             </div>
         </div>
 
-		{{!-- 1. WOUNDS & CONDITIONS PARTIAL --}}
+        {{!-- 1. WOUNDS & CONDITIONS PARTIAL --}}
         {{> "systems/sla-industries/templates/partials/wounds.hbs"}}
-		
-		{{!-- 1. SKILLS SECTION --}}
+
+        {{!-- 1. SKILLS SECTION --}}
         <div class="threat-section-bar">SKILLS</div>
-        
+
         <div class="threat-content-box" style="min-height: 30px;">
             {{!-- EMPTY STATE --}}
             {{#unless skills.length}}
-                <div style="text-align:center; color:#888; font-style:italic; padding:5px;">
-                    Drop Skills Here
-                </div>
+            <div style="text-align:center; color:#888; font-style:italic; padding:5px;">
+                Drop Skills Here
+            </div>
             {{/unless}}
 
             {{!-- SKILLS GROUPED BY STAT --}}
             {{#each skillsByStat as |data key|}}
-                {{#if data.items.length}}
-                    {{!-- Stat Sub-Header --}}
-                    <div style="background:rgba(0,0,0,0.05); color:#800000; font-weight:bold; font-size:0.75em; padding:1px 5px; border-bottom:1px solid #ccc;">
-                        {{data.label}}
-                    </div>
+            {{#if data.items.length}}
+            {{!-- Stat Sub-Header --}}
+            <div
+                style="background:rgba(0,0,0,0.05); color:#800000; font-weight:bold; font-size:0.75em; padding:1px 5px; border-bottom:1px solid #ccc;">
+                {{data.label}}
+            </div>
 
-                    {{!-- List --}}
-                    {{#each data.items as |skill|}}
-                    <div class="item threat-item flexrow" data-item-id="{{skill._id}}">
-                        <span class="item-name rollable" data-roll-type="skill" style="font-weight:bold;">{{skill.name}}:</span>
-                        <span style="color:#000; margin-left:5px;">{{skill.system.rank}}</span>
-                        <div class="item-controls" style="margin-left:auto;">
-                            <a class="item-edit"><i class="fas fa-edit"></i></a>
-                            <a class="item-delete"><i class="fas fa-trash"></i></a>
-                        </div>
-                    </div>
-                    {{/each}}
-                {{/if}}
+            {{!-- List --}}
+            {{#each data.items as |skill|}}
+            <div class="item threat-item flexrow" data-item-id="{{skill._id}}">
+                <span class="item-name rollable" data-roll-type="skill" style="font-weight:bold;">{{skill.name}}:</span>
+                <span style="color:#000; margin-left:5px;">{{skill.system.rank}}</span>
+                <div class="item-controls" style="margin-left:auto;">
+                    <a class="item-edit"><i class="fas fa-edit"></i></a>
+                    <a class="item-delete"><i class="fas fa-trash"></i></a>
+                </div>
+            </div>
+            {{/each}}
+            {{/if}}
             {{/each}}
         </div>
 
         {{!-- 2. EQUIPMENT SECTION (Weapons & Armor) --}}
         <div class="threat-section-bar">EQUIPMENT</div>
-        
+
         <div class="threat-content-box" style="min-height: 30px;">
             {{#unless (or weapons.length armors.length)}}
-                <div style="text-align:center; color:#888; font-style:italic; padding:5px;">
-                    Drop Weapons or Armor Here
-                </div>
+            <div style="text-align:center; color:#888; font-style:italic; padding:5px;">
+                Drop Weapons or Armor Here
+            </div>
             {{/unless}}
 
             {{!-- WEAPONS --}}
@@ -118,7 +130,7 @@
                 <span style="color:#333; margin-left:5px; font-style:italic;">
                     (Dmg: {{item.system.damage}})
                 </span>
-                
+
                 <div class="item-controls" style="margin-left:auto;">
                     <a class="item-edit"><i class="fas fa-edit"></i></a>
                     <a class="item-delete"><i class="fas fa-trash"></i></a>
@@ -128,33 +140,28 @@
 
             {{!-- ARMOR --}}
             {{#each armors as |item|}}
-            <div class="item threat-item flexrow" data-item-id="{{item._id}}" style="align-items: center; padding: 2px 0;">
+            <div class="item threat-item flexrow" data-item-id="{{item._id}}"
+                style="align-items: center; padding: 2px 0;">
                 <span class="item-name" style="font-weight:bold;">{{item.name}}</span>
-                
+
                 {{!-- Stats Display --}}
                 <span style="color:#333; margin-left:8px; font-size: 0.9em; display: flex; align-items: center;">
                     <span style="font-style:italic; margin-right:5px;">(PV: {{item.system.pv}})</span>
-                    
+
                     {{!-- Resistance Inputs --}}
                     <label style="font-weight:bold; margin-right:3px;">Res:</label>
-                    
+
                     {{!-- Current --}}
-                    <input class="inline-edit" 
-                           data-field="system.resistance.value" 
-                           type="number" 
-                           value="{{item.system.resistance.value}}" 
-                           title="Current Resistance"
-                           style="width:28px; height: 18px; text-align:center; border:1px solid #888; border-radius:3px; font-size:0.9em; background: rgba(255,255,255,0.5); margin: 0 2px;">
+                    <input class="inline-edit" data-field="system.resistance.value" type="number"
+                        value="{{item.system.resistance.value}}" title="Current Resistance"
+                        style="width:28px; height: 18px; text-align:center; border:1px solid #888; border-radius:3px; font-size:0.9em; background: rgba(255,255,255,0.5); margin: 0 2px;">
                     /
                     {{!-- Max --}}
-                    <input class="inline-edit" 
-                           data-field="system.resistance.max" 
-                           type="number" 
-                           value="{{item.system.resistance.max}}" 
-                           title="Max Resistance"
-                           style="width:28px; height: 18px; text-align:center; border:1px solid #888; border-radius:3px; font-size:0.9em; background: rgba(255,255,255,0.5); margin-left: 2px;">
+                    <input class="inline-edit" data-field="system.resistance.max" type="number"
+                        value="{{item.system.resistance.max}}" title="Max Resistance"
+                        style="width:28px; height: 18px; text-align:center; border:1px solid #888; border-radius:3px; font-size:0.9em; background: rgba(255,255,255,0.5); margin-left: 2px;">
                 </span>
-                
+
                 <div class="item-controls" style="margin-left:auto;">
                     <a class="item-edit"><i class="fas fa-edit"></i></a>
                     <a class="item-delete"><i class="fas fa-trash"></i></a>
@@ -165,10 +172,11 @@
 
         {{!-- DESCRIPTION / NOTES --}}
         <div class="threat-section-bar">NOTES</div>
-        
+
         {{!-- Removed inline style; CSS now handles height --}}
         <div class="threat-content-box editor">
-            {{editor enrichedBiography target="system.biography" button=true owner=owner editable=editable}}
+            {{editor enrichedBiography target="system.biography" engine="prosemirror" button=true owner=owner
+            editable=editable}}
         </div>
     </div>
 </form>
