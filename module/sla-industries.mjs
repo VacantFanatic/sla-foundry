@@ -1,6 +1,7 @@
 // Import document classes.
 import { BoilerplateActor } from "./documents/actor.mjs";
 import { BoilerplateItem } from "./documents/item.mjs";
+import { LuckDialog } from "./apps/luck-dialog.mjs";
 
 // Import sheet classes.
 import { SlaActorSheet } from "./sheets/actor-sheet.mjs";
@@ -287,6 +288,35 @@ Hooks.once("ready", async function () {
         if (tooltip.length) {
             tooltip.slideToggle(200);
         }
+    });
+
+    // =========================================================
+    // PART 4: LUCK USE
+    // =========================================================
+    $(document.body).on("click", ".chat-btn-luck", async (ev) => {
+        ev.preventDefault();
+        const btn = $(ev.currentTarget);
+        const card = btn.closest(".sla-chat-card");
+
+        // 1. Get Actor
+        const uuid = card.data("actor-uuid");
+        const actorId = card.data("actor-id");
+        let actor = uuid ? await fromUuid(uuid) : game.actors.get(actorId);
+
+        if (!actor) return ui.notifications.error("SLA | Actor not found.");
+        if (!actor.isOwner) return ui.notifications.warn("You do not own this actor.");
+
+        // 2. Get Message
+        const messageId = card.closest(".message").data("messageId");
+        const message = game.messages.get(messageId);
+        if (!message) return;
+
+        // 3. Get Roll
+        const roll = message.rolls[0];
+        if (!roll) return ui.notifications.warn("No roll data found.");
+
+        // 4. Open Dialog
+        LuckDialog.create(actor, roll, messageId);
     });
 
 });

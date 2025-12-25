@@ -1,20 +1,22 @@
-<div class="sla-chat-card" data-actor-uuid="{{actorUuid}}" style="background:#222; border:1px solid {{borderColor}}; padding:5px;">
-    
+<div class="sla-chat-card" data-actor-uuid="{{actorUuid}}"
+    style="background:#222; border:1px solid {{borderColor}}; padding:5px;">
+
     {{!-- HEADER --}}
     <h3 style="color:{{headerColor}}; border-bottom:1px solid #555; margin:0 0 5px 0; font-size:1.1em;">
         {{itemName}} CHECK
     </h3>
 
     {{!-- RESULT BOX --}}
-    <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:5px; align-items:center;">
+    <div
+        style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:5px; align-items:center;">
         <span style="font-size:0.9em; color:#aaa;">SUCCESS DIE</span>
         <div style="text-align:right;">
-             {{!-- UPDATE: Added 'roll-toggle' class, pointer cursor, and title --}}
-             <span class="roll-toggle" 
-                   style="font-size:1.5em; font-weight:bold; color:{{resultColor}}; cursor:pointer; text-decoration:underline; text-decoration-style:dotted;" 
-                   title="Click to Toggle Dice Breakdown">
+            {{!-- UPDATE: Added 'roll-toggle' class, pointer cursor, and title --}}
+            <span class="roll-toggle"
+                style="font-size:1.5em; font-weight:bold; color:{{resultColor}}; cursor:pointer; text-decoration:underline; text-decoration-style:dotted;"
+                title="Click to Toggle Dice Breakdown">
                 {{successTotal}}
-             </span>
+            </span>
         </div>
     </div>
 
@@ -27,7 +29,8 @@
         <div style="color:#aaa; border-bottom:1px dotted #444;">SKILL DICE</div>
         <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:2px;">
             {{#each skillDice as |die|}}
-            <span style="border:1px solid {{die.borderColor}}; color:{{die.textColor}}; padding:1px 4px; background:#111;">
+            <span
+                style="border:1px solid {{die.borderColor}}; color:{{die.textColor}}; padding:1px 4px; background:#111;">
                 {{die.total}}
             </span>
             {{/each}}
@@ -46,26 +49,28 @@
         <div style="font-weight:bold; color:#D05E1A; margin-bottom:4px;">TACTICAL CHOICE:</div>
         <div style="display:flex; gap:5px;">
             {{!-- Button 1: Inflict Wound --}}
-            <button class="chat-btn-wound" 
-                    data-action="wound" 
-                    data-location="{{mos.choiceType}}" 
-                    data-damage-bonus="{{mos.choiceDmg}}"
-                    data-base-formula="{{dmgFormula}}"
-                    data-ad="{{adValue}}" {{!-- PASSING AD HERE --}}
-                    style="background:#330000; border:1px solid #ff4444; color:#ffcccc;">
+            <button class="chat-btn-wound" data-action="wound" data-location="{{mos.choiceType}}"
+                data-damage-bonus="{{mos.choiceDmg}}" data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}" {{!--
+                PASSING AD HERE --}} style="background:#330000; border:1px solid #ff4444; color:#ffcccc;">
                 Inflict {{capitalize mos.choiceType}} Wound
             </button>
-            
+
             {{!-- Button 2: Extra Damage --}}
-            <button class="chat-btn-damage" 
-                    data-action="damage" 
-                    data-damage-bonus="{{mos.choiceDmg}}"
-                    data-base-formula="{{dmgFormula}}"
-                    data-ad="{{adValue}}" {{!-- PASSING AD HERE --}}
-                    style="background:#000; border:1px solid #39ff14; color:#39ff14;">
+            <button class="chat-btn-damage" data-action="damage" data-damage-bonus="{{mos.choiceDmg}}"
+                data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}" {{!-- PASSING AD HERE --}}
+                style="background:#000; border:1px solid #39ff14; color:#39ff14;">
                 +{{mos.choiceDmg}} Damage
             </button>
         </div>
+    </div>
+    {{/if}}
+
+    {{!-- LUCK BUTTON --}}
+    {{#if (and canUseLuck (not luckSpent))}}
+    <div style="margin-top:8px; text-align:center; border-top:1px solid #555; padding-top:5px;">
+        <button class="chat-btn-luck" style="background:#111; color:#39ff14; border:1px solid #39ff14;">
+            USE LUCK ({{luckValue}})
+        </button>
     </div>
     {{/if}}
 
@@ -73,10 +78,8 @@
     {{#if showDamageButton}}
     <div style="margin-top:8px; text-align:center;">
         <div style="font-size:0.8em; color:#aaa; margin-bottom:2px;">DAMAGE</div>
-        <button class="damage-roll" 
-                data-formula="{{dmgFormula}}"
-                data-ad="{{adValue}}"
-                style="background:#333; color:#fff; border:1px solid #999;">
+        <button class="damage-roll" data-formula="{{dmgFormula}}" data-ad="{{adValue}}"
+            style="background:#333; color:#fff; border:1px solid #999;">
             {{dmgFormula}}
         </button>
     </div>
@@ -84,7 +87,8 @@
 
     {{!-- NOTES --}}
     {{#if notes}}
-    <div style="margin-top:5px; font-size:0.8em; color:#aaa; font-style:italic; border-top:1px solid #444; padding-top:2px;">
+    <div
+        style="margin-top:5px; font-size:0.8em; color:#aaa; font-style:italic; border-top:1px solid #444; padding-top:2px;">
         {{{notes}}}
     </div>
     {{/if}}

@@ -2,6 +2,8 @@
  * Extend the basic ActorSheet
  * @extends {ActorSheet}
  */
+import { LuckDialog } from "../apps/luck-dialog.mjs";
+
 export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
     /** @override */
@@ -511,19 +513,41 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
             const tooltipHtml = this._generateTooltip(roll, finalMod, 0);
 
+            const isSuccess = finalTotal > 10;
+
+            const templateData = {
+                borderColor: resultColor,
+                headerColor: resultColor,
+                resultColor: resultColor,
+                actorUuid: this.actor.uuid,
+                itemName: `${statLabel} CHECK`,
+                successTotal: finalTotal,
+                tooltip: tooltipHtml,
+                skillDice: [],
+                notes: "",
+                showDamageButton: false,
+                // Luck Data
+                canUseLuck: this.actor.system.stats.luck.value > 0,
+                luckValue: this.actor.system.stats.luck.value,
+                luckSpent: false,
+                mos: {
+                    isSuccess: isSuccess,
+                    hits: 0,
+                    effect: isSuccess ? "Success" : "Failure"
+                }
+            };
+
+            const chatContent = await renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+
             roll.toMessage({
                 speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-                content: `
-            <div style="background:#222; border:1px solid #39ff14; color:#eee; padding:5px; font-family:'Roboto Condensed';">
-                <h3 style="color:#39ff14; border-bottom:1px solid #555; margin:0 0 5px 0;">${statLabel} CHECK</h3>
-                <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:5px;">
-                    <span style="font-size:0.9em; color:#aaa;">SUCCESS DIE</span>
-                    <div style="text-align:right;">
-                         <span class="roll-toggle" style="font-size:1.5em; font-weight:bold; color:${resultColor}; cursor:pointer;" title="Click for details">${finalTotal}</span>
-                    </div>
-                </div>
-                ${tooltipHtml}
-            </div>`
+                content: chatContent,
+                flags: {
+                    sla: {
+                        baseModifier: finalMod,
+                        itemName: `${statLabel} CHECK`
+                    }
+                }
             });
         }
 
@@ -660,12 +684,17 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             borderColor: resultColor,
             headerColor: resultColor,
             resultColor: resultColor,
+            actorUuid: this.actor.uuid,
             itemName: item.name.toUpperCase(),
             successTotal: sdTotal,
             tooltip: this._generateTooltip(roll, baseModifier, 0),
             skillDice: skillDiceData,
             notes: "",
             showDamageButton: false,
+            // Luck Data
+            canUseLuck: this.actor.system.stats.luck.value > 0,
+            luckValue: this.actor.system.stats.luck.value,
+            luckSpent: false,
             mos: {
                 isSuccess: isSuccess,
                 hits: skillSuccessCount,
@@ -677,7 +706,15 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
         roll.toMessage({
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-            content: chatContent
+            content: chatContent,
+            flags: {
+                sla: {
+                    baseModifier: baseModifier,
+                    itemName: item.name.toUpperCase(),
+                    rofRerollSD: rofRerollSD,
+                    rofRerollSkills: rofRerollSkills
+                }
+            }
         });
     }
 
@@ -739,17 +776,6 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         if (this.actor.system.conditions?.prone) mods.allDice -= 1;
         if (this.actor.system.conditions?.stunned) mods.allDice -= 1;
 
-        if (form.spendLuck?.checked) {
-            const currentLuck = this.actor.system.stats.luck?.value || 0;
-            if (currentLuck > 0) {
-                flags.rerollAll = true;
-                await this.actor.update({ "system.stats.luck.value": currentLuck - 1 });
-                notes.push("<strong style='color:#39ff14'>Luck Used.</strong>");
-            } else {
-                ui.notifications.warn("No Luck remaining!");
-            }
-        }
-
         // Apply Modifiers
         if (isMelee) {
             this._applyMeleeModifiers(form, strValue, mods);
@@ -795,12 +821,85 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         // ---------------------------------------------
         await roll.evaluate();
 
+        // --- ROF REROLL LOGIC (Burst / Auto) ---
+        // "May reroll...". We interpret this as "Keep Highest" for user convenience.
+        console.log("SLA | ROF Check - Flags:", flags);
+        console.log("SLA | Initial Roll Terms:", roll.terms);
+
+        // We track which dice were rerolled to prevent Luck abuse.
+        let rofRerollSD = false;
+        let rofRerollSkills = [];
+
+        // Helper: Reroll a single result and keep highest
+        const rerollDieKeepHighest = async (currentResult) => {
+            const newRoll = new Roll("1d10");
+            await newRoll.evaluate();
+            const newRes = newRoll.terms[0].results[0].result;
+            if (newRes > currentResult) {
+                return { result: newRes, rerolled: true };
+            }
+            return { result: currentResult, rerolled: false }; // Kept original
+        };
+
+        // 1. BURST (Reroll SD)
+        if (flags.rerollSD || flags.rerollAll) {
+            const sdTerm = roll.terms[0];
+            const oldVal = sdTerm.results[0].result;
+            const outcome = await rerollDieKeepHighest(oldVal);
+
+            // Mark as used regardless of outcome to prevent Luck abuse
+            rofRerollSD = true;
+
+            if (outcome.rerolled) {
+                console.log(`SLA | Rerolling SD. Old: ${oldVal}, New: ${outcome.result}`);
+                sdTerm.results[0].result = outcome.result;
+                notes.push(`<strong>ROF:</strong> Success Die Improved (${oldVal} ➔ ${outcome.result})`);
+            } else {
+                console.log(`SLA | SD Kept (Old: ${oldVal} >= New: ${outcome.result})`);
+                notes.push(`<strong>ROF:</strong> Success Die Kept (${oldVal})`);
+            }
+        }
+
+        // 2. FULL AUTO / SUPPRESSIVE (Reroll All)
+        if (flags.rerollAll && roll.terms.length > 2) {
+            const skillTerm = roll.terms[2];
+            let improvedCount = 0;
+
+            for (let i = 0; i < skillTerm.results.length; i++) {
+                const oldVal = skillTerm.results[i].result;
+                const outcome = await rerollDieKeepHighest(oldVal);
+
+                // Track usage for every die
+                rofRerollSkills.push(i);
+
+                if (outcome.rerolled) {
+                    skillTerm.results[i].result = outcome.result;
+                    improvedCount++;
+                }
+            }
+
+            if (improvedCount > 0) {
+                notes.push(`<strong>ROF:</strong> ${improvedCount} Skill Dice Improved.`);
+            } else {
+                notes.push(`<strong>ROF:</strong> Skill Dice Kept.`);
+            }
+        }
+
+        // Re-evaluate total if changed
+        if (rofRerollSD || rofRerollSkills.length > 0) {
+            // Re-sum total manually as safe fallback or force re-eval
+            roll._total = roll._evaluateTotal();
+        }
+        // ---------------------------------------
+
         // 5. RESULTS
         const TN = 11;
         const sdRaw = roll.terms[0].results[0].result;
         const sdTotal = sdRaw + baseModifier + mods.successDie;
-        const isSuccess = sdTotal >= TN;
-        const resultColor = isSuccess ? '#39ff14' : '#f55';
+
+        // Initial Success Check
+        let isSuccess = sdTotal >= TN;
+        // Logic will be cleaner if I calculate isSuccess first, then override.
 
         // MOS Calculation
         let skillDiceData = [];
@@ -824,12 +923,27 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             skillDiceData.push({ raw: "-", total: "Auto", borderColor: "#39ff14", textColor: "#39ff14" });
         }
 
+        // --- SUCCESS THROUGH EXPERIENCE ---
+        // Rule: If 4+ Skill Dice hit, it's a success even if SD failed.
+        // Treat as if only SD succeeded (MOS=0 / Standard Hit).
+        let successThroughExperience = false;
+        if (!isSuccess && skillSuccessCount >= 4) {
+            isSuccess = true;
+            successThroughExperience = true;
+            notes.push("<strong>Success Through Experience</strong> (4+ Skill Dice hit).");
+        }
+
+        // Update Result Color if it became a success
+        const resultColor = isSuccess ? '#39ff14' : '#f55';
+
+
         // --- NEW MOS LOGIC ---
         let mosDamageBonus = 0;
-        let mosEffectText = "Standard Hit";
+        let mosEffectText = isSuccess ? "Standard Hit" : "Failed";
         let mosChoiceData = { hasChoice: false, choiceType: "", choiceDmg: 0 };
 
-        if (isSuccess) {
+        if (isSuccess && !successThroughExperience) {
+            // Normal MOS Logic
             if (skillSuccessCount === 1) {
                 mosDamageBonus = 1;
                 mosEffectText = "+1 Damage";
@@ -888,14 +1002,31 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 hits: skillSuccessCount,
                 effect: mosEffectText,
                 ...mosChoiceData
-            }
+            },
+            // Luck Data
+            canUseLuck: this.actor.system.stats.luck.value > 0,
+            luckValue: this.actor.system.stats.luck.value,
+            luckSpent: false
         };
 
         const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
 
         roll.toMessage({
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-            content: chatContent
+            content: chatContent,
+            flags: {
+                sla: {
+                    baseModifier: baseModifier,
+                    itemName: item.name.toUpperCase(),
+                    rofRerollSD: rofRerollSD,
+                    rofRerollSkills: rofRerollSkills,
+                    // Damage Context for Luck Reroll
+                    damageBase: baseDmg,
+                    damageMod: mods.damage,
+                    adValue: adValue,
+                    autoSkillSuccesses: mods.autoSkillSuccesses
+                }
+            }
         });
     }
 
@@ -1031,6 +1162,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             borderColor: resultColor,
             headerColor: resultColor,
             resultColor: resultColor,
+            actorUuid: this.actor.uuid,
             itemName: item.name.toUpperCase(),
             successTotal: successTotal,
             tooltip: this._generateTooltip(roll, modifier, 0),
@@ -1050,7 +1182,13 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
         roll.toMessage({
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-            content: chatContent
+            content: chatContent,
+            flags: {
+                sla: {
+                    baseModifier: modifier,
+                    itemName: item.name.toUpperCase()
+                }
+            }
         });
     }
 

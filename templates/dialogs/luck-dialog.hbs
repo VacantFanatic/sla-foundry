@@ -1,0 +1,41 @@
+<form class="luck-dialog">
+    <p class="notes">Select a benefit to apply. You have <strong>{{luck.value}}</strong> / {{luck.max}} Luck remaining.
+    </p>
+
+    <div class="form-group">
+        <label>Generic Options:</label>
+        <div class="luck-options">
+            <button type="button" data-action="reroll-sd" {{#if (or (lt luck.value 1) rofRerollSD)}}disabled{{/if}}>
+                Reroll Success Die {{#if rofRerollSD}}(ROF Rerolled){{else}}(Cost: 1){{/if}}
+            </button>
+
+            <div class="flexrow" style="align-items: center; margin-top: 5px;">
+                <button type="button" data-action="add-mod" {{#if (lt luck.value 1)}}disabled{{/if}}>
+                    Add Modifier (Cost: Variable)
+                </button>
+                <input type="number" name="modAmount" value="1" min="1" max="{{luck.value}}"
+                    style="max-width: 50px; text-align: center; margin-left: 5px;">
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="form-group">
+        <label>Reroll Skill Dice (Cost: 1 Total):</label>
+        <p class="notes" style="font-size: 0.8em; margin: 0;">Select dice to reroll:</p>
+        <div class="skill-dice-list" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
+            {{#each skillDice}}
+            <label class="dice-checkbox"
+                style="border: 1px solid #555; padding: 5px; border-radius: 4px; display: flex; align-items: center; cursor: pointer; {{#if this.disabled}}opacity:0.5; cursor:not-allowed;{{/if}}">
+                <input type="checkbox" name="rerollSelect" value="{{@index}}" {{#if this.disabled}}disabled{{/if}}>
+                <span style="font-weight: bold; margin-left: 5px; color: {{this.borderColor}};">{{this.total}}</span>
+            </label>
+            {{/each}}
+        </div>
+        <button type="button" data-action="reroll-skill" style="margin-top: 5px;" {{#if (lt luck.value
+            1)}}disabled{{/if}}>
+            Reroll Selected
+        </button>
+    </div>
+</form>
