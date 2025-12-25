@@ -2,9 +2,13 @@
 
     {{!-- THREAT HEADER --}}
     <div class="threat-header">
-        <div class="header-name">
-            <input name="name" type="text" value="{{actor.name}}" placeholder="Threat Name" />
+        <div style="display:flex; align-items:center; flex:1;">
+            <img class="threat-logo" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
+            <div class="header-name" style="flex:1;">
+                <input name="name" type="text" value="{{actor.name}}" placeholder="Threat Name" />
+            </div>
         </div>
+        {{!-- Optional: Faction or other info could go here --}}
     </div>
 
     {{!-- STATS BLOCK --}}

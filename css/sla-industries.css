@@ -2,9 +2,10 @@
    0. FONTS
    ========================================== */
 @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap');
 
 /* ==========================================
-   1. GLOBAL VARIABLES & WINDOW
+   1. GLOBAL VARIABLES & WINDOW STYLES
    ========================================== */
 :root {
     --sla-bg-dark: #1a1a25;
@@ -18,8 +19,9 @@
     --sla-radius: 4px;
 }
 
-/* ACTOR SHEET WRAPPER (Dark Theme) */
-.sla-industries.sheet.actor .window-content {
+/* WINDOW CONTENT (Dark Theme) */
+.sla-industries.sheet.actor .window-content,
+.sla-industries.sheet.item .window-content {
     background-image: none !important;
     background: var(--sla-bg-dark) !important;
     background-color: var(--sla-bg-dark) !important;
@@ -41,7 +43,7 @@ form.sla-sheet {
     padding: 5px;
 }
 
-/* PADDING UTILITY */
+/* UTILITIES */
 .sla-pad {
     padding: 8px !important;
 }
@@ -61,14 +63,11 @@ form.sla-sheet {
     font-family: var(--sla-font-mono);
 }
 
-.sla-sheet input:focus {
+.sla-sheet input:focus,
+.sla-sheet select:focus {
     box-shadow: 0 0 5px var(--sla-accent);
     background: #111;
-}
-
-.sla-sheet select {
-    background-color: #000;
-    color: var(--sla-text-light);
+    outline: none;
 }
 
 /* ==========================================
@@ -76,6 +75,8 @@ form.sla-sheet {
    ========================================== */
 .sla-sheet .sheet-header {
     flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
     margin-bottom: 10px;
     border: 2px solid var(--sla-border);
     background: #111;
@@ -87,8 +88,7 @@ form.sla-sheet {
     min-height: 180px;
 }
 
-/* --- COLUMN 1: THE CARD (Left) --- */
-/* WIDENED: 70% to give more room for names/chips */
+/* COLUMN 1: THE CARD (Left) */
 .header-left {
     flex: 0 0 70%;
     display: flex;
@@ -116,6 +116,7 @@ form.sla-sheet {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    flex: 1;
 }
 
 .form-group {
@@ -136,6 +137,85 @@ form.sla-sheet {
 
 .form-group input {
     flex: 1;
+}
+
+.header-bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 5px;
+    border-top: 1px solid var(--sla-border);
+    margin-top: 5px;
+}
+
+.lad-wrapper,
+.scl-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #e0e0e0;
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+}
+
+.scl-wrapper input {
+    width: 50px !important;
+    text-align: center;
+}
+
+/* COLUMN 2: PORTRAIT (Center) */
+.portrait-container {
+    flex: 0 0 130px;
+    background: #000;
+    border-right: 2px solid var(--sla-border);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    border: none;
+    display: block;
+}
+
+/* COLUMN 3: FINANCE (Right) */
+.finance-box {
+    flex: 1;
+    background: var(--sla-bg-panel);
+    padding: 0;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+}
+
+.finance-header {
+    color: #ccc;
+    font-weight: 700;
+    font-family: var(--sla-font-header);
+    font-size: 11px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.finance-title {
+    color: var(--sla-accent);
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 16px;
+    border-bottom: 2px solid var(--sla-accent);
+    margin-bottom: 5px;
+}
+
+.finance-box .finance-body input {
+    width: 98% !important;
+    margin: 0 auto !important;
+    display: block !important;
 }
 
 /* CHIPS (Header) */
@@ -186,84 +266,6 @@ form.sla-sheet {
     justify-content: center;
 }
 
-.header-bottom-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 5px;
-    border-top: 1px solid var(--sla-border);
-    margin-top: 5px;
-}
-
-.lad-wrapper,
-.scl-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: #e0e0e0;
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-}
-
-.scl-wrapper input {
-    width: 50px !important;
-    text-align: center;
-}
-
-/* --- COLUMN 2: PORTRAIT (Center) --- */
-.portrait-container {
-    flex: 0 0 130px;
-    background: #000;
-    border-right: 2px solid var(--sla-border);
-    overflow: hidden;
-    position: relative;
-}
-
-.profile-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top center;
-    border: none;
-    display: block;
-}
-
-/* --- COLUMN 3: FINANCE (Right) --- */
-.finance-box {
-    flex: 1;
-    background: var(--sla-bg-panel);
-    padding: 0;
-    color: #e0e0e0;
-    display: flex;
-    flex-direction: column;
-}
-
-.finance-header {
-    color: #ccc;
-    font-weight: 700;
-    font-family: var(--sla-font-header);
-    font-size: 11px;
-    text-transform: uppercase;
-    margin-bottom: 2px;
-}
-
-.finance-title {
-    color: var(--sla-accent);
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-    font-size: 16px;
-    border-bottom: 2px solid var(--sla-accent);
-    margin-bottom: 5px;
-}
-
-/* Ensure Finance inputs don't touch edges */
-.finance-box .finance-body input {
-    width: 98% !important;
-    margin: 0 auto !important;
-    display: block !important;
-}
-
-
 /* ==========================================
    4. STATS STRIP
    ========================================== */
@@ -276,8 +278,7 @@ form.sla-sheet {
     border-bottom: 2px solid var(--sla-border);
 }
 
-.stats-matrix,
-.stats-grid {
+.stats-matrix {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 100px;
     gap: 15px;
@@ -290,7 +291,6 @@ form.sla-sheet {
     gap: 5px;
 }
 
-.rating-header,
 .rating-block {
     display: flex;
     justify-content: space-between;
@@ -303,7 +303,6 @@ form.sla-sheet {
     border-radius: var(--sla-radius);
 }
 
-.rating-header::after,
 .rating-block::after {
     content: "";
     position: absolute;
@@ -319,7 +318,6 @@ form.sla-sheet {
     font-family: var(--sla-font-header);
     color: #bbb;
     font-size: 0.8em;
-    background: transparent !important;
 }
 
 .rating-val {
@@ -333,8 +331,7 @@ form.sla-sheet {
     text-shadow: none;
 }
 
-.stat-box,
-.stat-row {
+.stat-box {
     display: flex;
     align-items: center;
     background: #000 !important;
@@ -344,8 +341,7 @@ form.sla-sheet {
     border-radius: var(--sla-radius);
 }
 
-.stat-box label,
-.stat-row .stat-label {
+.stat-box label {
     flex: 0 0 50px;
     background: var(--sla-bg-panel) !important;
     color: #e0e0e0;
@@ -360,8 +356,7 @@ form.sla-sheet {
     border-right: 1px solid var(--sla-border);
 }
 
-.stat-box input,
-.stat-row input {
+.stat-box input {
     flex: 1;
     background: transparent !important;
     border: none !important;
@@ -389,8 +384,7 @@ form.sla-sheet {
     justify-content: space-between;
 }
 
-.side-box,
-.secondary-box {
+.side-box {
     background: #000 !important;
     border: 1px solid var(--sla-border);
     text-align: center;
@@ -398,8 +392,7 @@ form.sla-sheet {
     border-radius: var(--sla-radius);
 }
 
-.side-box label,
-.secondary-box label {
+.side-box label {
     display: block;
     color: #bbb;
     font-size: 0.7em;
@@ -407,8 +400,7 @@ form.sla-sheet {
     font-weight: 700;
 }
 
-.side-box input,
-.secondary-box input {
+.side-box input {
     width: 100%;
     background: transparent !important;
     color: #fff !important;
@@ -417,8 +409,7 @@ form.sla-sheet {
     border: none !important;
 }
 
-.side-box.init,
-.secondary-box.init {
+.side-box.init {
     background: var(--sla-accent) !important;
     border: 1px solid var(--sla-accent);
     cursor: pointer;
@@ -426,37 +417,30 @@ form.sla-sheet {
     box-shadow: 0 0 5px var(--sla-accent-faint);
 }
 
-.side-box.init:hover,
-.secondary-box.init:hover {
+.side-box.init:hover {
     background: #ff5722 !important;
     box-shadow: 0 0 15px var(--sla-accent);
 }
 
 .side-box.init label,
-.secondary-box.init label {
+.side-box.init .init-val {
     color: #000 !important;
-    font-weight: 800;
+    font-weight: 900;
     text-shadow: none;
 }
 
-.side-box.init .init-val,
-.secondary-box.init .init-val {
+.side-box.init .init-val {
     font-size: 1.6em;
-    font-weight: 900;
-    color: #000 !important;
-    text-shadow: none;
 }
 
 /* ==========================================
-   5. MAIN LAYOUT
+   5. MAIN LAYOUT & PANELS
    ========================================== */
 .sla-sheet .sheet-body {
     flex: 1;
     overflow-y: auto !important;
-    overflow-x: hidden;
     min-height: 0;
     padding: 5px;
-    padding-right: 5px;
     scrollbar-width: thin;
     scrollbar-color: var(--sla-accent) #000;
 }
@@ -469,16 +453,6 @@ form.sla-sheet {
     display: block;
 }
 
-.sla-sheet .tab.active,
-.sla-sheet .tab .flexcol,
-.sla-sheet .tab .full-height {
-    height: auto !important;
-    min-height: min-content !important;
-    overflow: visible !important;
-}
-
-/* MAIN SPLIT RATIO */
-/* Adjusted: 2.2fr (Left/Skills) / 1fr (Right/Combat) */
 .sla-sheet .main-split {
     display: grid;
     grid-template-columns: 2.2fr 1fr;
@@ -495,7 +469,9 @@ form.sla-sheet {
     min-width: 0;
 }
 
-.sla-sheet .sla-panel {
+/* GENERIC SLA PANEL */
+.sla-panel,
+.sla-dialog-panel {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -507,13 +483,25 @@ form.sla-sheet {
     margin-bottom: 5px;
 }
 
-.sla-sheet .sla-header-bar {
+.sla-header-bar {
     background-color: var(--sla-bg-panel);
     color: var(--sla-text-light);
     font-family: var(--sla-font-header);
     padding: 2px 5px;
     font-weight: 700;
     border-bottom: 1px solid var(--sla-border);
+}
+
+.sla-header-bar-small {
+    background-color: rgba(208, 94, 26, 0.2);
+    color: #ddd;
+    font-family: var(--sla-font-header);
+    padding: 2px 5px;
+    font-weight: 700;
+    font-size: 0.8em;
+    border-bottom: 1px solid #333;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .sla-sheet .scroll-list {
@@ -523,7 +511,7 @@ form.sla-sheet {
 }
 
 /* ==========================================
-   6. TABS & EDITORS
+   6. TABS & EDITOR
    ========================================== */
 .sla-sheet .sheet-tabs {
     display: flex;
@@ -553,95 +541,37 @@ form.sla-sheet {
     background: var(--sla-accent);
 }
 
-/* TAB EDITOR FIX (Min-Height 700px) */
-.sla-industries.item .tab.active[data-tab="description"] {
-    display: flex !important;
-    flex-direction: column;
+/* PROSEMIRROR EDITOR STYLING */
+.sla-editor-container .editor {
+    background: #000;
+    color: #e0e0e0;
     height: 100%;
-    min-height: 700px;
+    min-height: 200px;
 }
 
-.sla-industries.item .tab[data-tab="description"] .editor {
-    flex: 1;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+.sla-sheet .prosemirror-menu {
+    background: #1a1a1a;
+    border-bottom: 1px solid #333;
 }
 
-.sla-industries.item .tab[data-tab="description"] .tox-edit-area,
-.sla-industries.item .tab[data-tab="description"] .editor-content {
-    flex: 1;
-    height: 100%;
-    min-height: 600px;
-    overflow-y: auto;
+.sla-sheet .prosemirror-menu button {
+    color: #e0e0e0 !important;
+}
+
+.sla-sheet .prosemirror-menu button svg {
+    color: #e0e0e0 !important;
+    fill: #e0e0e0 !important;
+    filter: invert(1) !important;
+}
+
+.sla-sheet .prosemirror-menu button:hover {
+    background: #333;
+    color: #fff !important;
 }
 
 /* ==========================================
-   7. LIST ITEMS & DROPS
+   7. LIST ITEMS (Inventory, Skills)
    ========================================== */
-.bio-drop-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 4px;
-    height: 34px;
-}
-
-.bio-drop-row label {
-    flex: 0 0 70px;
-    background: #d0d3d8;
-    color: #000;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    padding-left: 5px;
-    font-weight: bold;
-    margin-right: 2px;
-}
-
-.empty-drop-zone {
-    flex: 1;
-    height: 100%;
-    border: 2px dashed #555;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #777;
-}
-
-.item-chip {
-    flex: 1;
-    height: 100%;
-    background: #222;
-    border: 1px solid #39ff14;
-    display: flex;
-    align-items: center;
-    padding: 2px;
-    color: #fff;
-}
-
-.item-chip img {
-    height: 28px;
-    width: 28px;
-    margin-right: 5px;
-    border: 1px solid #555;
-}
-
-.item-chip .chip-name {
-    flex: 1;
-    font-weight: bold;
-    color: #39ff14;
-}
-
-.item-chip .chip-delete {
-    color: #555;
-    padding: 0 8px;
-    cursor: pointer;
-}
-
-.item-chip .chip-delete:hover {
-    color: #f00;
-}
-
 .sla-sheet .item-controls {
     display: flex;
     gap: 5px;
@@ -656,7 +586,7 @@ form.sla-sheet {
     cursor: pointer;
 }
 
-.sla-sheet .item-controls .item-edit:hover {
+.sla-sheet .item-controls a:hover {
     color: #fff;
 }
 
@@ -664,88 +594,43 @@ form.sla-sheet {
     color: #f00;
 }
 
-/* ==========================================
-   8. DIALOGS
-   ========================================== */
-.sla-dialog .window-content {
-    background: #1a1a1a !important;
-    color: #eee !important;
-    border: 2px solid #444;
-}
-
-.sla-dialog input,
-.sla-dialog select {
-    background: #000 !important;
-    color: #fff !important;
-    border: 1px solid #555 !important;
-}
-
-.sla-dialog h3 {
-    color: #39ff14;
-    border-bottom: 1px solid #555;
-}
-
-.sla-dialog button {
-    background: #2a2a35;
-    color: #39ff14;
+.item-chip {
+    flex: 1;
+    height: 100%;
+    background: #222;
     border: 1px solid #39ff14;
-    text-transform: uppercase;
-    font-weight: bold;
-}
-
-.sla-dialog button:hover {
-    background: #39ff14;
-    color: #000;
-}
-
-/* ==========================================
-   9. UI POLISH
-   ========================================== */
-.sla-box {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 8px;
-    margin-bottom: 8px;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.sla-box-header {
-    font-size: 0.75em;
-    font-weight: 700;
-    font-family: var(--sla-font-header);
-    color: #bbb;
-    text-transform: uppercase;
-    border-bottom: 1px solid #333;
-    margin-bottom: 5px;
-    padding-bottom: 2px;
-    letter-spacing: 1px;
-}
-
-.sla-input-mini {
-    width: 45px !important;
-    text-align: center;
-    border-radius: 4px !important;
-    background: #111 !important;
-    color: #fff !important;
-    border: 1px solid #555 !important;
-    height: 24px !important;
-    font-weight: bold;
-}
-
-.compact-row {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    font-size: 0.9em;
-    color: #ccc;
-    height: 26px;
+    padding: 2px;
+    color: #fff;
+}
+
+.item-chip img,
+.sla-sheet .item .item-image img {
+    height: 24px !important;
+    width: 24px !important;
+    margin-right: 5px;
+    border: 1px solid #555;
+    background: #000;
+    object-fit: cover;
+}
+
+.sla-sheet .item .item-image {
+    flex: 0 0 30px !important;
+    width: 30px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-chip .chip-name {
+    flex: 1;
+    font-weight: bold;
+    color: #39ff14;
 }
 
 /* ==========================================
-   10. WOUNDS & CONDITIONS
+   8. WOUNDS & CONDITIONS
    ========================================== */
 .wound-section-title {
     font-weight: 700;
@@ -783,14 +668,6 @@ form.sla-sheet {
     cursor: pointer;
 }
 
-.wound-entry input[type="checkbox"] {
-    height: 16px;
-    width: 16px;
-    margin: 0;
-    cursor: pointer;
-    accent-color: var(--sla-accent);
-}
-
 .condition-grid {
     display: flex;
     justify-content: space-between;
@@ -798,7 +675,6 @@ form.sla-sheet {
     gap: 8px;
     padding-top: 10px;
     border-top: 1px solid var(--sla-border);
-    margin-top: 5px;
 }
 
 .condition-toggle {
@@ -822,94 +698,235 @@ form.sla-sheet {
     background: #222;
 }
 
+/* Condition Colors */
 .condition-toggle.active {
     background: #333;
     color: var(--sla-accent);
     border-color: var(--sla-accent);
     box-shadow: 0 0 8px var(--sla-accent-faint);
-    text-shadow: 0 0 5px var(--sla-accent);
 }
 
 .condition-toggle[data-condition="bleeding"].active {
     color: #ff4444;
     border-color: #ff4444;
-    box-shadow: 0 0 8px rgba(255, 68, 68, 0.4);
     text-shadow: 0 0 5px #ff4444;
 }
 
 .condition-toggle[data-condition="burning"].active {
     color: #ffaa00;
     border-color: #ffaa00;
-    box-shadow: 0 0 8px rgba(255, 170, 0, 0.4);
     text-shadow: 0 0 5px #ffaa00;
 }
 
 .condition-toggle[data-condition="stunned"].active {
     color: #ffff00;
     border-color: #ffff00;
-    box-shadow: 0 0 8px rgba(255, 255, 0, 0.4);
     text-shadow: 0 0 5px #ffff00;
 }
 
 .condition-toggle[data-condition="immobile"].active {
     color: #00ccff;
     border-color: #00ccff;
-    box-shadow: 0 0 8px rgba(0, 204, 255, 0.4);
     text-shadow: 0 0 5px #00ccff;
 }
 
 .condition-toggle[data-condition="prone"].active {
     color: #39ff14;
     border-color: #39ff14;
-    box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
     text-shadow: 0 0 5px #39ff14;
 }
 
-/* CRITICAL BUTTON (New Skull) */
 .condition-toggle[data-condition="critical"].active {
     color: #ff0000;
     border-color: #ff0000;
-    box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
-    text-shadow: 0 0 5px #ff0000;
     background: #330000 !important;
 }
 
 /* ==========================================
-   11. EBB DISCIPLINES STYLING
+   9. WEAPON FIRING MODES GRID
    ========================================== */
-.discipline-row {
-    background-color: rgba(138, 43, 226, 0.15) !important;
-    border-bottom: 1px solid #444;
-    border-top: 1px solid #444;
+.firing-mode-grid.header {
+    display: grid;
+    grid-template-columns: 40px 1fr 60px 60px;
+    gap: 5px;
+    align-items: center;
+    padding: 2px 4px;
+    background: #111;
+    border-bottom: 1px solid #333;
+    color: #888;
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 0.75em;
+    text-transform: uppercase;
 }
 
-.discipline-row:hover {
-    background-color: rgba(138, 43, 226, 0.25) !important;
+.firing-mode-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 60px 60px;
+    gap: 5px;
+    align-items: center;
+    padding: 4px;
+    border-bottom: 1px solid #222;
+    transition: background 0.2s;
+    min-height: 30px;
 }
 
-.formula-row {
-    background-color: transparent !important;
-    border-bottom: 1px dotted #333;
+.firing-mode-row:not(.enabled) {
+    opacity: 0.4;
+    pointer-events: none;
 }
 
-.formula-row:hover {
-    background-color: rgba(255, 255, 255, 0.05) !important;
+.firing-mode-row.enabled {
+    background: rgba(208, 94, 26, 0.1);
+    border-left: 3px solid var(--sla-accent);
 }
 
-.formula-row:last-child {
-    border-bottom: none;
+.firing-mode-row.enabled .col-name {
+    color: var(--sla-accent);
+    font-weight: 700;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 1);
 }
 
-.formula-row .rollable:hover {
+.firing-mode-row input[type="number"] {
+    height: 22px !important;
+    width: 100% !important;
+    font-size: 0.9em;
+    background: #000 !important;
+    border: 1px solid #444 !important;
+    text-align: center;
     color: #fff !important;
-    text-shadow: 0 0 5px #8a2be2;
+    border-radius: 3px;
 }
 
 /* ==========================================
-   13. ITEM SHEET THEMES (Refactored)
+   10. CHAT CARD STYLING
    ========================================== */
+.sla-chat-card {
+    font-family: "Josefin Sans", sans-serif;
+    font-size: 14px;
+    color: #eee;
+}
 
-/* A. BASE WHITE THEME (Applies to ALL Items by default) */
+.sla-chat-card h3 {
+    font-family: "Josefin Sans", sans-serif;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 0 0 5px 0;
+    border-bottom: 1px solid #555;
+}
+
+/* ==========================================
+   11. DIALOG THEME (Attack & Luck)
+   ========================================== */
+.sla-dialog-window.dialog {
+    background: url('') !important;
+    background-color: var(--sla-bg-dark) !important;
+    border: 2px solid var(--sla-border) !important;
+    box-shadow: 0 0 20px #000;
+    color: var(--sla-text-light);
+    border-radius: 5px;
+}
+
+.sla-dialog-window .window-header {
+    background: #111 !important;
+    border-bottom: 2px solid var(--sla-accent);
+    color: #fff !important;
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 5px 10px;
+}
+
+.sla-dialog-window .window-content {
+    background: var(--sla-bg-dark) !important;
+    color: var(--sla-text-light);
+    padding: 10px;
+    font-family: "Roboto Condensed", sans-serif;
+}
+
+.sla-dialog-window select,
+.sla-dialog-window input {
+    background-color: #000 !important;
+    color: #fff !important;
+    border: 1px solid var(--sla-border) !important;
+    border-radius: var(--sla-radius);
+    height: 28px;
+    padding-left: 5px;
+}
+
+.sla-dialog-window .dialog-buttons .dialog-button {
+    background: #2a2a35;
+    border: 1px solid var(--sla-accent);
+    color: var(--sla-accent);
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-top: 15px;
+}
+
+.sla-dialog-window .dialog-buttons .dialog-button:hover {
+    background: var(--sla-accent);
+    color: #000;
+    box-shadow: 0 0 15px var(--sla-accent-faint);
+}
+
+/* ==========================================
+   12. PAUSE ANIMATION
+   ========================================== */
+#pause {
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid var(--sla-border);
+}
+
+#pause figcaption {
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 2em;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: slaRedPulse 2s infinite ease-in-out;
+}
+
+@keyframes slaRedPulse {
+    0% {
+        color: #aaa;
+        text-shadow: 0 0 2px #300;
+        transform: scale(1);
+    }
+
+    50% {
+        color: #f00;
+        text-shadow: 0 0 15px #f00;
+        transform: scale(1.1);
+    }
+
+    100% {
+        color: #aaa;
+        text-shadow: 0 0 2px #300;
+        transform: scale(1);
+    }
+}
+
+@keyframes slaIconPulse {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 0px #000);
+        opacity: 0.7;
+    }
+
+    50% {
+        filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
+        opacity: 1;
+    }
+}
+
+/* ==========================================
+   13. ITEM SHEET & THREAT SHEET THEMES
+   ========================================== */
+/* Basic Item */
 .item .window-content {
     background: #e0e0e0 !important;
     border: 4px solid #333;
@@ -922,23 +939,25 @@ form.sla-sheet {
     color: #fff !important;
     border-bottom: 4px solid #f90;
     padding: 10px;
+    display: flex;
+    align-items: center;
 }
 
-.item input {
-    background: #fff !important;
-    border: 1px solid #999 !important;
-    color: #000 !important;
-    font-family: "Courier New", monospace;
-    font-weight: bold;
+.item .sheet-header img.profile-img {
+    flex: 0 0 64px;
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border: 1px solid #000;
+    margin-right: 10px;
+    background: #000;
 }
 
-/* B. ACADEMIC THEME OVERRIDE (Skills, Traits) */
+/* Academic Theme (Skills/Traits) */
 .item.skill .window-content,
 .item.trait .window-content {
     background: #fdfbf7 !important;
-    color: #222;
     font-family: "Georgia", serif;
-    border: 1px solid #aaa;
 }
 
 .item.skill .sheet-header,
@@ -956,1012 +975,344 @@ form.sla-sheet {
     border-bottom: 1px dotted #000 !important;
     color: #000 !important;
     font-family: "Georgia", serif;
-    font-style: italic;
     font-weight: bold;
 }
 
-.academic-paper {
-    padding: 10px;
-}
-
-.academic-paper .line-item {
-    display: flex;
-    justify-content: space-between;
-    border-bottom: 1px solid #ddd;
-    padding: 5px 0;
-}
-
-.academic-note {
-    margin-top: 20px;
-    font-size: 0.7em;
-    text-align: center;
-    color: #888;
-    border-top: 1px solid #000;
-    padding-top: 5px;
-}
-
-/* ==========================================
-   13-C. SPECTRAL THEME (Ebb, Discipline)
-   ========================================== */
-
-/* 1. Background & Window */
+/* Spectral Theme (Ebb) */
 .item.ebbFormula .window-content,
-.item.ebbformula .window-content,
 .item.discipline .window-content {
-    background-image: none !important;
     background: #0a0011 !important;
-    background-color: #0a0011 !important;
     color: #d8bfff !important;
-    font-family: "Roboto", sans-serif;
     border: 2px solid #8a2be2;
 }
 
-/* Header */
 .item.ebbFormula .sheet-header,
-.item.ebbformula .sheet-header,
 .item.discipline .sheet-header {
     background: linear-gradient(90deg, #1a002a, #30004a) !important;
     border-bottom: 1px solid #8a2be2;
 }
 
-/* 2. Inputs & Glows */
 .item.ebbFormula input,
-.item.ebbformula input,
-.item.discipline input,
-.item.ebbFormula select,
-.item.ebbformula select,
-.item.discipline select {
+.item.discipline input {
     background: rgba(0, 0, 0, 0.5) !important;
     border: 1px solid #8a2be2 !important;
     color: #fff !important;
     text-shadow: 0 0 5px #8a2be2;
 }
 
-.spectral-container {
-    padding: 10px;
-}
-
-.glow-input {
-    margin-bottom: 10px;
-    padding: 5px;
-    border: 1px solid rgba(138, 43, 226, 0.3);
-    background: rgba(138, 43, 226, 0.05);
-}
-
-.glow-input label {
-    color: #a855f7;
-    text-transform: uppercase;
-    font-size: 0.8em;
-    letter-spacing: 1px;
-}
-
-
-/* ==========================================
-   FIX: EBB DISCIPLINE DROP ZONE (Direct Targeting)
-   ========================================== */
-
-/* 1. The Container (The Box) */
-.discipline-drop-zone {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    justify-content: center !important;
-
-    border: 1px solid #8a2be2 !important;
-    background: rgba(42, 0, 58, 0.6) !important;
-    border-radius: 4px !important;
-    padding: 2px 8px !important;
-
-    min-height: 32px !important;
-    width: auto !important;
-    max-width: 100%;
-    cursor: pointer;
-    box-sizing: border-box !important;
-}
-
-.discipline-drop-zone:hover {
-    background: rgba(138, 43, 226, 0.3) !important;
-    box-shadow: 0 0 5px #8a2be2;
-}
-
-/* 2. The Image (CRITICAL FIX: 24px) */
-/* Targeted directly with high specificity */
-.discipline-drop-zone img {
-    display: block !important;
-    width: 24px !important;
-    height: 24px !important;
-
-    flex: 0 0 24px !important;
-    min-width: 24px !important;
-    max-width: 24px !important;
-
-    object-fit: cover !important;
-    border: none !important;
-    margin: 0 8px 0 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
-}
-
-/* 3. The Text Name */
-.discipline-drop-zone .linked-name {
-    font-weight: bold;
-    color: #d8bfff;
-    font-size: 1.1em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-right: 8px !important;
-    line-height: 24px;
-}
-
-/* 4. The Close 'X' Button */
-.discipline-drop-zone .remove-discipline {
-    color: #d00;
-    font-size: 1.1em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 24px;
-    width: 16px;
-}
-
-/* 5. Placeholder Text (When Empty) */
-.discipline-drop-zone:not(:has(img)) {
-    border: 2px dashed #666 !important;
-    background: rgba(0, 0, 0, 0.2) !important;
-}
-
-.discipline-drop-zone .placeholder {
-    color: #888;
-    font-style: italic;
-    font-size: 0.9em;
-}
-
-
-/* ==========================================
-   REMAINING THEMES (Dossier & Global)
-   ========================================== */
-
-/* D. DOSSIER THEME (Species, Package) */
-.item.species .window-content,
-.item.package .window-content {
-    background: #f4e4bc !important;
-    color: #333;
-    font-family: "Courier Prime", monospace;
-    border: 1px solid #c7b28a;
-}
-
-.item.species .sheet-header,
-.item.package .sheet-header {
-    background: rgba(0, 0, 0, 0.05) !important;
-    border-bottom: 2px solid #555;
-    color: #000 !important;
-}
-
-.item.species input,
-.item.package input {
-    background: transparent !important;
-    border: none !important;
-    border-bottom: 1px solid #555 !important;
-    color: #000 !important;
-    font-weight: bold;
-}
-
-/* Dossier Layouts */
-.office-dossier {
-    padding: 10px;
-}
-
-.dossier-stamp {
-    border: 2px solid #d00;
-    color: #d00;
-    display: inline-block;
-    padding: 2px 10px;
-    font-weight: bold;
-    transform: rotate(-2deg);
-    margin-bottom: 15px;
-    opacity: 0.7;
-}
-
-.paper-section {
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    padding: 5px;
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.paper-header {
-    background: #333;
-    color: #fff;
-    padding: 2px 5px;
-    font-size: 0.8em;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.stat-limits-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5px;
-}
-
-.limit-box {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px dotted #999;
-    padding: 2px;
-}
-
-.limit-box input {
-    width: 30px;
-    text-align: center;
-}
-
-/* Skill Granting Area (Only for Dossier now) */
-.skill-grant-area {
-    min-height: 60px;
-    border: 2px dashed #999;
-    padding: 5px;
-    background: rgba(0, 0, 0, 0.02);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    width: 100%;
-}
-
-.granted-skill-chip {
-    display: inline-flex;
-    align-items: center;
-    background: #e0e0e0;
-    border: 1px solid #999;
-    padding: 2px 6px;
-    margin: 2px;
-    border-radius: 3px;
-    font-size: 0.9em;
-}
-
-.granted-skill-chip img {
-    height: 24px !important;
-    width: 24px !important;
-    margin-right: 5px !important;
-    border: 1px solid #555 !important;
-    object-fit: cover !important;
-}
-
-.delete-grant {
-    margin-left: 5px;
-    color: #d00;
-    cursor: pointer;
-}
-
-.empty-dossier-text {
-    width: 100%;
-    text-align: center;
-    color: #777;
-    font-style: italic;
-    padding-top: 15px;
-}
-
-/* Global Image Fix (List Images - Strict 30px Box) */
-/* This catches the inventory tab lists */
-.sla-industries.sheet.actor .item .item-image,
-.sla-sheet .item .item-image {
-    flex: 0 0 30px !important;
-    width: 30px !important;
-    min-width: 30px !important;
-    max-width: 30px !important;
-    height: 30px !important;
-
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-
-    margin-right: 5px !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-}
-
-.sla-industries.sheet.actor .item .item-image img,
-.sla-sheet .item .item-image img {
-    width: 24px !important;
-    height: 24px !important;
-    flex: 0 0 24px !important;
-    object-fit: cover !important;
-    border: 1px solid #444 !important;
-    background: #000 !important;
-    margin: 0 !important;
-    display: block !important;
-}
-
-/* Header Profile Image */
-.sla-industries.item .sheet-header .profile-img {
-    flex: 0 0 64px;
-    width: 64px;
-    height: 64px;
-    object-fit: cover;
-    border: 1px solid #000;
-    margin-right: 10px;
-    background: #000;
-}
-
-.sla-industries.item .sheet-header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-.sla-industries.item .header-details {
-    flex: 1;
-    overflow: hidden;
-}
-
-/* ==========================================
-   THREAT SHEET THEME (NPC / Bestiary Style)
-   ========================================== */
-
-/* 1. Base Window Styling (Paper Look) */
+/* Threat (NPC) Sheet */
 .sla-industries.sheet.actor .threat-sheet {
     background: #fdfbf7 !important;
-    /* Off-white paper */
     color: #111 !important;
-    /* Dark text */
-    font-family: "Georgia", "Times New Roman", serif !important;
+    font-family: "Georgia", serif !important;
     border: 2px solid #333 !important;
     padding: 0 !important;
 }
 
-/* 2. Headers (Deep Red Bars) */
-.threat-header,
-.threat-section-bar,
-.threat-row-label th {
-    background: #800000 !important;
-    /* Deep Red */
-    color: #fff !important;
-    font-family: "Georgia", serif !important;
-    text-transform: uppercase;
-    font-weight: bold;
-    border-bottom: 2px solid #000 !important;
-    padding: 2px 5px !important;
-    letter-spacing: 1px;
-    letter-spacing: 1px;
-    text-align: left !important;
-}
-
-.threat-header .rollable,
-.threat-table .rollable,
-.stat-roll {
-    cursor: pointer;
-    color: #fff;
-    margin-left: 5px;
-}
-
-.threat-header .rollable:hover,
-.threat-table .rollable:hover,
-.stat-roll:hover {
-    color: #D05E1A;
-    /* Accent Color */
-    text-shadow: 0 0 5px #D05E1A;
-}
-
-/* Header Name Input Styling */
-.threat-header input {
-    background: transparent !important;
-    border: none !important;
-    color: #fff !important;
-    font-family: "Georgia", serif !important;
-    font-size: 1.4em !important;
-    font-weight: bold;
-    text-transform: uppercase;
-    width: 100%;
-}
-
 .threat-header {
+    background: #800000 !important;
+    color: #fff !important;
+    font-family: "Georgia", serif !important;
+    border-bottom: 2px solid #000 !important;
+    padding: 5px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 5px;
-    flex: 0 0 auto;
-    /* Ensure header doesn't shrink */
 }
 
-/* Scrollable Body */
-.threat-body {
-    flex: 1;
-    /* Fills remaining height */
-    overflow-y: auto;
-    /* Enables vertical scrolling */
-    overflow-x: hidden;
-    padding: 5px;
-
-    /* Custom Scrollbar (Firefox) */
-    scrollbar-width: thin;
-    scrollbar-color: #800000 #fdfbf7;
-    /* Thumb Track */
-}
-
-/* Custom Scrollbar (Webkit/Chrome) */
-.threat-body::-webkit-scrollbar {
-    width: 8px;
-}
-
-.threat-body::-webkit-scrollbar-track {
-    background: #fdfbf7;
-}
-
-.threat-body::-webkit-scrollbar-thumb {
-    background-color: #800000;
-    border: 1px solid #fdfbf7;
-    border-radius: 4px;
-}
-
-.threat-img {
-    height: 40px;
-    width: 40px;
+.threat-logo {
+    flex: 0 0 50px;
+    width: 50px;
+    height: 50px;
+    border: none;
+    margin-right: 10px;
     object-fit: cover;
-    border: 1px solid #fff;
-    margin-left: 10px;
+    background: #000;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
-/* 3. Stats Table (Grid Look) */
+.threat-header .header-name input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.4em;
+    font-weight: bold;
+    font-family: "Georgia", serif;
+}
+
+.threat-section-bar {
+    background: #800000;
+    color: #fff;
+    font-family: "Georgia", serif;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-top: 2px solid #000;
+    border-bottom: 1px solid #000;
+    margin-top: 10px;
+    text-transform: uppercase;
+}
+
+/* Threat Stats Table */
 .threat-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
 }
 
-.threat-table th {
-    font-size: 0.8em;
-    border-right: 1px solid #fff;
-    /* White separators in red header */
+.threat-row-label th {
+    background: #800000;
+    color: #fff;
+    border: 1px solid #999;
+    padding: 2px;
+    font-size: 0.9em;
+    font-weight: bold;
+    font-family: "Georgia", serif;
+    text-transform: uppercase;
 }
 
-.threat-table td {
-    border: 1px solid #000;
-    /* Black grid lines */
-    padding: 0 !important;
+.threat-row-value td {
+    padding: 0;
+    border: 1px solid #999;
 }
 
-.threat-table input {
+.threat-row-value input {
     width: 100%;
-    border: none !important;
-    background: transparent !important;
+    background: #fff !important;
     color: #000 !important;
-    font-family: "Georgia", serif !important;
-    font-weight: normal !important;
-    padding-left: 5px !important;
+    border: none;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
 }
 
-/* 4. Derived Stats (Hit Points, etc.) */
+/* Threat Derived Stats */
 .threat-derived {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    /* 2 Columns */
-    gap: 0 !important;
-    /* Borders handle separation */
-    border: 1px solid #000;
-    margin-bottom: 5px;
-    background: #fff;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
 }
 
 .threat-box {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    background: #fff;
     border: 1px solid #000;
-    /* Grid borders */
     padding: 2px 5px;
+    flex: 1;
+    min-width: 80px;
 }
 
 .threat-box label {
+    display: block;
+    font-size: 0.8em;
     font-weight: bold;
     text-transform: uppercase;
-    font-size: 0.8em;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 2px;
 }
 
 .threat-box input {
-    width: 40px;
-    text-align: center;
-    border: none !important;
     background: transparent !important;
+    border: none !important;
+    /* Let them look cleaner inside the box */
+    border-bottom: 1px dotted #ccc !important;
     color: #000 !important;
     font-weight: bold;
+    width: 100%;
 }
 
-/* 5. Skills & Gear List (Striped) */
+.threat-box .flexrow {
+    align-items: center;
+    gap: 2px;
+}
+
+/* Threat Content Lists */
 .threat-content-box {
-    border: 1px solid #000;
-    padding: 0 !important;
-    margin-bottom: 5px;
     background: #fff;
+    border: 1px solid #999;
+    padding: 2px;
 }
 
 .threat-item {
-    border-bottom: 1px dotted #999;
-    padding: 2px 5px;
+    padding: 3px;
+    border-bottom: 1px dotted #ccc;
     align-items: center;
 }
 
-.threat-item:nth-child(even) {
-    background: rgba(0, 0, 0, 0.05);
-    /* Zebra striping */
+.threat-item:last-child {
+    border-bottom: none;
 }
 
-.threat-item img {
-    height: 20px;
-    width: 20px;
-    border: 1px solid #000;
-    margin-right: 5px;
-}
-
-.threat-item .item-controls a {
-    color: #555;
-    margin-left: 5px;
-}
-
-/* Make the editor look like a document & ensure height */
-.threat-sheet .editor {
-    background: #fff !important;
-    color: #000 !important;
-    font-family: "Georgia", serif !important;
-
-    min-height: 300px !important;
-    /* Forces the box open */
-    height: auto !important;
-    /* Allows it to grow if text is long */
-    position: relative !important;
-    /* Ensures the Edit button stays inside */
-    overflow: visible !important;
-    /* Prevents clipping the button */
-}
-
-/* Ensure the text area inside fills the space */
-.threat-sheet .tox-edit-area {
-    background: #fff !important;
-    min-height: 260px !important;
-}
-
-.threat-sheet .editor-content {
-    padding: 10px !important;
-    color: #000 !important;
-    min-height: 100%;
-}
-
-/* ----------------------------------------- */
-/* Chat Card Styling                         */
-/* ----------------------------------------- */
-.sla-chat-card {
-    /* MATCH YOUR SHEET FONT HERE */
-    font-family: "Josefin Sans", sans-serif;
-    font-size: 14px;
-    color: #eee;
-}
-
-.sla-chat-card h3 {
-    /* Header Font (if different) */
-    font-family: "Josefin Sans", sans-serif;
-    font-weight: bold;
-    text-transform: uppercase;
-    margin: 0 0 5px 0;
-    border-bottom: 1px solid #555;
-}
-
-.sla-chat-card .roll-toggle {
-    font-family: "Josefin Sans", sans-serif;
-}
-
-/* ==========================================
-   14. PAUSE ANIMATION
-   ========================================== */
-
-/* Target the Pause Container */
-#pause {
-    background: rgba(0, 0, 0, 0.7);
-    /* Dark background matching the theme vibe */
-    border-radius: 10px;
-    padding: 10px;
-    border: 1px solid var(--sla-border);
-}
-
-/* Style the "Game Paused" Text */
-#pause figcaption {
-    font-family: var(--sla-font-header);
-    /* Josefin Sans */
-    font-weight: 700;
-    font-size: 2em;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-
-    /* Apply the animation */
-    animation: slaRedPulse 2s infinite ease-in-out;
-}
-
-/* Optional: Add a red glow to the spinning icon as well */
-#pause img {
-    animation: slaIconPulse 2s infinite ease-in-out;
-}
-
-/* Define the Pulse Animation */
-@keyframes slaRedPulse {
-    0% {
-        color: #aaaaaa;
-        /* Start Grey/White */
-        text-shadow: 0 0 2px #300;
-        transform: scale(1);
-    }
-
-    50% {
-        color: #ff0000;
-        /* Peak Red */
-        text-shadow: 0 0 15px #ff0000, 0 0 30px #800000;
-        /* Red Glow */
-        transform: scale(1.1);
-        /* Subtle growth */
-    }
-
-    100% {
-        color: #aaaaaa;
-        /* Return to Grey/White */
-        text-shadow: 0 0 2px #300;
-        transform: scale(1);
-    }
-}
-
-@keyframes slaIconPulse {
-
-    0%,
-    100% {
-        filter: drop-shadow(0 0 0px rgba(255, 0, 0, 0));
-        opacity: 0.7;
-    }
-
-    50% {
-        filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
-        opacity: 1;
-    }
-}
-
-/* ==========================================
-   WEAPON FIRING MODES
-   ========================================== */
-
-/* 1. The Container Panel */
-.sla-panel {
-    background: #000;
-    border: 1px solid var(--sla-border);
-    margin-top: 10px;
-    border-radius: var(--sla-radius);
-    overflow: hidden;
-    /* Keeps the children inside the rounded corners */
-}
-
-/* 2. The Panel Title ("Firing Modes & Recoil") */
-.sla-header-bar {
-    background-color: var(--sla-bg-panel);
-    color: var(--sla-text-light);
-    font-family: var(--sla-font-header);
-    padding: 4px 8px;
-    font-weight: 700;
-    font-size: 0.9em;
-    border-bottom: 1px solid var(--sla-border);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* 3. The Column Headers ("Enable Mode Rounds Recoil") */
-/* FIX: Added specific text color and background to ensure visibility */
-.firing-mode-grid.header {
-    display: grid;
-    /* Columns: Checkbox(40px) | Name(Flex) | Rounds(60px) | Recoil(60px) */
-    grid-template-columns: 40px 1fr 60px 60px;
-    gap: 5px;
-    align-items: center;
-    padding: 2px 4px;
-
-    background: #111;
-    /* Slightly lighter than black for contrast */
-    border-bottom: 1px solid #333;
-
-    /* Text Styling */
-    color: #888;
-    /* Distinct grey for headers */
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-    font-size: 0.75em;
-    text-transform: uppercase;
-}
-
-/* 4. The Data Rows */
-.firing-mode-row {
-    display: grid;
-    grid-template-columns: 40px 1fr 60px 60px;
-    /* MUST MATCH HEADER */
-    gap: 5px;
-    align-items: center;
-    padding: 4px;
-    border-bottom: 1px solid #222;
-    transition: background 0.2s;
-    min-height: 30px;
-}
-
-/* 5. Disabled Row State */
-.firing-mode-row:not(.enabled) {
-    opacity: 0.4;
-}
-
-.firing-mode-row:not(.enabled) .col-name {
-    font-style: italic;
-    color: #555;
-}
-
-/* Hide inputs when disabled to reduce clutter */
-.firing-mode-row:not(.enabled) input[type="number"] {
-    display: none;
-}
-
-/* 6. Enabled Row State */
-.firing-mode-row.enabled {
-    background: rgba(208, 94, 26, 0.1);
-    /* Subtle Orange Tint */
-    border-left: 3px solid var(--sla-accent);
-    /* Orange indicator bar */
-}
-
-.firing-mode-row.enabled .col-name {
-    color: var(--sla-accent);
-    font-weight: 700;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 1);
-}
-
-/* 7. Column Alignment Helpers */
-.col-active {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.col-name {
-    padding-left: 5px;
-    white-space: nowrap;
-}
-
-.col-stat {
-    display: flex;
-    justify-content: center;
-}
-
-/* 8. Input Overrides (Specific to this table) */
-.firing-mode-row input[type="number"] {
-    height: 22px !important;
-    width: 100% !important;
-    font-size: 0.9em;
-    background: #000 !important;
-    border: 1px solid #444 !important;
-    text-align: center;
-    color: #fff !important;
-    border-radius: 3px;
-}
-
-.firing-mode-row input[type="number"]:focus {
-    border-color: var(--sla-accent) !important;
-    box-shadow: 0 0 3px var(--sla-accent);
-}
-
-/* ==========================================
-   ATTACK DIALOG THEME (Overrides Default)
-   ========================================== */
-
-/* 1. The Main Window Container */
-.sla-dialog-window.dialog {
-    background: url('') !important;
-    /* Remove parchment texture */
-    background-color: var(--sla-bg-dark) !important;
-    /* #1a1a25 */
-    border: 2px solid var(--sla-border) !important;
-    box-shadow: 0 0 20px #000;
-    color: var(--sla-text-light);
-    border-radius: 5px;
-}
-
-/* 2. Window Header (Title Bar) */
-.sla-dialog-window .window-header {
-    background: #111 !important;
-    border-bottom: 2px solid var(--sla-accent);
-    color: #fff !important;
-    font-family: var(--sla-font-header);
-    /* Josefin Sans */
-    font-weight: 700;
-    text-transform: uppercase;
-    padding: 5px 10px;
-    border-radius: 4px 4px 0 0;
-}
-
-.sla-dialog-window .window-title {
-    font-size: 1.1em;
-    letter-spacing: 1px;
-    flex: 1;
-}
-
-/* Close 'X' button */
-.sla-dialog-window .window-header .close {
-    color: #fff;
-    text-shadow: none;
-}
-
-.sla-dialog-window .window-header .close:hover {
-    color: var(--sla-accent);
-    text-shadow: 0 0 5px var(--sla-accent);
-}
-
-/* 3. Content Area */
-.sla-dialog-window .window-content {
-    background: var(--sla-bg-dark) !important;
-    color: var(--sla-text-light);
-    padding: 10px;
-    font-family: "Roboto Condensed", sans-serif;
-}
-
-/* 4. Inputs, Selects & Checkboxes */
-.sla-dialog-window select,
-.sla-dialog-window input[type="number"],
-.sla-dialog-window input[type="text"] {
-    background-color: #000 !important;
-    color: #fff !important;
-    border: 1px solid var(--sla-border) !important;
-    border-radius: var(--sla-radius);
-    /* Using Roboto Condensed for inputs to keep data compact and readable */
-    font-family: "Roboto Condensed", sans-serif;
-    height: 28px;
-    padding-left: 5px;
-}
-
-/* FIX: Force the dropdown menu items to be dark */
-.sla-dialog-window select option {
-    background-color: #1a1a25 !important;
-    /* Matches window background */
-    color: #fff !important;
-    padding: 4px;
-}
-
-.sla-dialog-window select:focus,
-.sla-dialog-window input:focus {
-    border-color: var(--sla-accent) !important;
-    box-shadow: 0 0 8px var(--sla-accent-faint);
-    outline: none;
-}
-
-/* 5. Labels & Text */
-.sla-dialog-window label {
-    font-family: var(--sla-font-header);
-    /* Josefin Sans */
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #ccc;
-    font-size: 0.9em;
-    margin-bottom: 3px;
-    display: block;
-}
-
-/* Specific fix for checkbox labels to align properly */
-.sla-dialog-window label:has(input[type="checkbox"]) {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.sla-dialog-window input[type="checkbox"] {
-    margin: 0;
-    height: 16px;
-    width: 16px;
-    accent-color: var(--sla-accent);
-}
-
-/* 6. The "ROLL" Button */
-.sla-dialog-window .dialog-buttons .dialog-button {
-    background: #2a2a35;
-    /* Panel BG */
-    border: 1px solid var(--sla-accent);
-    color: var(--sla-accent);
-    font-family: var(--sla-font-header);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 15px;
-    transition: all 0.2s ease-in-out;
-}
-
-.sla-dialog-window .dialog-buttons .dialog-button:hover,
-.sla-dialog-window .dialog-buttons .dialog-button:focus {
-    background: var(--sla-accent);
+.threat-item .item-name {
     color: #000;
-    box-shadow: 0 0 15px var(--sla-accent-faint);
-    border-color: var(--sla-accent);
 }
 
-/* 7. Section Dividers */
-.sla-dialog-window hr {
-    border: 0;
-    border-top: 1px solid var(--sla-border);
-    margin: 10px 0;
+.sla-industries.sheet.actor .threat-sheet {
+    background: #fdfbf7 !important;
+    color: #111 !important;
+    font-family: "Georgia", serif !important;
+    border: 2px solid #333 !important;
+    padding: 0 !important;
 }
 
-.sla-dialog-panel {
-    background: #000;
-    border: 1px solid var(--sla-border);
-    border-radius: var(--sla-radius);
-    overflow: hidden;
+
+
+/* ==========================================
+   14. STATS MATRIX (Body/Brains/Bravado)
+   ========================================== */
+.stats-matrix {
+    display: flex;
+    gap: 5px;
+    width: 100%;
 }
 
-/* A smaller header bar specifically for inside dialog sections */
-.sla-header-bar-small {
-    background-color: rgba(208, 94, 26, 0.2);
-    /* Faint orange background */
-    color: #ddd;
+.stat-col {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rating-header {
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 2px 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.rating-label {
+    font-weight: bold;
+    color: #f90;
+    font-size: 0.9em;
+}
+
+.rating-val {
+    width: 30px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #555;
+    color: #f90;
+    font-weight: bold;
+}
+
+.stat-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    border-radius: 3px;
+    padding: 4px;
+    text-align: center;
+}
+
+.stat-box label {
+    display: block;
+    font-size: 0.8em;
+    color: #aaa;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+}
+
+.side-col {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 70px;
+}
+
+.side-box {
+    background: #111;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 4px;
+    text-align: center;
+}
+
+.side-box label {
+    display: block;
+    font-size: 0.75em;
+    color: #f90;
+}
+
+.side-box input {
+    width: 100%;
+    text-align: center;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+/* ==========================================
+   15. DROPDOWN CONTRAST FIX
+   ========================================== */
+select {
+    background-color: #222;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+select option {
+    background-color: #222;
+    color: #fff;
+}
+
+/* ==========================================
+   16. SLA SPECIFIC WIDGETS (Movement/Vitals)
+   ========================================== */
+.sla-box {
+    border: 1px solid #777;
+    border-radius: 4px;
+    padding: 5px;
+    margin-bottom: 5px;
+    background: rgba(30, 30, 40, 0.8);
+    position: relative;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.sla-box-header {
     font-family: var(--sla-font-header);
-    padding: 2px 5px;
     font-weight: 700;
     font-size: 0.8em;
-    border-bottom: 1px solid #333;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    color: #aab;
+    border-bottom: 1px solid #555;
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
 }
 
-/* Fix for Invisible Editors */
-.sla-editor-container .editor {
-    height: 100%;
-    min-height: 200px;
-    /* Fallback specific height */
+.sla-box .compact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
 }
 
-.sla-editor-container .prosemirror {
-    height: 100%;
-    color: #e0e0e0;
-    padding: 5px;
+.sla-box .compact-row label {
+    font-size: 0.85em;
+    color: #ccc;
 }
 
-/* ==========================================
-   PROSEMIRROR EDITOR FIXES
-   ========================================== */
-
-/* 1. Editor Container Background */
-.sla-editor-container .editor {
-    background: #000;
-    color: #e0e0e0;
-    height: 100%;
-}
-
-/* 2. Menu Bar Adjustment */
-.sla-sheet .prosemirror-menu {
-    background: #1a1a1a;
-    border-bottom: 1px solid #333;
-}
-
-/* 3. Icons Visibility (Invert Colors) */
-.sla-sheet .prosemirror-menu button {
-    color: #e0e0e0 !important;
-    /* Text buttons (H1, H2, etc) */
-}
-
-/* SVG Icons - Force to White/Light Gray */
-.sla-sheet .prosemirror-menu button i,
-.sla-sheet .prosemirror-menu button svg {
-    color: #e0e0e0 !important;
-    fill: #e0e0e0 !important;
-    filter: invert(1) !important;
-    /* Forces black icons to white */
-}
-
-/* Hover State */
-.sla-sheet .prosemirror-menu button:hover {
-    background: #333;
+.sla-input-mini {
+    width: 45px !important;
+    height: 22px !important;
+    border-radius: 3px !important;
+    background: #111 !important;
+    border: 1px solid #555 !important;
     color: #fff !important;
+    text-align: center;
+    font-weight: bold;
+    padding: 0 !important;
 }
 
-/* Dropdown Menus */
-.sla-sheet .pm-dropdown {
-    background: #1a1a1a;
-    color: #e0e0e0;
+.sla-input-mini:focus {
+    border-color: var(--sla-accent) !important;
+    box-shadow: 0 0 4px var(--sla-accent);
 }

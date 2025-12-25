@@ -3,6 +3,7 @@
  * @extends {ActorSheet}
  */
 import { LuckDialog } from "../apps/luck-dialog.mjs";
+import { calculateRollResult, generateDiceTooltip } from "../helpers/dice.mjs";
 
 export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
@@ -654,30 +655,8 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         await roll.evaluate();
 
         // 4. CALCULATE SUCCESS
-        const TN = 11;
-        const sdRaw = roll.terms[0].results[0].result;
-        const sdTotal = sdRaw + baseModifier;
-        const isSuccess = sdTotal >= TN;
-        const resultColor = isSuccess ? '#39ff14' : '#f55';
-
-        // 5. PROCESS SKILL DICE (MOS)
-        let skillDiceData = [];
-        let skillSuccessCount = 0;
-
-        if (roll.terms.length > 2) {
-            roll.terms[2].results.forEach(r => {
-                let val = r.result + baseModifier;
-                let isHit = val >= TN;
-                if (isHit) skillSuccessCount++;
-
-                skillDiceData.push({
-                    raw: r.result,
-                    total: val,
-                    borderColor: isHit ? "#39ff14" : "#555",
-                    textColor: isHit ? "#39ff14" : "#ccc"
-                });
-            });
-        }
+        const result = calculateRollResult(roll, baseModifier);
+        const resultColor = result.isSuccess ? '#39ff14' : '#f55';
 
         // 6. RENDER TEMPLATE
         const templateData = {
@@ -686,9 +665,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             resultColor: resultColor,
             actorUuid: this.actor.uuid,
             itemName: item.name.toUpperCase(),
-            successTotal: sdTotal,
-            tooltip: this._generateTooltip(roll, baseModifier, 0),
-            skillDice: skillDiceData,
+            successTotal: result.total,
+            tooltip: generateDiceTooltip(roll, baseModifier),
+            skillDice: result.skillDiceData,
             notes: "",
             showDamageButton: false,
             // Luck Data
@@ -696,9 +675,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             luckValue: this.actor.system.stats.luck.value,
             luckSpent: false,
             mos: {
-                isSuccess: isSuccess,
-                hits: skillSuccessCount,
-                effect: isSuccess ? `Margin of Success: ${skillSuccessCount}` : "Failed"
+                isSuccess: result.isSuccess,
+                hits: result.skillHits,
+                effect: result.isSuccess ? `Margin of Success: ${result.skillHits}` : "Failed"
             }
         };
 
@@ -719,21 +698,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
     }
 
     // --- HELPERS: HTML GENERATION ---
+    // Kept for legacy compatibility if other modules call it, but uses new helper internally
     _generateTooltip(roll, baseModifier, successDieMod) {
-        let html = `<div class="dice-tooltip" style="display:none; margin-top:10px; padding-top:5px; border-top:1px solid #444; font-size:0.8em; color:#ccc;">`;
-        const sdRaw = roll.terms[0].results[0].result;
-        const sdTotal = sdRaw + baseModifier + successDieMod;
-        html += `<div><strong>Success Die:</strong> Raw ${sdRaw} + Base ${baseModifier} + SD Mod ${successDieMod} = <strong>${sdTotal}</strong></div>`;
-        if (roll.terms.length > 2) {
-            html += `<div style="border-top:1px dashed #444; margin-top:2px;"><strong>Skill Dice (Base ${baseModifier}):</strong></div>`;
-            html += `<div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:2px;">`;
-            roll.terms[2].results.forEach(r => {
-                html += `<span style="background:#222; border:1px solid #555; padding:1px 4px;">${r.result} + ${baseModifier} = <strong>${r.result + baseModifier}</strong></span>`;
-            });
-            html += `</div>`;
-        }
-        html += `</div>`;
-        return html;
+        return generateDiceTooltip(roll, baseModifier, successDieMod);
     }
 
     async _processWeaponRoll(item, html, isMelee) {

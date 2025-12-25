@@ -1,3 +1,5 @@
+import { calculateRollResult, getMOS, generateDiceTooltip } from "../helpers/dice.mjs";
+
 /**
  * Dialog for spending Luck points.
  */
@@ -137,46 +139,6 @@ export class LuckDialog extends Dialog {
         if (!(await this._deductLuck(amount))) return;
 
         const roll = this.roll;
-        // Modifying the Success Die result? Or adding a bonus term?
-        // Rules: "add a +1 modifier to the Success Die"
-        // We can just inject a "+ X" term or modify the result.
-        // Modifying result is cleaner for "Success Die Total" displays.
-
-        // However, result shouldn't exceed die size usually, but modifiers allow it.
-        // Let's add a new operator + number term to end of roll to be safe?
-        // But the previous code calculates Success Die total as `sdRaw + baseModifier`.
-        // If we change the roll terms, the previous chat card logic might break if it expects specific indices.
-        // The chat card logic in `actor-sheet.mjs` was:
-        // `sdRaw = roll.terms[0].results[0].result`
-        // `sdTotal = sdRaw + baseModifier`
-
-        // We can't easily instruct the Chat Message to change its display logic effectively without re-rendering context.
-        // The existing chat logic extracts `sdRaw` from term 0.
-        // If we modify term 0's result, it works for the "Raw" part, but we want a modifier.
-
-        // Actually, the simplest way is to modify the stored Roll object's terms[0] result 
-        // to be artificially higher? No, that breaks 1-10 range logic if we care about crits checks on natural 10.
-        // Current sheet logic: `resultColor = finalTotal > 10 ? ...`
-
-        // Let's append a "+ X" to the roll formula and evaluate?
-        // `roll.terms.push(new OperatorTerm({operator: "+"}));`
-        // `roll.terms.push(new NumericTerm({number: amount}));`
-        // But the sheet logic `sdRaw = roll.terms[0]...` ignores subsequent terms unless they are skill dice (term 2).
-
-        // OPTION B: Modify the `baseModifier` used in the template.
-        // But the template is rendered HTML. We need to re-feed data to the template.
-        // The roll object is stored in the message.
-
-        // DECISION: We will perform the math update on the roll object (add to total)
-        // AND we will have to call the `ActorSheet`'s rendering logic again to get the new HTML.
-        // Use `SlaActorSheet.prototype._generateTooltip` or similar? 
-        // No, that's instance method. We might need to copy-paste some render logic or make it static/shared.
-
-        // Quickest path: Edit the roll, then re-run the `renderTemplate` call manually here matching the original.
-
-        // For Modifier:
-        // We will add a "+ X" term to the roll so the `roll.total` is correct.
-        // And we will pass this extra mod to the template so it can display "Luck +X".
 
         roll.terms.push(new foundry.dice.terms.OperatorTerm({ operator: "+" }));
         roll.terms.push(new foundry.dice.terms.NumericTerm({ number: amount, options: { flavor: "Luck" } }));
@@ -229,34 +191,14 @@ export class LuckDialog extends Dialog {
     async _updateMessage(roll, flavorUpdate) {
         const message = game.messages.get(this.messageId);
 
-        // We need to regenerate the content using the shared logic.
-        // This effectively duplicates some logic from ActorSheet._executeSkillRoll
-        // Refactoring that into a static helper or shared helper would be best, 
-        // but for now we will inline the necessary localized render logic.
-
         // 1. Reconstruct Data
-        // We need 'baseModifier' which isn't stored in the Roll.
-        // We can try to reverse engineer it or hope it's in the flags?
-        // Best practice: Store baseModifier in flags during original creation!
-
-        // Let's assume we update `actor-sheet.mjs` to store context in flags first.
-        // For now, let's try to extract it from the old content or flags if available.
-        // If not, we might struggle to render the exact same tooltip.
-
-        // CRITICAL: We need to modify `actor-sheet.mjs` to store `baseModifier` and `TN` in flags.sla context.
-
-        // Fallback checks
         const flags = message.flags.sla || {};
         const baseModifier = flags.baseModifier || 0;
-        const TN = 11;
+        const autoSkillSuccesses = flags.autoSkillSuccesses || 0;
 
-        // Recalculate SD
-        // Note: If we added a modifier term (Term 3 & 4), we need to account for it in "SD Total"
-
-        // Find Luck Bonus
+        // Find Luck Bonus already in the roll terms
         let luckBonus = 0;
         if (roll.terms.length > 3) {
-            // Check for our manually added terms
             for (let i = 3; i < roll.terms.length; i++) {
                 if (roll.terms[i] instanceof foundry.dice.terms.NumericTerm && roll.terms[i].options.flavor === "Luck") {
                     luckBonus += roll.terms[i].number;
@@ -264,87 +206,24 @@ export class LuckDialog extends Dialog {
             }
         }
 
-        const sdRaw = roll.terms[0].results[0].result;
-        const sdTotal = sdRaw + baseModifier + luckBonus;
-        // 1. Initial Success Check
-        let isSuccess = sdTotal >= TN;
-        let resultColor = isSuccess ? '#39ff14' : '#f55';
+        // 2. Use Helper for Calculation
+        const result = calculateRollResult(roll, baseModifier, 11, {
+            luckBonus: luckBonus,
+            autoSkillSuccesses: autoSkillSuccesses
+        });
 
-        // Rebuild Skill Dice Data
-        let skillDiceData = [];
-        let skillSuccessCount = 0;
-        if (roll.terms.length > 2) {
-            roll.terms[2].results.forEach(r => {
-                let val = r.result + baseModifier;
-                let isHit = val >= TN;
-                if (isHit) skillSuccessCount++;
+        // 3. MOS & Effect Calculation
+        const mos = getMOS(result);
 
-                skillDiceData.push({
-                    raw: r.result,
-                    total: val,
-                    borderColor: isHit ? "#39ff14" : "#555",
-                    textColor: isHit ? "#39ff14" : "#ccc"
-                });
-            });
-        }
-
-        // Generate Tooltips
-        // We mimic `_generateTooltip`
-        let tooltipHtml = `<div class="dice-tooltip" style="display:none; margin-top:10px; padding-top:5px; border-top:1px solid #444; font-size:0.8em; color:#ccc;">`;
-        tooltipHtml += `<div><strong>Success Die:</strong> Raw ${sdRaw} + Base ${baseModifier} + Luck ${luckBonus} = <strong>${sdTotal}</strong></div>`;
-        if (roll.terms.length > 2) {
-            tooltipHtml += `<div style="border-top:1px dashed #444; margin-top:2px;"><strong>Skill Dice (Base ${baseModifier}):</strong></div>`;
-            tooltipHtml += `<div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:2px;">`;
-            roll.terms[2].results.forEach(r => {
-                tooltipHtml += `<span style="background:#222; border:1px solid #555; padding:1px 4px;">${r.result} + ${baseModifier} = <strong>${r.result + baseModifier}</strong></span>`;
-            });
-            tooltipHtml += `</div>`;
-        }
-        tooltipHtml += `</div>`;
-
-
-        // 3. MOS Calculation (Replicated from ActorSheet)
-        const autoSkillSuccesses = flags.autoSkillSuccesses || 0;
-        skillSuccessCount += autoSkillSuccesses; // Add auto hits (e.g. Concentrate)
-
-        // --- SUCCESS THROUGH EXPERIENCE (Luck Check) ---
-        let successThroughExperience = false;
-        if (!isSuccess && skillSuccessCount >= 4) {
-            isSuccess = true;
-            successThroughExperience = true;
-            // Append note to flavor update
+        if (result.successThroughExperience) {
             if (flavorUpdate) flavorUpdate += " | Success Through Experience";
             else flavorUpdate = "Success Through Experience";
         }
 
-        // Update Result Color if it became a success
-        if (isSuccess) resultColor = '#39ff14';
-
-        let mosDamageBonus = 0;
-        let mosEffectText = isSuccess ? "Standard Hit" : "Failed";
-        let mosChoiceData = { hasChoice: false, choiceType: "", choiceDmg: 0 };
-
-
-        if (isSuccess && !successThroughExperience) {
-            if (skillSuccessCount === 1) {
-                mosDamageBonus = 1;
-                mosEffectText = "+1 Damage";
-            } else if (skillSuccessCount === 2) {
-                mosEffectText = "MOS 2: Choose Effect";
-                mosChoiceData = { hasChoice: true, choiceType: "arm", choiceDmg: 2 };
-            } else if (skillSuccessCount === 3) {
-                mosEffectText = "MOS 3: Choose Effect";
-                mosChoiceData = { hasChoice: true, choiceType: "leg", choiceDmg: 4 };
-            } else if (skillSuccessCount >= 4) {
-                mosDamageBonus = 6;
-                mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)";
-            }
-        }
-
-        // 4. Damage Formula Calculation
+        // 4. Damage Formula Logic
         const baseDmg = flags.damageBase || "0";
         const damageMod = flags.damageMod || 0;
-        const totalMod = damageMod + mosDamageBonus;
+        const totalMod = damageMod + mos.damageBonus;
 
         let finalDmgFormula = baseDmg;
         if (totalMod !== 0) {
@@ -352,28 +231,29 @@ export class LuckDialog extends Dialog {
             else finalDmgFormula = `${baseDmg} ${totalMod > 0 ? "+" : ""} ${totalMod}`;
         }
 
-        const showButton = isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
+        const showButton = result.isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
 
-
+        // 5. Render Template
         const templateData = {
-            borderColor: resultColor,
-            headerColor: isSuccess ? "#39ff14" : "#f55",
-            resultColor: resultColor,
+            borderColor: result.isSuccess ? '#39ff14' : '#f55',
+            headerColor: result.isSuccess ? '#39ff14' : '#f55',
+            resultColor: result.isSuccess ? '#39ff14' : '#f55',
             itemName: flags.itemName || "SKILL",
-            successTotal: sdTotal,
-            tooltip: tooltipHtml,
-            skillDice: skillDiceData,
+            successTotal: result.total,
+            tooltip: generateDiceTooltip(roll, baseModifier, luckBonus),
+            skillDice: result.skillDiceData,
             notes: flavorUpdate,
             showDamageButton: showButton,
             dmgFormula: finalDmgFormula,
             adValue: flags.adValue || 0,
             mos: {
-                isSuccess: isSuccess,
-                hits: skillSuccessCount,
-                effect: mosEffectText,
-                ...mosChoiceData
+                isSuccess: result.isSuccess,
+                hits: result.skillHits,
+                effect: mos.effect,
+                hasChoice: mos.hasChoice,
+                choiceType: mos.choiceType,
+                choiceDmg: mos.choiceDmg
             },
-            // Hide the button after use
             luckSpent: true,
             actorUuid: this.actor.uuid
         };
