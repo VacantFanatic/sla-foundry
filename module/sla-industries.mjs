@@ -4,6 +4,7 @@ import { BoilerplateItem } from "./documents/item.mjs";
 
 // Import sheet classes.
 import { SlaActorSheet } from "./sheets/actor-sheet.mjs";
+import { SlaNPCSheet } from "./sheets/actor-npc-sheet.mjs";
 import { SlaItemSheet } from "./sheets/item-sheet.mjs";
 
 // Import ruler.
@@ -18,86 +19,52 @@ import { migrateWorld, CURRENT_MIGRATION_VERSION } from "./migration.mjs";
 /* -------------------------------------------- */
 /* Init Hook                                   */
 /* -------------------------------------------- */
-Hooks.once('init', async function() {
-  console.log("SLA INDUSTRIES | Initializing System...");
+Hooks.once('init', async function () {
+    console.log("SLA INDUSTRIES | Initializing System...");
 
-  CONFIG.SLA = SLA; 
+    CONFIG.SLA = SLA;
 
-  game.boilerplate = { SlaActorSheet, SlaItemSheet, BoilerplateActor, BoilerplateItem };
-  CONFIG.Actor.documentClass = BoilerplateActor;
-  CONFIG.Item.documentClass = BoilerplateItem;
-  
-  // REGISTER CUSTOM TOKEN RULER
-  CONFIG.Token.rulerClass = SLATokenRuler;
+    game.boilerplate = { SlaActorSheet, SlaItemSheet, BoilerplateActor, BoilerplateItem };
+    CONFIG.Actor.documentClass = BoilerplateActor;
+    CONFIG.Item.documentClass = BoilerplateItem;
 
-  CONFIG.Combat.initiative = {
-    formula: "1d10 + @stats.init.value",
-    decimals: 2
-  };
-  
-  game.settings.register("sla-industries", "systemMigrationVersion", {
-    name: "System Migration Version",
-    scope: "world",
-    config: false,  // Hide from UI
-    type: String,
-    default: "0.0.0"
-  });
-  
-  CONFIG.statusEffects = [
-    { id: "dead", label: "EFFECT.StatusDead", icon: "icons/svg/skull.svg" },
-    { id: "prone", label: "Prone", icon: "icons/svg/falling.svg" },
-    { id: "stunned", label: "Stunned", icon: "icons/svg/daze.svg" },
-    { id: "blind", label: "Blind", icon: "icons/svg/blind.svg" },
-    { id: "burning", label: "Burning", icon: "icons/svg/fire.svg" },
-    { id: "bleeding", label: "Bleeding", icon: "icons/svg/blood.svg" },
-    { id: "immobile", label: "Immobile", icon: "icons/svg/net.svg" },
-    { id: "critical", label: "Critical", icon: "icons/svg/skull.svg" }
-  ];
+    // REGISTER CUSTOM TOKEN RULER
+    CONFIG.Token.rulerClass = SLATokenRuler;
 
-  CONFIG.Actor.trackableAttributes = {
-    character: {
-      bar: ["attributes.hp", "attributes.flux"],
-      value: ["move.closing", "move.rushing", "encumbrance.value"]
-    },
-    npc: {
-      bar: ["attributes.hp"],
-      value: ["move.closing", "move.rushing"]
-    }
-  };
+    CONFIG.Combat.initiative = SLA.combatInitiative;
 
-  // --- THIS FIXES THE DROPDOWN LABELS ---
-  CONFIG.Item.typeLabels = {
-    "item": "Item / Gear", 
-    "skill": "Skill", 
-    "trait": "Trait", 
-    "weapon": "Weapon", 
-    "armor": "Armor", 
-    "ebbFormula": "Ebb Formula", 
-    "discipline": "Ebb Discipline", 
-    "drug": "Combat Drug", 
-    "magazine": "Magazine",
-    "species": "Species",
-    "package": "Training Package"
-  };
-  
-  // REGISTER HANDLEBARS HELPERS
-  Handlebars.registerHelper('capitalize', function(str) {
-    if (typeof str !== 'string') return '';
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  });
+    game.settings.register("sla-industries", "systemMigrationVersion", {
+        name: "System Migration Version",
+        scope: "world",
+        config: false,  // Hide from UI
+        type: String,
+        default: "0.0.0"
+    });
 
-  Handlebars.registerHelper('upper', function(str) {
-    if (typeof str !== 'string') return '';
-    return str.toUpperCase();
-  });
+    CONFIG.statusEffects = SLA.statusEffects;
+    CONFIG.Actor.trackableAttributes = SLA.trackableAttributes;
 
-  Actors.unregisterSheet("core", ActorSheet);
-  Actors.registerSheet("sla-industries", SlaActorSheet, { types: ["character", "npc"], makeDefault: true, label: "SLA Operative Sheet" });
 
-  Items.unregisterSheet("core", ItemSheet);
-  Items.registerSheet("sla-industries", SlaItemSheet, { makeDefault: true, label: "SLA Item Sheet" });
 
-  return preloadHandlebarsTemplates();
+    // REGISTER HANDLEBARS HELPERS
+    Handlebars.registerHelper('capitalize', function (str) {
+        if (typeof str !== 'string') return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    });
+
+    Handlebars.registerHelper('upper', function (str) {
+        if (typeof str !== 'string') return '';
+        return str.toUpperCase();
+    });
+
+    foundry.documents.collections.Actors.unregisterSheet("core", foundry.appv1.sheets.ActorSheet);
+    foundry.documents.collections.Actors.registerSheet("sla-industries", SlaActorSheet, { types: ["character"], makeDefault: true, label: "SLA Operative Sheet" });
+    foundry.documents.collections.Actors.registerSheet("sla-industries", SlaNPCSheet, { types: ["npc"], makeDefault: true, label: "SLA Threat Sheet" });
+
+    foundry.documents.collections.Items.unregisterSheet("core", foundry.appv1.sheets.ItemSheet);
+    foundry.documents.collections.Items.registerSheet("sla-industries", SlaItemSheet, { makeDefault: true, label: "SLA Item Sheet" });
+
+    return preloadHandlebarsTemplates();
 });
 
 /* -------------------------------------------- */
@@ -114,8 +81,8 @@ Handlebars.registerHelper('and', function (a, b) { return a && b; });
 /* -------------------------------------------- */
 /* Global Listeners (Rolling & Applying Damage) */
 /* -------------------------------------------- */
-Hooks.once("ready", async function() {
-    
+Hooks.once("ready", async function () {
+
     // 1. Check current schema version
     const currentVersion = game.settings.get("sla-industries", "systemMigrationVersion");
 
@@ -125,22 +92,22 @@ Hooks.once("ready", async function() {
     if (foundry.utils.isNewerVersion(CURRENT_MIGRATION_VERSION, currentVersion)) {
         await migrateWorld();
     }
-	
-	// =========================================================
+
+    // =========================================================
     // PART 1: ROLL DAMAGE (Standard Button & Tactical Choices)
     // =========================================================
-    
+
     // FIX: Remove existing listener before adding new one to prevent double rolls
     $(document.body).off("click", ".chat-btn-wound, .chat-btn-damage, .damage-roll");
-    
+
     $(document.body).on("click", ".chat-btn-wound, .chat-btn-damage, .damage-roll", async (ev) => {
         ev.preventDefault();
         const btn = $(ev.currentTarget);
         const card = btn.closest(".sla-chat-card");
-        
+
         // Determine Action Type
         const action = btn.data("action") || "standard";
-        
+
         // 1. Get Actor
         const uuid = card.data("actor-uuid");
         const actorId = card.data("actor-id");
@@ -166,20 +133,20 @@ Hooks.once("ready", async function() {
             if (action === "damage") {
                 flavorText = `<span style="color:#39ff14">Tactical Choice: +${bonus} Damage</span>`;
                 rollFormula = `${baseFormula} + ${bonus}`;
-            } 
+            }
             // WOUND CHOICE
             else if (action === "wound") {
                 const location = btn.data("location");
                 let woundSuccess = false;
-                
+
                 // Update Wounds Logic
                 const wounds = actor.system.wounds;
                 if (location === "arm") {
-                    if (!wounds.larm) { await actor.update({"system.wounds.larm": true}); woundSuccess = true; flavorText = `<span style="color:#ff4444">Snapped Left Arm!</span>`; }
-                    else if (!wounds.rarm) { await actor.update({"system.wounds.rarm": true}); woundSuccess = true; flavorText = `<span style="color:#ff4444">Snapped Right Arm!</span>`; }
+                    if (!wounds.larm) { await actor.update({ "system.wounds.larm": true }); woundSuccess = true; flavorText = `<span style="color:#ff4444">Snapped Left Arm!</span>`; }
+                    else if (!wounds.rarm) { await actor.update({ "system.wounds.rarm": true }); woundSuccess = true; flavorText = `<span style="color:#ff4444">Snapped Right Arm!</span>`; }
                 } else if (location === "leg") {
-                    if (!wounds.lleg) { await actor.update({"system.wounds.lleg": true}); woundSuccess = true; flavorText = `<span style="color:#ff4444">Broken Left Leg!</span>`; }
-                    else if (!wounds.rleg) { await actor.update({"system.wounds.rleg": true}); woundSuccess = true; flavorText = `<span style="color:#ff4444">Broken Right Leg!</span>`; }
+                    if (!wounds.lleg) { await actor.update({ "system.wounds.lleg": true }); woundSuccess = true; flavorText = `<span style="color:#ff4444">Broken Left Leg!</span>`; }
+                    else if (!wounds.rleg) { await actor.update({ "system.wounds.rleg": true }); woundSuccess = true; flavorText = `<span style="color:#ff4444">Broken Right Leg!</span>`; }
                 }
 
                 if (woundSuccess) {
@@ -209,8 +176,8 @@ Hooks.once("ready", async function() {
             adValue: adValue,
             flavor: flavorText
         };
-        
-        const content = await renderTemplate("systems/sla-industries/templates/chat/chat-damage.hbs", templateData);
+
+        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-damage.hbs", templateData);
 
         roll.toMessage({
             speaker: ChatMessage.getSpeaker({ actor: actor }),
@@ -222,18 +189,18 @@ Hooks.once("ready", async function() {
     // =========================================================
     // PART 2: APPLY DAMAGE (Reduces HP & Armor)
     // =========================================================
-    
+
     // FIX: Remove existing listener first
     $(document.body).off("click", ".apply-damage-btn");
 
     $(document.body).on("click", ".apply-damage-btn", async (ev) => {
         ev.preventDefault();
         const btn = $(ev.currentTarget);
-        
+
         // 1. Get Data from Button
         const rawDamage = Number(btn.data("dmg"));
         const ad = Number(btn.data("ad"));
-        const type = btn.data("target"); 
+        const type = btn.data("target");
 
         // 2. Find Victim (Selected or Target)
         let victim = null;
@@ -247,7 +214,7 @@ Hooks.once("ready", async function() {
 
         // 3. ARMOR LOGIC (Find Equipped Armor)
         const armorItem = victim.items.find(i => i.type === "armor" && i.system.equipped);
-        
+
         let targetPV = 0;
         let armorData = null; // Replaces 'armorUpdateMsg' string
 
@@ -263,10 +230,10 @@ Hooks.once("ready", async function() {
         if (armorItem && ad > 0) {
             const currentRes = armorItem.system.resistance?.value || 0;
             const newRes = Math.max(0, currentRes - ad);
-            
+
             // Update the Item
             await armorItem.update({ "system.resistance.value": newRes });
-            
+
             // Prepare Data for Template
             armorData = {
                 current: currentRes,
@@ -297,17 +264,17 @@ Hooks.once("ready", async function() {
             armorData: armorData
         };
 
-        const content = await renderTemplate("systems/sla-industries/templates/chat/chat-damage-result.hbs", templateData);
+        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-damage-result.hbs", templateData);
 
         ChatMessage.create({
             content: content
         });
     });
-    
+
     // =========================================================
     // PART 3: TOGGLE ROLL TOOLTIP (Click the Number)
     // =========================================================
-    
+
     // FIX: Remove existing listener first
     $(document.body).off("click", ".roll-toggle");
 
@@ -316,7 +283,7 @@ Hooks.once("ready", async function() {
         const btn = $(ev.currentTarget);
         const card = btn.closest(".sla-chat-card");
         const tooltip = card.find(".dice-tooltip");
-        
+
         if (tooltip.length) {
             tooltip.slideToggle(200);
         }

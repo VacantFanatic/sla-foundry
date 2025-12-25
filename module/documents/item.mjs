@@ -9,7 +9,7 @@ export class BoilerplateItem extends Item {
   }
 
   getRollData() {
-    if ( !this.actor ) return null;
+    if (!this.actor) return null;
     const rollData = this.actor.getRollData();
     rollData.item = foundry.utils.deepClone(this.system);
     return rollData;
@@ -23,7 +23,7 @@ export class BoilerplateItem extends Item {
    * Handle clickable rolls.
    * @param {Object} options   Options which configure how the roll is handled
    */
-  async roll(options={}) {
+  async roll(options = {}) {
     const item = this;
     const system = this.system;
     const actor = this.actor;
@@ -37,20 +37,20 @@ export class BoilerplateItem extends Item {
     // We assume the weapon stores the magazine's ID in 'system.magazineId'
     if (system.magazineId) {
       const magazine = actor.items.get(system.magazineId);
-      
+
       if (magazine) {
         // Get the ammo type from the magazine
         const ammoType = magazine.system.ammoType || "standard";
-        
+
         // Retrieve the modifiers from CONFIG (defined in config.mjs)
         const configMods = CONFIG.SLA.ammoModifiers[ammoType];
-        
+
         if (configMods) {
-          modifiers = { 
-            ...configMods, 
-            name: CONFIG.SLA.ammoTypes[ammoType] 
+          modifiers = {
+            ...configMods,
+            name: CONFIG.SLA.ammoTypes[ammoType]
           };
-          
+
           // Debugging log
           console.log(`SLA | Rolling with ${modifiers.name}: +${modifiers.damage} DMG, +${modifiers.ad} AD`);
         }
@@ -63,7 +63,7 @@ export class BoilerplateItem extends Item {
 
     // 4. Create the Dialog (Without Ammo Select)
     // We still use a dialog to let the player add situational modifiers
-    const content = await renderTemplate("systems/sla-industries/templates/chat/roll-dialog.hbs", {
+    const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/roll-dialog.hbs", {
       item: item,
       stats: { damage: finalDamage, ad: finalAD },
       ammoName: modifiers.name // Show them what ammo is loaded
@@ -81,9 +81,9 @@ export class BoilerplateItem extends Item {
               // Example Formula: (AD)d10 + Skill
               // You will need to adjust this formula to match your exact rules
               const rollFormula = `${finalAD}d10 + @skills.guns.value`;
-              
+
               const roll = new Roll(rollFormula, actor.getRollData());
-              
+
               roll.toMessage({
                 speaker: ChatMessage.getSpeaker({ actor: actor }),
                 flavor: `
@@ -115,79 +115,79 @@ export class BoilerplateItem extends Item {
    * Toggle the Active state of a drug/item and create/delete Active Effects.
    */
   async toggleActive() {
-      // ... (Keep your existing toggleActive code here exactly as it was) ...
-      // 1. Toggle Boolean
-      const newState = !this.system.active;
-      await this.update({ "system.active": newState });
+    // ... (Keep your existing toggleActive code here exactly as it was) ...
+    // 1. Toggle Boolean
+    const newState = !this.system.active;
+    await this.update({ "system.active": newState });
 
-      // 2. Handle Active Effect
-      if (!this.actor) return;
+    // 2. Handle Active Effect
+    if (!this.actor) return;
 
-      if (newState) {
-          // ENABLED: Create Effect
-          const effectData = {
-              name: this.name, 
-              icon: this.img,
-              origin: this.uuid,
-              disabled: false,
-              duration: { seconds: this._getDurationSeconds(this.system.duration) },
-              changes: []
-          };
+    if (newState) {
+      // ENABLED: Create Effect
+      const effectData = {
+        name: this.name,
+        icon: this.img,
+        origin: this.uuid,
+        disabled: false,
+        duration: { seconds: this._getDurationSeconds(this.system.duration) },
+        changes: []
+      };
 
-          // Map Mods to Changes
-          if (this.type === 'drug') {
-              // Mod 1
-              const m1 = this.system.mods.first;
-              if (m1.value !== 0) {
-                  effectData.changes.push({
-                      key: `system.stats.${m1.stat}.value`,
-                      mode: 2, // ADD
-                      value: m1.value
-                  });
-              }
-              // Mod 2
-              const m2 = this.system.mods.second;
-              if (m2.value !== 0) {
-                  effectData.changes.push({
-                      key: `system.stats.${m2.stat}.value`,
-                      mode: 2, // ADD
-                      value: m2.value
-                  });
-              }
-              // Damage Reduction
-              if (this.system.damageReduction !== 0) {
-                    effectData.changes.push({
-                      key: `system.wounds.damageReduction`,
-                      mode: 2, // ADD
-                      value: this.system.damageReduction
-                  });                  
-              }
-          }
-
-          if (effectData.changes.length > 0) {
-              await this.actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
-              ui.notifications.info(`${this.name} applied.`);
-          }
-
-      } else {
-          // DISABLED: Find and Delete Effect
-          const effect = this.actor.effects.find(e => e.origin === this.uuid);
-          if (effect) {
-              await effect.delete();
-              ui.notifications.info(`${this.name} removed.`);
-          }
+      // Map Mods to Changes
+      if (this.type === 'drug') {
+        // Mod 1
+        const m1 = this.system.mods.first;
+        if (m1.value !== 0) {
+          effectData.changes.push({
+            key: `system.stats.${m1.stat}.value`,
+            mode: 2, // ADD
+            value: m1.value
+          });
+        }
+        // Mod 2
+        const m2 = this.system.mods.second;
+        if (m2.value !== 0) {
+          effectData.changes.push({
+            key: `system.stats.${m2.stat}.value`,
+            mode: 2, // ADD
+            value: m2.value
+          });
+        }
+        // Damage Reduction
+        if (this.system.damageReduction !== 0) {
+          effectData.changes.push({
+            key: `system.wounds.damageReduction`,
+            mode: 2, // ADD
+            value: this.system.damageReduction
+          });
+        }
       }
+
+      if (effectData.changes.length > 0) {
+        await this.actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
+        ui.notifications.info(`${this.name} applied.`);
+      }
+
+    } else {
+      // DISABLED: Find and Delete Effect
+      const effect = this.actor.effects.find(e => e.origin === this.uuid);
+      if (effect) {
+        await effect.delete();
+        ui.notifications.info(`${this.name} removed.`);
+      }
+    }
   }
 
   // Helper to guess seconds from string
   _getDurationSeconds(str) {
-      if (!str) return null;
-      const s = str.toLowerCase();
-      if (s.includes("hour")) return parseInt(s) * 3600;
-      if (s.includes("min")) return parseInt(s) * 60;
-      return null;
+    if (!str) return null;
+    const s = str.toLowerCase();
+    if (s.includes("hour")) return parseInt(s) * 3600;
+    if (s.includes("min")) return parseInt(s) * 60;
+    return null;
   }
-   
+
   /**
    * @override
    * Triggered before an Item is updated in the database.
@@ -197,23 +197,23 @@ export class BoilerplateItem extends Item {
 
     // Check if we are updating the system data of a Skill or Discipline
     if ((this.type === 'skill' || this.type === 'discipline') && changed.system) {
-        
-        // Check if Rank is being modified
-        if (changed.system.rank !== undefined) {
-            const newRank = changed.system.rank;
-            const maxRank = 4; // HARD CAP
 
-            // If the new rank exceeds the limit
-            if (newRank > maxRank) {
-                // Force it back to the limit
-                changed.system.rank = maxRank;
-                
-                // Notify the user
-                if (typeof ui !== "undefined") {
-                    ui.notifications.warn(`${this.name} Rank capped at ${maxRank}.`);
-                }
-            }
+      // Check if Rank is being modified
+      if (changed.system.rank !== undefined) {
+        const newRank = changed.system.rank;
+        const maxRank = 4; // HARD CAP
+
+        // If the new rank exceeds the limit
+        if (newRank > maxRank) {
+          // Force it back to the limit
+          changed.system.rank = maxRank;
+
+          // Notify the user
+          if (typeof ui !== "undefined") {
+            ui.notifications.warn(`${this.name} Rank capped at ${maxRank}.`);
+          }
         }
+      }
     }
   }
 }
