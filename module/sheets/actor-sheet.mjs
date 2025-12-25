@@ -516,7 +516,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 }
             };
 
-            const chatContent = await renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+            const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
 
             roll.toMessage({
                 speaker: ChatMessage.getSpeaker({ actor: this.actor }),
@@ -577,7 +577,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 : (validModes[defaultModeKey]?.recoil || 0)
         };
 
-        const content = await renderTemplate("systems/sla-industries/templates/dialogs/attack-dialog.hbs", templateData);
+        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/attack-dialog.hbs", templateData);
 
         new Dialog({
             title: `Attack: ${item.name}`,
@@ -659,7 +659,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             }
         };
 
-        const chatContent = await renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+        const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
 
         roll.toMessage({
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
@@ -1123,7 +1123,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             }
         };
 
-        const chatContent = await renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+        const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
 
         roll.toMessage({
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
