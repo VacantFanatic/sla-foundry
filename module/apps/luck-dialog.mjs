@@ -61,7 +61,7 @@ export class LuckDialog extends Dialog {
             rofRerollSD: rofRerollSD
         };
 
-        const content = await renderTemplate("systems/sla-industries/templates/dialogs/luck-dialog.hbs", templateData);
+        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/luck-dialog.hbs", templateData);
 
         return new LuckDialog(actor, roll, messageId, {
             title: "Use Luck",
@@ -258,7 +258,7 @@ export class LuckDialog extends Dialog {
             actorUuid: this.actor.uuid
         };
 
-        const chatContent = await renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+        const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
 
         await message.update({
             content: chatContent,
