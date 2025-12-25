@@ -1,5 +1,59 @@
 # CHANGELOG
 
+# v0.9.3-alpha
+
+## What's new
+- **New Actor Sheet**: Introduced `SlaActorSheet` for comprehensive character management, including better item organization, skill/attribute/combat rolls, and condition toggling.
+- **Wounds & Conditions**: Implemented actor wound tracking, condition management (e.g., Stunned, Immobile), and automatic application of derived stat penalties from wounds and encumbrance.
+- **Styling Overhaul**: Converted CSS to SCSS and implemented a new styling system.
+
+## Fixes & Improvements
+- Fixed deprecation warnings for `renderTemplate` and `Hooks.on("renderChatMessage")`.
+- Restored condition penalties functionality.
+- Initialized default stats to 1 instead of 10.
+- Fixed an issue where the damage button wouldn't work after using Luck.
+- formatting updates to `template.json`.
+
+# v0.8.3-alpha
+
+## What's new
+- **Luck System**: Added a new Luck Dialog for rerolling dice and applying modifiers.
+- **Initial Styling**: Added initial character sheet styling.
+
+# v0.7.3-alpha
+
+## What's new
+- **Roll Icons**: Added roll icons to Threat attributes and other areas.
+
+## Fixes
+- Fixed ammo bug.
+- Added weapon attack type and migration logic.
+
+# v0.4.4-alpha
+
+## What's new
+- **Reserved Dice**: Added reserved dice option to melee attack dialog.
+- **Drugs**: Added drug consumption feature and updated drug item fields.
+
+# v0.4.2-alpha
+
+## What's new
+- **Weapons**: Added reload logic and ammo type selector.
+- **Threat Sheets**: Added threat sheet theme and improved NPC sheet layout.
+
+# v0.3.1-alpha
+
+## What's new
+- **Ebb Disciplines**: Added Ebb discipline linking.
+- **Combat Loadout**: Refactored combat loadout to partial template.
+- **Dark Theme**: Updates to the dark theme.
+
+# v0.2.5-alpha
+
+## What's new
+- **Office Dossier**: Added Office Dossier theme for species and package items.
+- **Ebb Formulas**: Added combat fields to Ebb Formula item sheet.
+
 # v0.2.3-alpha
 
 ## Bugs
