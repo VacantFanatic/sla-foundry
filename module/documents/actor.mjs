@@ -307,38 +307,101 @@ export class BoilerplateActor extends Actor {
   async _onUpdate(changed, options, userId) {
     super._onUpdate(changed, options, userId);
 
-    // 1. STOP if the update didn't touch conditions.
+    // 1. STOP if the update didn't touch conditions OR wounds.
     // This prevents HP updates or Bio updates from triggering the condition loop.
     const conditionChanges = foundry.utils.getProperty(changed, "system.conditions");
+    const woundChanges = foundry.utils.getProperty(changed, "system.wounds");
     
-    // If we have changes to conditions, sync ONLY the ones that changed
+    // A. Handle Manual Condition Toggles (Clicking icons)
     if (conditionChanges) {
-        
-        // Helper to sync a specific ID
         const syncStatus = async (id, isState) => {
-             // We check the 'isState' explicitly. If it is undefined, it means that specific condition wasn't changed
              if (isState === undefined) return;
-             
              const hasEffect = this.effects.some(e => e.statuses.has(id));
-             
-             // Only toggle if there is a mismatch
              if (isState !== hasEffect) {
                  await this.toggleStatusEffect(id, { active: isState });
              }
         };
-
-        // We only check the specific keys found in the 'changed' object
-        // This prevents us from overwriting "Prone" when we only meant to click "Critical"
         for (const [key, value] of Object.entries(conditionChanges)) {
              await syncStatus(key, value);
         }
     }
 
+    // B. Handle Wound Logic (Head -> Stunned, Legs -> Immobile, Any -> Bleeding)
+    if (woundChanges) {
+        await this._handleWoundEffects(woundChanges);
+    }
+
     // 2. SEPARATE LOGIC: Handle HP Auto-Wounding
-    // If you want HP to apply wounds, do it here, separately.
     if (foundry.utils.hasProperty(changed, "system.hp.value")) {
         await this._handleWoundThresholds();
     }
+  }
+
+  /**
+   * Handle Side-Effects of Wounds (Stunned, Immobile, Bleeding)
+   */
+  async _handleWoundEffects(woundChanges) {
+      // We need the *full* current state of wounds, merging the update with existing data
+      // However, 'this.system.wounds' is already updated in memory by the time _onUpdate fires? 
+      // ACTUALLY: In _onUpdate, 'this.system' IS already updated to the new state.
+      // 'changed' only contains the diff.
+      
+      const w = this.system.wounds;
+      const effectsToToggle = [];
+
+      // Helper to check if effect exists
+      const hasEffect = (id) => this.effects.some(e => e.statuses.has(id));
+
+      // 1. HEAD WOUND -> STUNNED
+      // If head is wounded and we are not stunned, ADD Stunned
+      if (w.head && !hasEffect("stunned")) {
+          // We only add it. We don't remove it auto-magically if healed, 
+          // unless the user specifically wants that. 
+          // Rule: "Stunned is removed with medical intervention... or rest"
+          // So it's safer to Auto-Add, but maybe Auto-Remove is convenient?
+          // Let's do Auto-Add and Auto-Remove for immediate feedback, 
+          // but allow manual toggle back if needed.
+          effectsToToggle.push({ id: "stunned", active: true });
+      } 
+      else if (!w.head && hasEffect("stunned")) {
+           // Only remove if it was the head wound causing it? 
+           // Hard to know. But typically if you heal the head, the stun might fade.
+           // Let's be aggressive for UX: Remove it.
+           effectsToToggle.push({ id: "stunned", active: false });
+      }
+
+      // 2. BOT LEG WOUNDS -> IMMOBILE
+      const legsGone = w.lLeg && w.rLeg;
+      if (legsGone && !hasEffect("immobile")) {
+          effectsToToggle.push({ id: "immobile", active: true });
+      } 
+      else if (!legsGone && hasEffect("immobile")) {
+          // Check if immobile was caused by something else (Encumbrance)?
+          // If Encumbrance is forcing immobile, we shouldn't remove it.
+          // We can check encumbrance state.
+          const isEncumbered = this.system.conditions.immobile && (this.system.encumbrance.value > this.system.encumbrance.max);
+          
+          // Only remove if NOT encumbered
+          if (!isEncumbered) {
+             effectsToToggle.push({ id: "immobile", active: false });
+          }
+      }
+
+      // 3. ANY WOUND -> BLEEDING
+      const woundCount = (w.head?1:0) + (w.torso?1:0) + (w.lArm?1:0) + (w.rArm?1:0) + (w.lLeg?1:0) + (w.rLeg?1:0);
+      
+      if (woundCount > 0 && !hasEffect("bleeding")) {
+           effectsToToggle.push({ id: "bleeding", active: true });
+      } 
+      else if (woundCount === 0 && hasEffect("bleeding")) {
+           effectsToToggle.push({ id: "bleeding", active: false });
+      }
+
+      // EXECUTE UPDATES
+      // processing sequentially to avoid race conditions
+      for (const change of effectsToToggle) {
+          await this.toggleStatusEffect(change.id, { active: change.active });
+      }
   }
 
   /**

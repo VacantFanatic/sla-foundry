@@ -342,37 +342,15 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             // The sheet will re-render, and getData() will now see the effect and light up the icon.
         });
 
-        // --- WOUND CHECKBOXES (Fixed Stale Data Error) ---
+        // --- WOUND CHECKBOXES ---
         html.find('.wound-checkbox').change(async ev => {
             const target = ev.currentTarget;
             const isChecked = target.checked;
             const field = target.name;
 
-            // 1. Update the wound checkbox state in the database
-            // We await this so the data is saved before we check wound counts
+            // Update the actor. The _onUpdate method in Actor.mjs will handle
+            // the side effects (Bleeding, Stunned, Immobile).
             await this.actor.update({ [field]: isChecked });
-
-            // 2. Fetch the Bleeding Effect FRESH (Crucial Fix)
-            // We do this AFTER the update to ensure we get the live object, not a stale one.
-            const bleedingEffect = this.actor.effects.find(e => e.statuses.has("bleeding"));
-
-            if (isChecked) {
-                // If we checked a wound and are NOT bleeding, add the effect
-                if (!bleedingEffect) {
-                    await this.actor.toggleStatusEffect("bleeding", { active: true });
-                }
-            } else {
-                // If we unchecked, check if we have any wounds left.
-                // Since we awaited the update above, 'this.actor.system.wounds' is now current.
-                const currentWounds = this.actor.system.wounds;
-                const activeWounds = Object.values(currentWounds).filter(v => v === true).length;
-
-                // If 0 wounds left, and we have a bleeding effect, remove it.
-                if (activeWounds === 0 && bleedingEffect) {
-                    // Safe deletion using the fresh reference
-                    await bleedingEffect.delete();
-                }
-            }
         });
     }
 
