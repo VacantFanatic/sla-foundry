@@ -1,0 +1,76 @@
+/* ==========================================
+   13. ITEM SHEET THEMES
+   ========================================== */
+/* Basic Item */
+.item .window-content {
+    background: #e0e0e0 !important;
+    border: 4px solid #333;
+    font-family: "Arial", sans-serif;
+    color: #111;
+}
+
+.item .sheet-header {
+    background: #222 !important;
+    color: #fff !important;
+    border-bottom: 4px solid #f90;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+
+    img.profile-img {
+        flex: 0 0 64px;
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border: 1px solid #000;
+        margin-right: 10px;
+        background: #000;
+    }
+}
+
+/* Academic Theme (Skills/Traits) */
+.item.skill .window-content,
+.item.trait .window-content {
+    background: #fdfbf7 !important;
+    font-family: "Georgia", serif;
+}
+
+.item.skill .sheet-header,
+.item.trait .sheet-header {
+    background: transparent !important;
+    border: none;
+    border-bottom: 2px solid #000;
+    color: #000 !important;
+}
+
+.item.skill input,
+.item.trait input {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px dotted #000 !important;
+    color: #000 !important;
+    font-family: "Georgia", serif;
+    font-weight: bold;
+}
+
+/* Spectral Theme (Ebb) */
+.item.ebbFormula .window-content,
+.item.discipline .window-content {
+    background: #0a0011 !important;
+    color: #d8bfff !important;
+    border: 2px solid #8a2be2;
+}
+
+.item.ebbFormula .sheet-header,
+.item.discipline .sheet-header {
+    background: linear-gradient(90deg, #1a002a, #30004a) !important;
+    border-bottom: 1px solid #8a2be2;
+}
+
+.item.ebbFormula input,
+.item.discipline input {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #8a2be2 !important;
+    color: #fff !important;
+    text-shadow: 0 0 5px #8a2be2;
+}

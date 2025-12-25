@@ -1,0 +1,14 @@
+// ==========================================
+//    GLOBAL VARIABLES
+// ==========================================
+:root {
+    --sla-bg-dark: #1a1a25;
+    --sla-bg-panel: #2a2a35;
+    --sla-border: #444455;
+    --sla-text-light: #e0e0e0;
+    --sla-accent: #D05E1A;
+    --sla-accent-faint: #D05E1A40;
+    --sla-font-mono: #{$font-secondary};
+    --sla-font-header: #{$font-primary};
+    --sla-radius: 4px;
+}
