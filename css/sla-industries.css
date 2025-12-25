@@ -1019,6 +1019,20 @@ form.sla-sheet {
     align-items: center;
 }
 
+.threat-body {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--sla-accent) #000;
+}
+
+.threat-body {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--sla-accent) #000;
+}
+
 .threat-logo {
     flex: 0 0 50px;
     width: 50px;
