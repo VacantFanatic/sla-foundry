@@ -32,12 +32,10 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
     /** @override */
     async getData() {
         const context = await super.getData();
-        const actorData = context.data;
-
-        if (!actorData || !actorData.system) return context;
-
-        context.system = actorData.system;
-        context.flags = actorData.flags;
+        // CRITICAL FIX: Use 'this.actor.system' to access runtime derived data (like .total)
+        // context.data (from super.getData) only contains the database properties in some versions.
+        context.system = this.actor.system;
+        context.flags = this.actor.flags;
 
         // ... (Keep your existing stats/ratings/wounds initialization) ...
         context.system.stats = context.system.stats || {};
@@ -63,7 +61,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         // END NEW LOGIC
         // ======================================================
 
-        if (actorData.type == 'character' || actorData.type == 'npc') {
+        if (this.actor.type == 'character' || this.actor.type == 'npc') {
             this._prepareItems(context);
         }
 
@@ -1168,7 +1166,13 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         // 1. DROP SPECIES
         if (itemData.type === "species") {
             const existing = this.actor.items.find(i => i.type === "species");
-            if (existing) await existing.delete();
+            if (existing) {
+                // CLEANUP: Delete old skills associated with the previous species
+                const oldSkills = this.actor.items.filter(i => i.getFlag("sla-industries", "fromSpecies"));
+                const idsToDelete = [existing.id, ...oldSkills.map(i => i.id)];
+
+                await this.actor.deleteEmbeddedDocuments("Item", idsToDelete);
+            }
 
             await this.actor.createEmbeddedDocuments("Item", [itemData]);
             await this.actor.update({ "system.bio.species": itemData.name });
@@ -1201,7 +1205,13 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             }
 
             const existing = this.actor.items.find(i => i.type === "package");
-            if (existing) await existing.delete();
+            if (existing) {
+                // CLEANUP: Delete old skills associated with the previous package
+                const oldSkills = this.actor.items.filter(i => i.getFlag("sla-industries", "fromPackage"));
+                const idsToDelete = [existing.id, ...oldSkills.map(i => i.id)];
+
+                await this.actor.deleteEmbeddedDocuments("Item", idsToDelete);
+            }
 
             await this.actor.createEmbeddedDocuments("Item", [itemData]);
             await this.actor.update({ "system.bio.package": itemData.name });

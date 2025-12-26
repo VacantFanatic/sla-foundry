@@ -3,7 +3,7 @@
 
 // 1. Define the target version for THIS specific migration
 //    (Matches the version in your system.json)
-export const CURRENT_MIGRATION_VERSION = "0.10.3-alpha";
+export const CURRENT_MIGRATION_VERSION = "0.11.2-alpha";
 
 /**
  * Main Entry Point

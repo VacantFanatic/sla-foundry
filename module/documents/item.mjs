@@ -127,7 +127,7 @@ export class BoilerplateItem extends Item {
       // ENABLED: Create Effect
       const effectData = {
         name: this.name,
-        icon: this.img,
+        img: this.img,
         origin: this.uuid,
         disabled: false,
         duration: { seconds: this._getDurationSeconds(this.system.duration) },

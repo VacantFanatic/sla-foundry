@@ -67,14 +67,14 @@ SLA.combatInitiative = {
 
 // 6. STATUS EFFECTS
 SLA.statusEffects = [
-  { id: "dead", label: "EFFECT.StatusDead", icon: "icons/svg/skull.svg" },
-  { id: "prone", label: "Prone", icon: "icons/svg/falling.svg" },
-  { id: "stunned", label: "Stunned", icon: "icons/svg/daze.svg" },
-  { id: "blind", label: "Blind", icon: "icons/svg/blind.svg" },
-  { id: "burning", label: "Burning", icon: "icons/svg/fire.svg" },
-  { id: "bleeding", label: "Bleeding", icon: "icons/svg/blood.svg" },
-  { id: "immobile", label: "Immobile", icon: "icons/svg/net.svg" },
-  { id: "critical", label: "Critical", icon: "icons/svg/skull.svg" }
+  { id: "dead", name: "EFFECT.StatusDead", img: "icons/svg/skull.svg" },
+  { id: "prone", name: "Prone", img: "icons/svg/falling.svg" },
+  { id: "stunned", name: "Stunned", img: "icons/svg/daze.svg" },
+  { id: "blind", name: "Blind", img: "icons/svg/blind.svg" },
+  { id: "burning", name: "Burning", img: "icons/svg/fire.svg" },
+  { id: "bleeding", name: "Bleeding", img: "icons/svg/blood.svg" },
+  { id: "immobile", name: "Immobile", img: "icons/svg/net.svg" },
+  { id: "critical", name: "Critical", img: "icons/svg/skull.svg" }
 ];
 
 // 7. TRACKABLE ATTRIBUTES (Bars)

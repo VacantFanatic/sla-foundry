@@ -186,7 +186,11 @@ export class SlaSpeciesData extends foundry.abstract.TypeDataModel {
                 cha: new fields.SchemaField({ min: new fields.NumberField({ initial: 1 }), max: new fields.NumberField({ initial: 10 }) }),
                 cool: new fields.SchemaField({ min: new fields.NumberField({ initial: 1 }), max: new fields.NumberField({ initial: 10 }) })
             }),
-            skills: new fields.ArrayField(new fields.StringField()),
+            skills: new fields.ArrayField(new fields.SchemaField({
+                name: new fields.StringField({ required: true }),
+                rank: new fields.NumberField({ initial: 1, integer: true }),
+                img: new fields.StringField()
+            })),
             description: new fields.HTMLField()
         };
     }
@@ -204,7 +208,11 @@ export class SlaPackageData extends foundry.abstract.TypeDataModel {
                 cha: new fields.NumberField({ initial: 0 }),
                 cool: new fields.NumberField({ initial: 0 })
             }),
-            skills: new fields.ArrayField(new fields.StringField()),
+            skills: new fields.ArrayField(new fields.SchemaField({
+                name: new fields.StringField({ required: true }),
+                rank: new fields.NumberField({ initial: 1, integer: true }),
+                img: new fields.StringField()
+            })),
             description: new fields.HTMLField()
         };
     }
