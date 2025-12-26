@@ -160,24 +160,39 @@ export class SLAChat {
             targetPV = victim.system.armor.pv || 0;
         }
 
-        // B. Apply AD (Armor Degradation)
+        // B. Apply AD (Armor Degradation) Logic
+        let effectivePV = targetPV;
+
         if (armorItem && ad > 0) {
             const currentRes = armorItem.system.resistance?.value || 0;
+            const maxRes = armorItem.system.resistance?.max || 10;
+
+            // 1. Reduce Resistance
             const newRes = Math.max(0, currentRes - ad);
 
-            // Update the Item
+            // 2. Update the Item
             await armorItem.update({ "system.resistance.value": newRes });
+
+            // 3. Calculate Effective PV based on NEW Resistance state
+            if (newRes <= 0) {
+                effectivePV = 0; // Armor Destroyed
+            } else if (newRes < (maxRes / 2)) {
+                effectivePV = Math.floor(targetPV / 2); // Armor Compromised
+            } else {
+                effectivePV = targetPV; // Armor Intact
+            }
 
             // Prepare Data for Template
             armorData = {
                 current: currentRes,
                 new: newRes,
-                ad: ad
+                ad: ad,
+                effectivePV: effectivePV
             };
         }
 
-        // 4. DAMAGE CALCULATION (Dmg - PV)
-        let finalDamage = Math.max(0, rawDamage - targetPV);
+        // 4. DAMAGE CALCULATION (Dmg - Effective PV)
+        let finalDamage = Math.max(0, rawDamage - effectivePV);
 
         // 5. APPLY TO HP
         let currentHP = victim.system.hp.value;

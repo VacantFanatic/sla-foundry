@@ -1,12 +1,41 @@
 <div class="form-group">
     <label>PV</label>
-    <input type="number" name="system.pv" value="{{system.pv}}"/>
+    <input type="number" name="system.pv" value="{{system.pv}}" />
 </div>
+
+<div class="form-group">
+    <label>Powered?</label>
+    <input type="checkbox" name="system.powered" {{checked system.powered}} />
+</div>
+
+{{#if system.powered}}
+<div class="form-group">
+    <label>Modifiers</label>
+    <div class="grid grid-2col" style="gap: 5px;">
+        <div class="flexrow">
+            <label>STR</label>
+            <input type="number" name="system.mods.str" value="{{system.mods.str}}" />
+        </div>
+        <div class="flexrow">
+            <label>DEX</label>
+            <input type="number" name="system.mods.dex" value="{{system.mods.dex}}" />
+        </div>
+        <div class="flexrow">
+            <label>Move (Close)</label>
+            <input type="number" name="system.mods.move.closing" value="{{system.mods.move.closing}}" />
+        </div>
+        <div class="flexrow">
+            <label>Move (Rush)</label>
+            <input type="number" name="system.mods.move.rushing" value="{{system.mods.move.rushing}}" />
+        </div>
+    </div>
+</div>
+{{/if}}
 
 <div class="form-group">
     <label>Resist</label>
     <div class="flexrow">
-        <input type="number" name="system.resistance.value" value="{{system.resistance.value}}" placeholder="Cur"/> / 
-        <input type="number" name="system.resistance.max" value="{{system.resistance.max}}" placeholder="Max"/>
+        <input type="number" name="system.resistance.value" value="{{system.resistance.value}}" placeholder="Cur" /> /
+        <input type="number" name="system.resistance.max" value="{{system.resistance.max}}" placeholder="Max" />
     </div>
 </div>
