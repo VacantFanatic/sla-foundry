@@ -1,10 +1,10 @@
 <form class="{{cssClass}} sla-sheet" autocomplete="off">
 
     {{!-- HEADER & STATS --}}
-    {{> "systems/sla-industries/templates/partials/header-card.hbs"}}
+    {{> "systems/sla-industries/templates/actor/parts/header-card.hbs"}}
 
     <div class="stats-strip-container">
-        {{> "systems/sla-industries/templates/partials/stats.hbs"}}
+        {{> "systems/sla-industries/templates/actor/parts/stats.hbs"}}
     </div>
 
     {{!-- NAVIGATION --}}
@@ -20,23 +20,23 @@
 
         {{!-- MAIN TAB (Skills & Secondary) --}}
         <div class="tab" data-group="primary" data-tab="main">
-            {{> "systems/sla-industries/templates/partials/main-tab.hbs"}}
+            {{> "systems/sla-industries/templates/actor/parts/main-tab.hbs"}}
         </div>
 
         {{!-- COMBAT TAB (Wounds, Loadout, Ebb) --}}
         <div class="tab" data-group="primary" data-tab="ebb">
             {{!-- UPDATED: Now points to the new combined partial --}}
-            {{> "systems/sla-industries/templates/partials/combat-tab.hbs"}}
+            {{> "systems/sla-industries/templates/actor/parts/combat-tab.hbs"}}
         </div>
 
         {{!-- INVENTORY TAB --}}
         <div class="tab" data-group="primary" data-tab="inventory">
-             {{> "systems/sla-industries/templates/partials/inventory-tab.hbs"}}
+            {{> "systems/sla-industries/templates/actor/parts/inventory-tab.hbs"}}
         </div>
 
         {{!-- BIO TAB --}}
         <div class="tab" data-group="primary" data-tab="biography">
-            {{> "systems/sla-industries/templates/partials/bio-traits-tab.hbs"}}
+            {{> "systems/sla-industries/templates/actor/parts/bio-traits-tab.hbs"}}
         </div>
 
     </section>

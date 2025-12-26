@@ -1,0 +1,67 @@
+<div class="sla-panel">
+    <div class="sla-header-bar">STATUS & WOUNDS</div>
+    
+    <div class="sla-pad">
+        
+        {{!-- Wounds Grid (Explicitly Defined) --}}
+        <div class="wound-list">
+            {{!-- HEAD --}}
+            <div class="wound-entry">
+                <label for="wound-head">Head</label>
+                <input type="checkbox" class="wound-checkbox" id="wound-head" name="system.wounds.head" {{checked system.wounds.head}}/>
+            </div>
+            {{!-- TORSO --}}
+            <div class="wound-entry">
+                <label for="wound-torso">Torso</label>
+                <input type="checkbox" class="wound-checkbox" id="wound-torso" name="system.wounds.torso" {{checked system.wounds.torso}}/>
+            </div>
+
+            {{!-- LEFT ARM --}}
+            <div class="wound-entry">
+                <label for="wound-larm">Left Arm</label>
+                <input type="checkbox" class="wound-checkbox" id="wound-larm" name="system.wounds.lArm" {{checked system.wounds.lArm}}/>
+            </div>
+            {{!-- RIGHT ARM --}}
+            <div class="wound-entry">
+                <label for="wound-rarm">Right Arm</label>
+                <input type="checkbox" class="wound-checkbox" id="wound-rarm" name="system.wounds.rArm" {{checked system.wounds.rArm}}/>
+            </div>
+
+            {{!-- LEFT LEG --}}
+            <div class="wound-entry">
+                <label for="wound-lleg">Left Leg</label>
+                <input type="checkbox" class="wound-checkbox" id="wound-lleg" name="system.wounds.lLeg" {{checked system.wounds.lLeg}}/>
+            </div>
+            {{!-- RIGHT LEG --}}
+            <div class="wound-entry">
+                <label for="wound-rleg">Right Leg</label>
+                <input type="checkbox" class="wound-checkbox" id="wound-rleg" name="system.wounds.rLeg" {{checked system.wounds.rLeg}}/>
+            </div>
+        </div>
+
+        {{!-- Conditions Grid --}}
+        <div class="condition-grid">
+            <a class="condition-toggle {{#if system.conditions.prone}}active{{/if}}" data-condition="prone" title="Prone">
+                <i class="fas fa-user-injured"></i>
+            </a>
+            <a class="condition-toggle {{#if system.conditions.stunned}}active{{/if}}" data-condition="stunned" title="Stunned">
+                <i class="fas fa-dizzy"></i>
+            </a>
+            <a class="condition-toggle {{#if system.conditions.burning}}active{{/if}}" data-condition="burning" title="Burning">
+                <i class="fas fa-fire"></i>
+            </a>
+            <a class="condition-toggle {{#if system.conditions.bleeding}}active{{/if}}" data-condition="bleeding" title="Bleeding">
+                <i class="fas fa-tint"></i>
+            </a>
+            <a class="condition-toggle {{#if system.conditions.immobile}}active{{/if}}" data-condition="immobile" title="Immobile">
+                <i class="fas fa-lock"></i>
+            </a>
+
+            {{!-- Critical Status (Skull Icon) --}}
+            <a class="condition-toggle {{#if system.conditions.critical}}active{{/if}}" data-condition="critical" title="Critical Status">
+                <i class="fas fa-skull"></i>
+            </a>
+        </div>
+
+    </div>
+</div>

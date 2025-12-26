@@ -27,22 +27,22 @@
             {{!-- 1. CATALOGUE THEME (Weapons, Armor, Gear, Drugs, Ammo) --}}
             {{#if (or (eq item.type "weapon") (or (eq item.type "item") (or (eq item.type "armor") (or (eq item.type
             "drug") (eq item.type "magazine")))))}}
-            {{> "systems/sla-industries/templates/partials/item-catalogue.hbs"}}
+            {{> "systems/sla-industries/templates/item/parts/item-catalogue.hbs"}}
             {{/if}}
 
             {{!-- 2. ACADEMIC THEME (Skills, Traits) --}}
             {{#if (or (eq item.type "skill") (eq item.type "trait"))}}
-            {{> "systems/sla-industries/templates/partials/item-academic.hbs"}}
+            {{> "systems/sla-industries/templates/item/parts/item-academic.hbs"}}
             {{/if}}
 
             {{!-- 3. SPECTRAL THEME (Ebb, Discipline) --}}
             {{#if (or (eq item.type "ebbFormula") (eq item.type "discipline"))}}
-            {{> "systems/sla-industries/templates/partials/item-spectral.hbs"}}
+            {{> "systems/sla-industries/templates/item/parts/item-spectral.hbs"}}
             {{/if}}
 
             {{!-- 4. DOSSIER THEME (Species, Package) --}}
             {{#if (or (eq item.type "species") (eq item.type "package"))}}
-            {{> "systems/sla-industries/templates/partials/item-dossier.hbs"}}
+            {{> "systems/sla-industries/templates/item/parts/item-dossier.hbs"}}
             {{/if}}
 
         </div>

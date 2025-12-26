@@ -1,15 +1,15 @@
 <div class="flexcol full-height">
-    
+
     {{!-- 1. STATUS & WOUNDS --}}
-    {{> "systems/sla-industries/templates/partials/wounds.hbs"}}
+    {{> "systems/sla-industries/templates/actor/parts/wounds.hbs"}}
 
     {{!-- 2. COMBAT LOADOUT --}}
-    {{> "systems/sla-industries/templates/partials/combat-loadout.hbs"}}
+    {{> "systems/sla-industries/templates/actor/parts/combat-loadout.hbs"}}
 
     {{!-- 3. EBB DISCIPLINES (Conditional) --}}
     {{#if isEbonite}}
     <div style="margin-top: 5px;">
-        {{> "systems/sla-industries/templates/partials/disciplines.hbs"}}
+        {{> "systems/sla-industries/templates/actor/parts/disciplines.hbs"}}
     </div>
     {{/if}}
 
