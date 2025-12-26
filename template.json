@@ -255,7 +255,16 @@
       "weight": 2,
       "price": 200,
       "equipped": false,
-      "description": ""
+      "description": "",
+      "powered": false,
+      "mods": {
+        "str": 0,
+        "dex": 0,
+        "move": {
+          "closing": 0,
+          "rushing": 0
+        }
+      }
     },
     "ebbFormula": {
       "templates": [
