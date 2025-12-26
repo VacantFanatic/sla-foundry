@@ -268,7 +268,11 @@ export class SLAChat {
      * PART 5: RENDER HOOK (Manage Button Visibility)
      */
     static async onRenderChatMessage(message, html, data) {
-        const dmgButtons = html.find(".apply-damage-btn");
+        // V13 Migration: 'html' can be HTMLElement or jQuery object
+        const htmlElement = html instanceof HTMLElement ? html : html[0];
+        const $html = $(htmlElement);
+
+        const dmgButtons = $html.find(".apply-damage-btn");
         if (!dmgButtons.length) return;
 
         // 1. Hide for Non-GMs
@@ -284,7 +288,7 @@ export class SLAChat {
             const tokenDocument = await fromUuid(targetUuid);
 
             if (tokenDocument) {
-                const targetBtn = html.find('.apply-damage-btn[data-target="target"]');
+                const targetBtn = $html.find('.apply-damage-btn[data-target="target"]');
                 targetBtn.html(`<i class="fas fa-crosshairs"></i> Apply to ${tokenDocument.name}`);
                 targetBtn.attr("data-target-uuid", targetUuid);
             }
