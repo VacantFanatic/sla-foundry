@@ -121,6 +121,20 @@ export class LuckDialog extends Dialog {
         // Reroll logic: create a new roll for 1d10 and replace result
         const newRoll = new Roll("1d10");
         await newRoll.evaluate();
+
+        // --- DICE SO NICE: FORCE BLACK SUCCCESS DIE ---
+        if (newRoll.terms[0]) {
+            newRoll.terms[0].options.appearance = {
+                foreground: "#FFFFFF", // White Text
+                background: "#000000", // Black Body
+                edge: "#333333"        // Dark Grey Outline
+            };
+        }
+
+        // --- DICE SO NICE ---
+        if (game.dice3d) {
+            await game.dice3d.showForRoll(newRoll, game.user, true);
+        }
         const newResult = newRoll.terms[0].results[0];
 
         // Replace in original roll
@@ -163,6 +177,12 @@ export class LuckDialog extends Dialog {
             if (skillDieTerm.results[index]) {
                 const subRoll = new Roll("1d10");
                 await subRoll.evaluate();
+
+                // --- DICE SO NICE ---
+                if (game.dice3d) {
+                    await game.dice3d.showForRoll(subRoll, game.user, true);
+                }
+
                 skillDieTerm.results[index] = subRoll.terms[0].results[0];
             }
         }

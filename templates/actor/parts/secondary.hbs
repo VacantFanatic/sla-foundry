@@ -1,0 +1,50 @@
+<div class="flexcol">
+    
+    {{!-- MOVEMENT BOX --}}
+    <div class="sla-box">
+        <div class="sla-box-header">MOVEMENT</div>
+        <div class="compact-row">
+            <label>Closing Speed</label>
+            <input type="number" name="system.move.closing" value="{{system.move.closing}}" class="sla-input-mini"/>
+        </div>
+        <div class="compact-row">
+            <label>Rushing Speed</label>
+            <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" class="sla-input-mini"/>
+        </div>
+    </div>
+
+    {{!-- VITALS BOX --}}
+    <div class="sla-box">
+        <div class="sla-box-header">VITALS</div>
+        <div class="compact-row">
+            <label>Hit Points</label>
+            <div class="flexrow" style="justify-content: flex-end; gap: 5px; align-items: center;">
+                <input type="number" name="system.hp.value" value="{{system.hp.value}}" class="sla-input-mini"/>
+                <span style="color:#666;">/</span>
+                <input type="number" name="system.hp.max" value="{{system.hp.max}}" class="sla-input-mini" readonly style="color:#888 !important; border-color:#333 !important;"/>
+            </div>
+        </div>
+        <div class="compact-row">
+            <label>Armor (PV)</label>
+            <input type="number" name="system.armor.pv" value="{{system.armor.pv}}" class="sla-input-mini" readonly style="color:#39ff14 !important; border-color:#39ff14 !important;"/>
+        </div>
+    </div>
+
+    {{!-- STATUS BOX --}}
+    <div class="sla-box">
+        <div class="sla-box-header">STATUS</div>
+        <div class="compact-row">
+            <label>Encumbrance</label>
+            <div class="flexrow" style="justify-content: flex-end; gap: 5px; align-items: center;">
+                <input type="number" name="system.encumbrance.value" value="{{system.encumbrance.value}}" class="sla-input-mini"/>
+                <span style="color:#666;">/</span>
+                <input type="number" name="system.encumbrance.max" value="{{system.encumbrance.max}}" class="sla-input-mini" readonly style="color:#888 !important; border-color:#333 !important;"/>
+            </div>
+        </div>
+        <div class="compact-row">
+            <label>Experience (XP)</label>
+            <input type="number" name="system.xp.value" value="{{system.xp.value}}" class="sla-input-mini"/>
+        </div>
+    </div>
+
+</div>
