@@ -189,7 +189,8 @@ export class SlaSpeciesData extends foundry.abstract.TypeDataModel {
             skills: new fields.ArrayField(new fields.SchemaField({
                 name: new fields.StringField({ required: true }),
                 rank: new fields.NumberField({ initial: 1, integer: true }),
-                img: new fields.StringField()
+                img: new fields.StringField(),
+                stat: new fields.StringField({ initial: "dex" })
             })),
             description: new fields.HTMLField()
         };
