@@ -411,18 +411,26 @@ export class BoilerplateActor extends Actor {
       // Calculate your thresholds
       const hp = this.system.hp.value;
       const max = this.system.hp.max;
+
+      // Helper to check if effect exists
+      const hasEffect = (id) => this.effects.some(e => e.statuses.has(id));
       
-      // Example logic - adjust for SLA rules
+      // 1. DEAD (HP <= 0)
+      // We apply as overlay for visual emphasis
+      const isDead = hp <= 0;
+      if (isDead && !hasEffect("dead")) {
+          await this.toggleStatusEffect("dead", { active: true, overlay: true });
+      } else if (!isDead && hasEffect("dead")) {
+          await this.toggleStatusEffect("dead", { active: false });
+      }
+      
+      // 2. CRITICAL (HP <= Max/2 AND Not Dead)
       // Note: We use the Effect ID (e.g., 'critical') not the boolean
       const isCritical = hp <= (max / 2) && hp > 0;
 
-      // Check if effect exists
-      const hasCritical = this.effects.some(e => e.statuses.has("critical"));
-
-      // Apply only if needed to avoid infinite loops
-      if (isCritical && !hasCritical) {
+      if (isCritical && !hasEffect("critical")) {
           await this.toggleStatusEffect("critical", { active: true });
-      } else if (!isCritical && hasCritical) {
+      } else if (!isCritical && hasEffect("critical")) {
           await this.toggleStatusEffect("critical", { active: false });
       }
   }
