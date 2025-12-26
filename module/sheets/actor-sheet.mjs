@@ -3,7 +3,7 @@
  * @extends {ActorSheet}
  */
 import { LuckDialog } from "../apps/luck-dialog.mjs";
-import { calculateRollResult, generateDiceTooltip } from "../helpers/dice.mjs";
+import { calculateRollResult, generateDiceTooltip, createSLARoll } from "../helpers/dice.mjs";
 
 export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
@@ -251,18 +251,18 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             const newQty = currentQty - 1;
 
             // 1. Post Chat Message (Do this first while item exists)
+            // 1. Post Chat Message (Do this first while item exists)
+            const templateData = {
+                itemName: item.name.toUpperCase(),
+                actorName: this.actor.name,
+                duration: item.system.duration || "Unknown",
+                remaining: newQty
+            };
+            const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/drug-use.hbs", templateData);
+
             ChatMessage.create({
                 speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-                content: `
-                <div style="background:#1a1a25; border:1px solid #d05e1a; color:#eee; padding:5px; font-family:'Roboto Condensed';">
-                    <h3 style="color:#d05e1a; border-bottom:1px solid #555; margin:0 0 5px 0;">DRUG USED: ${item.name.toUpperCase()}</h3>
-                    <div>${this.actor.name} consumes a dose.</div>
-                    <div style="font-size:0.9em; color:#aaa; margin-top:5px;">
-                        <strong>Duration:</strong> ${item.system.duration || "Unknown"}<br>
-                        <strong>Remaining:</strong> ${newQty}
-                    </div>
-                </div>
-            `
+                content: content
             });
 
             // 2. Update or Delete
@@ -378,12 +378,10 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         }
 
         // If multiple matches, Prompt User
-        let content = `<p>Select magazine to load into <strong>${weaponName}</strong>:</p>`;
-        content += `<div class="form-group"><select id="magazine-select" style="width:100%; box-sizing:border-box;">`;
-        candidates.forEach(c => {
-            content += `<option value="${c.id}">${c.name} (Qty: ${c.system.quantity})</option>`;
+        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/reload-dialog.hbs", {
+            weaponName: weaponName,
+            candidates: candidates
         });
-        content += `</select></div><br>`;
 
         new Dialog({
             title: "Select Ammunition",
@@ -473,16 +471,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             const penalty = this.actor.system.wounds.penalty || 0;
             const finalMod = statValue - penalty + globalMod;
 
-            let roll = new Roll("1d10");
-            // --- DICE SO NICE: FORCE BLACK SUCCESS DIE ---
-            // Target the first term (1d10)
-            if (roll.terms.length > 0 && roll.terms[0].constructor.name === "Die") {
-                roll.terms[0].options.appearance = {
-                    foreground: "#FFFFFF", // White Text
-                    background: "#000000", // Black Body
-                    edge: "#333333"        // Dark Grey Outline
-                };
-            }
+            let roll = createSLARoll("1d10");
             // ---------------------------------------------
             await roll.evaluate();
 
@@ -619,16 +608,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         const skillDiceCount = rank + 1;
         const rollFormula = `1d10 + ${skillDiceCount}d10`;
 
-        let roll = new Roll(rollFormula);
-        // --- DICE SO NICE: FORCE BLACK SUCCESS DIE ---
-        // Target the first term (1d10)
-        if (roll.terms.length > 0 && roll.terms[0].constructor.name === "Die") {
-            roll.terms[0].options.appearance = {
-                foreground: "#FFFFFF", // White Text
-                background: "#000000", // Black Body
-                edge: "#333333"        // Dark Grey Outline
-            };
-        }
+        let roll = createSLARoll(rollFormula);
         // ---------------------------------------------
         await roll.evaluate();
 
@@ -668,8 +648,8 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 sla: {
                     baseModifier: baseModifier,
                     itemName: item.name.toUpperCase(),
-                    rofRerollSD: rofRerollSD,
-                    rofRerollSkills: rofRerollSkills
+                    rofRerollSD: false,
+                    rofRerollSkills: []
                 }
             }
         });
@@ -753,16 +733,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
         const rollFormula = `1d10 + ${skillDiceCount}d10`;
 
-        let roll = new Roll(rollFormula);
-        // --- DICE SO NICE: FORCE BLACK SUCCESS DIE ---
-        // Target the first term (1d10)
-        if (roll.terms.length > 0 && roll.terms[0].constructor.name === "Die") {
-            roll.terms[0].options.appearance = {
-                foreground: "#FFFFFF", // White Text
-                background: "#000000", // Black Body
-                edge: "#333333"        // Dark Grey Outline
-            };
-        }
+        let roll = createSLARoll(rollFormula);
         // ---------------------------------------------
         await roll.evaluate();
 
@@ -965,6 +936,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                     itemName: item.name.toUpperCase(),
                     rofRerollSD: rofRerollSD,
                     rofRerollSkills: rofRerollSkills,
+                    targets: Array.from(game.user.targets).map(t => t.document.uuid),
                     // Damage Context for Luck Reroll
                     damageBase: baseDmg,
                     damageMod: mods.damage,

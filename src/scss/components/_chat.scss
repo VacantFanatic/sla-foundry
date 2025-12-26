@@ -14,3 +14,78 @@
         border-bottom: 1px solid #555;
     }
 }
+
+/* Damage Result Card */
+.sla-chat-card.damage-result {
+    background: #000;
+    border: 1px solid #d00;
+    border-left: 4px solid #d00;
+    padding: 8px;
+    border-radius: 4px;
+    box-shadow: 0 0 5px rgba(221, 0, 0, 0.2);
+
+    .damage-header {
+        color: #ff3333;
+        font-family: var(--sla-font-header);
+        font-weight: 700;
+        font-size: 1.1em;
+        text-transform: uppercase;
+        border-bottom: 1px solid #500;
+        margin-bottom: 6px;
+        padding-bottom: 2px;
+        letter-spacing: 0.5px;
+    }
+
+    .damage-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2px;
+        font-size: 0.95em;
+
+        &.reduction {
+            color: #daa;
+            font-style: italic;
+            font-size: 0.9em;
+        }
+
+        &.final {
+            margin-top: 6px;
+            padding-top: 4px;
+            border-top: 1px dashed #500;
+            font-size: 1.1em;
+        }
+
+        .final-value {
+            color: #ff5555;
+            font-size: 1.2em;
+            text-shadow: 0 0 5px #500;
+        }
+    }
+
+    .damage-hp {
+        text-align: right;
+        margin-top: 8px;
+        padding-top: 4px;
+        border-top: 1px solid #333;
+        font-size: 0.9em;
+        color: #bbb;
+
+        strong {
+            color: #fff;
+        }
+    }
+
+    .damage-armor {
+        font-size: 0.85em;
+        color: #888;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+
+        i {
+            color: #666;
+        }
+    }
+}

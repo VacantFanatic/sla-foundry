@@ -1,5 +1,16 @@
 # CHANGELOG
 
+# v0.10.0-alpha
+
+## What's new
+- **Visual Overhaul**: Significant styling updates for Character and Threat sheets, ensuring high contrast and better visibility.
+- **Editor Improvements**: Fixed invisible editor buttons (ProseMirror) on dark backgrounds. Restored the minimum height for Threat sheet notes.
+- **Dossier Theme**: Added styling for Species and Package item sheets for a distinct "Dossier" look.
+- **Chat Styling**: Updated the Damage Result chat card to match the dark SLA Industries theme.
+
+## Fixes
+- Fixed item sheet template partials missing CSS classes.
+
 # v0.9.3-alpha
 
 ## What's new
