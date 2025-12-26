@@ -261,6 +261,40 @@ select option {
   color: #666;
 }
 
+/* Drug Use Card */
+.sla-chat-card.drug-use {
+  background: #1a1a25;
+  border: 1px solid #d05e1a;
+  border-left: 4px solid #d05e1a;
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 0 5px rgba(208, 94, 26, 0.2);
+}
+.sla-chat-card.drug-use .drug-header {
+  color: #d05e1a;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 1.1em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #555;
+  margin-bottom: 6px;
+  padding-bottom: 2px;
+  letter-spacing: 0.5px;
+}
+.sla-chat-card.drug-use .drug-content {
+  font-size: 0.95em;
+  margin-bottom: 8px;
+}
+.sla-chat-card.drug-use .drug-details {
+  font-size: 0.9em;
+  color: #aaa;
+  padding-top: 6px;
+  border-top: 1px dashed #444;
+}
+.sla-chat-card.drug-use .drug-details strong {
+  color: #ccc;
+}
+
 /* ==========================================
    3. HEADER LAYOUT
    ========================================== */
