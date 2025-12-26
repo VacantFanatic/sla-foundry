@@ -213,16 +213,19 @@ export class SlaItemSheet extends foundry.appv1.sheets.ItemSheet {
                 currentSkills = [];
             }
 
-            // MIGRATION: Fix any strings that might be in the array
+            // MIGRATION: Fix any strings OR objects missing 'stat'
             // If the user previously had an array of strings, we convert them now to avoid validation errors
             const cleanSkills = currentSkills.map(s => {
                 if (typeof s === "string") {
                     return {
                         name: s,
                         rank: 1,
-                        img: "icons/svg/item-bag.svg"
+                        img: "icons/svg/item-bag.svg",
+                        stat: "dex"
                     };
                 }
+                // Also ensure existing objects have stat
+                if (!s.stat) s.stat = "dex";
                 return s;
             });
 
@@ -230,7 +233,8 @@ export class SlaItemSheet extends foundry.appv1.sheets.ItemSheet {
             const newSkill = {
                 name: item.name,
                 rank: item.system.rank || 1,
-                img: item.img || "icons/svg/item-bag.svg"
+                img: item.img || "icons/svg/item-bag.svg",
+                stat: item.system.stat || "dex"
             };
 
             // 3. Check for duplicates

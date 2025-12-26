@@ -1140,7 +1140,8 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                         img: skillData.img || "icons/svg/book.svg",
                         system: {
                             rank: 1, // Default to rank 1
-                            stat: skillData.system?.stat || "dex", // Fallback if missing
+                            // FIX: Use .stat (new format) or .system.stat (legacy/fallback) or default "dex"
+                            stat: skillData.stat || skillData.system?.stat || "dex",
                             description: skillData.system?.description || ""
                         },
                         flags: {
