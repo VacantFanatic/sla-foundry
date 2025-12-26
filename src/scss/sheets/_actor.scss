@@ -175,6 +175,7 @@
     flex: 1;
 }
 
+
 .chip-delete {
     color: #d00;
     cursor: pointer;
@@ -476,24 +477,135 @@
     min-height: 200px;
 }
 
-.sla-sheet .prosemirror-menu {
-    background: #1a1a1a;
-    border-bottom: 1px solid #333;
+/* Toggle Button (The magic wand/edit button) */
+.editor-edit {
+    background: #222 !important;
+    color: var(--sla-accent) !important;
+    border: 1px solid var(--sla-accent) !important;
+    box-shadow: 0 0 5px #000;
+}
 
-    button {
-        color: #e0e0e0 !important;
+.editor-edit:hover {
+    background: var(--sla-accent) !important;
+    color: #000 !important;
+}
 
-        svg {
-            color: #e0e0e0 !important;
-            fill: #e0e0e0 !important;
-            filter: invert(1) !important;
-        }
+/* 
+   THE EDITOR MENU (Toolbar)
+   We target multiple possible ancestor chains to ensure we catch it.
+   1. Standard inside sheet
+   2. Loose .prosemirror-menu in case it detached
+*/
+.sla-sheet .prosemirror-menu,
+.prosemirror-menu {
+    background: #1a1a1a !important;
+    border-bottom: 1px solid #333 !important;
+    padding: 2px !important;
+    border-radius: 4px 4px 0 0;
+}
 
-        &:hover {
-            background: #333;
-            color: #fff !important;
-        }
-    }
+/* BUTTONS */
+.sla-sheet .prosemirror-menu button,
+.prosemirror-menu button {
+    background-color: transparent !important;
+    color: #e0e0e0 !important;
+    border: 1px solid transparent !important;
+    cursor: pointer !important;
+    width: 24px !important;
+    height: 24px !important;
+    line-height: 24px !important;
+    padding: 0 !important;
+    margin: 0 1px !important;
+}
+
+/* ICON CONTENT (SVG, I, PATHS) */
+.sla-sheet .prosemirror-menu button>*,
+.prosemirror-menu button>*,
+.sla-sheet .prosemirror-menu button i,
+.prosemirror-menu button i,
+.sla-sheet .prosemirror-menu button svg,
+.prosemirror-menu button svg,
+.sla-sheet .prosemirror-menu button svg path,
+.prosemirror-menu button svg path {
+    color: #e0e0e0 !important;
+    fill: #e0e0e0 !important;
+    stroke: none !important;
+    filter: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    box-shadow: none !important;
+}
+
+/* HOVER STATE */
+.sla-sheet .prosemirror-menu button:hover,
+.prosemirror-menu button:hover {
+    background-color: #333 !important;
+    border-color: #555 !important;
+    color: #fff !important;
+}
+
+.sla-sheet .prosemirror-menu button:hover>*,
+.prosemirror-menu button:hover>*,
+.sla-sheet .prosemirror-menu button:hover i,
+.prosemirror-menu button:hover i,
+.sla-sheet .prosemirror-menu button:hover svg path,
+.prosemirror-menu button:hover svg path {
+    color: #fff !important;
+    fill: #fff !important;
+}
+
+/* ACTIVE / MARKED STATE */
+.sla-sheet .prosemirror-menu button.active,
+.prosemirror-menu button.active,
+.sla-sheet .prosemirror-menu button.to-mark,
+.prosemirror-menu button.to-mark {
+    background-color: var(--sla-accent) !important;
+    color: #000 !important;
+}
+
+.sla-sheet .prosemirror-menu button.active>*,
+.prosemirror-menu button.active>*,
+.sla-sheet .prosemirror-menu button.active i,
+.prosemirror-menu button.active i,
+.sla-sheet .prosemirror-menu button.active svg path,
+.prosemirror-menu button.active svg path {
+    color: #000 !important;
+    fill: #000 !important;
+}
+
+/* 
+   EXTREME MEASURES:
+   Target ANY button inside the editor or menu structure.
+   Target [data-action] elements which ProseMirror usually uses.
+*/
+.editor button,
+.editor .prosemirror-menu>*,
+.prosemirror-menu [data-action] {
+    color: #e0e0e0 !important;
+    fill: #e0e0e0 !important;
+    text-shadow: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.editor button i,
+.editor button svg,
+.editor button svg path,
+.prosemirror-menu [data-action] i,
+.prosemirror-menu [data-action] svg path {
+    color: #e0e0e0 !important;
+    fill: #e0e0e0 !important;
+    filter: none !important;
+}
+
+/* Catch Dropdowns if used */
+.prosemirror-menu .pm-dropdown {
+    background: #1a1a1a !important;
+    color: #e0e0e0 !important;
+}
+
+.prosemirror-menu .pm-dropdown span {
+    color: #e0e0e0 !important;
 }
 
 /* ==========================================
@@ -877,6 +989,19 @@
     padding: 2px;
 }
 
+/* Threat Editor Specifics */
+.threat-content-box.editor {
+    min-height: 300px;
+    background: #fff;
+    color: #000;
+
+    .editor {
+        min-height: 300px;
+        height: 100%;
+        color: #000;
+    }
+}
+
 .threat-item {
     padding: 3px;
     border-bottom: 1px dotted #ccc;
@@ -1038,4 +1163,73 @@
         border-color: var(--sla-accent) !important;
         box-shadow: 0 0 4px var(--sla-accent);
     }
+}
+
+/* ==========================================
+   17. SKILL GRANT CHIPS (Species/Packages/Weapons)
+   ========================================== */
+.skill-grant-area {
+    min-height: 40px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px dashed #555;
+    padding: 5px;
+    border-radius: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    transition: all 0.2s ease;
+}
+
+.skill-grant-area.filled {
+    border: 1px solid #444;
+    /* Solid border when populated */
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.granted-skill-chip {
+    display: flex;
+    align-items: center;
+    background: #000;
+    /* Darker background for contrast */
+    border: 1px solid var(--sla-accent);
+    /* Accent border */
+    padding: 2px 6px;
+    border-radius: 4px;
+    gap: 8px;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.granted-skill-chip:hover {
+    border-color: #fff;
+    /* Highlight on hover */
+}
+
+.granted-skill-chip img {
+    width: 24px;
+    height: 24px;
+    object-fit: cover;
+    border: 1px solid #fff;
+    /* White border on image */
+    background: #000;
+}
+
+.granted-skill-chip .skill-name {
+    font-weight: 700;
+    color: #fff;
+    /* Bright white text */
+    text-shadow: 0 0 2px #000;
+    font-size: 0.95em;
+}
+
+.granted-skill-chip .delete-grant {
+    color: #ff5555;
+    cursor: pointer;
+    font-size: 1em;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.granted-skill-chip .delete-grant:hover {
+    opacity: 1;
+    text-shadow: 0 0 5px red;
 }

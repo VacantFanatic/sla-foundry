@@ -74,3 +74,216 @@
     color: #fff !important;
     text-shadow: 0 0 5px #8a2be2;
 }
+
+/* ==========================================
+   18. EBB FORMULA DROP ZONE
+   ========================================== */
+.discipline-drop-zone {
+    border: 1px dashed #8a2be2;
+    background: rgba(138, 43, 226, 0.1);
+    padding: 5px;
+    border-radius: 4px;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.discipline-drop-zone.filled {
+    border-style: solid;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.linked-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    justify-content: space-between;
+    padding: 0 5px;
+}
+
+.linked-item img {
+    width: 32px !important;
+    height: 32px !important;
+    object-fit: cover;
+    border: 1px solid #8a2be2;
+    background: #000;
+    flex: 0 0 32px;
+}
+
+.linked-item .linked-name {
+    flex: 1;
+    text-align: left;
+    font-weight: bold;
+    color: #d8bfff;
+}
+
+.linked-item .remove-discipline {
+    color: #ff4444;
+    cursor: pointer;
+}
+
+/* ==========================================
+   20. DOSSIER THEME (Species & Package)
+   ========================================== */
+.item.species .window-content,
+.item.package .window-content {
+    background: var(--sla-bg-dark) !important;
+    color: var(--sla-text-light);
+}
+
+.item.species .sheet-header,
+.item.package .sheet-header {
+    background: #000 !important;
+    border-bottom: 2px solid var(--sla-accent);
+    padding: 10px;
+}
+
+.office-dossier {
+    padding: 10px;
+    font-family: var(--sla-font-mono);
+}
+
+.dossier-stamp {
+    font-weight: 700;
+    font-size: 1.5em;
+    color: rgba(255, 50, 50, 0.7);
+    border: 3px solid rgba(255, 50, 50, 0.7);
+    display: inline-block;
+    padding: 5px 10px;
+    text-transform: uppercase;
+    transform: rotate(-3deg);
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+}
+
+.paper-section {
+    background: var(--sla-bg-panel);
+    border: 1px solid var(--sla-border);
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: var(--sla-radius);
+}
+
+.paper-header {
+    font-family: var(--sla-font-header);
+    color: var(--sla-accent);
+    font-weight: 700;
+    border-bottom: 1px solid var(--sla-border);
+    margin-bottom: 8px;
+    padding-bottom: 2px;
+    text-transform: uppercase;
+}
+
+.paper-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.paper-row label {
+    font-weight: bold;
+    color: #ccc;
+}
+
+.paper-row input {
+    background: #000;
+    border: 1px solid #555;
+    color: #fff;
+    width: 60px;
+    text-align: center;
+}
+
+/* Stat Limits Grid */
+.stat-limits-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.limit-box {
+    background: #000;
+    border: 1px solid var(--sla-border);
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.limit-box label {
+    font-size: 0.8em;
+    font-weight: 700;
+    color: #888;
+}
+
+.limit-box .flexrow {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.limit-box input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #333;
+    color: #fff;
+    text-align: center;
+}
+
+/* Skill Grants */
+.skill-grant-area {
+    min-height: 60px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px dashed var(--sla-border);
+    padding: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.granted-skill-chip {
+    display: flex;
+    align-items: center;
+    background: #000;
+    border: 1px solid var(--sla-accent);
+    padding: 2px;
+    border-radius: 4px;
+    gap: 5px;
+    height: 32px;
+}
+
+.granted-skill-chip img {
+    border: 1px solid #333;
+    width: 24px;
+    height: 24px;
+    object-fit: cover;
+}
+
+.granted-skill-chip .skill-name {
+    padding: 0 5px;
+    font-weight: bold;
+    color: var(--sla-accent);
+}
+
+.granted-skill-chip .delete-grant {
+    color: #f00;
+    padding: 0 5px;
+    cursor: pointer;
+}
+
+.granted-skill-chip .delete-grant:hover {
+    color: #f88;
+}
+
+.empty-dossier-text {
+    width: 100%;
+    text-align: center;
+    line-height: 50px;
+    color: #666;
+    font-style: italic;
+}

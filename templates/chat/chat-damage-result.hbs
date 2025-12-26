@@ -1,24 +1,24 @@
-<div class="sla-chat-card" style="background:#330000; color:#fff; padding:5px; border:1px solid #d00; font-family:'Roboto Condensed';">
-    <div style="font-size:1.1em; font-weight:bold; border-bottom:1px solid #d00; margin-bottom:4px;">
+<div class="sla-chat-card damage-result">
+    <div class="damage-header">
         {{victimName}} Hit!
     </div>
-    
-    <div style="display:flex; justify-content:space-between;">
+
+    <div class="damage-row">
         <span>Raw Damage:</span> <strong>{{rawDamage}}</strong>
     </div>
-    <div style="display:flex; justify-content:space-between; color:#ffaaaa;">
+    <div class="damage-row reduction">
         <span>PV Reduction:</span> <strong>-{{targetPV}}</strong>
     </div>
-    <div style="display:flex; justify-content:space-between; border-top:1px solid #d00; margin-top:2px; padding-top:2px;">
-        <span>Final HP Loss:</span> <strong style="color:#ff5555; font-size:1.2em;">{{finalDamage}}</strong>
+    <div class="damage-row final">
+        <span>Final HP Loss:</span> <strong class="final-value">{{finalDamage}}</strong>
     </div>
-    
-    <div style="text-align:right; font-size:0.9em; margin-top:5px; color:#ccc;">
+
+    <div class="damage-hp">
         HP: {{hpData.old}} &rarr; <strong>{{hpData.new}}</strong>
     </div>
 
     {{#if armorData}}
-    <div style="font-size:0.8em; color:#aaa; margin-top:2px;">
+    <div class="damage-armor">
         <i class="fas fa-shield-alt"></i> Armor Res: {{armorData.current}} &rarr; {{armorData.new}} (-{{armorData.ad}})
     </div>
     {{/if}}

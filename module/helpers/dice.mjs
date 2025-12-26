@@ -129,3 +129,23 @@ export function generateDiceTooltip(roll, baseModifier, luckBonus = 0) {
     html += `</div>`;
     return html;
 }
+
+/**
+ * Creates a standard SLA Roll (1d10 + Xd10) with visual styling.
+ * @param {string} formula - The roll formula (e.g. "1d10 + 2d10").
+ * @returns {Roll} The constructed Roll object (evaluated if you call evaluate() on it).
+ */
+export function createSLARoll(formula) {
+    let roll = new Roll(formula);
+
+    // --- DICE SO NICE: FORCE BLACK SUCCESS DIE ---
+    // Target the first term (1d10)
+    if (roll.terms.length > 0 && (roll.terms[0] instanceof foundry.dice.terms.Die || roll.terms[0].constructor.name === "Die")) {
+        roll.terms[0].options.appearance = {
+            foreground: "#FFFFFF", // White Text
+            background: "#000000", // Black Body
+            edge: "#333333"        // Dark Grey Outline
+        };
+    }
+    return roll;
+}

@@ -1,0 +1,8 @@
+<p>Select magazine to load into <strong>{{weaponName}}</strong>:</p>
+<div class="form-group">
+    <select id="magazine-select" style="width:100%; box-sizing:border-box;">
+        {{#each candidates}}
+        <option value="{{this.id}}">{{this.name}} (Qty: {{this.system.quantity}})</option>
+        {{/each}}
+    </select>
+</div><br>
