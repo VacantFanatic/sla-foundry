@@ -213,6 +213,19 @@ export class SlaItemSheet extends foundry.appv1.sheets.ItemSheet {
                 currentSkills = [];
             }
 
+            // MIGRATION: Fix any strings that might be in the array
+            // If the user previously had an array of strings, we convert them now to avoid validation errors
+            const cleanSkills = currentSkills.map(s => {
+                if (typeof s === "string") {
+                    return {
+                        name: s,
+                        rank: 1,
+                        img: "icons/svg/item-bag.svg"
+                    };
+                }
+                return s;
+            });
+
             // 2. Build the data object
             const newSkill = {
                 name: item.name,
@@ -221,12 +234,12 @@ export class SlaItemSheet extends foundry.appv1.sheets.ItemSheet {
             };
 
             // 3. Check for duplicates
-            if (currentSkills.some(s => s.name === newSkill.name)) {
+            if (cleanSkills.some(s => s.name === newSkill.name)) {
                 return ui.notifications.warn(`${newSkill.name} is already in the list.`);
             }
 
             // 4. Update the Item
-            const newArray = [...currentSkills, newSkill];
+            const newArray = [...cleanSkills, newSkill];
             await this.item.update({ "system.skills": newArray });
 
         } catch (err) {
@@ -244,8 +257,13 @@ export class SlaItemSheet extends foundry.appv1.sheets.ItemSheet {
 
         const currentSkills = this.item.system.skills || [];
 
-        // Filter out the specific index
-        const newArray = currentSkills.filter((_, i) => i !== index);
+        // Filter out the specific index AND sanitize remainder
+        const newArray = currentSkills
+            .filter((_, i) => i !== index)
+            .map(s => {
+                if (typeof s === "string") return { name: s, rank: 1, img: "icons/svg/item-bag.svg" };
+                return s;
+            });
 
         await this.item.update({ "system.skills": newArray });
     }
