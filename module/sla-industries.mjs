@@ -3,6 +3,9 @@ import { BoilerplateActor } from "./documents/actor.mjs";
 import { BoilerplateItem } from "./documents/item.mjs";
 import { LuckDialog } from "./apps/luck-dialog.mjs";
 
+import { SlaCharacterData, SlaNPCData } from "./data/actor.mjs";
+import { SlaItemData, SlaSkillData, SlaTraitData, SlaWeaponData, SlaArmorData, SlaEbbFormulaData, SlaDisciplineData, SlaDrugData, SlaSpeciesData, SlaPackageData, SlaMagazineData } from "./data/item.mjs";
+
 // Import sheet classes.
 import { SlaActorSheet } from "./sheets/actor-sheet.mjs";
 import { SlaNPCSheet } from "./sheets/actor-npc-sheet.mjs";
@@ -29,6 +32,25 @@ Hooks.once('init', async function () {
     game.boilerplate = { SlaActorSheet, SlaItemSheet, BoilerplateActor, BoilerplateItem };
     CONFIG.Actor.documentClass = BoilerplateActor;
     CONFIG.Item.documentClass = BoilerplateItem;
+
+    // REGISTER DATA MODELS
+    CONFIG.Actor.dataModels = {
+        character: SlaCharacterData,
+        npc: SlaNPCData
+    };
+    CONFIG.Item.dataModels = {
+        item: SlaItemData,
+        skill: SlaSkillData,
+        trait: SlaTraitData,
+        weapon: SlaWeaponData,
+        armor: SlaArmorData,
+        ebbFormula: SlaEbbFormulaData,
+        discipline: SlaDisciplineData,
+        drug: SlaDrugData,
+        species: SlaSpeciesData,
+        package: SlaPackageData,
+        magazine: SlaMagazineData
+    };
 
     // REGISTER CUSTOM TOKEN RULER
     CONFIG.Token.rulerClass = SLATokenRuler;
@@ -95,5 +117,5 @@ Hooks.once("ready", async function () {
 
     // 3. Initialize Global Chat Listeners
     SLAChat.init();
-    Hooks.on("renderChatMessage", SLAChat.onRenderChatMessage);
+    Hooks.on("renderChatMessageHTML", SLAChat.onRenderChatMessage);
 });
