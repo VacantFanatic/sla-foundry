@@ -1,5 +1,16 @@
 # CHANGELOG
 
+# v0.10.3-alpha
+
+## What's new
+- **Armor Upgrade**: Added support for Powered Armor with toggleable modifiers for STR, DEX, and Movement.
+- **Dead Weight**: Implemented rule where Powered Armor becomes weight 6 if Resistance is destroyed.
+- **Dead Condition**: Automatically applies the "Dead" status overlay when HP reaches 0 and removes it when healed.
+
+## Fixes & Improvements
+- **Armor Damage (AD)**: Improved damage calculation logic. AD now reduces armor resistance *before* the PV is calculated for the hit, ensuring damaged armor provides less protection immediately.
+- **Migration**: Added a migration script to initialize new armor fields for existing items.
+
 # v0.10.0-alpha
 
 ## What's new
