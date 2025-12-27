@@ -5,11 +5,11 @@
   "SLA.StatConc": "Concentration",
   "SLA.StatCha": "Charisma",
   "SLA.StatCool": "Cool",
-
   "TYPES.Item.item": "Item / Gear",
   "TYPES.Item.skill": "Skill",
   "TYPES.Item.trait": "Trait",
   "TYPES.Item.weapon": "Weapon",
+  "TYPES.Item.explosive": "Explosive",
   "TYPES.Item.armor": "Armor",
   "TYPES.Item.ebbFormula": "Ebb Formula",
   "TYPES.Item.discipline": "Ebb Discipline",
@@ -17,7 +17,6 @@
   "TYPES.Item.package": "Training Package",
   "TYPES.Item.species": "Species",
   "TYPES.Item.magazine": "Magazine",
-
   "TYPES.Actor.character": "Operative",
   "TYPES.Actor.npc": "Threat"
 }

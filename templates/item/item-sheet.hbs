@@ -26,7 +26,7 @@
 
             {{!-- 1. CATALOGUE THEME (Weapons, Armor, Gear, Drugs, Ammo) --}}
             {{#if (or (eq item.type "weapon") (or (eq item.type "item") (or (eq item.type "armor") (or (eq item.type
-            "drug") (eq item.type "magazine")))))}}
+            "drug") (or (eq item.type "magazine") (eq item.type "explosive"))))))}}
             {{> "systems/sla-industries/templates/item/parts/item-catalogue.hbs"}}
             {{/if}}
 

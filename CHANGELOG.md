@@ -1,5 +1,25 @@
 # CHANGELOG
 
+# v0.12.0-alpha
+
+## Highlights
+- **Explosives System**: Full implementation of Grenades and Explosives with automated rolling, deviation, and template placement.
+
+## What's new
+- **New Item Type: Explosive**: Created a dedicated item type for explosives with properties for Blast Radius (Inner/Outer), Damage, AD, and Cost.
+- **Automated Grenade Physics**:
+  - **Auto-Aim**: Players click on the canvas to select a target point.
+  - **Deviation**: Automatically calculates if the grenade lands on target, deviates 5m/10m, or fumbles (detonates on user).
+  - **Dual Templates**: Automatically places Measured Templates on the scene. Draws a darker "Kill Zone" inner circle and a lighter "Max Blast" outer circle.
+- **Inventory Management**:
+  - **Quantity Tracking**: Explosives show quantity (e.g., x3) in the Combat Tab.
+  - **Auto-Delete**: Items are automatically removed from inventory when quantity reaches 0.
+
+## Fixes
+- **Ray Deprecation**: Resolved `Ray` global deprecation warning for Foundry V13+.
+- **Token Range**: Fixed an issue where range calculations would fail if the actor's token wasn't correctly identified.
+
+
 # v0.10.3-alpha
 
 ## What's new

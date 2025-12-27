@@ -69,7 +69,7 @@ export class SlaItemSheet extends foundry.appv1.sheets.ItemSheet {
         });
 
         // --- 2. WEAPON SKILL LINKING (NEW) ---
-        const weaponSkillZone = html.find('.skill-link');
+        const weaponSkillZone = html.find('.skill-link-box');
         if (weaponSkillZone.length > 0) {
             // Use jQuery .on to catch originalEvent easily
             weaponSkillZone.on("dragover", event => event.preventDefault());
@@ -151,7 +151,7 @@ export class SlaItemSheet extends foundry.appv1.sheets.ItemSheet {
 
             // Validation: Must be a Skill
             if (!item || item.type !== "skill") {
-                return ui.notifications.warn("Only 'Skill' items can be linked to a weapon.");
+                return ui.notifications.warn("Only 'Skill' items can be linked.");
             }
 
             // Save the NAME of the skill (e.g., "Pistol", "Melee")

@@ -31,7 +31,8 @@ export const preloadHandlebarsTemplates = async function () {
     "systems/sla-industries/templates/item/parts/item-dossier.hbs",
     "systems/sla-industries/templates/actor/parts/combat-tab.hbs",
     "systems/sla-industries/templates/chat/chat-damage-result.hbs",
-    "systems/sla-industries/templates/actor/parts/combat-loadout.hbs"
+    "systems/sla-industries/templates/actor/parts/combat-loadout.hbs",
+    "systems/sla-industries/templates/item/parts/item-explosive.hbs"
   ];
 
   // Load the template parts

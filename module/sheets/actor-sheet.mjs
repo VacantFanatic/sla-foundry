@@ -91,6 +91,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         const inventory = {
             weapon: { label: "Weapons", items: [] },
             armor: { label: "Armor", items: [] },
+            explosive: { label: "Explosives", items: [] },
             magazine: { label: "Ammunition", items: [] },
             drug: { label: "Drugs", items: [] },
             item: { label: "Gear", items: [] }
@@ -133,6 +134,10 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 i.isReloadable = !["melee", "unarmed"].includes(skillKey);
 
                 weapons.push(i);
+            }
+
+            if (i.type === 'explosive') {
+                weapons.push(i); // Add to combat tab
             }
 
             if (i.type === 'armor') armors.push(i);
@@ -449,6 +454,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 // Pass the flag to your existing dialog renderer
                 await this._renderAttackDialog(item, isMelee);
 
+            }
+            else if (item.type === 'explosive') {
+                await this._renderExplosiveDialog(item);
             }
             else if (item.type === 'ebbFormula') {
                 this._executeEbbRoll(item);
@@ -940,6 +948,347 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                     damageMod: mods.damage,
                     adValue: adValue,
                     autoSkillSuccesses: mods.autoSkillSuccesses
+                }
+            }
+        });
+    }
+
+    // --- EXPLOSIVE LOGIC ---
+    async _renderExplosiveDialog(item) {
+        // Prepare Template Data (Simplified for Explosives)
+        const templateData = {
+            item: item,
+            isMelee: false, // It's ranged/thrown usually
+            validModes: { "single": { label: "Single", active: true, rounds: 1, recoil: 0 } }, // Dummy structure
+            selectedMode: "single",
+            recoil: 0
+        };
+
+        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/attack-dialog.hbs", templateData);
+
+        new Dialog({
+            title: `Throw: ${item.name}`,
+            content: content,
+            buttons: {
+                roll: {
+                    label: "THROW",
+                    callback: (html) => this._processExplosiveRoll(item, html)
+                }
+            },
+            default: "roll"
+        }, {
+            classes: ["sla-dialog-window", "dialog"]
+        }).render(true);
+    }
+
+    async _processExplosiveRoll(item, html) {
+        const form = html[0].querySelector("form");
+        if (!form) return;
+
+        // 1. EXTRACT FORM DATA (Before closing dialog)
+        const rollData = {
+            mod: Number(form.modifier?.value) || 0,
+            cover: Number(form.cover?.value) || 0,
+            aiming: form.aiming?.value || "none",
+            blind: form.blind?.checked || false
+        };
+
+        // 2. DETERMINE BLAST RADIUS for Template
+        const innerDist = item.system.blastRadiusInner || 0;
+        let outerDist = item.system.blastRadiusOuter || 0;
+        if (outerDist === 0) outerDist = 5; // Default fallback
+
+        // 3. START AIMING WORKFLOW
+        // We hide the dialog but don't strictly close it? Actually, standard is to let the callback finish then close.
+
+        // Notify
+        ui.notifications.info("Select target position...");
+
+        // Use a simple crosshair picker if we don't want to re-implement full Template Preview
+        // But the user asked for "blast radius template centered on where..."
+        // Ideally we show the template while aiming.
+
+        // We'll calculate the pixel distance for the radius, but purely for visualization if we implemented it.
+        // const pixelDist = (outerDist / canvas.scene.grid.distance) * canvas.scene.grid.size;
+
+        // Simple Handler
+        const target = await this._waitForCanvasClick();
+        if (!target) return; // Cancelled
+
+        // 4. RESOLVE
+        await this._resolveExplosiveRoll(item, rollData, target, outerDist, innerDist);
+    }
+
+    _waitForCanvasClick() {
+        return new Promise((resolve) => {
+            const handler = (event) => {
+                event.stopPropagation();
+                // Get world coords
+                const pos = event.data.getLocalPosition(canvas.app.stage);
+                canvas.app.stage.off('click', handler);
+                resolve({ x: pos.x, y: pos.y });
+            };
+            canvas.app.stage.on('click', handler);
+
+            // Allow cancelling with Right Click
+            const cancelHandler = (event) => {
+                canvas.app.stage.off('click', handler);
+                canvas.app.stage.off('rightdown', cancelHandler);
+                resolve(null);
+            };
+            canvas.app.stage.on('rightdown', cancelHandler);
+        });
+    }
+
+    async _resolveExplosiveRoll(item, rollData, target, blastRadius, innerDist) {
+        // 1. CONSUME QUANTITY
+        const currentQty = item.system.quantity || 0;
+        if (currentQty <= 0) {
+            return ui.notifications.warn(`You are out of ${item.name}s.`);
+        }
+
+        const newQty = currentQty - 1;
+        if (newQty === 0) {
+            await item.delete();
+        } else {
+            await item.update({ "system.quantity": newQty });
+        }
+
+        // 2. SETUP STATS
+        const skillName = item.system.skill || "throw";
+
+        // Basic lookup same as weapon
+        const combatSkills = CONFIG.SLA?.combatSkills || {};
+        let targetSkillName = skillName;
+        if (combatSkills[skillName]) targetSkillName = combatSkills[skillName];
+        else if (skillName) targetSkillName = skillName;
+
+        // Find skill rank
+        let rank = 0;
+        let skillItemForStat = null;
+
+        if (targetSkillName) {
+            const skillItem = this.actor.items.find(i => i.type === 'skill' && i.name.trim().toLowerCase() === targetSkillName.trim().toLowerCase());
+            if (skillItem) {
+                rank = Number(skillItem.system.rank) || 0;
+                skillItemForStat = skillItem;
+            }
+        }
+
+        const statKey = skillItemForStat?.system?.stat || "dex";
+        const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
+        const strValue = this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0;
+
+        // 3. READ MODIFIERS
+        let mods = {
+            successDie: 0,
+            allDice: rollData.mod,
+            rank: 0,
+            damage: 0,
+            autoSkillSuccesses: 0
+        };
+        let notes = [];
+        if (item.system.blastRadiusInner || item.system.blastRadiusOuter) {
+            const txt = item.system.blastRadiusInner > 0
+                ? `${item.system.blastRadiusInner}/${item.system.blastRadiusOuter}m`
+                : `${item.system.blastRadiusOuter}m`;
+            notes.push(`<strong>Blast:</strong> ${txt}`);
+        }
+
+        // RANGE CALCULATION & VALIDATION
+        const effectiveRange = 15 + (Math.min(Math.max(0, strValue), 5) * 5);
+        notes.push(`<strong>Max Range:</strong> ${effectiveRange}m`);
+
+        // Check Distance to Target from Token
+        // Fix: this.token is a Document, not a Placeable. Use canvas token.
+        const token = this.token?.object ?? this.actor.getActiveTokens()[0];
+
+        if (token) {
+            const ray = new foundry.canvas.geometry.Ray(token.center, target);
+            const distMeters = (ray.distance / canvas.scene.grid.size) * canvas.scene.grid.distance;
+
+            if (distMeters > effectiveRange) {
+                notes.push(`<strong style='color:#ffa500'>OUT OF RANGE (${Math.round(distMeters)}m)</strong>`);
+                // Apply Range Penalty? Rules say "Normal modifiers for long range are applied"
+                // For now just warn
+            }
+        }
+
+        // Global Conditions
+        if (this.actor.system.conditions?.prone) mods.allDice -= 1;
+        if (this.actor.system.conditions?.stunned) mods.allDice -= 1;
+        const penalty = this.actor.system.wounds.penalty || 0;
+        mods.allDice -= penalty;
+
+        // Form Inputs
+        mods.successDie += rollData.cover;
+
+        if (rollData.aiming === "sd") mods.successDie += 1;
+        if (rollData.aiming === "skill") mods.autoSkillSuccesses += 1;
+
+        // 4. ROLL
+        const baseModifier = statValue + rank + mods.allDice;
+        const skillDiceCount = Math.max(0, rank + 1 + mods.rank);
+
+        const rollFormula = `1d10 + ${skillDiceCount}d10`;
+        let roll = createSLARoll(rollFormula);
+        await roll.evaluate();
+
+        // 5. RESULTS AND DEVIATION
+        const TN = 11;
+        const sdRaw = roll.terms[0].results[0].result;
+        const sdTotal = sdRaw + baseModifier + mods.successDie;
+        let isBaseSuccess = sdTotal >= TN;
+
+        // Count Skill Dice Hits
+        let skillSuccessCount = 0;
+        let skillDiceData = [];
+
+        if (roll.terms.length > 2) {
+            roll.terms[2].results.forEach(r => {
+                let val = r.result + baseModifier;
+                let isHit = val >= TN;
+                if (isHit) skillSuccessCount++;
+
+                skillDiceData.push({
+                    raw: r.result,
+                    total: val,
+                    borderColor: isHit ? "#39ff14" : "#555",
+                    textColor: isHit ? "#39ff14" : "#ccc"
+                });
+            });
+        }
+        skillSuccessCount += mods.autoSkillSuccesses;
+
+        // --- DEVIATION LOGIC ---
+        let outcomeText = "";
+        let resultColor = "#f55";
+        let isSuccess = false;
+
+        let finalX = target.x;
+        let finalY = target.y;
+
+        const allDiceFailed = (!isBaseSuccess) && (skillSuccessCount === 0);
+
+        if (allDiceFailed) {
+            // FUMBLE: Detonates on location!
+            outcomeText = "<strong style='color:#ff0000; font-size:1.1em;'>FUMBLE: Detonates on Thrower!</strong>";
+            resultColor = "#ff0000";
+
+            if (token) {
+                finalX = token.center.x;
+                finalY = token.center.y;
+            }
+        }
+        else if (isBaseSuccess && skillSuccessCount > 0) {
+            // HIT
+            outcomeText = "<strong style='color:#39ff14'>LANDS ON TARGET</strong>";
+            resultColor = "#39ff14";
+            isSuccess = true;
+        }
+        else if (isBaseSuccess && skillSuccessCount === 0) {
+            // DEVIATION 5m
+            outcomeText = "<strong style='color:#ffa500'>DEVIATION: 5m</strong>";
+            resultColor = "#ffa500";
+
+            const devPixels = (5 / canvas.scene.grid.distance) * canvas.scene.grid.size;
+            const angle = Math.random() * 2 * Math.PI;
+            finalX += Math.cos(angle) * devPixels;
+            finalY += Math.sin(angle) * devPixels;
+        }
+        else {
+            // DEVIATION 10m
+            outcomeText = "<strong style='color:#ff5555'>DEVIATION: 10m</strong>";
+            resultColor = "#ff5555";
+
+            const devPixels = (10 / canvas.scene.grid.distance) * canvas.scene.grid.size;
+            const angle = Math.random() * 2 * Math.PI;
+            finalX += Math.cos(angle) * devPixels;
+            finalY += Math.sin(angle) * devPixels;
+        }
+
+        // Add note about kill-zone
+        if (innerDist > 0) {
+            notes.push(`<br/><strong>Kill Zone (< ${innerDist}m):</strong> +2 Damage`);
+        }
+
+        // 6. PLACE TEMPLATE(S)
+        try {
+            const templates = [];
+
+            // 1. Outer Template (Lighter)
+            templates.push({
+                t: "circle",
+                user: game.user.id,
+                x: finalX,
+                y: finalY,
+                distance: blastRadius, // Outer
+                fillColor: game.user.color,
+                // Make it lighter/transparent
+                fillAlpha: 0.2,
+                flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "outer" } }
+            });
+
+            // 2. Inner Template (Darker / Kill Zone)
+            if (innerDist > 0 && innerDist < blastRadius) {
+                templates.push({
+                    t: "circle",
+                    user: game.user.id,
+                    x: finalX,
+                    y: finalY,
+                    distance: innerDist, // Inner
+                    fillColor: game.user.color, // Same color, just more opaque
+                    fillAlpha: 0.6,
+                    flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "inner" } }
+                });
+            }
+
+            // Create the template(s)
+            canvas.scene.createEmbeddedDocuments("MeasuredTemplate", templates);
+
+        } catch (err) {
+            console.error("SLA | Template Creation Failed:", err);
+        }
+
+        // Damage
+        let baseDmg = item.system.damage || "0";
+        const adValue = Number(item.system.ad) || 0;
+
+        // Render Template Data
+        const templateData = {
+            actorUuid: this.actor.uuid,
+            borderColor: resultColor,
+            headerColor: resultColor,
+            resultColor: resultColor,
+            itemName: item.name.toUpperCase(),
+            successTotal: sdTotal,
+            tooltip: this._generateTooltip(roll, baseModifier, mods.successDie),
+            skillDice: skillDiceData,
+            notes: notes.join(" "),
+            showDamageButton: true,
+            dmgFormula: baseDmg,
+            adValue: adValue,
+            mos: {
+                isSuccess: isSuccess,
+                hits: skillSuccessCount,
+                effect: outcomeText
+            },
+            canUseLuck: this.actor.system.stats.luck.value > 0,
+            luckValue: this.actor.system.stats.luck.value
+        };
+
+        const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+
+        roll.toMessage({
+            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+            content: chatContent,
+            flags: {
+                sla: {
+                    baseModifier: baseModifier,
+                    itemName: item.name.toUpperCase(),
+                    targets: Array.from(game.user.targets).map(t => t.document.uuid),
+                    damageBase: baseDmg,
+                    adValue: adValue
                 }
             }
         });

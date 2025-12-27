@@ -1,0 +1,22 @@
+{{!-- Standard Stats --}}
+<div class="form-group"><label>Dmg</label><input type="text" name="system.damage" value="{{system.damage}}" /></div>
+<div class="form-group"><label>Min</label><input type="text" name="system.minDamage" value="{{system.minDamage}}" />
+</div>
+<div class="form-group"><label>AD</label><input type="number" name="system.ad" value="{{system.ad}}" /></div>
+<div class="form-group"><label>Kill Zone (m)</label><input type="number" name="system.blastRadiusInner"
+        value="{{system.blastRadiusInner}}" placeholder="0" /></div>
+<div class="form-group"><label>Max Blast (m)</label><input type="number" name="system.blastRadiusOuter"
+        value="{{system.blastRadiusOuter}}" placeholder="5" /></div>
+
+{{!-- Skill Drop Zone --}}
+<div class="form-group" style="grid-column: 1 / -1;">
+    <label>Required Skill</label>
+    <div class="drop-zone skill-link-box {{#if system.skill}}filled{{/if}}">
+        {{#if system.skill}}
+        <span class="skill-name">{{system.skill}}</span>
+        <a class="remove-skill-link" title="Unlink Skill"><i class="fas fa-times"></i></a>
+        {{else}}
+        <span class="placeholder">Drop Skill Item Here</span>
+        {{/if}}
+    </div>
+</div>
