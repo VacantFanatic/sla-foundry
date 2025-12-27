@@ -1570,6 +1570,13 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             return;
         }
 
+        // 3. AUTO-EQUIP FOR NPCs (Armor/Weapons)
+        // NPCs lack an "Active" toggle on their sheet, so items must default to equipped.
+        if (this.actor.type === "npc" && ["weapon", "armor"].includes(itemData.type)) {
+            foundry.utils.setProperty(itemData, "system.equipped", true);
+            return this.actor.createEmbeddedDocuments("Item", [itemData]);
+        }
+
         // Default Drop Handler
         return super._onDropItem(event, data);
     }

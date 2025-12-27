@@ -12,7 +12,7 @@ export class BoilerplateActor extends Actor {
         const system = actorData.system;
 
         // Safety check
-        if (!system.stats || !system.ratings) return;
+        if (!system.stats) return;
 
         // Only calculate for Characters and NPCs
         if (actorData.type === 'character' || actorData.type === 'npc') {
@@ -150,7 +150,8 @@ export class BoilerplateActor extends Actor {
         let totalWeight = 0;
         let highestPV = 0;
 
-        for (const item of this.items) {
+        // FIX: Iterate values(), otherwise Collection yields [id, item] entries
+        for (const item of this.items.values()) {
             const d = item.system;
 
             // Weight
@@ -168,9 +169,14 @@ export class BoilerplateActor extends Actor {
             totalWeight += (itemWeight * (d.quantity || 1));
 
             // Armor PV
-            if (item.type === 'armor' && d.equipped) {
+            // For NPCs, since they lack an Equip toggle, we treat ALL armor as equipped.
+            // For Characters, we respect the 'equipped' flag.
+            const isEquipped = (this.type === 'npc') || d.equipped;
+
+            if (item.type === 'armor' && isEquipped) {
                 let currentPV = d.pv || 0;
                 const res = d.resistance;
+
                 if (res) {
                     if (res.value <= 0) currentPV = 0;
                     else if (res.value < (res.max / 2)) currentPV = Math.floor(currentPV / 2);
@@ -179,34 +185,70 @@ export class BoilerplateActor extends Actor {
             }
         }
 
-        system.encumbrance.value = Math.round(totalWeight * 10) / 10;
+        // Create encumbrance object if missing (for safety, though we check below)
+        // Or better: Only write to it if it exists.
 
-        // Max carry is based on STR (Total)
-        // Note: We use the STR calculated in step 1/2 (Base + Drugs)
-        const strTotal = system.stats.str?.total || 0;
-        system.encumbrance.max = Math.max(8, strTotal * 3);
+        // ------------------------------------------
+        // ENCUMBRANCE LOGIC (Characters Only)
+        // ------------------------------------------
+        if (system.encumbrance) {
+            system.encumbrance.value = Math.round(totalWeight * 10) / 10;
 
-        const encDiff = Math.floor(system.encumbrance.max - system.encumbrance.value);
+            // Max carry is based on STR (Total)
+            const strTotal = system.stats.str?.total || 0;
+            system.encumbrance.max = Math.max(8, strTotal * 3);
 
-        // Store penalty data for the next step
-        system.encumbrance.penalty = 0;
-        system.encumbrance.moveCap = null;
+            const encDiff = Math.floor(system.encumbrance.max - system.encumbrance.value);
 
-        if (encDiff === 1) {
-            system.encumbrance.penalty = 1;
-            system.encumbrance.moveCap = 1;
+            // Store penalty data for the next step
+            system.encumbrance.penalty = 0;
+            system.encumbrance.moveCap = null;
+
+            if (encDiff === 1) {
+                system.encumbrance.penalty = 1;
+                system.encumbrance.moveCap = 1;
+            }
+            else if (encDiff === 0) {
+                system.encumbrance.penalty = 2;
+                system.encumbrance.moveCap = 1;
+            }
+            else if (encDiff < 0) {
+                // Ensure conditions object exists
+                if (!system.conditions) system.conditions = {};
+                system.conditions.immobile = true;
+            }
         }
-        else if (encDiff === 0) {
-            system.encumbrance.penalty = 2;
-            system.encumbrance.moveCap = 1;
-        }
-        else if (encDiff < 0) {
-            system.conditions.immobile = true;
-        }
 
-        // Set Armor PV
+        // ------------------------------------------
+        // ARMOR PV LOGIC (Applied to ALL Actors)
+        // ------------------------------------------
         if (!system.armor) system.armor = { pv: 0, resist: 0 };
-        system.armor.pv = highestPV;
+
+        // 'system.armor.pv' is the database field (Base/Natural PV)
+        // We want 'system.armor.total' or effective PV to be used for rolls.
+        // However, the sheet displays 'system.armor.pv'.
+        // If we overwrite it, we mask the input.
+
+        // FIX: If we are an NPC, we might want to prioritize the calculated value for display
+        // IF it exceeds the base value.
+        // But if the user types 10, and armor is 8, we want 10.
+        // If armor is 12, and user typed 0, we want 12.
+
+        // Let's store the final derived value in 'system.armor.total' (if not present in schema, it's ephemeral)
+        // And update the SHEET to display 'system.armor.total' if you want a read-only view,
+        // OR keep overwriting 'pv' but understand the DB value is what persists.
+
+        // Current implementation:
+        // system.armor.pv = Math.max(system.armor.pv || 0, highestPV);
+        // This *should* work if 'system.armor.pv' is 0.
+
+        // Maybe the issue is type coercion?
+        const basePV = Number(system.armor.pv) || 0;
+
+        system.armor.pv = Math.max(basePV, highestPV);
+
+        // Also ensure derived 'value' property exists if templates use it
+        system.armor.value = system.armor.pv;
     }
 
     /* -------------------------------------------- */
@@ -214,7 +256,7 @@ export class BoilerplateActor extends Actor {
     /* -------------------------------------------- */
     _applyPenalties(system) {
         // A. Encumbrance Penalty (Affects DEX)
-        if (system.encumbrance.penalty > 0 && system.stats.dex) {
+        if (system.encumbrance?.penalty > 0 && system.stats.dex) {
             system.stats.dex.total = Math.max(0, system.stats.dex.total - system.encumbrance.penalty);
         }
 

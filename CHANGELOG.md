@@ -1,9 +1,18 @@
 # CHANGELOG
 
+# v0.13.2-alpha
+    
+## Fixes
+- **Critical Crash**: Fixed a crash that occurred when applying encumbrance penalties to actors (Threats) that lacked the necessary data structures.
+- **Threat Armor PV**: Fixed a bug where missing `ratings` data on Threats prevented ANY derived stats (including Armor PV) from being calculated.
+- **PV Display**: Updated the Threat Sheet to correctly display the calculated effective Armor PV.
+
 # v0.13.1-alpha
 
 ## Fixes
 - **Weapon Firing Modes**: Fixed an issue where the "Enable" toggle for firing modes in the Item Sheet was unclickable.
+- **Threat Armor PV**: Threats (NPCs) now automatically derive their Protection Value (PV) from equipped armor, and respect armor degradation rules.
+- **Threat Movement**: Fixed an issue where Threat movement speeds would reset to 0 upon update.
 
 # v0.13.0-alpha
 
