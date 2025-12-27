@@ -112,6 +112,10 @@ export class SlaNPCData extends foundry.abstract.TypeDataModel {
             armor: new fields.SchemaField({
                 pv: new fields.NumberField({ initial: 0 }),
                 resist: new fields.NumberField({ initial: 0 })
+            }),
+            move: new fields.SchemaField({
+                closing: new fields.NumberField({ initial: 0, min: 0 }),
+                rushing: new fields.NumberField({ initial: 0, min: 0 })
             })
         };
     }
