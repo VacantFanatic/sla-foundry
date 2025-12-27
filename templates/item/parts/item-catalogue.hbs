@@ -1,3 +1,31 @@
+{{#if (eq item.type "drug")}}
+{{!-- DRUG SPECIFIC LAYOUT: Two Columns --}}
+<div class="catalogue-grid">
+
+    {{!-- Left Column: Generic Stats --}}
+    <div class="drug-generic-stats" style="display:flex; flex-direction:column; gap:10px;">
+        <div class="form-group">
+            <label>Weight</label>
+            <input type="number" name="system.weight" value="{{system.weight}}" step="0.1" />
+        </div>
+        <div class="form-group">
+            <label>Cost</label>
+            <input type="number" name="system.price" value="{{system.price}}" />
+        </div>
+        <div class="form-group">
+            <label>Qty</label>
+            <input type="number" name="system.quantity" value="{{system.quantity}}" />
+        </div>
+    </div>
+
+    {{!-- Right Column: Drug Specifics --}}
+    <div class="drug-panel-wrapper">
+        {{> "systems/sla-industries/templates/item/parts/item-drug.hbs"}}
+    </div>
+</div>
+
+{{else}}
+{{!-- STANDARD CATALOGUE LAYOUT --}}
 <div class="catalogue-grid">
     {{!-- COMMON FIELDS (Shared by all physical items) --}}
     <div class="form-group">
@@ -35,11 +63,6 @@
     {{> "systems/sla-industries/templates/item/parts/item-magazine.hbs"}}
     {{/if}}
 
-    {{!-- Drug --}}
-    {{#if (eq item.type "drug")}}
-    {{> "systems/sla-industries/templates/item/parts/item-drug.hbs"}}
-    {{/if}}
-
     {{!-- Generic Item Notes (Fallback for type "item") --}}
     {{#if (eq item.type "item")}}
     <div class="form-group" style="grid-column: 1 / -1;">
@@ -48,3 +71,4 @@
     </div>
     {{/if}}
 </div>
+{{/if}}

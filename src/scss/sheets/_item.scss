@@ -31,7 +31,7 @@
 /* Academic Theme (Skills/Traits) */
 .item.skill .window-content,
 .item.trait .window-content {
-    background: #fdfbf7 !important;
+    background: #ffffff !important;
     font-family: "Georgia", serif;
 }
 
@@ -280,10 +280,203 @@
     color: #f88;
 }
 
-.empty-dossier-text {
-    width: 100%;
+
+/* ==========================================
+   21. CATALOGUE THEME GRID
+   ========================================== */
+.catalogue-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+}
+
+.item-catalogue .form-group {
+    background: #ccc;
+    border: 1px solid #999;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+}
+
+.item-catalogue label {
+    font-size: 0.7em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #555;
+}
+
+.item-catalogue input {
+    background: transparent;
+    border: none;
+    font-weight: bold;
+    color: #000;
+    border-bottom: 1px solid #999;
+}
+
+/* ==========================================
+   22. ACADEMIC THEME (Textbook)
+   ========================================== */
+.academic-paper {
+    padding: 20px;
+    font-family: "Georgia", serif;
+    background: #ffffff;
+    color: #000000;
+    border-radius: 4px;
+    height: 100%;
+}
+
+.academic-paper .line-item {
+    display: flex;
+    align-items: baseline;
+    border-bottom: 1px dotted #666;
+    margin-bottom: 8px;
+    padding-bottom: 2px;
+}
+
+.academic-paper label {
+    flex: 0 0 auto;
+    font-weight: bold;
+    margin-right: 10px;
+    color: #333;
+}
+
+.academic-paper input,
+.academic-paper select {
+    flex: 1;
+    background: transparent !important;
+    border: none !important;
+    font-family: inherit;
+    font-size: 1.1em;
+    color: #000 !important;
+}
+
+/* ==========================================
+   23. SPECTRAL THEME (Ebb)
+   ========================================== */
+.spectral-container {
+    padding: 15px;
+    color: #d8bfff;
+}
+
+.glow-input {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+.glow-input label {
+    color: #a855f7;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-shadow: 0 0 5px #a855f7;
+}
+
+
+.glow-input input {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #8a2be2 !important;
+    color: #fff !important;
+    box-shadow: 0 0 5px #8a2be2;
+    transition: all 0.3s ease;
+    padding: 2px 5px;
+    width: 50%;
+    height: 24px;
+    font-size: 1.1em;
+    /* Increased Size */
+}
+
+/* ==========================================
+   24. GLOBAL DROP ZONES
+   ========================================== */
+.drop-zone {
+    border: 2px dashed #777;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 5px;
+    border-radius: 4px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
     text-align: center;
-    line-height: 50px;
-    color: #666;
-    font-style: italic;
+}
+
+.drop-zone:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #aaa;
+}
+
+.drop-zone.filled {
+    border: 2px solid #555;
+    background: transparent;
+}
+
+/* Specific overrides for themes */
+.item.ebbFormula .drop-zone {
+    border-color: #8a2be2;
+    background: rgba(138, 43, 226, 0.1);
+}
+
+.item.ebbFormula .drop-zone.filled {
+    border-style: solid;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.item.package .drop-zone,
+.item.species .drop-zone {
+    border-color: var(--sla-border);
+}
+
+.item.package .drop-zone.filled,
+.item.species .drop-zone.filled {
+    border-style: solid;
+}
+
+
+
+/* ==========================================
+   25. SINGLE VIEW LAYOUT
+   ========================================== */
+.sheet-body.single-view {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    height: 100%;
+    overflow: hidden;
+    gap: 15px;
+}
+
+.sheet-body.single-view .sheet-attributes {
+    flex: 0 0 auto;
+    /* Takes only as much space as needed */
+    display: flex;
+    flex-direction: column;
+}
+
+.sheet-body.single-view .sheet-description {
+    flex: 1;
+    /* Takes remaining space */
+    display: flex;
+    flex-direction: column;
+    min-height: 100px;
+}
+
+.sheet-body.single-view .sheet-description .editor {
+    flex: 1;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.sla-header-bar-small {
+    background: #222;
+    color: #fff;
+    padding: 2px 5px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-bottom: 2px solid #555;
+    margin-bottom: 5px;
 }
