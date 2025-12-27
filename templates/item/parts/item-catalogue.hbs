@@ -20,6 +20,11 @@
     {{> "systems/sla-industries/templates/item/parts/item-weapon.hbs"}}
     {{/if}}
 
+    {{!-- Explosive --}}
+    {{#if (eq item.type "explosive")}}
+    {{> "systems/sla-industries/templates/item/parts/item-explosive.hbs"}}
+    {{/if}}
+
     {{!-- Armor --}}
     {{#if (eq item.type "armor")}}
     {{> "systems/sla-industries/templates/item/parts/item-armor.hbs"}}

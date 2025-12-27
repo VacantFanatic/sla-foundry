@@ -4,7 +4,7 @@ import { BoilerplateItem } from "./documents/item.mjs";
 import { LuckDialog } from "./apps/luck-dialog.mjs";
 
 import { SlaCharacterData, SlaNPCData } from "./data/actor.mjs";
-import { SlaItemData, SlaSkillData, SlaTraitData, SlaWeaponData, SlaArmorData, SlaEbbFormulaData, SlaDisciplineData, SlaDrugData, SlaSpeciesData, SlaPackageData, SlaMagazineData } from "./data/item.mjs";
+import { SlaItemData, SlaSkillData, SlaTraitData, SlaWeaponData, SlaArmorData, SlaEbbFormulaData, SlaDisciplineData, SlaDrugData, SlaSpeciesData, SlaPackageData, SlaMagazineData, SlaExplosiveData } from "./data/item.mjs";
 
 // Import sheet classes.
 import { SlaActorSheet } from "./sheets/actor-sheet.mjs";
@@ -43,6 +43,7 @@ Hooks.once('init', async function () {
         skill: SlaSkillData,
         trait: SlaTraitData,
         weapon: SlaWeaponData,
+        explosive: SlaExplosiveData,
         armor: SlaArmorData,
         ebbFormula: SlaEbbFormulaData,
         discipline: SlaDisciplineData,

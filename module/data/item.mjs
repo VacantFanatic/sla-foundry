@@ -11,6 +11,25 @@ export class SlaItemData extends foundry.abstract.TypeDataModel {
     }
 }
 
+export class SlaExplosiveData extends foundry.abstract.TypeDataModel {
+    static defineSchema() {
+        const fields = foundry.data.fields;
+        return {
+            damage: new fields.StringField({ initial: "1d10" }),
+            minDamage: new fields.StringField({ initial: "0" }),
+            ad: new fields.NumberField({ initial: 0 }),
+            blastRadiusInner: new fields.NumberField({ initial: 0 }),
+            blastRadiusOuter: new fields.NumberField({ initial: 5 }),
+            skill: new fields.StringField({ initial: "Throw" }),
+            weight: new fields.NumberField({ initial: 1, min: 0 }),
+            price: new fields.NumberField({ initial: 15, min: 0 }),
+            quantity: new fields.NumberField({ initial: 1, min: 0, integer: true }),
+            equipped: new fields.BooleanField({ initial: false }),
+            description: new fields.HTMLField()
+        };
+    }
+}
+
 export class SlaMagazineData extends foundry.abstract.TypeDataModel {
     static defineSchema() {
         const fields = foundry.data.fields;
