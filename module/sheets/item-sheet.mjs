@@ -33,7 +33,24 @@ export class SlaItemSheet extends foundry.appv1.sheets.ItemSheet {
             relativeTo: this.item
         });
 
-        // --- 2. EBB IMAGE LOOKUP ---
+        // --- 2. PREPARE FIRING MODES (Data Model -> Object) ---
+        // Using toObject() ensures we work with POJOs. Explicit keys ensure iteration order.
+        if (this.item.type === "weapon") {
+            context.firingModes = {};
+            const knownModes = ["single", "burst", "auto", "suppressive"];
+            const sourceModes = this.item.system.toObject().firingModes || {};
+
+            for (const key of knownModes) {
+                if (sourceModes[key]) {
+                    context.firingModes[key] = {
+                        ...sourceModes[key],
+                        id: key
+                    };
+                }
+            }
+        }
+
+        // --- 3. EBB IMAGE LOOKUP ---
         if (this.item.actor && context.system.discipline) {
             const disciplineItem = this.item.actor.items.find(i =>
                 i.type === "discipline" &&

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# v0.13.1-alpha
+
+## Fixes
+- **Weapon Firing Modes**: Fixed an issue where the "Enable" toggle for firing modes in the Item Sheet was unclickable.
+
 # v0.13.0-alpha
 
 ## Highlights
