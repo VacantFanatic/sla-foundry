@@ -40,10 +40,12 @@
         <div class="col-stat">Recoil</div>
     </div>
 
-    {{#each system.firingModes as |mode key|}}
+    {{!-- Note: We iterate over 'firingModes' (prepared in sheet getData), NOT system.firingModes --}}
+    {{#each firingModes as |mode key|}}
     <div class="firing-mode-row {{#if mode.active}}enabled{{/if}}">
         <div class="col-active">
-            <input type="checkbox" name="system.firingModes.{{key}}.active" {{checked mode.active}}>
+            {{!-- The NAME is crucial: system.firingModes.<key>.active --}}
+                <input type="checkbox" name="system.firingModes.{{key}}.active" {{checked mode.active}}>
         </div>
         <div class="col-name">{{mode.label}}</div>
         <div class="col-stat">
