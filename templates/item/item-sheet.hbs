@@ -12,46 +12,63 @@
         </div>
     </header>
 
-    {{!-- NAVIGATION --}}
+    {{!-- LOGIC: Group A (Tabs) vs Group B (Single View) --}}
+    {{#if (or (eq item.type "weapon") (or (eq item.type "armor") (eq item.type "explosive")))}}
+
+    {{!-- === GROUP A: PRESERVE TABS === --}}
     <nav class="sheet-tabs tabs" data-group="primary">
         <a class="item" data-tab="attributes">Details</a>
         <a class="item" data-tab="description">Description</a>
     </nav>
 
-    {{!-- SHEET BODY --}}
     <section class="sheet-body">
-
-        {{!-- ATTRIBUTES TAB --}}
         <div class="tab attributes" data-group="primary" data-tab="attributes">
+            {{> "systems/sla-industries/templates/item/parts/item-catalogue.hbs"}}
+        </div>
 
-            {{!-- 1. CATALOGUE THEME (Weapons, Armor, Gear, Drugs, Ammo) --}}
-            {{#if (or (eq item.type "weapon") (or (eq item.type "item") (or (eq item.type "armor") (or (eq item.type
-            "drug") (or (eq item.type "magazine") (eq item.type "explosive"))))))}}
+        <div class="tab description" data-group="primary" data-tab="description">
+            {{editor enrichedDescription target="system.description" engine="prosemirror" button=true owner=owner
+            editable=editable}}
+        </div>
+    </section>
+
+    {{else}}
+
+    {{!-- === GROUP B: SINGLE VIEW (Attributes -> Drop Zone -> Description) === --}}
+    <section class="sheet-body single-view">
+
+        {{!-- ROW 1 & 2: ATTRIBUTES & DROP ZONES (Handled by Partials) --}}
+        <div class="sheet-attributes">
+
+            {{!-- Magazine / Drug / Generic Item (From Catalogue) --}}
+            {{#if (or (eq item.type "magazine") (or (eq item.type "drug") (eq item.type "item")))}}
             {{> "systems/sla-industries/templates/item/parts/item-catalogue.hbs"}}
             {{/if}}
 
-            {{!-- 2. ACADEMIC THEME (Skills, Traits) --}}
+            {{!-- Academic (Skill / Trait) --}}
             {{#if (or (eq item.type "skill") (eq item.type "trait"))}}
             {{> "systems/sla-industries/templates/item/parts/item-academic.hbs"}}
             {{/if}}
 
-            {{!-- 3. SPECTRAL THEME (Ebb, Discipline) --}}
+            {{!-- Spectral (Ebb / Discipline) --}}
             {{#if (or (eq item.type "ebbFormula") (eq item.type "discipline"))}}
             {{> "systems/sla-industries/templates/item/parts/item-spectral.hbs"}}
             {{/if}}
 
-            {{!-- 4. DOSSIER THEME (Species, Package) --}}
+            {{!-- Dossier (Species / Package) --}}
             {{#if (or (eq item.type "species") (eq item.type "package"))}}
             {{> "systems/sla-industries/templates/item/parts/item-dossier.hbs"}}
             {{/if}}
-
         </div>
 
-        {{!-- DESCRIPTION TAB --}}
-        <div class="tab description" data-group="primary" data-tab="description">
+        {{!-- ROW 3: DESCRIPTION (Always at bottom) --}}
+        <div class="sheet-description">
+            <div class="sla-header-bar-small">Description</div>
             {{editor enrichedDescription target="system.description" engine="prosemirror" button=true owner=owner
             editable=editable}}
         </div>
 
     </section>
+
+    {{/if}}
 </form>

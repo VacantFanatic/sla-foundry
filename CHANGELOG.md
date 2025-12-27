@@ -1,5 +1,24 @@
 # CHANGELOG
 
+# v0.13.0-alpha
+
+## Highlights
+- **User Interface Overhaul**: Major redesign of all Item Sheets with distinct "in-universe" themes (Catalogue, Textbook, Spectral, Dossier).
+- **Threat Sheets**: Dedicated visual identity for NPC/Threat sheets with a toxic green schema.
+
+## What's new
+- **Item Sheet Themes**: 
+  - **Catalogue** (Weapons, Armor, Gear): Industrial aesthetics with clear grids.
+  - **Textbook** (Skills, Traits): "Academic Paper" style with white background and serif fonts details.
+  - **Spectral** (Ebb, Discipline): Dark, glowing purple aesthetic for Ebb-related items.
+  - **Dossier** (Species, Package): Secret classified folder look.
+- **Improved Layouts**: 
+  - **Single View**: streamlined layouts for singular items removing tabs in favor of a vertical flow (Attributes -> Drop Zone -> Description).
+  - **Custom Grids**: Specific 2-column layouts for Drugs and compact 2x2 grids for Ebb Formulas.
+  - **Paneling**: Moved "Powered Armor" and "Firing Modes" to dedicated bottom panels for better organization.
+- **Explosives**:
+  - **Refinement**: Added dual-template support (Kill Zone vs Max Blast) and auto-deletion on empty quantity.
+
 # v0.12.0-alpha
 
 ## Highlights

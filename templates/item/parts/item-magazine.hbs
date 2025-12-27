@@ -1,7 +1,7 @@
 {{!-- Capacity --}}
 <div class="form-group" style="grid-column: 1 / -1;">
     <label>Capacity</label>
-    <input type="number" name="system.ammoCapacity" value="{{system.ammoCapacity}}" placeholder="10"/>
+    <input type="number" name="system.ammoCapacity" value="{{system.ammoCapacity}}" placeholder="10" />
 </div>
 
 {{!-- Ammo Type Selector --}}
@@ -15,13 +15,13 @@
 
 {{!-- Linked Weapon --}}
 <div class="form-group" style="grid-column: 1 / -1;">
-     <label>Linked:</label>
-     <div class="drop-zone weapon-link" style="border:1px dashed #555; padding:5px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-         {{#if system.linkedWeapon}}
-            <b>{{system.linkedWeapon}}</b> 
-            <a class="remove-link" style="margin-left:5px; color:#d00;"><i class="fas fa-times"></i></a>
-         {{else}}
-            <span style="color:#777; font-style:italic;">Drop Weapon Here</span>
-         {{/if}}
-     </div>
+    <label>Linked:</label>
+    <div class="drop-zone weapon-link {{#if system.linkedWeapon}}filled{{/if}}">
+        {{#if system.linkedWeapon}}
+        <b>{{system.linkedWeapon}}</b>
+        <a class="remove-link"><i class="fas fa-times"></i></a>
+        {{else}}
+        <span class="placeholder">Drop Weapon Here</span>
+        {{/if}}
+    </div>
 </div>

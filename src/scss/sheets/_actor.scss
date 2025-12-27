@@ -1233,3 +1233,95 @@
     opacity: 1;
     text-shadow: 0 0 5px red;
 }
+
+/* ==========================================
+   16. THREAT / NPC THEME
+   ========================================== */
+.sla-sheet.threat-sheet {
+    /* Override Accent Color for Threats */
+    --sla-accent: #b2d235;
+    /* Toxic Green for Threats */
+    --sla-accent-faint: rgba(178, 210, 53, 0.2);
+    --sla-border: #445522;
+
+    .sheet-header {
+        border-color: var(--sla-accent);
+        background: #0a1100;
+    }
+
+    .header-section-title {
+        background: #0a1100;
+        color: var(--sla-accent);
+        border-bottom-color: var(--sla-accent);
+    }
+
+    .header-left {
+        background: #111a0a;
+        border-right-color: var(--sla-accent);
+    }
+
+    .portrait-container {
+        border-right-color: var(--sla-accent);
+        background: #050800;
+    }
+
+    .finance-box {
+        background: #111a0a;
+
+        .finance-title {
+            color: var(--sla-accent);
+            border-bottom-color: var(--sla-accent);
+        }
+    }
+
+    /* Stats Strip Overrides */
+    .rating-block {
+        background: #0a1100 !important;
+        border-color: var(--sla-border);
+
+        &::after {
+            background: var(--sla-accent);
+        }
+
+        .rating-val {
+            color: var(--sla-accent) !important;
+        }
+    }
+
+    .stat-box {
+        background: #0a1100 !important;
+        border-color: var(--sla-border);
+
+        label {
+            background: #111a0a !important;
+            border-right-color: var(--sla-border);
+            color: #ccc;
+        }
+
+        input {
+            color: #deffaa !important;
+        }
+    }
+
+    /* Tabs */
+    .sheet-tabs {
+        border-bottom-color: var(--sla-accent);
+
+        .item.active {
+            background: var(--sla-accent);
+            color: #000;
+        }
+    }
+
+    /* Editor */
+    .editor-edit {
+        background: #1a2a0a !important;
+        border-color: var(--sla-accent) !important;
+        color: var(--sla-accent) !important;
+    }
+
+    .editor-edit:hover {
+        background: var(--sla-accent) !important;
+        color: #000 !important;
+    }
+}
