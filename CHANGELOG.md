@@ -1,5 +1,17 @@
 # CHANGELOG
 
+# v0.14.0
+
+### Features
+*   **Species Skills Configuration:** Updated the system configuration to correctly assign starting skills to each species (Human, Frother, Ebonite, Stormers, Shaktar, Wraithen, Carrien, Neophron) based on official rulebook data.
+*   **Ebb Disciplines:** Corrected the list of Ebb Disciplines in the configuration to match the official list (Awareness, Blast, Communicate, Enhance, Heal, Protect, Reality Fold, Senses, Telekinesis, Thermal).
+*   **World Item Sync:** Implemented a robust sync mechanism to ensure World Items in the "SLA Species" folder are automatically updated with the correct skills and statistics.
+
+### Bug Fixes
+*   Fixed a syntax error in `config.mjs` that prevented character sheets from loading.
+*   Ensured the "Human" species item is correctly created if missing.
+
+
 # v0.13.2-alpha
     
 ## Fixes

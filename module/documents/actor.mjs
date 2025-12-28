@@ -279,11 +279,6 @@ export class BoilerplateActor extends Actor {
 
         if (speciesItem && speciesItem.system.hp) {
             hpBase = speciesItem.system.hp;
-        } else {
-            // Fallback to Config if Species item missing but Name exists
-            const speciesKey = system.bio.species;
-            const speciesConfig = CONFIG.SLA?.speciesStats?.[speciesKey];
-            if (speciesConfig) hpBase = speciesConfig.hp;
         }
 
         // HP Max = Base + Final STR
@@ -310,15 +305,7 @@ export class BoilerplateActor extends Actor {
                 // Sync string name for display
                 system.bio.species = speciesItem.name;
             }
-            // Fallback to Config
-            else {
-                const speciesKey = system.bio.species;
-                const speciesConfig = CONFIG.SLA?.speciesStats?.[speciesKey];
-                if (speciesConfig?.move) {
-                    closing = speciesConfig.move.closing;
-                    rushing = speciesConfig.move.rushing;
-                }
-            }
+
 
             // Athletics Bonus (+1 Rushing per 2 Ranks)
             const athletics = this.items.find(i => i.type === 'skill' && i.name.toLowerCase() === 'athletics');

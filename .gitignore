@@ -1,3 +1,6 @@
 node_modules/
 
 .agent/
+
+# Foundry Pack Cache (LevelDB folders)
+packs/*/
