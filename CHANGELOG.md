@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# v0.14.2
+
+### Features
+*   **Threat Damage Display**: Threat (NPC) sheets now display calculated damage values for weapons (e.g., "3") rather than raw formulas, matching the Character sheet behavior.
+*   **Automated Migration**: The Natural Weapons migration (Standardizing Punch/Kick and Species Weapons) is now integrated into the system startup. It will automatically detect and fix legacy items on world load.
+
 # v0.14.1
 
 ### Features
