@@ -63,6 +63,62 @@ SLA.disciplineSkills = {
   thermal: "Thermal"
 };
 
+// 4.5. SKILL STATS (Auto-assignment on drop)
+SLA.skillStats = {
+  "acrobatics": "dex",
+  "admin & finance": "know",
+  "athletics": "dex",
+  "bribery": "cool",
+  "climbing": "str",
+  "computer": "know",
+  "demolitions": "conc",
+  "detect": "conc",
+  "diplomacy": "cha",
+  "drive: civilian": "conc",
+  "drive: military": "conc",
+  "drive: motorcycle": "dex",
+  "drive: pilot": "conc",
+  "education: academic": "know",
+  "education: natural": "know",
+  "forensics": "know",
+  "forgery": "dex",
+  "gambling": "cool",
+  "haggle": "cha",
+  "interrogate": "cool",
+  "intimidate": "cool",
+  "language (various)": "know",
+  "leadership": "cha",
+  "lockpick: electronic": "conc",
+  "lockpick: manual": "conc",
+  "lore: cult": "know",
+  "lore: dream": "know",
+  "lore: sector": "know",
+  "medical": "know",
+  "melee weapons": "str",
+  "oratory": "cha",
+  "persuasion": "cha",
+  "pistol": "dex",
+  "polearm": "str",
+  "read lips": "conc",
+  "rifle": "dex",
+  "seduction": "cha",
+  "shield craft": "str",
+  "sleight": "dex",
+  "stealth": "dex",
+  "streetwise": "know",
+  "support weapons": "str",
+  "survival": "cool",
+  "swimming": "str",
+  "tactics": "conc",
+  "technical: electrical": "conc",
+  "technical: equipment": "conc",
+  "technical: manual": "conc",
+  "throw": "str",
+  "torture": "cool",
+  "tracking": "conc",
+  "unarmed combat": "str"
+};
+
 // 5. INITIATIVE FORMULA
 SLA.combatInitiative = {
   formula: "1d10 + @stats.init.value",
@@ -93,3 +149,7 @@ SLA.trackableAttributes = {
   }
 };
 
+
+// 8. NATURAL WEAPONS
+import { NATURAL_WEAPONS } from "./data/natural-weapons.mjs";
+SLA.naturalWeapons = NATURAL_WEAPONS;

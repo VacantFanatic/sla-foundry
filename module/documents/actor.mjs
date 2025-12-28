@@ -1,3 +1,5 @@
+import { NATURAL_WEAPONS } from "../data/natural-weapons.mjs";
+
 /**
  * Extend the basic Actor document.
  * @extends {Actor}
@@ -343,6 +345,83 @@ export class BoilerplateActor extends Actor {
     async _preCreate(data, options, user) {
         await super._preCreate(data, options, user);
         this.updateSource({ "prototypeToken.actorLink": true, "prototypeToken.disposition": 1 });
+
+        // Add Punch/Kick
+        if (this.type === 'character' || this.type === 'npc') {
+            const punchKick = foundry.utils.deepClone(NATURAL_WEAPONS.punchKick);
+            this.updateSource({ items: [punchKick] });
+        }
+    }
+
+    /** @override */
+    _onCreateDescendantDocuments(parent, collection, documents, data, options, userId) {
+        super._onCreateDescendantDocuments(parent, collection, documents, data, options, userId);
+
+        // Only handle Items on this Actor
+        if (collection !== "items") return;
+
+        // Ensure we only run this once per creation batch (usually singular)
+        if (game.user.id !== userId) return;
+
+        for (const doc of documents) {
+            if (doc.type === "species") {
+                this._handleSpeciesAdd(doc);
+            }
+        }
+    }
+
+    /** @override */
+    _onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId) {
+        super._onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId);
+
+        // Only handle Items on this Actor
+        if (collection !== "items") return;
+        if (game.user.id !== userId) return;
+
+        for (const doc of documents) {
+            if (doc.type === "species") {
+                this._handleSpeciesRemove(doc);
+            }
+        }
+    }
+
+    async _handleSpeciesAdd(speciesItem) {
+        const speciesName = speciesItem.name.toLowerCase();
+        let weaponToAdd = null;
+
+        if (speciesName.includes("stormer")) {
+            weaponToAdd = NATURAL_WEAPONS.teethClaws;
+        } else if (speciesName.includes("neophron")) {
+            weaponToAdd = NATURAL_WEAPONS.beak;
+        }
+
+        if (weaponToAdd) {
+            // Check if it already exists to avoid duplicates
+            const exists = this.items.find(i => i.name === weaponToAdd.name);
+            if (!exists) {
+                await this.createEmbeddedDocuments("Item", [weaponToAdd]);
+                if (typeof ui !== "undefined") ui.notifications.info(`Added natural weapon: ${weaponToAdd.name}`);
+            }
+        }
+    }
+
+    async _handleSpeciesRemove(speciesItem) {
+        const speciesName = speciesItem.name.toLowerCase();
+        let weaponToRemoveName = null;
+
+        if (speciesName.includes("stormer")) {
+            weaponToRemoveName = NATURAL_WEAPONS.teethClaws.name;
+        } else if (speciesName.includes("neophron")) {
+            weaponToRemoveName = NATURAL_WEAPONS.beak.name;
+        }
+
+        if (weaponToRemoveName) {
+            const weapon = this.items.find(i => i.name === weaponToRemoveName);
+            if (weapon) {
+                await weapon.delete();
+                if (typeof ui !== "undefined") ui.notifications.info(`Removed natural weapon: ${weaponToRemoveName}`);
+            }
+        }
     }
 
     /** @override */
