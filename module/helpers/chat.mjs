@@ -90,8 +90,24 @@ export class SLAChat {
         let roll = new Roll(rollFormula);
         await roll.evaluate();
 
+        // CHECK MIN DAMAGE
+        const minDmg = Number(btn.data("min")) || 0;
+        let finalTotal = roll.total;
+
+        if (minDmg > 0 && finalTotal < minDmg) {
+            console.log(`SLA | Min Damage Triggered: ${finalTotal} -> ${minDmg}`);
+            finalTotal = minDmg;
+            flavorText += `<br/><span style="color:orange; font-size:0.9em;">(Raised to Min Damage ${minDmg})</span>`;
+
+            // Critical: Force the text property of the roll instance
+            // The Roll instance is immutable-ish, but for display and apply buttons data, we need this.
+            if (roll._total !== undefined) roll._total = minDmg;
+        } else {
+            console.log(`SLA | Min Damage Check: ${finalTotal} >= ${minDmg} (No Change)`);
+        }
+
         const templateData = {
-            damageTotal: roll.total,
+            damageTotal: finalTotal,
             adValue: adValue,
             flavor: flavorText
         };

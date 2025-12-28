@@ -61,11 +61,11 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         // END NEW LOGIC
         // ======================================================
 
+        context.rollData = context.actor.getRollData();
+
         if (this.actor.type == 'character' || this.actor.type == 'npc') {
             this._prepareItems(context);
         }
-
-        context.rollData = context.actor.getRollData();
 
         // ... (Keep existing speciesList logic) ...
 
@@ -134,10 +134,54 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 i.isReloadable = !["melee", "unarmed"].includes(skillKey);
 
                 weapons.push(i);
+
+                // --- NEW: Resolve Display Damage ---
+                try {
+                    const dmg = i.system.damage || "0";
+                    // Only resolve if it contains a variable (e.g. @stats) or math
+                    if (typeof dmg === "string" && (dmg.includes("@") || dmg.match(/[+\-*\/]/))) {
+                        // Create a temporary roll to solve the equation
+                        // We use the actor's roll data
+                        const r = new Roll(dmg, context.rollData);
+                        // Safe synchronous evaluation if possible, or use safeEval if not
+                        // V12+: r.evaluateSync() exists for purely deterministic rolls? 
+                        // Actually, Roll.evaluate() is async. 
+                        // But we are in a sync function (_prepareItems).
+                        // However, simple math with data substitution often doesn't need the async evaluation if no dice are involved.
+                        // Let's use string replacement + math evaluation if dice are NOT involved.
+
+                        if (!dmg.includes("d")) {
+                            // If no dice, we can try to evaluate it.
+                            // Helper: Replace data
+                            const resolvedFormula = Roll.replaceFormulaData(dmg, context.rollData);
+                            // Evaluate math string
+                            let total = Math.round(Number(Function('"use strict";return (' + resolvedFormula + ')')()));
+
+                            // CHECK MIN DAMAGE
+                            if (!isNaN(total)) {
+                                const minDmg = Number(i.system.minDamage) || 0;
+                                if (total < minDmg) {
+                                    total = minDmg;
+                                }
+                            }
+
+                            i.resolvedDamage = isNaN(total) ? dmg : total;
+                        } else {
+                            i.resolvedDamage = dmg; // Keep formula if dice present
+                        }
+                    } else {
+                        i.resolvedDamage = dmg;
+                    }
+                } catch (err) {
+                    console.warn(`SLA | Failed to resolve damage for ${i.name}`, err);
+                    i.resolvedDamage = i.system.damage;
+                }
+                // -----------------------------------
             }
 
             if (i.type === 'explosive') {
                 weapons.push(i); // Add to combat tab
+                i.resolvedDamage = i.system.damage;
             }
 
             if (i.type === 'armor') armors.push(i);
@@ -915,7 +959,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             skillDice: skillDiceData,
             notes: notes.join(" "),
             showDamageButton: showButton,
+            showDamageButton: showButton,
             dmgFormula: finalDmgFormula,
+            minDamage: item.system.minDamage || 0,
 
             adValue: adValue, // <--- CRITICAL FIX: Pass AD to template
 
@@ -1267,6 +1313,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             notes: notes.join(" "),
             showDamageButton: true,
             dmgFormula: baseDmg,
+            minDamage: item.system.minDamage || 0,
             adValue: adValue,
             mos: {
                 isSuccess: isSuccess,
@@ -1489,8 +1536,11 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                         img: skillData.img || "icons/svg/book.svg",
                         system: {
                             rank: 1, // Default to rank 1
-                            // FIX: Use .stat (new format) or .system.stat (legacy/fallback) or default "dex"
-                            stat: skillData.stat || skillData.system?.stat || "dex",
+                            // FIX: Lookup stat from config first (to override legacy "dex" in compendium items)
+                            stat: CONFIG.SLA?.skillStats?.[skillData.name.toLowerCase()]
+                                || skillData.stat
+                                || skillData.system?.stat
+                                || "dex",
                             description: skillData.system?.description || ""
                         },
                         flags: {

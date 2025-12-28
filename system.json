@@ -2,7 +2,7 @@
   "id": "sla-industries",
   "title": "SLA Industries 2nd Edition",
   "description": "A fully automated character sheet and combat system for SLA Industries 2nd Edition (S5S). Features include calculated derived stats, S5S dice rolling, species limits, and custom weapon/armor logic.",
-  "version": "0.13.2-alpha",
+  "version": "0.14.0",
   "compatibility": {
     "minimum": "13",
     "verified": "13.351"
@@ -40,7 +40,37 @@
   "secondaryTokenAttribute": "attributes.flux",
   "url": "https://github.com/VacantFanatic/sla-foundry",
   "manifest": "https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json",
-  "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/v0.13.2/sla-foundry.zip",
+  "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/v0.14.0/sla-foundry.zip",
+  "packs": [
+    {
+      "name": "skills",
+      "label": "Skills",
+      "path": "packs/skills.db",
+      "type": "Item",
+      "system": "sla-industries"
+    },
+    {
+      "name": "traits",
+      "label": "Traits",
+      "path": "packs/traits.db",
+      "type": "Item",
+      "system": "sla-industries"
+    },
+    {
+      "name": "species",
+      "label": "Species",
+      "path": "packs/species.db",
+      "type": "Item",
+      "system": "sla-industries"
+    },
+    {
+      "name": "quick-start-gear",
+      "label": "Quick Start Gear",
+      "path": "packs/quick-start-gear.db",
+      "type": "Item",
+      "system": "sla-industries"
+    }
+  ],
   "documentTypes": {
     "Actor": {
       "character": {},

@@ -1,5 +1,20 @@
 # CHANGELOG
 
+# v0.14.0
+
+### Features
+*   **Ebb Disciplines:** Corrected the list of Ebb Disciplines in the configuration to match the official list (Awareness, Blast, Communicate, Enhance, Heal, Protect, Reality Fold, Senses, Telekinesis, Thermal).
+*   **World Item Sync:** Implemented a robust sync mechanism to ensure World Items in the "SLA Species" folder are automatically updated with the correct skills and statistics.
+*   **Quick Start Gear:** Added a new Compendium Pack "Quick Start Gear" containing a selection of pre-statted weapons and armor for quick character creation.
+*   **Config Cleanup:** Removed legacy `speciesStats` and `species` helper lists from `config.mjs` as the system now relies entirely on Compendium Items for species data.
+
+### Bug Fixes
+*   Fixed a syntax error in `config.mjs` that prevented character sheets from loading.
+*   Ensured the "Human" species item is correctly created if missing.
+*   Resolved a syntax error in `actor.mjs` caused by a missing brace during code cleanup.
+*   Updated `.gitignore` to properly ignore local LevelDB cache folders in `packs/` while preserving the source `.db` files.
+
+
 # v0.13.2-alpha
     
 ## Fixes
