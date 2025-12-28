@@ -48,7 +48,7 @@ export class SlaSkillData extends foundry.abstract.TypeDataModel {
     static defineSchema() {
         const fields = foundry.data.fields;
         return {
-            rank: new fields.NumberField({ initial: 0 }),
+            rank: new fields.StringField({ initial: "0" }),
             stat: new fields.StringField({ initial: "dex" }),
             xpCost: new fields.NumberField({ initial: 0, min: 0 }),
             description: new fields.HTMLField()
@@ -60,7 +60,7 @@ export class SlaTraitData extends foundry.abstract.TypeDataModel {
     static defineSchema() {
         const fields = foundry.data.fields;
         return {
-            rank: new fields.NumberField({ initial: 0 }),
+            rank: new fields.StringField({ initial: "0" }),
             type: new fields.StringField(),
             xpCost: new fields.NumberField({ initial: 0, min: 0 }),
             description: new fields.HTMLField()
@@ -164,7 +164,7 @@ export class SlaDisciplineData extends foundry.abstract.TypeDataModel {
     static defineSchema() {
         const fields = foundry.data.fields;
         return {
-            rank: new fields.NumberField({ initial: 0, integer: true }),
+            rank: new fields.StringField({ initial: "0" }),
             cost: new fields.NumberField({ initial: 0, min: 0 }),
             description: new fields.HTMLField()
         };
@@ -207,7 +207,7 @@ export class SlaSpeciesData extends foundry.abstract.TypeDataModel {
             }),
             skills: new fields.ArrayField(new fields.SchemaField({
                 name: new fields.StringField({ required: true }),
-                rank: new fields.NumberField({ initial: 1 }),
+                rank: new fields.StringField({ initial: "1" }),
                 img: new fields.StringField(),
                 stat: new fields.StringField({ initial: "dex" })
             })),
@@ -230,7 +230,7 @@ export class SlaPackageData extends foundry.abstract.TypeDataModel {
             }),
             skills: new fields.ArrayField(new fields.SchemaField({
                 name: new fields.StringField({ required: true }),
-                rank: new fields.NumberField({ initial: 1 }),
+                rank: new fields.StringField({ initial: "1" }),
                 img: new fields.StringField()
             })),
             description: new fields.HTMLField()
