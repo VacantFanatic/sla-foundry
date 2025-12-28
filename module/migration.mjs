@@ -1,9 +1,12 @@
+import { NATURAL_WEAPONS } from "./data/natural-weapons.mjs";
+import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
+
 /** * module/migration.mjs 
  */
 
 // 1. Define the target version for THIS specific migration
 //    (Matches the version in your system.json)
-export const CURRENT_MIGRATION_VERSION = "0.11.2-alpha";
+export const CURRENT_MIGRATION_VERSION = "0.14.1";
 
 /**
  * Main Entry Point
@@ -21,6 +24,7 @@ export async function migrateWorld() {
     }
 
     // 2. Migrate Actor Items
+    // (Standard Migration Loop)
     for (const actor of game.actors) {
         const updateTokens = []; // Not used but good practice
         const updates = [];
@@ -42,7 +46,11 @@ export async function migrateWorld() {
         }
     }
 
-    // 3. Update the Setting so it doesn't run again
+    // 3. SPECIAL MIGRATIONS (External Scripts)
+    // Run Natural Weapons Migration (Silent Mode)
+    await migrateNaturalWeapons(true);
+
+    // 4. Update the Setting so it doesn't run again
     await game.settings.set("sla-industries", "systemMigrationVersion", CURRENT_MIGRATION_VERSION);
 
     ui.notifications.info("SLA Industries System: Migration Complete!", { permanent: false });

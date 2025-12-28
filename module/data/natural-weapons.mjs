@@ -4,8 +4,8 @@ export const NATURAL_WEAPONS = {
         type: "weapon",
         img: "icons/svg/paw.svg",
         system: {
-            damage: "1d10 - 20", // FORCE LOW ROLL
-            minDamage: "5",     // MIN DAMAGE TEST
+            damage: "@stats.str.value - 2",
+            minDamage: "0",
             ad: 0,
             attackType: "melee",
             firingModes: {
