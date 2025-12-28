@@ -40,7 +40,7 @@
   "secondaryTokenAttribute": "attributes.flux",
   "url": "https://github.com/VacantFanatic/sla-foundry",
   "manifest": "https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json",
-  "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/v0.14.0/sla-foundry.zip",
+  "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/v0.14.2/sla-foundry.zip",
   "packs": [
     {
       "name": "skills",
@@ -91,4 +91,5 @@
       "magazine": {}
     }
   }
+
 }
