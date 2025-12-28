@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# v0.14.1
+
+### Features
+*   **Min Damage Application**: Weapon rolls now automatically respect the 'Min Damage' stat. If a damage roll is lower than the minimum, it is raised to that value.
+*   **Combat Loadout Display**: The combat tab now displays the *calculated* damage for weapons (e.g., "5") instead of the raw formula (e.g., "@str.value - 1"), improving readability.
+*   **Legacy Natural Weapons Migration**: Added a migration script to strictly update old "1d10" based natural weapons to the correct STR-based formulas.
+
 # v0.14.0
 
 ### Features
