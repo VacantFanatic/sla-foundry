@@ -98,13 +98,33 @@
             </div>
 
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-                <label>Aiming Actions</label>
-                <select name="aiming" style="width: 65%;">
-                    <option value="none">None</option>
-                    <option value="sd">Aim (+1 SD)</option>
-                    <option value="skill">Concentrate (+1 Auto Skill Hit)</option>
+                <label>Cover</label>
+                <select name="cover" style="width: 65%;">
+                    <option value="0">None</option>
+                    <option value="-1">Light Cover (-1 SD)</option>
+                    <option value="-2">Heavy Cover (-2 SD)</option>
                 </select>
             </div>
+
+            {{!-- NEW AIMING SECTION --}}
+            {{#if canAim}}
+            <div class="form-group" style="border: 1px solid #444; padding: 5px; background: rgba(0,0,0,0.2);">
+                <div style="font-weight:bold; margin-bottom:5px; color:var(--sla-accent);">Aiming (Max: {{aimLimit}}
+                    Rounds)</div>
+                <div style="display:flex; justify-content: space-between; gap: 5px;">
+                    <div style="flex:1; text-align:center;">
+                        <label style="display:block; font-size:0.8em; color:#aaa;">+1 Success Die</label>
+                        <input type="number" name="aim_sd" value="0" min="0" max="{{aimLimit}}"
+                            style="width: 100%; text-align:center; background:#222; color:#fff; border:1px solid #555;">
+                    </div>
+                    <div style="flex:1; text-align:center;">
+                        <label style="display:block; font-size:0.8em; color:#aaa;">Auto Skill Hit</label>
+                        <input type="number" name="aim_auto" value="0" min="0" max="{{aimLimit}}"
+                            style="width: 100%; text-align:center; background:#222; color:#fff; border:1px solid #555;">
+                    </div>
+                </div>
+            </div>
+            {{/if}}
 
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
                 <label>Dual Wielding</label>

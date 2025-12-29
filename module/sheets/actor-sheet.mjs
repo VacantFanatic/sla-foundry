@@ -645,7 +645,15 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             // Melee uses item recoil (usually 0), Ranged uses the recoil of the default mode
             recoil: isMelee
                 ? (item.system.recoil || 0)
-                : (validModes[defaultModeKey]?.recoil || 0)
+                : (validModes[defaultModeKey]?.recoil || 0),
+
+            // AIM DATA
+            canAim: ["pistol", "rifle"].includes((item.system.skill || "").toLowerCase()),
+            aimLimit: (() => {
+                const sKey = (item.system.skill || "").toLowerCase();
+                const sItem = this.actor.items.find(i => i.type === 'skill' && i.name.toLowerCase() === sKey);
+                return sItem ? (sItem.system.rank || 0) : 0;
+            })()
         };
         // NOTE: If we want to show the message, we need to edit the HBS.
         // For now, we will perform the calculation silently in _processWeaponRoll OR add it as a Note.
@@ -776,15 +784,33 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             rank: 0,
             damage: 0,
             autoSkillSuccesses: 0,
-            reservedDice: 0
+            allDice: Number(form.modifier?.value) || 0,
+            rank: 0,
+            damage: 0,
+            autoSkillSuccesses: 0,
+            reservedDice: 0,
+            // AIM INPUTS
+            aimSd: Number(form.aim_sd?.value) || 0,
+            aimAuto: Number(form.aim_auto?.value) || 0
         };
 
         let notes = [];
         let flags = { rerollSD: false, rerollAll: false };
 
+        // AIM VALIDATION
+        const totalAim = mods.aimSd + mods.aimAuto;
+        if (totalAim > rank) {
+            ui.notifications.warn(`Total Aiming rounds (${totalAim}) cannot exceed Skill Rank (${rank}).`);
+            return;
+        }
+
         // Conditions
         if (this.actor.system.conditions?.prone) mods.allDice -= 1;
         if (this.actor.system.conditions?.stunned) mods.allDice -= 1;
+
+        // --- AIM BONUSES ---
+        if (mods.aimSd > 0) mods.successDie += mods.aimSd;
+        if (mods.aimAuto > 0) mods.autoSkillSuccesses += mods.aimAuto;
 
         // --- RANGE PENALTY LOGIC ---
         if (!isMelee && game.user.targets.size > 0) {
@@ -835,17 +861,19 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         mods.allDice -= penalty;
 
         // 4. ROLL
-        const baseModifier = statValue + rank + mods.allDice;
-
-        // OLD LINE: const skillDiceCount = Math.max(0, rank + 1 + mods.rank);
-        // NEW LINE: Subtract reservedDice from the pool
-        const skillDiceCount = Math.max(0, rank + 1 + mods.rank - mods.reservedDice);
+        const baseModifier = statValue + rank + mods.allDice + mods.successDie;
+        // 5. CALCULATE SUCCESS
+        let skillDiceCount = rank + 1 + (mods.rank || 0) - (mods.reservedDice || 0) - (mods.aimAuto || 0);
+        if (skillDiceCount < 0) skillDiceCount = 0;
 
         const rollFormula = `1d10 + ${skillDiceCount}d10`;
-
         let roll = createSLARoll(rollFormula);
-        // ---------------------------------------------
         await roll.evaluate();
+
+        // We pass the final Base Mod
+        const result = calculateRollResult(roll, baseModifier, 11, {
+            autoSkillSuccesses: mods.aimAuto || 0
+        });
 
         // --- ROF REROLL LOGIC (Burst / Auto) ---
         // "May reroll...". We interpret this as "Keep Highest" for user convenience.
@@ -858,7 +886,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
         // Helper: Reroll a single result and keep highest
         const rerollDieKeepHighest = async (currentResult) => {
-            const newRoll = new Roll("1d10");
+            const newRoll = createSLARoll("1d10");
             await newRoll.evaluate();
             const newRes = newRoll.terms[0].results[0].result;
             if (newRes > currentResult) {

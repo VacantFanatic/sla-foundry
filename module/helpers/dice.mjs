@@ -121,12 +121,23 @@ export function generateDiceTooltip(roll, baseModifier, luckBonus = 0, successDi
     if (successDieMod !== 0) html += ` + Mod ${successDieMod}`;
     html += ` = <strong>${sdTotal}</strong></div>`;
 
-    if (roll.terms.length > 2 && roll.terms[2].results) {
+    if ((roll.terms.length > 2 && roll.terms[2].results) || (roll.autoSkillSuccesses > 0)) { // Check for auto hits too
         html += `<div style="border-top:1px dashed #444; margin-top:2px;"><strong>Skill Dice (Base ${baseModifier}):</strong></div>`;
         html += `<div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:2px;">`;
-        roll.terms[2].results.forEach(r => {
-            html += `<span style="background:#222; border:1px solid #555; padding:1px 4px;">${r.result} + ${baseModifier} = <strong>${r.result + baseModifier}</strong></span>`;
-        });
+
+        // Render Rolled Dice
+        if (roll.terms.length > 2 && roll.terms[2].results) {
+            roll.terms[2].results.forEach(r => {
+                html += `<span style="background:#222; border:1px solid #555; padding:1px 4px;">${r.result} + ${baseModifier} = <strong>${r.result + baseModifier}</strong></span>`;
+            });
+        }
+
+        // Render Auto Successes (Green Plus)
+        const autoHits = roll.autoSkillSuccesses || 0;
+        for (let i = 0; i < autoHits; i++) {
+            html += `<span style="background:#222; border:1px solid #39ff14; color:#39ff14; padding:1px 4px; font-weight:bold;">+ Auto</span>`;
+        }
+
         html += `</div>`;
     }
     html += `</div>`;
