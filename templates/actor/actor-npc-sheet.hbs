@@ -73,6 +73,7 @@
                     <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" placeholder="0" />
                 </div>
             </div>
+            {{#if (or system.stats.luck.max system.stats.luck.value)}}
             <div class="threat-box">
                 <label>LUCK</label>
                 <div class="flexrow">
@@ -83,6 +84,9 @@
                         placeholder="0" />
                 </div>
             </div>
+            {{/if}}
+
+            {{#if (or system.stats.flux.max system.stats.flux.value)}}
             <div class="threat-box">
                 <label>FLUX</label>
                 <div class="flexrow">
@@ -93,6 +97,7 @@
                         placeholder="0" />
                 </div>
             </div>
+            {{/if}}
         </div>
 
         {{!-- 1. WOUNDS & CONDITIONS PARTIAL --}}
