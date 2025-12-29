@@ -13,6 +13,7 @@
 export function calculateRollResult(roll, baseModifier, tn = 11, options = {}) {
     const luckBonus = options.luckBonus || 0;
     const autoSkillSuccesses = options.autoSkillSuccesses || 0;
+    const successDieModifier = options.successDieModifier || 0;
 
     // 1. Success Die (Term 0)
     // Safety check for empty terms
@@ -23,7 +24,7 @@ export function calculateRollResult(roll, baseModifier, tn = 11, options = {}) {
     const sdRaw = (firstTerm.results && firstTerm.results.length > 0) ? firstTerm.results[0].result : 0;
 
     // Total calculation
-    const sdTotal = sdRaw + baseModifier + luckBonus;
+    const sdTotal = sdRaw + baseModifier + luckBonus + successDieModifier;
     let isSuccess = sdTotal >= tn;
 
     // 2. Skill Dice (Term 2 usually)
@@ -107,15 +108,17 @@ export function getMOS(result) {
  * @param {Roll} roll - The roll object.
  * @param {number} baseModifier - The skill/stat modifier.
  * @param {number} luckBonus - Any extra luck added to the success die.
+ * @param {number} successDieMod - Additional modifier specific to the success die.
  * @returns {string} HTML string.
  */
-export function generateDiceTooltip(roll, baseModifier, luckBonus = 0) {
+export function generateDiceTooltip(roll, baseModifier, luckBonus = 0, successDieMod = 0) {
     const sdRaw = (roll.terms[0] && roll.terms[0].results[0]) ? roll.terms[0].results[0].result : 0;
-    const sdTotal = sdRaw + baseModifier + luckBonus;
+    const sdTotal = sdRaw + baseModifier + luckBonus + successDieMod;
 
     let html = `<div class="dice-tooltip" style="display:none; margin-top:10px; padding-top:5px; border-top:1px solid #444; font-size:0.8em; color:#ccc;">`;
     html += `<div><strong>Success Die:</strong> Raw ${sdRaw} + Base ${baseModifier}`;
     if (luckBonus > 0) html += ` + Luck ${luckBonus}`;
+    if (successDieMod !== 0) html += ` + Mod ${successDieMod}`;
     html += ` = <strong>${sdTotal}</strong></div>`;
 
     if (roll.terms.length > 2 && roll.terms[2].results) {
