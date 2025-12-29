@@ -495,6 +495,14 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 // Determine boolean for your dialog function
                 const isMelee = (attackType === "melee");
 
+                // --- TARGET ENFORCEMENT ---
+                // User requirement: Must have a target if using a weapon (excluding explosives)
+                if (game.user.targets.size === 0) {
+                    ui.notifications.warn("You must select a target to attack.");
+                    return;
+                }
+                // --------------------------
+
                 // Pass the flag to your existing dialog renderer
                 await this._renderAttackDialog(item, isMelee);
 
@@ -529,7 +537,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             let finalTotal = rawDie + finalMod;
             const resultColor = finalTotal > 10 ? '#39ff14' : '#f55';
 
-            const tooltipHtml = this._generateTooltip(roll, finalMod, 0);
+            const tooltipHtml = this._generateTooltip(roll, finalMod, 0, 0);
 
             const isSuccess = finalTotal > 10;
 
@@ -603,23 +611,50 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             defaultModeKey = Object.keys(validModes)[0];
         }
 
+        // --- RANGE CALCULATION ---
+        let rangePenaltyMsg = "";
+        let isLongRange = false;
+
+        if (!isMelee && game.user.targets.size > 0) {
+            const target = game.user.targets.first();
+            // Get Weapon Range
+            const strRange = item.system.range || "10";
+            const maxRange = parseInt(strRange) || 10; // Simple integer parse
+
+            // Measure Distance
+            const dist = canvas.grid.measureDistance(this.actor.token?.object || this.token, target);
+
+            // Check > 50%
+            if (dist > (maxRange / 2)) {
+                isLongRange = true;
+                rangePenaltyMsg = "Long Range (-1 Success Die)";
+            }
+        }
+        // -------------------------
+
         // 2. Prepare Template Data
         const templateData = {
             item: item,
             isMelee: isMelee,
             validModes: validModes,
             selectedMode: defaultModeKey, // Pass this to HBS for the <select>
+            rangePenaltyMsg: rangePenaltyMsg, // Display logic inside template might be needed, or we just rely on implicit knowledge for now?
+            // Actually, we should probably Pass 'isLongRange' to the process function via a hidden field or reconstruct it,
+            // BUT simpler to just reconstruct it in _processWeaponRoll since we enforce target selection now.
 
             // Melee uses item recoil (usually 0), Ranged uses the recoil of the default mode
             recoil: isMelee
                 ? (item.system.recoil || 0)
                 : (validModes[defaultModeKey]?.recoil || 0)
         };
+        // NOTE: If we want to show the message, we need to edit the HBS.
+        // For now, we will perform the calculation silently in _processWeaponRoll OR add it as a Note.
+        // Let's pass it as 'rangeMsg' to see if we can easily slot it in, or just rely on the user knowing.
 
         const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/attack-dialog.hbs", templateData);
 
         new Dialog({
-            title: `Attack: ${item.name}`,
+            title: `Attack: ${item.name} ${rangePenaltyMsg}`,
             content: content,
             buttons: {
                 roll: {
@@ -708,7 +743,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
     // --- HELPERS: HTML GENERATION ---
     // Kept for legacy compatibility if other modules call it, but uses new helper internally
     _generateTooltip(roll, baseModifier, successDieMod) {
-        return generateDiceTooltip(roll, baseModifier, successDieMod);
+        return generateDiceTooltip(roll, baseModifier, 0, successDieMod);
     }
 
     async _processWeaponRoll(item, html, isMelee) {
@@ -750,6 +785,31 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         // Conditions
         if (this.actor.system.conditions?.prone) mods.allDice -= 1;
         if (this.actor.system.conditions?.stunned) mods.allDice -= 1;
+
+        // --- RANGE PENALTY LOGIC ---
+        if (!isMelee && game.user.targets.size > 0) {
+            const target = game.user.targets.first();
+            // Get Weapon Range
+            const strRange = item.system.range || "10";
+            const maxRange = parseInt(strRange) || 10;
+
+            // Measure Distance
+            // Use token associated with actor, or default to checking canvas
+            let token = this.actor.token?.object || this.token;
+            if (!token) {
+                const tokens = this.actor.getActiveTokens();
+                if (tokens.length > 0) token = tokens[0];
+            }
+
+            if (token) {
+                const dist = canvas.grid.measureDistance(token, target);
+                if (dist > (maxRange / 2)) {
+                    mods.successDie -= 1;
+                    notes.push("Long Range (-1 SD)");
+                }
+            }
+        }
+        // ---------------------------
 
         // Apply Modifiers
         if (isMelee) {
