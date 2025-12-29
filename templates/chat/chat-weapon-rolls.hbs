@@ -12,7 +12,7 @@
         <span style="font-size:0.9em; color:#aaa;">SUCCESS DIE</span>
         <div style="text-align:right;">
             {{!-- UPDATE: Added 'roll-toggle' class, pointer cursor, and title --}}
-            <span class="roll-toggle"
+            <span class="roll-toggle {{#if sdIsReroll}}dice-rerolled{{/if}}"
                 style="font-size:1.5em; font-weight:bold; color:{{resultColor}}; cursor:pointer; text-decoration:underline; text-decoration-style:dotted;"
                 title="Click to Toggle Dice Breakdown">
                 {{successTotal}}
@@ -29,7 +29,7 @@
         <div style="color:#aaa; border-bottom:1px dotted #444;">SKILL DICE</div>
         <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:2px;">
             {{#each skillDice as |die|}}
-            <span
+            <span class="{{#if die.isReroll}}dice-rerolled{{/if}}"
                 style="border:1px solid {{die.borderColor}}; color:{{die.textColor}}; padding:1px 4px; background:#111;">
                 {{die.total}}
             </span>

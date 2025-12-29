@@ -51,14 +51,15 @@ export class LuckDialog extends Dialog {
         skillDice.forEach((d, i) => {
             if (rofRerollSkills.includes(i)) {
                 d.disabled = true;
-                d.borderColor = "#555"; // Grey out visually
+                d.borderColor = "#555";
+                d.tooltip = "Already rerolled via ROF"; // Add tooltip
             }
         });
 
         const templateData = {
             luck: actor.system.stats.luck,
             skillDice: skillDice,
-            rofRerollSD: rofRerollSD
+            rofRerollSD: rofRerollSD // Passed to template to conditionally hide/disable SD reroll
         };
 
         const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/luck-dialog.hbs", templateData);

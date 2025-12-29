@@ -616,13 +616,20 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         let isLongRange = false;
 
         if (!isMelee && game.user.targets.size > 0) {
+            // Robust Token Retrieval
+            const token = this.actor.token?.object || this.token || (this.actor.getActiveTokens().length > 0 ? this.actor.getActiveTokens()[0] : null);
+
+            if (!token) {
+                return ui.notifications.warn("Cannot perform ranged attack: No token found for this actor in the current scene.");
+            }
+
             const target = game.user.targets.first();
             // Get Weapon Range
             const strRange = item.system.range || "10";
             const maxRange = parseInt(strRange) || 10; // Simple integer parse
 
             // Measure Distance
-            const dist = canvas.grid.measurePath([this.actor.token?.object || this.token, target]).distance;
+            const dist = canvas.grid.measurePath([token, target]).distance;
 
             // Check > 50%
             if (dist > (maxRange / 2)) {
@@ -960,15 +967,20 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         let skillSuccessCount = 0;
 
         if (roll.terms.length > 2) {
-            roll.terms[2].results.forEach(r => {
+            roll.terms[2].results.forEach((r, i) => { // Added index 'i'
                 let val = r.result + baseModifier;
                 let isHit = val >= TN;
                 if (isHit) skillSuccessCount++;
+
+                // Track if this specific die was rerolled
+                const isReroll = rofRerollSkills.includes(i);
+
                 skillDiceData.push({
                     raw: r.result,
                     total: val,
                     borderColor: isHit ? "#39ff14" : "#555",
-                    textColor: isHit ? "#39ff14" : "#ccc"
+                    textColor: isHit ? "#39ff14" : "#ccc",
+                    isReroll: isReroll // Pass flag
                 });
             });
         }
@@ -1047,11 +1059,13 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             skillDice: skillDiceData,
             notes: notes.join(" "),
             showDamageButton: showButton,
-            showDamageButton: showButton,
             dmgFormula: finalDmgFormula,
             minDamage: item.system.minDamage || 0,
 
             adValue: adValue, // <--- CRITICAL FIX: Pass AD to template
+
+            // Pass ROF flags to template for styling
+            sdIsReroll: rofRerollSD,
 
             mos: {
                 isSuccess: isSuccess,

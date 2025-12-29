@@ -13,6 +13,12 @@
         margin: 0 0 5px 0;
         border-bottom: 1px solid #555;
     }
+
+    // New Class for Rerolled Dice
+    .dice-rerolled {
+        border-style: dotted !important;
+        text-decoration-style: dotted !important;
+    }
 }
 
 /* Damage Result Card */
