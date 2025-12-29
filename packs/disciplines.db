@@ -1,0 +1,10 @@
+{"_id":"0791c2bc1d04c007","name":"Awareness","type":"discipline","img":"icons/svg/book.svg","system":{"rank":"0","cost":0,"description":""},"effects":[],"folder":null,"sort":0,"ownership":{"default":0}}
+{"_id":"1565d595d2edbb59","name":"Heal","type":"discipline","img":"icons/svg/book.svg","system":{"rank":"0","cost":0,"description":""},"effects":[],"folder":null,"sort":0,"ownership":{"default":0}}
+{"_id":"536e808b65a315a3","name":"Senses","type":"discipline","img":"icons/svg/book.svg","system":{"rank":"0","cost":0,"description":""},"effects":[],"folder":null,"sort":0,"ownership":{"default":0}}
+{"_id":"554e6b3564439e51","name":"Telekinesis","type":"discipline","img":"icons/svg/book.svg","system":{"rank":"0","cost":0,"description":""},"effects":[],"folder":null,"sort":0,"ownership":{"default":0}}
+{"_id":"57c9ab99bbb6a1dd","name":"Communicate","type":"discipline","img":"icons/svg/book.svg","system":{"rank":"0","cost":0,"description":""},"effects":[],"folder":null,"sort":0,"ownership":{"default":0}}
+{"_id":"993179279e4df58b","name":"Enhance","type":"discipline","img":"icons/svg/book.svg","system":{"rank":"0","cost":0,"description":""},"effects":[],"folder":null,"sort":0,"ownership":{"default":0}}
+{"_id":"bd033f1fe42fc757","name":"Protect","type":"discipline","img":"icons/svg/book.svg","system":{"rank":"0","cost":0,"description":""},"effects":[],"folder":null,"sort":0,"ownership":{"default":0}}
+{"_id":"bebf318b5fca2ad1","name":"Reality Fold","type":"discipline","img":"icons/svg/book.svg","system":{"rank":"0","cost":0,"description":""},"effects":[],"folder":null,"sort":0,"ownership":{"default":0}}
+{"_id":"c727554c360eb038","name":"Blast","type":"discipline","img":"icons/svg/book.svg","system":{"rank":"0","cost":0,"description":""},"effects":[],"folder":null,"sort":0,"ownership":{"default":0}}
+{"_id":"fc2e27ef3db7fe4e","name":"Thermal","type":"discipline","img":"icons/svg/book.svg","system":{"rank":"0","cost":0,"description":""},"effects":[],"folder":null,"sort":0,"ownership":{"default":0}}
