@@ -182,6 +182,11 @@ export class BoilerplateActor extends Actor {
                 if (res) {
                     if (res.value <= 0) currentPV = 0;
                     else if (res.value < (res.max / 2)) currentPV = Math.floor(currentPV / 2);
+
+                    // Populate System Resistance (Bar Attributes)
+                    if (!system.armor.resist) system.armor.resist = { value: 0, max: 0 };
+                    system.armor.resist.value = res.value;
+                    system.armor.resist.max = res.max;
                 }
                 if (currentPV > highestPV) highestPV = currentPV;
             }

@@ -140,11 +140,11 @@ SLA.statusEffects = [
 // 7. TRACKABLE ATTRIBUTES (Bars)
 SLA.trackableAttributes = {
   character: {
-    bar: ["attributes.hp", "attributes.flux"],
+    bar: ["hp", "armor.resist", "stats.luck", "stats.flux"],
     value: ["move.closing", "move.rushing", "encumbrance.value"]
   },
   npc: {
-    bar: ["attributes.hp"],
+    bar: ["hp", "armor.resist", "stats.luck", "stats.flux"],
     value: ["move.closing", "move.rushing"]
   }
 };
