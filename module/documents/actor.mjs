@@ -391,9 +391,18 @@ export class BoilerplateActor extends Actor {
     }
 
     async _handleSpeciesAdd(speciesItem) {
+        // 0. SINGLETON ENFORCEMENT: Check for existing species and delete them
+        const existingSpecies = this.items.filter(i => i.type === "species" && i.id !== speciesItem.id);
+        if (existingSpecies.length > 0) {
+            const deleteIds = existingSpecies.map(i => i.id);
+            if (typeof ui !== "undefined") ui.notifications.info(`Replacing existing species...`);
+            await this.deleteEmbeddedDocuments("Item", deleteIds);
+        }
+
         const speciesName = speciesItem.name.toLowerCase();
         let weaponToAdd = null;
 
+        // 1. Natural Weapons Logic
         if (speciesName.includes("stormer")) {
             weaponToAdd = NATURAL_WEAPONS.teethClaws;
         } else if (speciesName.includes("neophron")) {
@@ -402,18 +411,131 @@ export class BoilerplateActor extends Actor {
 
         if (weaponToAdd) {
             // Check if it already exists to avoid duplicates
+            // We use 'find' but since we just cleared species, we might need to check if we cleared weapons too?
+            // Natural Weapons are separate Items. _handleSpeciesRemove handles their deletion.
+            // So if we just deleted the old species, its weapons are gone (via _handleSpeciesRemove).
             const exists = this.items.find(i => i.name === weaponToAdd.name);
             if (!exists) {
                 await this.createEmbeddedDocuments("Item", [weaponToAdd]);
                 if (typeof ui !== "undefined") ui.notifications.info(`Added natural weapon: ${weaponToAdd.name}`);
             }
         }
+
+        // 2. Determine Stats (Prioritize Item Data, Fallback to Defaults if missing)
+        const sys = speciesItem.system;
+        let luckInit = sys.luck?.initial ?? 0;
+        let luckMax = sys.luck?.max ?? 0;
+        let fluxInit = sys.flux?.initial ?? 0;
+        let fluxMax = sys.flux?.max ?? 0;
+        let hpBase = sys.hp ?? 0;
+        let moveClosing = sys.move?.closing ?? 0;
+        let moveRushing = sys.move?.rushing ?? 0;
+
+        // CHECK: If this looks like an "Unmigrated/Broken" item (all zeros), try to apply known defaults
+        const isBlank = (luckMax === 0 && fluxMax === 0 && hpBase <= 10 && moveClosing === 0);
+
+        if (isBlank) {
+            console.warn(`SLA Industries | Detected potentially unmigrated Species Item: ${speciesItem.name}. Applying system defaults.`);
+            if (speciesName.includes("ebon")) {
+                fluxInit = 2; fluxMax = 6;
+                hpBase = 14;
+                moveClosing = 2; moveRushing = 5;
+            } else if (speciesName.includes("human")) {
+                luckInit = 1; luckMax = 6;
+                hpBase = 14;
+                moveClosing = 2; moveRushing = 5;
+            } else if (speciesName.includes("frother")) {
+                luckInit = 1; luckMax = 3;
+                hpBase = 15;
+                moveClosing = 2; moveRushing = 5;
+            } else if (speciesName.includes("wraithen")) {
+                luckInit = 1; luckMax = 4;
+                hpBase = 14;
+                moveClosing = 4; moveRushing = 8;
+            } else if (speciesName.includes("shaktar")) {
+                luckInit = 0; luckMax = 3;
+                hpBase = 19;
+                moveClosing = 3; moveRushing = 6;
+            } else if (speciesName.includes("carrien")) { // Advanced Carrien
+                luckInit = 0; luckMax = 3;
+                hpBase = 20;
+                moveClosing = 4; moveRushing = 7;
+            } else if (speciesName.includes("neophron")) {
+                luckInit = 0; luckMax = 3;
+                hpBase = 11;
+                moveClosing = 2; moveRushing = 5;
+            } else if (speciesName.includes("stormer")) {
+                if (speciesName.includes("313") || speciesName.includes("malice")) {
+                    luckInit = 0; luckMax = 2;
+                    hpBase = 22;
+                    moveClosing = 3; moveRushing = 6;
+                } else if (speciesName.includes("711") || speciesName.includes("xeno")) {
+                    luckInit = 0; luckMax = 2;
+                    hpBase = 20;
+                    moveClosing = 4; moveRushing = 6;
+                } else {
+                    luckInit = 0; luckMax = 2;
+                    hpBase = 20;
+                    moveClosing = 3; moveRushing = 6;
+                }
+            }
+        }
+
+        // Prepare Updates
+        const updateData = {};
+        const itemUpdateData = {};
+
+        // LUCK
+        if (luckMax > 0) {
+            updateData["system.stats.luck.value"] = luckInit;
+            updateData["system.stats.luck.max"] = luckMax;
+            if (isBlank) {
+                itemUpdateData["system.luck.initial"] = luckInit;
+                itemUpdateData["system.luck.max"] = luckMax;
+            }
+        }
+
+        // FLUX
+        if (fluxMax > 0) {
+            updateData["system.stats.flux.value"] = fluxInit;
+            updateData["system.stats.flux.max"] = fluxMax;
+            if (isBlank) {
+                itemUpdateData["system.flux.initial"] = fluxInit;
+                itemUpdateData["system.flux.max"] = fluxMax;
+            }
+        }
+
+        // HP Base
+        if (hpBase > 0) {
+            // Note: Actor HP is derived in _calculateDerived, so we don't strictly need to set actor.system.hp.max here
+            // But we SHOULD ensure the embedded item has the data if it was blank
+            if (isBlank) itemUpdateData["system.hp"] = hpBase;
+        }
+
+        // MOVEMENT
+        if (moveClosing > 0) {
+            if (isBlank) {
+                itemUpdateData["system.move.closing"] = moveClosing;
+                itemUpdateData["system.move.rushing"] = moveRushing;
+            }
+        }
+
+        // 3. APPLY ACTOR UPDATE
+        if (!foundry.utils.isEmpty(updateData)) {
+            await this.update(updateData);
+        }
+
+        // 4. APPLY ITEM UPDATE (Fix the Item if it was broken)
+        if (!foundry.utils.isEmpty(itemUpdateData)) {
+            await speciesItem.update(itemUpdateData);
+        }
     }
 
     async _handleSpeciesRemove(speciesItem) {
         const speciesName = speciesItem.name.toLowerCase();
-        let weaponToRemoveName = null;
 
+        // 1. Remove Natural Weapons
+        let weaponToRemoveName = null;
         if (speciesName.includes("stormer")) {
             weaponToRemoveName = NATURAL_WEAPONS.teethClaws.name;
         } else if (speciesName.includes("neophron")) {
@@ -427,15 +549,71 @@ export class BoilerplateActor extends Actor {
                 if (typeof ui !== "undefined") ui.notifications.info(`Removed natural weapon: ${weaponToRemoveName}`);
             }
         }
+
+        // 2. CHECK: Are there any other species left?
+        // If we found any species that is NOT the one being deleted (although 'this.items' might already lack it)
+        // In _onDeleteDescendantDocuments, 'this.items' usually implies the state *after* deletion in memory?
+        // Let's rely on finding ANY species. If none, we clean up.
+        const remainingSpecies = this.items.find(i => i.type === "species" && i.id !== speciesItem.id);
+
+        if (!remainingSpecies) {
+            // 3. Last Species Removed -> RESET STATS
+            const updateData = {
+                "system.stats.luck.value": 0,
+                "system.stats.luck.max": 0,
+                "system.stats.flux.value": 0,
+                "system.stats.flux.max": 0
+                // HP Base is derived from item presence, so no manual reset needed for 'system.hp'?
+                // Move is derived from item presence, so no manual reset needed.
+            };
+            if (typeof ui !== "undefined") ui.notifications.info(`Species removed: Resetting Stats.`);
+            await this.update(updateData);
+        }
     }
 
     /** @override */
     async _preUpdate(changed, options, user) {
         await super._preUpdate(changed, options, user);
 
-        // HP Floor
+        // HP Floor & Ceiling
         if (changed.system?.hp?.value !== undefined) {
-            if (changed.system.hp.value < 0) changed.system.hp.value = 0;
+            const maxHp = this.system.hp.max || 0;
+            let val = changed.system.hp.value;
+            if (val < 0) val = 0;
+            if (val > maxHp) val = maxHp;
+            changed.system.hp.value = val;
+        }
+
+        // Luck & Flux Clamping
+        if (changed.system?.stats?.luck?.value !== undefined) {
+            const max = this.system.stats.luck.max || 0;
+            if (changed.system.stats.luck.value > max) changed.system.stats.luck.value = max;
+            if (changed.system.stats.luck.value < 0) changed.system.stats.luck.value = 0;
+        }
+        if (changed.system?.stats?.flux?.value !== undefined) {
+            const max = this.system.stats.flux.max || 0;
+            if (changed.system.stats.flux.value > max) changed.system.stats.flux.value = max;
+            if (changed.system.stats.flux.value < 0) changed.system.stats.flux.value = 0;
+        }
+
+        // Armor Resist Bi-Directional Sync (Token Bar -> Item)
+        if (changed.system?.armor?.resist?.value !== undefined) {
+            // 1. Find the Item responsible (Powered Armor)
+            const armorItem = this.items.find(i => i.type === 'armor' && i.system.equipped && i.system.powered && i.system.resistance.max > 0);
+
+            if (armorItem) {
+                // 2. Clamp the new value to the Item's Max
+                let newVal = changed.system.armor.resist.value;
+                const max = armorItem.system.resistance.max;
+                if (newVal > max) newVal = max;
+                if (newVal < 0) newVal = 0;
+
+                // 3. Update the Item
+                await armorItem.update({ "system.resistance.value": newVal });
+            }
+
+            // 4. PREVENT Actor update (since this is a derived value)
+            delete changed.system.armor.resist;
         }
 
         // Species Stat Cap Logic

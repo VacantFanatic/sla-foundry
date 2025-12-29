@@ -40,11 +40,11 @@ export class SlaCharacterData extends foundry.abstract.TypeDataModel {
                 init: new fields.SchemaField({ value: new fields.NumberField({ initial: 0, integer: true }) }),
                 luck: new fields.SchemaField({
                     value: new fields.NumberField({ initial: 0, integer: true }),
-                    max: new fields.NumberField({ initial: 5, integer: true })
+                    max: new fields.NumberField({ initial: 0, integer: true })
                 }),
                 flux: new fields.SchemaField({
                     value: new fields.NumberField({ initial: 0, integer: true }),
-                    max: new fields.NumberField({ initial: 10, integer: true })
+                    max: new fields.NumberField({ initial: 0, integer: true })
                 })
             }),
             move: new fields.SchemaField({
@@ -110,11 +110,11 @@ export class SlaNPCData extends foundry.abstract.TypeDataModel {
                 init: new fields.SchemaField({ value: new fields.NumberField({ initial: 0, integer: true }) }),
                 luck: new fields.SchemaField({
                     value: new fields.NumberField({ initial: 0, integer: true }),
-                    max: new fields.NumberField({ initial: 5, integer: true })
+                    max: new fields.NumberField({ initial: 0, integer: true })
                 }),
                 flux: new fields.SchemaField({
                     value: new fields.NumberField({ initial: 0, integer: true }),
-                    max: new fields.NumberField({ initial: 10, integer: true })
+                    max: new fields.NumberField({ initial: 0, integer: true })
                 })
             }),
             hp: new fields.SchemaField({

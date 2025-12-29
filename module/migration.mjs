@@ -6,7 +6,7 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
 
 // 1. Define the target version for THIS specific migration
 //    (Matches the version in your system.json)
-export const CURRENT_MIGRATION_VERSION = "0.18.0";
+export const CURRENT_MIGRATION_VERSION = "0.18.2";
 
 /**
  * Main Entry Point
@@ -21,6 +21,7 @@ export async function migrateWorld() {
     for (const item of worldItems) {
         if (item.type === "weapon") await migrateWeaponItem(item, meleeSkills);
         if (item.type === "armor") await migrateArmorItem(item);
+        if (item.type === "species") await migrateSpeciesItem(item);
     }
 
     // 2. Migrate Actor Items & Data
@@ -38,13 +39,56 @@ export async function migrateWorld() {
 
             // Migrate Luck & Flux Max
             const luck = foundry.utils.getProperty(actor, "system.stats.luck");
-            if (luck && (luck.max === undefined || luck.max === null)) {
-                actorUpdate["system.stats.luck.max"] = 5;
-            }
-
             const flux = foundry.utils.getProperty(actor, "system.stats.flux");
-            if (flux && (flux.max === undefined || flux.max === null)) {
-                actorUpdate["system.stats.flux.max"] = 10;
+            const hasLuckMax = luck && (luck.max !== undefined && luck.max !== null);
+            const hasFluxMax = flux && (flux.max !== undefined && flux.max !== null);
+
+            if (!hasLuckMax || !hasFluxMax) {
+                // Determine species
+                const speciesItem = actor.items.find(i => i.type === "species");
+                const speciesName = speciesItem ? speciesItem.name.toLowerCase() : "";
+
+                let luckInit = 0;
+                let luckMax = 0;
+                let fluxInit = 0;
+                let fluxMax = 0;
+
+                if (speciesName.includes("ebon")) {
+                    // Ebonite: Flux 2/6
+                    fluxInit = 2;
+                    fluxMax = 6;
+                } else if (speciesName.includes("human")) {
+                    luckInit = 1;
+                    luckMax = 6;
+                } else if (speciesName.includes("frother")) {
+                    luckInit = 1;
+                    luckMax = 3;
+                } else if (speciesName.includes("wraithen")) {
+                    luckInit = 1;
+                    luckMax = 4;
+                } else if (speciesName.includes("shaktar") || speciesName.includes("carrien") || speciesName.includes("neophron")) {
+                    // Shaktar, Adv. Carrien, Neophron: Luck 0/3
+                    luckInit = 0;
+                    luckMax = 3;
+                } else if (speciesName.includes("stormer")) {
+                    // Stormer 313 & 711: Luck 0/2
+                    luckInit = 0;
+                    luckMax = 2;
+                } else {
+                    // Default fallback (e.g. unknown species or no species)
+                    // If no species, leave as 0 (hidden)
+                }
+
+                // Apply Updates if missing
+                if (!hasLuckMax) {
+                    actorUpdate["system.stats.luck.value"] = luckInit;
+                    actorUpdate["system.stats.luck.max"] = luckMax;
+                }
+
+                if (!hasFluxMax) {
+                    actorUpdate["system.stats.flux.value"] = fluxInit;
+                    actorUpdate["system.stats.flux.max"] = fluxMax;
+                }
             }
         }
 
@@ -55,6 +99,7 @@ export async function migrateWorld() {
             let updateData = null;
             if (item.type === "weapon") updateData = await getWeaponMigrationData(item, meleeSkills);
             if (item.type === "armor") updateData = await getArmorMigrationData(item);
+            if (item.type === "species") updateData = await getSpeciesMigrationData(item);
             if (updateData) updates.push(updateData);
         }
 
@@ -162,6 +207,110 @@ async function getWeaponMigrationData(item, meleeSkills) {
     }
     if (firingModes && !foundry.utils.objectsEqual(system.firingModes, firingModes)) {
         updateData["system.firingModes"] = firingModes;
+        hasChanges = true;
+    }
+
+    return hasChanges ? updateData : null;
+}
+
+/**
+ * Migration Logic for Species
+ */
+async function migrateSpeciesItem(item) {
+    const updateData = await getSpeciesMigrationData(item);
+    if (updateData) {
+        console.log(`Migrating Species: ${item.name}`);
+        await item.update(updateData);
+    }
+}
+
+async function getSpeciesMigrationData(item) {
+    const system = item.system;
+    const updateData = { _id: item.id };
+    let hasChanges = false;
+    const name = item.name.toLowerCase();
+
+    // Determine target values based on name
+    let luckInit = 0, luckMax = 0, fluxInit = 0, fluxMax = 0;
+    let hpBase = 10;
+    let moveClosing = 0, moveRushing = 0;
+
+    if (name.includes("ebon")) {
+        fluxInit = 2; fluxMax = 6;
+        hpBase = 14;
+        moveClosing = 2; moveRushing = 5;
+    } else if (name.includes("human")) {
+        luckInit = 1; luckMax = 6;
+        hpBase = 14;
+        moveClosing = 2; moveRushing = 5;
+    } else if (name.includes("frother")) {
+        luckInit = 1; luckMax = 3;
+        hpBase = 15;
+        moveClosing = 2; moveRushing = 5;
+    } else if (name.includes("wraithen")) {
+        luckInit = 1; luckMax = 4;
+        hpBase = 14;
+        moveClosing = 4; moveRushing = 8;
+    } else if (name.includes("shaktar")) {
+        luckInit = 0; luckMax = 3;
+        hpBase = 19;
+        moveClosing = 3; moveRushing = 6;
+    } else if (name.includes("carrien")) { // Advanced Carrien
+        luckInit = 0; luckMax = 3;
+        hpBase = 20;
+        moveClosing = 4; moveRushing = 7;
+    } else if (name.includes("neophron")) {
+        luckInit = 0; luckMax = 3;
+        hpBase = 11;
+        moveClosing = 2; moveRushing = 5;
+    } else if (name.includes("stormer")) {
+        if (name.includes("313") || name.includes("malice")) {
+            luckInit = 0; luckMax = 2;
+            hpBase = 22;
+            moveClosing = 3; moveRushing = 6;
+        } else if (name.includes("711") || name.includes("xeno")) {
+            luckInit = 0; luckMax = 2;
+            hpBase = 20;
+            moveClosing = 4; moveRushing = 6;
+        } else {
+            // Generic Stormer
+            luckInit = 0; luckMax = 2;
+            hpBase = 20;
+            moveClosing = 3; moveRushing = 6;
+        }
+    }
+
+    // Check if update is needed
+    const currLuckInit = system.luck?.initial || 0;
+    const currLuckMax = system.luck?.max || 0;
+    const currFluxInit = system.flux?.initial || 0;
+    const currFluxMax = system.flux?.max || 0;
+
+    if (currLuckInit !== luckInit || currLuckMax !== luckMax) {
+        updateData["system.luck.initial"] = luckInit;
+        updateData["system.luck.max"] = luckMax;
+        hasChanges = true;
+    }
+
+    if (currFluxInit !== fluxInit || currFluxMax !== fluxMax) {
+        updateData["system.flux.initial"] = fluxInit;
+        updateData["system.flux.max"] = fluxMax;
+        hasChanges = true;
+    }
+
+    // HP BASE
+    const currHp = system.hp || 0;
+    if (hpBase > 0 && currHp !== hpBase) {
+        updateData["system.hp"] = hpBase;
+        hasChanges = true;
+    }
+
+    // MOVEMENT
+    const currClosing = system.move?.closing || 0;
+    const currRushing = system.move?.rushing || 0;
+    if (moveClosing > 0 && (currClosing !== moveClosing || currRushing !== moveRushing)) {
+        updateData["system.move.closing"] = moveClosing;
+        updateData["system.move.rushing"] = moveRushing;
         hasChanges = true;
     }
 

@@ -193,6 +193,14 @@ export class SlaSpeciesData extends foundry.abstract.TypeDataModel {
         const fields = foundry.data.fields;
         return {
             hp: new fields.NumberField({ initial: 10 }),
+            luck: new fields.SchemaField({
+                initial: new fields.NumberField({ initial: 0 }),
+                max: new fields.NumberField({ initial: 0 })
+            }),
+            flux: new fields.SchemaField({
+                initial: new fields.NumberField({ initial: 0 }),
+                max: new fields.NumberField({ initial: 0 })
+            }),
             move: new fields.SchemaField({
                 closing: new fields.NumberField({ initial: 0 }),
                 rushing: new fields.NumberField({ initial: 0 })
