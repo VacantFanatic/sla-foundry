@@ -6,7 +6,7 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
 
 // 1. Define the target version for THIS specific migration
 //    (Matches the version in your system.json)
-export const CURRENT_MIGRATION_VERSION = "0.17.1";
+export const CURRENT_MIGRATION_VERSION = "0.18.0";
 
 /**
  * Main Entry Point
@@ -23,25 +23,48 @@ export async function migrateWorld() {
         if (item.type === "armor") await migrateArmorItem(item);
     }
 
-    // 2. Migrate Actor Items
-    // (Standard Migration Loop)
+    // 2. Migrate Actor Items & Data
     for (const actor of game.actors) {
-        const updateTokens = []; // Not used but good practice
+        let actorUpdate = {};
+
+        // A. Migrate Actor Data (Armor Resist)
+        if (actor.type === 'character' || actor.type === 'npc') {
+            // Check if resist is a number (old schema)
+            const oldResist = foundry.utils.getProperty(actor, "system.armor.resist");
+            if (typeof oldResist === "number") {
+                console.log(`Migrating Actor Data for ${actor.name}: armor.resist to Schema`);
+                actorUpdate["system.armor.resist"] = { value: 0, max: 0 };
+            }
+
+            // Migrate Luck & Flux Max
+            const luck = foundry.utils.getProperty(actor, "system.stats.luck");
+            if (luck && (luck.max === undefined || luck.max === null)) {
+                actorUpdate["system.stats.luck.max"] = 5;
+            }
+
+            const flux = foundry.utils.getProperty(actor, "system.stats.flux");
+            if (flux && (flux.max === undefined || flux.max === null)) {
+                actorUpdate["system.stats.flux.max"] = 10;
+            }
+        }
+
+        // B. Migrate Embedded Items
         const updates = [];
-
-        // Filter relevant items
         const actorItems = actor.items.contents;
-
         for (const item of actorItems) {
             let updateData = null;
             if (item.type === "weapon") updateData = await getWeaponMigrationData(item, meleeSkills);
             if (item.type === "armor") updateData = await getArmorMigrationData(item);
-
             if (updateData) updates.push(updateData);
         }
 
+        // C. Apply Updates
+        if (!foundry.utils.isEmpty(actorUpdate)) {
+            await actor.update(actorUpdate);
+        }
+
         if (updates.length > 0) {
-            console.log(`Migrating ${actor.name}...`);
+            console.log(`Migrating Items for ${actor.name}...`);
             await actor.updateEmbeddedDocuments("Item", updates);
         }
     }

@@ -115,11 +115,19 @@
     <div class="side-col">
         <div class="side-box">
             <label>LUCK</label>
-            <input type="number" name="system.stats.luck.value" value="{{system.stats.luck.value}}"/>
+            <div class="flexrow">
+                <input type="number" name="system.stats.luck.value" value="{{system.stats.luck.value}}" placeholder="0"/>
+                <span>/</span>
+                <input type="number" name="system.stats.luck.max" value="{{system.stats.luck.max}}" placeholder="0"/>
+            </div>
         </div>
         <div class="side-box">
             <label>FLUX</label>
-            <input type="number" name="system.stats.flux.value" value="{{system.stats.flux.value}}"/>
+            <div class="flexrow">
+                <input type="number" name="system.stats.flux.value" value="{{system.stats.flux.value}}" placeholder="0"/>
+                <span>/</span>
+                <input type="number" name="system.stats.flux.max" value="{{system.stats.flux.max}}" placeholder="0"/>
+            </div>
         </div>
         
         {{!-- INIT BOX --}}
