@@ -50,8 +50,12 @@
 
                     {{!-- RELOAD: Only show if NOT Melee/Unarmed --}}
                     {{#if item.isReloadable}}
-                    <a class="item-reload" title="Reload">
+                    <a class="item-reload" title="{{#if (lte item.system.ammo 0)}}Load{{else}}Reload{{/if}}">
+                        {{#if (lte item.system.ammo 0)}}
+                        <i class="fas fa-dot-circle" style="color:#d05e1a;"></i>
+                        {{else}}
                         <i class="fas fa-sync-alt" style="color:#aaa;"></i>
+                        {{/if}}
                     </a>
                     {{/if}}
 
