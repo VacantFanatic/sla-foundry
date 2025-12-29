@@ -622,7 +622,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             const maxRange = parseInt(strRange) || 10; // Simple integer parse
 
             // Measure Distance
-            const dist = canvas.grid.measureDistance(this.actor.token?.object || this.token, target);
+            const dist = canvas.grid.measurePath([this.actor.token?.object || this.token, target]).distance;
 
             // Check > 50%
             if (dist > (maxRange / 2)) {
@@ -828,7 +828,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             }
 
             if (token) {
-                const dist = canvas.grid.measureDistance(token, target);
+                const dist = canvas.grid.measurePath([token, target]).distance;
                 if (dist > (maxRange / 2)) {
                     mods.successDie -= 1;
                     notes.push("Long Range (-1 SD)");
