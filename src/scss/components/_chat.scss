@@ -19,6 +19,62 @@
         border-style: dotted !important;
         text-decoration-style: dotted !important;
     }
+
+    // Difficulty Adjustment Buttons
+    .sla-diff-btn {
+        background: #111;
+        border: 1px solid #444;
+        color: #aaa;
+        padding: 2px 6px;
+        font-family: "Josefin Sans", sans-serif;
+        font-size: 0.9em;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-radius: 2px;
+
+        &:hover {
+            background: #333;
+            border-color: #888;
+            color: #fff;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+    }
+
+    // Tactical Choice Buttons
+    .mos-choice-container {
+        button {
+            font-family: "Josefin Sans", sans-serif;
+            font-size: 0.9em;
+            padding: 4px 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .chat-btn-wound {
+            background: #330000;
+            border: 1px solid #ff4444;
+            color: #ffcccc;
+
+            &:hover {
+                background: #550000;
+                box-shadow: 0 0 5px rgba(255, 68, 68, 0.4);
+            }
+        }
+
+        .chat-btn-damage {
+            background: #000;
+            border: 1px solid #39ff14;
+            color: #39ff14;
+
+            &:hover {
+                background: #002200;
+                box-shadow: 0 0 5px rgba(57, 255, 20, 0.4);
+            }
+        }
+    }
 }
 
 /* Damage Result Card */

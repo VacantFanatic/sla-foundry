@@ -1,6 +1,11 @@
 # CHANGELOG
 
-# v0.19.1
+# v0.19.2
+
+### Styling
+*   **Adjust Target Number**: Restyled the buttons to be more consistent and added a hover effect.
+
+
 
 ### Features
 *   **Skill Difficulty Adjustment**: Added buttons to Skill Check chat cards (visible to GM) to adjust TN post-roll.

@@ -50,15 +50,13 @@
         <div style="display:flex; gap:5px;">
             {{!-- Button 1: Inflict Wound --}}
             <button class="chat-btn-wound" data-action="wound" data-location="{{mos.choiceType}}"
-                data-damage-bonus="{{mos.choiceDmg}}" data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}" {{!--
-                PASSING AD HERE --}} style="background:#330000; border:1px solid #ff4444; color:#ffcccc;">
+                data-damage-bonus="{{mos.choiceDmg}}" data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}">
                 Inflict {{capitalize mos.choiceType}} Wound
             </button>
 
             {{!-- Button 2: Extra Damage --}}
             <button class="chat-btn-damage" data-action="damage" data-damage-bonus="{{mos.choiceDmg}}"
-                data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}" {{!-- PASSING AD HERE --}}
-                style="background:#000; border:1px solid #39ff14; color:#39ff14;">
+                data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}">
                 +{{mos.choiceDmg}} Damage
             </button>
         </div>
@@ -91,12 +89,11 @@
     <div class="sla-difficulty-select" style="margin-top:8px; border-top:1px dashed #555; padding-top:4px;">
         <div style="font-size:0.8em; color:#aaa; margin-bottom:2px; text-align:center;">ADJUST DIFFICULTY (TN)</div>
         <div style="display:flex; gap:2px; justify-content:center;">
-            <button class="diff-btn" data-tn="4" title="Simple" style="font-size:0.8em; padding:2px;">4</button>
-            <button class="diff-btn" data-tn="7" title="Challenging" style="font-size:0.8em; padding:2px;">7</button>
-            <button class="diff-btn" data-tn="10" title="Complex"
-                style="font-size:0.8em; padding:2px; border:1px solid #aaa;">10</button>
-            <button class="diff-btn" data-tn="13" title="Strenuous" style="font-size:0.8em; padding:2px;">13</button>
-            <button class="diff-btn" data-tn="16" title="Insane" style="font-size:0.8em; padding:2px;">16</button>
+            <button class="diff-btn sla-diff-btn" data-tn="4" title="Simple">4</button>
+            <button class="diff-btn sla-diff-btn" data-tn="7" title="Challenging">7</button>
+            <button class="diff-btn sla-diff-btn" data-tn="10" title="Complex">10</button>
+            <button class="diff-btn sla-diff-btn" data-tn="13" title="Strenuous">13</button>
+            <button class="diff-btn sla-diff-btn" data-tn="16" title="Insane">16</button>
         </div>
     </div>
     {{/unless}}
