@@ -1,4 +1,12 @@
 # CHANGELOG
+    
+# v0.20.0
+
+### Features
+*   **Compendium Linking**: Made the headers for Species, Package, and Skills clickable on the actor sheet. Clicking them now directly opens the corresponding Compendium pack, improving navigation speed.
+
+### Fixes
+*   **Migration**: Synced migration version.
 
 # v0.19.2
 

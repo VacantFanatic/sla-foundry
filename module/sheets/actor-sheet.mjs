@@ -426,6 +426,19 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             // the side effects (Bleeding, Stunned, Immobile).
             await this.actor.update({ [field]: isChecked });
         });
+
+        // --- COMPENDIUM LINKS ---
+        html.find('.open-compendium').click(ev => {
+            ev.preventDefault();
+            const dataset = ev.currentTarget.dataset;
+            const compendiumId = dataset.compendium;
+            const pack = game.packs.get(compendiumId);
+            if (pack) {
+                pack.render(true);
+            } else {
+                ui.notifications.warn(`Compendium '${compendiumId}' not found.`);
+            }
+        });
     }
 
     // --- RELOAD LOGIC (Match by Linked Weapon Name) ---
