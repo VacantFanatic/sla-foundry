@@ -1,5 +1,21 @@
 # CHANGELOG
 
+# v0.19.1
+
+### Features
+*   **Skill Difficulty Adjustment**: Added buttons to Skill Check chat cards (visible to GM) to adjust TN post-roll.
+*   **Ebb Formula Use Icon**: Added a quick-roll "bolt" icon to Ebb Formulas on the actor sheet.
+
+### Changed
+*   **Global Target Number**: Changed default TN from **11** to **10**.
+*   **Roll UI Logic**: Restricted "Tactical Choice" and "Adjust Difficulty" buttons to appropriate roll types (Weapons TN 10, Ebb TN = Formula Rating).
+*   **Ebb Modifier**: Fixed string concatenation bug in Ebb rolls.
+
+### Fixes
+*   **Ebb Nesting**: Fixed Ebb formula nesting under Disciplines.
+*   **Combat Defense**: Corrected application of defense modifiers in Melee Attack Dialog.
+*   **Migration**: Synced migration version.
+
 # v0.19.0
 
 ### Features
