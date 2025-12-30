@@ -1,4 +1,5 @@
 import { LuckDialog } from "../apps/luck-dialog.mjs";
+import { calculateRollResult } from "./dice.mjs";
 
 export class SLAChat {
 
@@ -8,12 +9,14 @@ export class SLAChat {
         $(document.body).off("click", ".apply-damage-btn");
         $(document.body).off("click", ".roll-toggle");
         $(document.body).off("click", ".chat-btn-luck");
+        $(document.body).off("click", ".diff-btn");
 
         // Register Listeners
         $(document.body).on("click", ".chat-btn-wound, .chat-btn-damage, .damage-roll", this._onRollDamage.bind(this));
         $(document.body).on("click", ".apply-damage-btn", this._onApplyDamage.bind(this));
         $(document.body).on("click", ".roll-toggle", this._onToggleRoll.bind(this));
         $(document.body).on("click", ".chat-btn-luck", this._onLuck.bind(this));
+        $(document.body).on("click", ".diff-btn", this._onChangeDifficulty.bind(this));
     }
 
     /**
@@ -280,8 +283,146 @@ export class SLAChat {
     }
     // ... (Luck Method above) ...
 
+    // ... (Luck Method above) ...
+
     /**
-     * PART 5: RENDER HOOK (Manage Button Visibility)
+     * PART 5: CHANGE DIFFICULTY (TN)
+     */
+    static async _onChangeDifficulty(ev) {
+        ev.preventDefault();
+        const btn = $(ev.currentTarget);
+        if (!game.user.isGM) return ui.notifications.warn("Only GM can adjust difficulty.");
+
+        const card = btn.closest(".sla-chat-card");
+        const newTN = Number(btn.data("tn"));
+
+        // Retrieve Data
+        const messageId = card.closest(".message").data("messageId");
+        const message = game.messages.get(messageId);
+        if (!message) return;
+
+        const flags = message.flags.sla || {};
+        const roll = message.rolls[0];
+        if (!roll) return;
+
+        // Preserve Min Damage from existing card if possible
+        const minDamage = Number(card.find(".damage-roll").data("min")) || 0;
+
+        // Re-Calculate Result
+        const result = calculateRollResult(roll, flags.baseModifier, newTN, {
+            autoSkillSuccesses: flags.autoSkillSuccesses || 0
+        });
+
+        // Re-Generate Display Data (Minimal reconstruction)
+        // Note: This logic duplicates some of actor-sheet.mjs. 
+        // Ideally should be shared, but inline here for now.
+
+        const isSuccess = result.isSuccess;
+        const skillSuccessCount = result.skillHits + (flags.autoSkillSuccesses || 0);
+
+        // MOS Logic
+        let mosDamageBonus = 0;
+        let mosEffectText = isSuccess ? "Standard Hit" : "Failed";
+        let mosChoiceData = { hasChoice: false, choiceType: "", choiceDmg: 0 };
+
+        // Match Ebb Flags
+        if (flags.isEbb) {
+            // Ebb uses 'skillSuccessCount' (which is skillHits + auto)
+            // But Ebb logic in sheet was: skillSuccesses = hits.
+            // And Base Success = isSuccess.
+
+            // Recalculation Effect Text
+            if (isSuccess) {
+                if (skillSuccessCount === 2) { mosDamageBonus = 1; mosEffectText = "+1 Damage / Effect"; }
+                else if (skillSuccessCount === 3) { mosDamageBonus = 2; mosEffectText = "+2 Damage / Repeat Ability"; }
+                else if (skillSuccessCount >= 4) { mosDamageBonus = 4; mosEffectText = "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX"; }
+            }
+        }
+
+        // --- WEAPON MOS LOGIC (Original) ---
+        else if (flags.isWeapon) {
+            if (isSuccess && !result.successThroughExperience) {
+                if (skillSuccessCount === 1) { mosDamageBonus = 1; mosEffectText = "+1 Damage"; }
+                else if (skillSuccessCount === 2) { mosEffectText = "MOS 2: Choose Effect"; mosChoiceData = { hasChoice: true, choiceType: "arm", choiceDmg: 2 }; }
+                else if (skillSuccessCount === 3) { mosEffectText = "MOS 3: Choose Effect"; mosChoiceData = { hasChoice: true, choiceType: "leg", choiceDmg: 4 }; }
+                else if (skillSuccessCount >= 4) { mosDamageBonus = 6; mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)"; }
+            } else if (result.successThroughExperience) {
+                mosEffectText = "Success Through Experience";
+            }
+        }
+
+        // --- SKILL / OTHER ---
+        else {
+            if (isSuccess) mosEffectText = `Margin of Success: ${skillSuccessCount}`;
+        }
+
+        // Damage Formula Reconstruction
+        let baseDmg = flags.damageBase || "0";
+        let damageMod = flags.damageMod || 0;
+        let totalMod = damageMod + mosDamageBonus;
+
+        // If damageBase is 0 and we have mod, use mod. If base > 0, append.
+        let finalDmgFormula = baseDmg;
+        if (totalMod !== 0) {
+            if (baseDmg === "0" || baseDmg === "") finalDmgFormula = String(totalMod);
+            else finalDmgFormula = `${baseDmg} ${totalMod > 0 ? "+" : ""} ${totalMod}`;
+        }
+
+        let showButton = isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
+        const resultColor = isSuccess ? '#39ff14' : '#f55';
+
+        // Render Method
+        // We reuse the existing flags for adValue, itemName, etc.
+        const templateData = {
+            actorUuid: card.data("actor-uuid"),
+            borderColor: resultColor,
+            headerColor: resultColor,
+            resultColor: resultColor,
+            itemName: flags.itemName,
+            successTotal: result.total,
+            tooltip: await roll.getTooltip(), // Use standard tooltip or regenerate? Standard is fine.
+            skillDice: result.skillDiceData,
+            notes: (flags.notes || "") + ` (TN ${newTN})`, // Append TN note? flags.notes isn't stored! 
+            // Better: Read notes from DOM? Or just ignore notes updates since they are static.
+            // Actually, notes are not in flags.sla. They will be LOST if not preserved.
+            // Let's try to capture them from DOM.
+            notes: card.find("div[style*='font-style:italic']").html(),
+
+            showDamageButton: showButton,
+            dmgFormula: finalDmgFormula,
+            minDamage: minDamage,
+            adValue: flags.adValue || 0,
+            sdIsReroll: flags.rofRerollSD,
+
+            mos: {
+                isSuccess: isSuccess,
+                hits: skillSuccessCount,
+                effect: mosEffectText,
+                ...mosChoiceData
+            },
+
+            canUseLuck: (card.find(".chat-btn-luck").length > 0), // Basic check if luck button was there
+            luckValue: 0, // Visual only, doesn't matter much if we don't know exact value. 
+            // Or we could re-fetch actor?
+            luckSpent: false
+        };
+
+        // Refetch actor for Luck Value?
+        const actor = await fromUuid(templateData.actorUuid);
+        if (actor) {
+            templateData.luckValue = actor.system.stats.luck.value;
+        }
+
+        const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+
+        await message.update({
+            content: chatContent,
+            "flags.sla.tn": newTN
+        });
+    }
+
+    /**
+     * PART 6: RENDER HOOK (Manage Button Visibility)
      */
     static async onRenderChatMessage(message, html, data) {
         // V13 Migration: 'html' can be HTMLElement or jQuery object

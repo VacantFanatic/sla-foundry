@@ -10,7 +10,7 @@
  * @param {object} options - Additional options (e.g. luck bonus).
  * @returns {object} { isSuccess, total, skillHits, skillDiceData, sdRaw, successThroughExperience }
  */
-export function calculateRollResult(roll, baseModifier, tn = 11, options = {}) {
+export function calculateRollResult(roll, baseModifier, tn = 10, options = {}) {
     const luckBonus = options.luckBonus || 0;
     const autoSkillSuccesses = options.autoSkillSuccesses || 0;
     const successDieModifier = options.successDieModifier || 0;

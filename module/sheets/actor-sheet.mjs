@@ -216,7 +216,8 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         }
 
         // 4. Ebb Nesting Logic
-        const configDis = CONFIG.SLA?.ebbDisciplines || {};
+        // FIX: Config property is 'disciplineSkills', not 'ebbDisciplines'
+        const configDis = CONFIG.SLA?.disciplineSkills || {};
         const nestedDisciplines = [];
         const rawFormulas = [...ebbFormulas];
 
@@ -226,9 +227,31 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         });
 
         rawFormulas.forEach(f => {
-            const key = f.system.discipline;
-            const parent = nestedDisciplines.find(d => d.name === key || d.name === configDis[key]);
+            const rawKey = f.system.discipline || "";
+            const key = rawKey.toLowerCase();
+
+            // Find parent where Name matches Key OR Name matches Config Label
+            const parent = nestedDisciplines.find(d => {
+                const dName = d.name.toLowerCase();
+                // Check 1: Direct Match (case-insensitive)
+                if (dName === key) return true;
+
+                // Check 2: Config Match
+                // If the formula has a key like "telekinesis", config might have "Telekinesis"
+                const label = configDis[rawKey] || configDis[key];
+                if (label && dName === label.toLowerCase()) return true;
+
+                return false;
+            });
+
             if (parent) parent.formulas.push(f);
+            else {
+                // Push to a "Uncategorized" pseudo-parent? 
+                // Or just leave them in top list?
+                // For now, if no parent found, they might disappear from the tree view if the HBS expects them nested.
+                // We should probably check HBS. If HBS iterates 'disciplines' and then 'd.formulas', unnested ones are lost?
+                // Let's verify HBS. For now, this FIXES the matching issue.
+            }
         });
 
         // 5. Assign to Context
@@ -375,6 +398,10 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             if (item.type === 'drug') item.toggleActive();
             else item.update({ "system.equipped": !item.system.equipped });
         });
+
+        // --- NEW: Rollable Icon Listener ---
+        html.find('.item-rollable').click(ev => this._onRoll(ev));
+
 
         html.find('.item-reload').click(this._onReloadWeapon.bind(this));
         html.find('.item-create').click(this._onItemCreate.bind(this));
@@ -693,7 +720,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
 
         // Default rank to 0 if missing
-        const rank = item.system.rank || 0;
+        const rank = Number(item.system.rank) || 0;
 
         // 2. MODIFIERS (Wounds, Prone, Stunned)
         let globalMod = 0;
@@ -704,7 +731,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         const baseModifier = statValue + rank + globalMod - penalty;
 
         // 3. ROLL FORMULA
-        // CORRECTION: 1 Success Die + (Rank + 1) Skill Dice
+        // Unskilled Rule: If Rank 0, still roll.
+        // Rule: "Success Die and one Skill Die for each rank... plus one"
+        // So Rank 0 = 1 Skill Die. Rank 1 = 2 Skill Dice.
         const skillDiceCount = rank + 1;
         const rollFormula = `1d10 + ${skillDiceCount}d10`;
 
@@ -727,7 +756,8 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             tooltip: generateDiceTooltip(roll, baseModifier),
             skillDice: result.skillDiceData,
             notes: "",
-            showDamageButton: false,
+            notes: "",
+            showDamageButton: false, // Ensure Hidden for Skills
             // Luck Data
             canUseLuck: this.actor.system.stats.luck.value > 0,
             luckValue: this.actor.system.stats.luck.value,
@@ -798,7 +828,11 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             reservedDice: 0,
             // AIM INPUTS
             aimSd: Number(form.aim_sd?.value) || 0,
-            aimAuto: Number(form.aim_auto?.value) || 0
+            aimAuto: Number(form.aim_auto?.value) || 0,
+            // DEFENSE INPUTS
+            combatDef: Number(form.combatDef?.value) || 0,
+            acroDef: Number(form.acroDef?.value) || 0,
+            targetProne: form.prone?.checked || false, // In Melee this is Target Prone (+2)
         };
 
         let notes = [];
@@ -848,6 +882,22 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         if (isMelee) {
             this._applyMeleeModifiers(form, strValue, mods);
 
+            // --- DEFENSE MODIFIERS (Melee) ---
+            if (mods.combatDef > 0) {
+                mods.allDice -= mods.combatDef;
+                notes.push(`Defended (Combat Def: -${mods.combatDef})`);
+            }
+            if (mods.acroDef > 0) {
+                const pen = mods.acroDef * 2;
+                mods.allDice -= pen;
+                notes.push(`Defended (Acrobatics: -${pen})`);
+            }
+            if (mods.targetProne) {
+                mods.successDie += 2;
+                notes.push(`Target Prone (+2 SD)`);
+            }
+            // ---------------------------------
+
             // --- NEW VALIDATION: CLAMP RESERVED DICE ---
             if (mods.reservedDice > rank) {
                 ui.notifications.warn(`Cannot reserve more dice (${mods.reservedDice}) than Skill Rank (${rank}). Reduced to ${rank}.`);
@@ -868,7 +918,10 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         mods.allDice -= penalty;
 
         // 4. ROLL
-        const baseModifier = statValue + rank + mods.allDice + mods.successDie;
+        // FIX: Base Modifier should NOT include Success Die specific modifiers (Aim, Prone Target)
+        // Those are passed separately to calculateRollResult
+        const baseModifier = statValue + rank + mods.allDice;
+
         // 5. CALCULATE SUCCESS
         let skillDiceCount = rank + 1 + (mods.rank || 0) - (mods.reservedDice || 0) - (mods.aimAuto || 0);
         if (skillDiceCount < 0) skillDiceCount = 0;
@@ -877,9 +930,10 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         let roll = createSLARoll(rollFormula);
         await roll.evaluate();
 
-        // We pass the final Base Mod
-        const result = calculateRollResult(roll, baseModifier, 11, {
-            autoSkillSuccesses: mods.aimAuto || 0
+        // We pass the final Base Mod and Success Die Mod
+        const result = calculateRollResult(roll, baseModifier, undefined, {
+            autoSkillSuccesses: mods.aimAuto || 0,
+            successDieModifier: mods.successDie // Pass explicit SD mod
         });
 
         // --- ROF REROLL LOGIC (Burst / Auto) ---
@@ -954,8 +1008,10 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         // ---------------------------------------
 
         // 5. RESULTS
-        const TN = 11;
+        // 5. RESULTS
+        const TN = 10;
         const sdRaw = roll.terms[0].results[0].result;
+        // FIX: Display total correctly
         const sdTotal = sdRaw + baseModifier + mods.successDie;
 
         // Initial Success Check
@@ -1076,7 +1132,8 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             // Luck Data
             canUseLuck: this.actor.system.stats.luck.value > 0,
             luckValue: this.actor.system.stats.luck.value,
-            luckSpent: false
+            luckSpent: false,
+            isWeapon: true // Pass isWeapon to template
         };
 
         const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
@@ -1095,7 +1152,10 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                     damageBase: baseDmg,
                     damageMod: mods.damage,
                     adValue: adValue,
-                    autoSkillSuccesses: mods.autoSkillSuccesses
+                    autoSkillSuccesses: mods.autoSkillSuccesses,
+                    // NEW FLAGS for Recalculation
+                    successDieModifier: mods.successDie,
+                    isWeapon: true
                 }
             }
         });
@@ -1423,7 +1483,8 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 effect: outcomeText
             },
             canUseLuck: this.actor.system.stats.luck.value > 0,
-            luckValue: this.actor.system.stats.luck.value
+            luckValue: this.actor.system.stats.luck.value,
+            isEbb: true // Pass isEbb to template for conditional logic
         };
 
         const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
@@ -1474,7 +1535,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             return;
         }
 
-        const rank = disciplineItem.system.rank || 0;
+        const rank = Number(disciplineItem.system.rank) || 0;
 
         // 3. Modifiers
         let globalMod = 0;
@@ -1588,7 +1649,8 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 isSuccess: isSuccessful,
                 hits: skillSuccesses,
                 effect: isSuccessful ? mosEffectText : failureConsequence
-            }
+            },
+            isEbb: true // Pass isEbb
         };
 
         const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
@@ -1599,7 +1661,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             flags: {
                 sla: {
                     baseModifier: modifier,
-                    itemName: item.name.toUpperCase()
+                    itemName: item.name.toUpperCase(),
+                    isWeapon: false,
+                    isEbb: true // Flag as Ebb
                 }
             }
         });

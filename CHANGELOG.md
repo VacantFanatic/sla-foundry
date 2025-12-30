@@ -1,5 +1,14 @@
 # CHANGELOG
 
+# v0.19.0
+
+### Features
+*   **Defense Modifiers (Melee)**: Added functional inputs for **Target Combat Defense**, **Acrobatic Defense**, and **Prone** status in the Melee Attack Dialog, allowing players to correctly apply these rule-based modifiers.
+*   **Post-Roll Difficulty Adjustment**: Added buttons to Weapon/Skill Chat Cards (visible to GM) to adjust the Target Number (TN 4, 7, 10, 13, 16) *after* the roll. This updates the success/failure status and margin of success effects dynamically.
+
+### Fixes
+*   **Target Number Correction**: Fixed a critical rules discrepancy where the default Target Number was 11. It is now correctly set to **10** across the system.
+
 # v0.14.2
 
 ### Features
