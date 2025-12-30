@@ -38,7 +38,11 @@
   },
   "primaryTokenAttribute": "hp",
   "secondaryTokenAttribute": "armor.resist",
-  "author": "VacantFanatic",
+  "authors": [
+    {
+      "name": "VacantFanatic"
+    }
+  ],
   "url": "https://github.com/VacantFanatic/sla-foundry",
   "manifest": "https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json",
   "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/v0.20.0/sla-industries.zip",
@@ -47,43 +51,37 @@
       "name": "skills",
       "label": "Skills",
       "path": "packs/skills.db",
-      "type": "Item",
-      "system": "sla-industries"
+      "type": "Item"
     },
     {
       "name": "traits",
       "label": "Traits",
       "path": "packs/traits.db",
-      "type": "Item",
-      "system": "sla-industries"
+      "type": "Item"
     },
     {
       "name": "species",
       "label": "Species",
       "path": "packs/species.db",
-      "type": "Item",
-      "system": "sla-industries"
+      "type": "Item"
     },
     {
       "name": "quick-start-gear",
       "label": "Quick Start Gear",
       "path": "packs/quick-start-gear.db",
-      "type": "Item",
-      "system": "sla-industries"
+      "type": "Item"
     },
     {
       "name": "disciplines",
       "label": "Disciplines",
       "path": "packs/disciplines.db",
-      "type": "Item",
-      "system": "sla-industries"
+      "type": "Item"
     },
     {
       "name": "packages",
       "label": "Training Packages",
       "path": "packs/packages.db",
-      "type": "Item",
-      "system": "sla-industries"
+      "type": "Item"
     }
   ],
   "documentTypes": {
