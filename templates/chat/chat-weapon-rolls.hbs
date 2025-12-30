@@ -86,6 +86,21 @@
     </div>
     {{/if}}
 
+    {{!-- DIFFICULTY ADJUSTMENT (Skills Only) - Difficulty is Fixed 10 for Combat and Formula Rating for Ebb --}}
+    {{#unless (or isWeapon isEbb)}}
+    <div class="sla-difficulty-select" style="margin-top:8px; border-top:1px dashed #555; padding-top:4px;">
+        <div style="font-size:0.8em; color:#aaa; margin-bottom:2px; text-align:center;">ADJUST DIFFICULTY (TN)</div>
+        <div style="display:flex; gap:2px; justify-content:center;">
+            <button class="diff-btn" data-tn="4" title="Simple" style="font-size:0.8em; padding:2px;">4</button>
+            <button class="diff-btn" data-tn="7" title="Challenging" style="font-size:0.8em; padding:2px;">7</button>
+            <button class="diff-btn" data-tn="10" title="Complex"
+                style="font-size:0.8em; padding:2px; border:1px solid #aaa;">10</button>
+            <button class="diff-btn" data-tn="13" title="Strenuous" style="font-size:0.8em; padding:2px;">13</button>
+            <button class="diff-btn" data-tn="16" title="Insane" style="font-size:0.8em; padding:2px;">16</button>
+        </div>
+    </div>
+    {{/unless}}
+
     {{!-- NOTES --}}
     {{#if notes}}
     <div
