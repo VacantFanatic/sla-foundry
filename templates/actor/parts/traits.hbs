@@ -15,7 +15,7 @@
             </thead>
             <tbody>
                 {{#each traits as |trait id|}}
-                <tr class="item" data-item-id="{{trait._id}}">
+                <tr class="item draggable" data-item-id="{{trait._id}}">
                     <td class="item-name" style="padding-left: 5px; font-weight: bold;">{{trait.name}}</td>
                     <td><input type="number" value="{{trait.system.rank}}" readonly style="text-align: center; background: transparent; border: none; color: #eee;"/></td>
                     <td class="item-controls" style="text-align: center;">

@@ -1,0 +1,23 @@
+/* ==========================================
+   SLA Industries 2E - CSS Variables
+   V13: Loaded into the 'variables' layer
+   ========================================== */
+
+@layer variables {
+  :root {
+    --sla-bg-dark: #1a1a25;
+    --sla-bg-panel: #2a2a35;
+    --sla-border: #444455;
+    --sla-text-light: #e0e0e0;
+    --sla-accent: #D05E1A;
+    --sla-accent-faint: #D05E1A40;
+    --sla-font-mono: 'Josefin Sans', sans-serif;
+    --sla-font-header: 'Josefin Sans', sans-serif;
+    --sla-radius: 4px;
+    --sla-padding-sm: 5px;
+    --sla-padding-md: 10px;
+    --sla-padding-lg: 20px;
+    --sla-transition: 0.2s ease;
+  }
+}
+

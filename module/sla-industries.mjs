@@ -82,11 +82,11 @@ Hooks.once('init', async function () {
         return str.toUpperCase();
     });
 
-    foundry.documents.collections.Actors.unregisterSheet("core", foundry.appv1.sheets.ActorSheet);
+    foundry.documents.collections.Actors.unregisterSheet("core", foundry.applications.sheets.ActorSheet);
     foundry.documents.collections.Actors.registerSheet("sla-industries", SlaActorSheet, { types: ["character"], makeDefault: true, label: "SLA Operative Sheet" });
     foundry.documents.collections.Actors.registerSheet("sla-industries", SlaNPCSheet, { types: ["npc"], makeDefault: true, label: "SLA Threat Sheet" });
 
-    foundry.documents.collections.Items.unregisterSheet("core", foundry.appv1.sheets.ItemSheet);
+    foundry.documents.collections.Items.unregisterSheet("core", foundry.applications.sheets.ItemSheet);
     foundry.documents.collections.Items.registerSheet("sla-industries", SlaItemSheet, { makeDefault: true, label: "SLA Item Sheet" });
 
     return preloadHandlebarsTemplates();

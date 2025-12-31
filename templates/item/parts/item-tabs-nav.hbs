@@ -1,0 +1,11 @@
+{{!-- V2 Tab Navigation --}}
+<nav class="sheet-tabs tabs" data-group="primary">
+    {{#each tabsArray}}
+    <a class="item {{this.cssClass}}" data-tab="{{this.id}}">{{this.label}}</a>
+    {{else}}
+    {{!-- Fallback if tabsArray is not available --}}
+    <a class="item active" data-tab="attributes">Details</a>
+    <a class="item" data-tab="description">Description</a>
+    {{/each}}
+</nav>
+

@@ -1,0 +1,14 @@
+{{!-- V2 Tab Template: Description Tab --}}
+<section class="tab {{tabs.description.id}} {{tabs.description.cssClass}}" data-tab="{{tabs.description.id}}" data-group="{{tabs.description.group}}">
+    <div class="flexcol full-height">
+        <div class="sla-header-bar-small">Description</div>
+        {{#if editable}}
+        <prose-mirror name="system.description" button="true" editable="{{editable}}" toggled="false" value="{{item.system.description}}">
+            {{{enrichedDescription}}}
+        </prose-mirror>
+        {{else}}
+        {{{enrichedDescription}}}
+        {{/if}}
+    </div>
+</section>
+

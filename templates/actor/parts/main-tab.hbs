@@ -1,17 +1,19 @@
-<div class="flexcol full-height">
+<section class="tab {{tabs.main.id}} {{tabs.main.cssClass}}" data-tab="{{tabs.main.id}}" data-group="{{tabs.main.group}}">
+    <div class="flexcol full-height">
 
-    <div class="main-split">
-        {{!-- LEFT: SKILLS --}}
-        <div class="left-col flexcol full-height">
-            <div style="flex: 1; min-height: 400px;">
-                {{> "systems/sla-industries/templates/actor/parts/skills.hbs"}}
+        <div class="main-split">
+            {{!-- LEFT: SKILLS --}}
+            <div class="left-col flexcol full-height">
+                <div style="flex: 1; min-height: 400px;">
+                    {{> "systems/sla-industries/templates/actor/parts/skills.hbs"}}
+                </div>
+            </div>
+
+            {{!-- RIGHT: SECONDARY STATS (Init, Move) --}}
+            <div class="right-col flexcol">
+                {{> "systems/sla-industries/templates/actor/parts/secondary.hbs"}}
             </div>
         </div>
 
-        {{!-- RIGHT: SECONDARY STATS (Init, Move) --}}
-        <div class="right-col flexcol">
-            {{> "systems/sla-industries/templates/actor/parts/secondary.hbs"}}
-        </div>
     </div>
-
-</div>
+</section>

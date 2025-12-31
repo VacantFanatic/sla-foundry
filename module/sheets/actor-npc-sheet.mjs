@@ -5,13 +5,13 @@ import { SlaActorSheet } from "./actor-sheet.mjs";
  * @extends {SlaActorSheet}
  */
 export class SlaNPCSheet extends SlaActorSheet {
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["sla-industries", "sheet", "actor", "npc", "threat-sheet"], // Added threat-sheet class
-      template: "systems/sla-industries/templates/actor/actor-npc-sheet.hbs",
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["sla-industries", "sheet", "actor", "npc", "threat-sheet"], // Added threat-sheet class
+    template: "systems/sla-industries/templates/actor/actor-npc-sheet.hbs",
+    position: {
       width: 600,
-      height: 600,
-      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "stats" }]
-    });
-  }
+      height: 600
+    }
+    // Note: NPC sheet doesn't use tabs - it's a single view sheet
+  });
 }

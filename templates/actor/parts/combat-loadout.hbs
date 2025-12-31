@@ -10,7 +10,7 @@
         </div>
         <div class="combat-list">
             {{#each weapons as |item|}}
-            <div class="item" data-item-id="{{item._id}}"
+            <div class="item draggable" data-item-id="{{item._id}}"
                 style="display:flex; align-items:center; padding:4px 8px; border-bottom:1px solid #333;">
 
                 {{!-- Name --}}
@@ -80,7 +80,7 @@
         </div>
         <div class="combat-list">
             {{#each armors as |item|}}
-            <div class="item" data-item-id="{{item._id}}"
+            <div class="item draggable" data-item-id="{{item._id}}"
                 style="display:flex; align-items:center; padding:4px 8px; border-bottom:1px solid #333;">
 
                 <div class="item-name" style="flex:2; font-weight:bold; color:#e0e0e0;">

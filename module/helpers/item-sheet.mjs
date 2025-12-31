@@ -48,9 +48,12 @@ export function getLinkedDisciplineImage(item) {
  * @returns {Promise<string>} Enriched HTML string.
  */
 export async function enrichItemDescription(item) {
-    return await foundry.applications.ux.TextEditor.enrichHTML(item.system.description, {
-        async: true,
-        relativeTo: item
-    });
+    return await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+        item.system.description,
+        {
+            secrets: item.isOwner,
+            relativeTo: item
+        }
+    );
 }
 

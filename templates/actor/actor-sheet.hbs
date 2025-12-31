@@ -1,43 +1,17 @@
-<form class="{{cssClass}} sla-sheet" autocomplete="off">
+{{!-- HEADER (rendered as PART) --}}
+<div data-application-part="header"></div>
 
-    {{!-- HEADER & STATS --}}
-    {{> "systems/sla-industries/templates/actor/parts/header-card.hbs"}}
+{{!-- STATS (rendered as PART) --}}
+<div class="stats-strip-container" data-application-part="stats"></div>
 
-    <div class="stats-strip-container">
-        {{> "systems/sla-industries/templates/actor/parts/stats.hbs"}}
-    </div>
+{{!-- NAVIGATION (rendered as PART) --}}
+<div data-application-part="tabs"></div>
 
-    {{!-- NAVIGATION --}}
-    <nav class="sheet-tabs tabs" data-group="primary">
-        <a class="item" data-tab="main">Main</a>
-        <a class="item" data-tab="ebb">Combat</a>
-        <a class="item" data-tab="inventory">Inventory</a>
-        <a class="item" data-tab="biography">Bio & Traits</a>
-    </nav>
-
-    {{!-- SHEET BODY --}}
-    <section class="sheet-body">
-
-        {{!-- MAIN TAB (Skills & Secondary) --}}
-        <div class="tab" data-group="primary" data-tab="main">
-            {{> "systems/sla-industries/templates/actor/parts/main-tab.hbs"}}
-        </div>
-
-        {{!-- COMBAT TAB (Wounds, Loadout, Ebb) --}}
-        <div class="tab" data-group="primary" data-tab="ebb">
-            {{!-- UPDATED: Now points to the new combined partial --}}
-            {{> "systems/sla-industries/templates/actor/parts/combat-tab.hbs"}}
-        </div>
-
-        {{!-- INVENTORY TAB --}}
-        <div class="tab" data-group="primary" data-tab="inventory">
-            {{> "systems/sla-industries/templates/actor/parts/inventory-tab.hbs"}}
-        </div>
-
-        {{!-- BIO TAB --}}
-        <div class="tab" data-group="primary" data-tab="biography">
-            {{> "systems/sla-industries/templates/actor/parts/bio-traits-tab.hbs"}}
-        </div>
-
-    </section>
-</form>
+{{!-- SHEET BODY --}}
+<section class="sheet-body">
+    {{!-- TABS (rendered as PARTS - AppV2 will render tab sections directly here) --}}
+    <div data-application-part="main"></div>
+    <div data-application-part="ebb"></div>
+    <div data-application-part="inventory"></div>
+    <div data-application-part="biography"></div>
+</section>

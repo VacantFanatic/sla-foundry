@@ -1,28 +1,2509 @@
 /* ==========================================
    SLA Industries 2E - Main SCSS
+   V13: Automatically loaded into the 'system' layer
    ========================================== */
 
-// Import order matters - variables and mixins first
-@import 'utils/variables';
-@import 'utils/typography';
-@import 'utils/mixins';
-@import 'utils/colors';
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&display=swap');
 
-// Global styles
-@import 'global/variables';
-@import 'global/base';
-@import 'global/window';
-@import 'global/flex';
-@import 'global/grid';
+// Note: CSS Variables are now in variables.scss and loaded into the 'variables' layer
+// This file contains all system styles which are automatically loaded into the 'system' layer
 
-// Components
-@import 'components/dialog';
-@import 'components/chat';
-@import 'components/forms';
-@import 'components/items';
-@import 'components/effects';
-@import 'components/resource';
+/* ==========================================
+   BASE WINDOW STYLES - SCOPED
+   ========================================== */
+.sla-industries.sheet.actor .window-content,
+.sla-industries.sheet.item .window-content {
+  background-image: none;
+  background: var(--sla-bg-dark);
+  background-color: var(--sla-bg-dark);
+  color: var(--sla-text-light);
+  font-family: var(--sla-font-mono);
+  font-size: 13px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--sla-border);
+}
 
-// Sheets
-@import 'sheets/actor';
-@import 'sheets/item';
+/* UTILITIES */
+.sla-industries .sla-pad,
+.sla-sheet .sla-pad {
+  padding: 8px;
+}
+
+/* ==========================================
+   FORM STRUCTURE - SCOPED
+   ========================================== */
+.sla-industries.sheet form.sla-sheet,
+.sla-industries.sheet .sla-sheet,
+form.sla-sheet {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: transparent;
+  padding: 5px;
+}
+
+/* ==========================================
+   INPUTS (Global High Contrast) - SCOPED
+   ========================================== */
+.sla-industries.sheet input[type="text"],
+.sla-industries.sheet input[type="number"],
+.sla-industries.sheet select,
+.sla-sheet input[type="text"],
+.sla-sheet input[type="number"],
+.sla-sheet select {
+  background: #000;
+  color: var(--sla-text-light);
+  border: 1px solid #555;
+  border-radius: var(--sla-radius);
+  height: 26px;
+  padding: 1px 5px;
+  font-family: var(--sla-font-mono);
+  
+  &:focus {
+    box-shadow: 0 0 5px var(--sla-accent);
+    background: #111;
+    outline: none;
+  }
+}
+
+/* ==========================================
+   DROPDOWN CONTRAST FIX - SCOPED
+   ========================================== */
+.sla-industries.sheet select,
+.sla-sheet select {
+  background-color: #222;
+  color: #fff;
+  border: 1px solid #444;
+  
+  option {
+    background-color: #222;
+    color: #fff;
+  }
+}
+
+/* ==========================================
+   PAUSE ANIMATION - SCOPED
+   ========================================== */
+.sla-industries #pause,
+.sla-sheet #pause {
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid var(--sla-border);
+}
+
+.sla-industries #pause figcaption,
+.sla-sheet #pause figcaption {
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 2em;
+  animation: slaRedPulse 2s infinite ease-in-out;
+}
+
+@keyframes slaRedPulse {
+  0% {
+    color: #aaa;
+    text-shadow: 0 0 2px #300;
+    transform: scale(1);
+  }
+  50% {
+    color: #f00;
+    text-shadow: 0 0 15px #f00;
+    transform: scale(1.1);
+  }
+  100% {
+    color: #aaa;
+    text-shadow: 0 0 2px #300;
+    transform: scale(1);
+  }
+}
+
+/* ==========================================
+   HEADER SECTION - SCOPED
+   ========================================== */
+.sla-industries .sheet-header,
+.sla-sheet .sheet-header {
+  flex: 0 0 auto;
+  display: flex !important;
+  flex-direction: row;
+  margin-bottom: 10px;
+  border: 2px solid var(--sla-border);
+  background: var(--sla-bg-panel);
+  height: 180px;
+  min-height: 180px;
+  max-height: 180px;
+  overflow: hidden;
+}
+
+.sla-industries .header-grid,
+.sla-sheet .header-grid {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.sla-industries .header-left,
+.sla-sheet .header-left {
+  flex: 0 0 70%;
+  display: flex;
+  flex-direction: column;
+  background: var(--sla-bg-panel);
+  border-right: 2px solid var(--sla-border);
+  padding: 8px;
+  color: var(--sla-text-light);
+}
+
+.sla-industries .header-section-title,
+.sla-sheet .header-section-title {
+  background: #111;
+  color: var(--sla-accent);
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px;
+  margin: -8px -8px 8px -8px;
+  border-bottom: 1px solid var(--sla-border);
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.sla-industries .header-bottom-bar,
+.sla-sheet .header-bottom-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 5px;
+  border-top: 1px solid var(--sla-border);
+  margin-top: 5px;
+}
+
+.sla-industries .lad-wrapper,
+.sla-industries .scl-wrapper,
+.sla-sheet .lad-wrapper,
+.sla-sheet .scl-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--sla-text-light);
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  
+  input {
+    width: 50px !important;
+    text-align: center;
+  }
+}
+
+.sla-industries .charname,
+.sla-sheet .charname {
+  font-family: var(--sla-font-header) !important;
+  font-weight: 700;
+  font-size: 1.4em;
+  margin: 0 0 8px 0;
+  
+  input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--sla-accent);
+    color: var(--sla-text-light);
+    font-family: var(--sla-font-header) !important;
+    font-weight: 700;
+    font-size: 1em;
+    padding: 4px;
+    width: 100%;
+    
+    &:focus {
+      box-shadow: 0 2px 4px var(--sla-accent-faint);
+      outline: none;
+    }
+  }
+}
+
+.sla-industries .header-fields,
+.sla-sheet .header-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.sla-industries .form-group,
+.sla-sheet .form-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  
+  label.label-bold {
+    flex: 0 0 70px;
+    font-weight: 700;
+    font-family: var(--sla-font-header);
+    color: #ccc;
+    font-size: 13px;
+    text-transform: uppercase;
+  }
+}
+
+.sla-industries .portrait-container,
+.sla-sheet .portrait-container {
+  flex: 0 0 130px;
+  background: #000;
+  border-right: 2px solid var(--sla-border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sla-industries .profile-img,
+.sla-sheet .profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  border: none;
+  display: block;
+}
+
+.sla-industries .finance-box,
+.sla-sheet .finance-box {
+  flex: 1;
+  background: var(--sla-bg-panel);
+  padding: 8px;
+  color: var(--sla-text-light);
+  display: flex;
+  flex-direction: column;
+  
+  .finance-header {
+    color: #ccc;
+    font-weight: 700;
+    font-family: var(--sla-font-header);
+    font-size: 11px;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 5px;
+    border-bottom: 1px solid var(--sla-border);
+    margin-bottom: 5px;
+  }
+}
+
+/* ==========================================
+   STATS SECTION - SCOPED (Orange Headers)
+   ========================================== */
+.sla-industries .stats-strip-container,
+.sla-sheet .stats-strip-container {
+  flex: 0 0 auto;
+  padding: 5px;
+  background-color: var(--sla-bg-panel);
+  border-top: 2px solid var(--sla-border);
+  border-bottom: 2px solid var(--sla-border);
+}
+
+.sla-industries .stats-matrix,
+.sla-sheet .stats-matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 100px;
+  gap: 15px;
+  background: transparent;
+}
+
+.sla-industries .stat-col,
+.sla-sheet .stat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sla-industries .rating-header,
+.sla-sheet .rating-header {
+  background: #000;
+  border: 1px solid var(--sla-border);
+  padding: 2px 5px;
+  height: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: var(--sla-radius);
+}
+
+.sla-industries .rating-block,
+.sla-sheet .rating-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #000 !important;
+  border: 1px solid var(--sla-border);
+  padding: 2px 5px;
+  height: 30px;
+  position: relative;
+  border-radius: var(--sla-radius);
+  
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 2px;
+    left: 5px;
+    right: 5px;
+    height: 2px;
+    background: var(--sla-accent);
+  }
+}
+
+.sla-industries .rating-label,
+.sla-sheet .rating-label {
+  font-weight: 700;
+  font-family: var(--sla-font-header);
+  color: var(--sla-accent) !important; /* Orange color for stat headers */
+  font-size: 0.9em;
+  text-transform: uppercase;
+}
+
+.sla-industries .rating-val,
+.sla-sheet .rating-val {
+  width: 50px;
+  text-align: center;
+  background: transparent;
+  border: none;
+  color: var(--sla-accent);
+  font-weight: bold;
+  font-size: 1.4em;
+}
+
+.sla-industries .stat-box,
+.sla-sheet .stat-box {
+  display: flex;
+  align-items: center;
+  background: #000;
+  border: 1px solid var(--sla-border);
+  height: 28px;
+  padding-right: 5px;
+  border-radius: var(--sla-radius);
+  
+  label {
+    flex: 0 0 50px;
+    background: var(--sla-bg-panel);
+    color: var(--sla-accent) !important; /* Orange color for stat labels (STR, DEX, etc.) */
+    font-weight: 700;
+    font-family: var(--sla-font-header);
+    font-size: 0.8em;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+    border-right: 1px solid var(--sla-border);
+    text-transform: uppercase;
+  }
+  
+  input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #fff;
+  }
+  
+  .rollable {
+    color: #777;
+    cursor: pointer;
+    margin-left: 5px;
+    
+    &:hover {
+      color: var(--sla-accent);
+    }
+  }
+}
+
+.sla-industries .side-col,
+.sla-sheet .side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  justify-content: space-between;
+}
+
+.sla-industries .side-box,
+.sla-sheet .side-box {
+  background: #000;
+  border: 1px solid var(--sla-border);
+  text-align: center;
+  padding: 2px;
+  border-radius: var(--sla-radius);
+  
+  label {
+    display: block;
+    color: #bbb;
+    font-size: 0.7em;
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+  }
+  
+  input {
+    width: 100%;
+    background: transparent;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+  }
+  
+  &.init {
+    background: var(--sla-accent);
+    border: 1px solid var(--sla-accent);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 5px var(--sla-accent-faint);
+    
+    &:hover {
+      background: #ff5722;
+      box-shadow: 0 0 15px var(--sla-accent);
+    }
+    
+    label,
+    .init-val {
+      color: #000;
+      font-weight: 900;
+    }
+    
+    .init-val {
+      font-size: 1.6em;
+    }
+  }
+}
+
+/* ==========================================
+   TABS NAVIGATION - SCOPED
+   ========================================== */
+.sla-industries .sheet-tabs,
+.sla-sheet .sheet-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--sla-accent);
+  margin-bottom: 5px;
+  background: var(--sla-bg-dark);
+  flex: 0 0 auto;
+  
+  .item {
+    padding: 5px 15px;
+    color: #bbb;
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    text-transform: uppercase;
+    border-right: 1px solid #333;
+    cursor: pointer;
+    transition: all var(--sla-transition);
+    
+    &:hover {
+      color: var(--sla-text-light);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    &.active {
+      color: #000;
+      background: var(--sla-accent);
+    }
+  }
+}
+
+/* ==========================================
+   SHEET BODY & TABS - SCOPED
+   ========================================== */
+.sla-industries .sheet-body,
+.sla-sheet .sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  padding: 5px;
+  position: relative;
+  
+  /* Scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--sla-accent) #000;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #000;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--sla-accent);
+    border-radius: 4px;
+    
+    &:hover {
+      background: #e05e1a;
+    }
+  }
+  
+  /* Tab visibility */
+  > section.tab,
+  > div > section.tab {
+    display: none;
+    
+    &.active {
+      display: flex !important;
+      flex-direction: column !important;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      
+      /* Scrollbar for active tab */
+      scrollbar-width: thin;
+      scrollbar-color: var(--sla-accent) #000;
+      
+      &::-webkit-scrollbar {
+        width: 8px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: #000;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: var(--sla-accent);
+        border-radius: 4px;
+        
+        &:hover {
+          background: #e05e1a;
+        }
+      }
+      
+      /* Flexcol inside tab */
+      > .flexcol {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        
+        scrollbar-width: thin;
+        scrollbar-color: var(--sla-accent) #000;
+        
+        &::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        &::-webkit-scrollbar-track {
+          background: #000;
+        }
+        
+        &::-webkit-scrollbar-thumb {
+          background: var(--sla-accent);
+          border-radius: 4px;
+          
+          &:hover {
+            background: #e05e1a;
+          }
+        }
+      }
+    }
+  }
+  
+  /* Force single column for non-Main tabs */
+  > section.tab.active:not([data-tab="main"]):not(.main),
+  > div > section.tab.active:not([data-tab="main"]):not(.main),
+  section.tab[data-tab="ebb"].active,
+  section.tab[data-tab="inventory"].active,
+  section.tab[data-tab="biography"].active {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    
+    > .flexcol {
+      display: flex !important;
+      flex-direction: column !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+    }
+  }
+}
+
+/* ==========================================
+   MAIN TAB - TWO COLUMN LAYOUT - SCOPED
+   ========================================== */
+.sla-industries section.tab[data-tab="main"] .main-split,
+.sla-industries section.tab.main .main-split,
+.sla-sheet section.tab[data-tab="main"] .main-split,
+.sla-sheet section.tab.main .main-split {
+  display: grid !important;
+  grid-template-columns: 2.2fr 1fr !important;
+  gap: 10px;
+  width: 100%;
+  align-items: start;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.sla-industries section.tab[data-tab="main"] .left-col,
+.sla-industries section.tab[data-tab="main"] .right-col,
+.sla-sheet section.tab[data-tab="main"] .left-col,
+.sla-sheet section.tab[data-tab="main"] .right-col {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-width: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Ensure non-Main tabs do NOT use grid */
+.sla-industries section.tab:not([data-tab="main"]):not(.main) .main-split,
+.sla-sheet section.tab:not([data-tab="main"]):not(.main) .main-split {
+  display: block !important;
+  grid-template-columns: none !important;
+}
+
+/* ==========================================
+   SKILLS TABLE - SCOPED (Tighter Rows, Orange Headers)
+   ========================================== */
+.sla-industries .sla-panel,
+.sla-sheet .sla-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #000;
+  border: 1px solid var(--sla-border);
+  overflow: hidden;
+  border-radius: var(--sla-radius);
+  flex: 0 0 auto;
+  margin-bottom: 5px;
+}
+
+.sla-industries .sla-header-bar,
+.sla-sheet .sla-header-bar {
+  background-color: var(--sla-bg-panel);
+  color: var(--sla-text-light);
+  font-family: var(--sla-font-header);
+  padding: 2px 5px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--sla-border);
+}
+
+.sla-industries .sla-header-bar-small,
+.sla-sheet .sla-header-bar-small {
+  background-color: rgba(208, 94, 26, 0.2);
+  color: #ddd;
+  font-family: var(--sla-font-header);
+  padding: 2px 5px;
+  font-weight: 700;
+  font-size: 0.8em;
+  border-bottom: 1px solid #333;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sla-industries .sla-table,
+.sla-sheet .sla-table {
+  width: 100%;
+  border-collapse: collapse;
+  
+  tbody tr.item {
+    padding: 0;
+    margin: 0;
+    line-height: 1.2; /* Tighter row spacing */
+    
+    td {
+      padding: 2px 4px; /* Reduced padding for tighter rows */
+      vertical-align: middle;
+    }
+  }
+  
+  /* Orange stat headers */
+  .skill-group-header {
+    background: rgba(208, 94, 26, 0.2);
+    color: var(--sla-accent) !important;
+    font-weight: 700;
+    font-family: var(--sla-font-header);
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--sla-accent);
+    
+    td {
+      padding: 4px 8px;
+      font-size: 0.85em;
+      letter-spacing: 1px;
+    }
+  }
+}
+
+.sla-industries .scroll-list,
+.sla-sheet .scroll-list {
+  overflow-y: visible;
+  height: auto;
+  padding: 0;
+}
+
+/* ==========================================
+   SECONDARY STATS (Movement/Vitals/Status) - SCOPED
+   ========================================== */
+.sla-industries .sla-box,
+.sla-sheet .sla-box {
+  border: 1px solid var(--sla-border);
+  border-radius: var(--sla-radius);
+  padding: 5px;
+  margin-bottom: 5px;
+  background: rgba(30, 30, 40, 0.8);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  
+  &-header {
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    color: #aab;
+    border-bottom: 1px solid #555;
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+  }
+  
+  .compact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    
+    label {
+      font-size: 0.85em;
+      color: #ccc;
+    }
+  }
+}
+
+.sla-industries .sla-input-mini,
+.sla-sheet .sla-input-mini {
+  width: 45px !important;
+  height: 22px !important;
+  border-radius: 3px !important;
+  background: #111 !important;
+  border: 1px solid #555 !important;
+  color: #fff !important;
+  text-align: center;
+  font-weight: bold;
+  padding: 0 !important;
+  
+  &:focus {
+    border-color: var(--sla-accent) !important;
+    box-shadow: 0 0 4px var(--sla-accent);
+  }
+}
+
+/* ==========================================
+   ITEM SHEETS - SCOPED
+   ========================================== */
+.sla-industries.sheet.item .sheet-header,
+.sla-sheet.item .sheet-header {
+  background: #222;
+  color: #fff;
+  border-bottom: 4px solid var(--sla-accent);
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  
+  img.profile-img {
+    flex: 0 0 64px;
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border: 1px solid #000;
+    margin-right: 10px;
+    background: #000;
+  }
+}
+
+.sla-industries.sheet.item .charname,
+.sla-sheet.item .charname {
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  
+  input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--sla-accent);
+    color: var(--sla-text-light);
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 1.2em;
+    padding: 4px;
+  }
+}
+
+/* ==========================================
+   ROLLABLE ELEMENTS - SCOPED
+   ========================================== */
+.sla-industries .rollable,
+.sla-sheet .rollable {
+  cursor: pointer;
+  transition: color var(--sla-transition);
+  
+  &:hover {
+    color: var(--sla-accent);
+    text-shadow: 0 0 4px var(--sla-accent-faint);
+  }
+}
+
+/* ==========================================
+   CHIPS & DROP ZONES - SCOPED
+   ========================================== */
+.sla-industries .chip,
+.sla-sheet .chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #000;
+  border: 1px solid var(--sla-accent);
+  padding: 2px;
+  gap: 5px;
+  border-radius: var(--sla-radius);
+  height: 30px;
+  
+  img {
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+    object-fit: cover;
+    border: 1px solid #555;
+    background: #000;
+    margin: 0;
+  }
+}
+
+.sla-industries .chip-name,
+.sla-sheet .chip-name {
+  color: #fff;
+  font-weight: bold;
+  flex: 1;
+}
+
+.sla-industries .chip-delete,
+.sla-sheet .chip-delete {
+  color: #d00;
+  cursor: pointer;
+  padding: 0 5px;
+  
+  &:hover {
+    color: #f00;
+  }
+}
+
+.sla-industries .chip-placeholder,
+.sla-sheet .chip-placeholder {
+  flex: 1;
+  background: #111;
+  color: #888;
+  border: 1px dashed #555;
+  text-align: center;
+  font-style: italic;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================
+   ITEM CONTROLS - SCOPED
+   ========================================== */
+.sla-industries .item-controls,
+.sla-sheet .item-controls {
+  display: flex;
+  gap: 5px;
+  min-width: 40px;
+  justify-content: center;
+  
+  a {
+    width: 18px;
+    text-align: center;
+    color: #aaa;
+    cursor: pointer;
+    
+    &:hover {
+      color: #fff;
+    }
+  }
+  
+  .item-delete:hover {
+    color: #f00;
+  }
+}
+
+/* ==========================================
+   CHECKBOX STYLING - V13 FontAwesome Icons
+   ========================================== */
+/* V13: Checkboxes use FontAwesome icons, must style ::before and ::after pseudo-elements */
+.sla-industries input[type="checkbox"],
+.sla-sheet input[type="checkbox"] {
+  /* Reset default checkbox appearance */
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid var(--sla-border);
+  background: var(--sla-bg-panel);
+  border-radius: var(--sla-radius);
+  
+  /* Style the ::before pseudo-element (unchecked state) */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    background: transparent;
+    border-radius: 2px;
+    transition: all var(--sla-transition);
+  }
+  
+  /* Style the ::after pseudo-element (checked state - FontAwesome check icon) */
+  &::after {
+    content: '\f00c'; /* FontAwesome check icon */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    color: var(--sla-accent);
+    font-size: 12px;
+    transition: transform var(--sla-transition);
+  }
+  
+  /* Checked state */
+  &:checked {
+    background: var(--sla-bg-panel);
+    border-color: var(--sla-accent);
+    
+    &::after {
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+  
+  /* Active state (when clicking) */
+  &:active::before,
+  &:active::after {
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  
+  /* Focus state */
+  &:focus {
+    outline: 2px solid var(--sla-accent-faint);
+    outline-offset: 2px;
+  }
+  
+  /* Hover state */
+  &:hover {
+    border-color: var(--sla-accent);
+    background: rgba(208, 94, 26, 0.1);
+  }
+  
+  /* Disabled state */
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    
+    &:hover {
+      border-color: var(--sla-border);
+      background: var(--sla-bg-panel);
+    }
+  }
+}
+
+/* Wound checkboxes - specific styling */
+.sla-industries .wound-checkbox,
+.sla-sheet .wound-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--sla-accent);
+  background: #000;
+  
+  &:checked {
+    background: var(--sla-accent);
+    border-color: var(--sla-accent);
+    
+    &::after {
+      color: #000; /* Black check on orange background */
+    }
+  }
+  
+  &:hover {
+    border-color: #ff5722;
+    box-shadow: 0 0 8px var(--sla-accent-faint);
+  }
+}
+
+/* ==========================================
+   GLOBAL UTILITIES - SCOPED
+   ========================================== */
+.window-app {
+  font-family: var(--sla-font-header);
+}
+
+.sla-industries .rollable:hover,
+.sla-industries .rollable:focus,
+.sla-sheet .rollable:hover,
+.sla-sheet .rollable:focus {
+  color: #000;
+  text-shadow: 0 0 10px red;
+  cursor: pointer;
+}
+
+.sla-industries .flex-group-center,
+.sla-industries .flex-group-left,
+.sla-industries .flex-group-right,
+.sla-sheet .flex-group-center,
+.sla-sheet .flex-group-left,
+.sla-sheet .flex-group-right {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.sla-industries .flex-group-left,
+.sla-sheet .flex-group-left {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.sla-industries .flex-group-right,
+.sla-sheet .flex-group-right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+/* ==========================================
+   DIALOG THEME (Attack & Luck) - SCOPED
+   ========================================== */
+.sla-dialog-window.dialog {
+  background: url("");
+  background-color: var(--sla-bg-dark);
+  border: 2px solid var(--sla-border);
+  box-shadow: 0 0 20px #000;
+  color: var(--sla-text-light);
+  border-radius: 5px;
+  
+  .window-header {
+    background: #111;
+    border-bottom: 2px solid var(--sla-accent);
+    color: #fff;
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 5px 10px;
+  }
+  
+  .window-content {
+    background: var(--sla-bg-dark);
+    color: var(--sla-text-light);
+    padding: 10px;
+    font-family: var(--sla-font-header);
+  }
+  
+  select,
+  input {
+    background: #000;
+    color: var(--sla-text-light);
+    border: 1px solid #555;
+    border-radius: var(--sla-radius);
+    height: 28px;
+    padding: 1px 5px;
+    font-family: var(--sla-font-mono);
+    
+    &:focus {
+      box-shadow: 0 0 5px var(--sla-accent);
+      background: #111;
+      outline: none;
+    }
+  }
+  
+  .dialog-buttons .dialog-button {
+    background: var(--sla-bg-panel);
+    border: 1px solid var(--sla-accent);
+    color: var(--sla-accent);
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 15px;
+    padding: 5px 10px;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: var(--sla-accent);
+      color: #000;
+      box-shadow: 0 0 10px var(--sla-accent);
+    }
+  }
+}
+
+/* ==========================================
+   CHAT CARD STYLING - SCOPED
+   ========================================== */
+.sla-chat-card {
+  font-family: var(--sla-font-mono);
+  font-size: 14px;
+  color: #eee;
+  
+  h3 {
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 5px 0;
+    border-bottom: 1px solid #555;
+  }
+  
+  .dice-rerolled {
+    border-style: dotted;
+    text-decoration-style: dotted;
+  }
+  
+  .sla-diff-btn {
+    padding: 2px 6px;
+    border: 1px solid #444;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: var(--sla-font-mono);
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    font-weight: bold;
+    background: #111;
+    border-color: #444;
+    color: #aaa;
+    
+    &:hover {
+      background: #333;
+      border-color: #888;
+      color: #fff;
+      box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+    }
+    
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 5px var(--sla-accent);
+    }
+  }
+  
+  .mos-choice-container button {
+    padding: 4px 8px;
+    border: 1px solid;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: var(--sla-font-mono);
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    font-weight: bold;
+    
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 5px var(--sla-accent);
+    }
+  }
+  
+  .mos-choice-container .chat-btn-wound {
+    background: #330000;
+    border-color: #ff4444;
+    color: #ffcccc;
+    
+    &:hover {
+      background: #550000;
+      box-shadow: 0 0 5px rgba(255, 68, 68, 0.4);
+    }
+  }
+  
+  .mos-choice-container .chat-btn-damage {
+    background: #000;
+    border-color: #39ff14;
+    color: #39ff14;
+    
+    &:hover {
+      background: #002200;
+      box-shadow: 0 0 5px rgba(57, 255, 20, 0.4);
+    }
+  }
+}
+
+/* Damage Result Card */
+.sla-chat-card.damage-result {
+  padding: 8px;
+  border-radius: 4px;
+  background: #000;
+  border: 1px solid #d00;
+  border-left: 4px solid #d00;
+  box-shadow: 0 0 5px rgba(221, 0, 0, 0.2);
+  
+  .damage-header {
+    color: #ff3333;
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 1.1em;
+    border-bottom: 1px solid #500;
+    margin-bottom: 6px;
+    padding-bottom: 2px;
+  }
+  
+  .damage-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+    font-size: 0.95em;
+    
+    &.reduction {
+      color: #daa;
+      font-style: italic;
+      font-size: 0.9em;
+    }
+    
+    &.final {
+      margin-top: 6px;
+      padding-top: 4px;
+      border-top: 1px dashed #500;
+      font-size: 1.1em;
+    }
+    
+    .final-value {
+      color: #ff5555;
+      font-size: 1.2em;
+      text-shadow: 0 0 5px #500;
+    }
+  }
+  
+  .damage-hp {
+    text-align: right;
+    margin-top: 8px;
+    padding-top: 4px;
+    border-top: 1px solid #333;
+    font-size: 0.9em;
+    color: #bbb;
+    
+    strong {
+      color: #fff;
+    }
+  }
+  
+  .damage-armor {
+    font-size: 0.85em;
+    color: #888;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    
+    i {
+      color: #666;
+    }
+  }
+}
+
+/* Drug Use Card */
+.sla-chat-card.drug-use {
+  padding: 8px;
+  border-radius: 4px;
+  background: #000;
+  border: 1px solid var(--sla-accent);
+  border-left: 4px solid var(--sla-accent);
+  box-shadow: 0 0 5px rgba(208, 94, 26, 0.2);
+  
+  .drug-header {
+    color: var(--sla-accent);
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 1.1em;
+    border-bottom: 1px solid #555;
+    margin-bottom: 6px;
+    padding-bottom: 2px;
+  }
+  
+  .drug-content {
+    font-size: 0.95em;
+    margin-bottom: 8px;
+  }
+  
+  .drug-details {
+    font-size: 0.9em;
+    color: #aaa;
+    padding-top: 6px;
+    border-top: 1px dashed #444;
+    
+    strong {
+      color: #ccc;
+    }
+  }
+}
+
+/* ==========================================
+   WOUNDS & CONDITIONS - SCOPED
+   ========================================== */
+.sla-industries .wound-section-title,
+.sla-sheet .wound-section-title {
+  font-weight: 700;
+  font-family: var(--sla-font-header);
+  color: var(--sla-accent);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--sla-border);
+  margin-bottom: 5px;
+  padding-bottom: 2px;
+  font-size: 0.85em;
+  letter-spacing: 1px;
+}
+
+.sla-industries .wound-list,
+.sla-sheet .wound-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.sla-industries .wound-entry,
+.sla-sheet .wound-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #000;
+  border: 1px solid var(--sla-border);
+  padding: 4px 8px;
+  border-radius: var(--sla-radius);
+  
+  label {
+    font-size: 0.9em;
+    font-weight: bold;
+    color: var(--sla-text-light);
+    cursor: pointer;
+  }
+}
+
+.sla-industries .condition-grid,
+.sla-sheet .condition-grid {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--sla-border);
+}
+
+.sla-industries .condition-toggle,
+.sla-sheet .condition-toggle {
+  background: #1a1a25;
+  border: 1px solid var(--sla-border);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--sla-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.5em;
+  
+  &:hover {
+    border-color: var(--sla-text-light);
+    color: var(--sla-text-light);
+    background: #222;
+  }
+  
+  &.active {
+    background: #333;
+    color: var(--sla-accent);
+    border-color: var(--sla-accent);
+    box-shadow: 0 0 8px var(--sla-accent-faint);
+  }
+  
+  &[data-condition="bleeding"].active {
+    color: #ff4444;
+    border-color: #ff4444;
+    text-shadow: 0 0 5px #ff4444;
+  }
+  
+  &[data-condition="burning"].active {
+    color: #ffaa00;
+    border-color: #ffaa00;
+    text-shadow: 0 0 5px #ffaa00;
+  }
+  
+  &[data-condition="stunned"].active {
+    color: #ffff00;
+    border-color: #ffff00;
+    text-shadow: 0 0 5px #ffff00;
+  }
+  
+  &[data-condition="immobile"].active {
+    color: #00ccff;
+    border-color: #00ccff;
+    text-shadow: 0 0 5px #00ccff;
+  }
+  
+  &[data-condition="prone"].active {
+    color: #39ff14;
+    border-color: #39ff14;
+    text-shadow: 0 0 5px #39ff14;
+  }
+  
+  &[data-condition="critical"].active {
+    color: #ff0000;
+    border-color: #ff0000;
+    background: #330000 !important;
+  }
+}
+
+/* ==========================================
+   WEAPON FIRING MODES GRID - SCOPED
+   ========================================== */
+.sla-industries .firing-mode-grid.header,
+.sla-sheet .firing-mode-grid.header {
+  display: grid;
+  grid-template-columns: 40px 1fr 60px 60px;
+  gap: 5px;
+  align-items: center;
+  padding: 2px 4px;
+  background: #111;
+  border-bottom: 1px solid #333;
+  color: #888;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 0.75em;
+  text-transform: uppercase;
+}
+
+.sla-industries .firing-mode-row,
+.sla-sheet .firing-mode-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 60px 60px;
+  gap: 5px;
+  align-items: center;
+  padding: 4px;
+  border-bottom: 1px solid #222;
+  transition: background 0.2s;
+  min-height: 30px;
+  
+  &:not(.enabled) {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  
+  &.enabled {
+    background: rgba(208, 94, 26, 0.1);
+    border-left: 3px solid var(--sla-accent);
+    
+    .col-name {
+      color: var(--sla-accent);
+      font-weight: 700;
+      text-shadow: 0 0 5px rgb(0, 0, 0);
+    }
+  }
+  
+  input[type="number"] {
+    height: 22px !important;
+    width: 100% !important;
+    font-size: 0.9em;
+    background: #000 !important;
+    border: 1px solid #444 !important;
+    text-align: center;
+    color: #fff !important;
+    border-radius: 3px;
+  }
+}
+
+/* ==========================================
+   PROSEMIRROR EDITOR STYLING - SCOPED
+   ========================================== */
+.sla-industries .sla-editor-container .editor,
+.sla-sheet .sla-editor-container .editor {
+  background: #000;
+  color: #e0e0e0;
+  height: 100%;
+  min-height: 200px;
+}
+
+.sla-industries .editor-edit,
+.sla-sheet .editor-edit {
+  background: #222 !important;
+  color: var(--sla-accent) !important;
+  border: 1px solid var(--sla-accent) !important;
+  box-shadow: 0 0 5px #000;
+  
+  &:hover {
+    background: var(--sla-accent) !important;
+    color: #000 !important;
+  }
+}
+
+.sla-industries .prosemirror-menu,
+.sla-sheet .prosemirror-menu,
+.prosemirror-menu {
+  background: #1a1a1a !important;
+  border-bottom: 1px solid #333 !important;
+  padding: 2px !important;
+  border-radius: 4px 4px 0 0;
+  
+  button {
+    background-color: transparent !important;
+    color: #e0e0e0 !important;
+    border: 1px solid transparent !important;
+    cursor: pointer !important;
+    width: 24px !important;
+    height: 24px !important;
+    line-height: 24px !important;
+    padding: 0 !important;
+    margin: 0 1px !important;
+    
+    > *,
+    i,
+    svg,
+    svg path {
+      color: #e0e0e0 !important;
+      fill: #e0e0e0 !important;
+      stroke: none !important;
+      filter: none !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      box-shadow: none !important;
+    }
+    
+    &:hover {
+      background-color: #333 !important;
+      border-color: #555 !important;
+      color: #fff !important;
+      
+      > *,
+      i,
+      svg path {
+        color: #fff !important;
+        fill: #fff !important;
+      }
+    }
+    
+    &.active,
+    &.to-mark {
+      background-color: var(--sla-accent) !important;
+      color: #000 !important;
+      
+      > *,
+      i,
+      svg path {
+        color: #000 !important;
+        fill: #000 !important;
+      }
+    }
+  }
+  
+  .pm-dropdown {
+    background: #1a1a1a !important;
+    color: #e0e0e0 !important;
+    
+    span {
+      color: #e0e0e0 !important;
+    }
+  }
+}
+
+.editor button,
+.editor .prosemirror-menu > *,
+.prosemirror-menu [data-action] {
+  color: #e0e0e0 !important;
+  fill: #e0e0e0 !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.editor button i,
+.editor button svg,
+.editor button svg path,
+.prosemirror-menu [data-action] i,
+.prosemirror-menu [data-action] svg path {
+  color: #e0e0e0 !important;
+  fill: #e0e0e0 !important;
+  filter: none !important;
+}
+
+/* ==========================================
+   THREAT SHEET THEMES - SCOPED
+   ========================================== */
+.sla-industries.sheet.actor .threat-sheet,
+.sla-sheet.threat-sheet {
+  background: #fdfbf7 !important;
+  color: #111 !important;
+  font-family: "Georgia", serif !important;
+  border: 2px solid #333 !important;
+  padding: 0 !important;
+}
+
+.sla-industries .threat-header,
+.sla-sheet .threat-header {
+  background: #800000 !important;
+  color: #fff !important;
+  font-family: "Georgia", serif !important;
+  border-bottom: 2px solid #000 !important;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  
+  .header-name input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.4em;
+    font-weight: bold;
+    font-family: "Georgia", serif;
+  }
+}
+
+.sla-industries .threat-body,
+.sla-sheet .threat-body {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sla-accent) #000;
+}
+
+.sla-industries .threat-logo,
+.sla-sheet .threat-logo {
+  flex: 0 0 50px;
+  width: 50px;
+  height: 50px;
+  border: none;
+  margin-right: 10px;
+  object-fit: cover;
+  background: #000;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.sla-industries .threat-section-bar,
+.sla-sheet .threat-section-bar {
+  background: #800000;
+  color: #fff;
+  font-family: "Georgia", serif;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-top: 2px solid #000;
+  border-bottom: 1px solid #000;
+  margin-top: 10px;
+  text-transform: uppercase;
+}
+
+.sla-industries .threat-table,
+.sla-sheet .threat-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.sla-industries .threat-row-label th,
+.sla-sheet .threat-row-label th {
+  background: #800000;
+  color: #fff;
+  border: 1px solid #999;
+  padding: 2px;
+  font-size: 0.9em;
+  font-weight: bold;
+  font-family: "Georgia", serif;
+  text-transform: uppercase;
+}
+
+.sla-industries .threat-row-value td,
+.sla-sheet .threat-row-value td {
+  padding: 0;
+  border: 1px solid #999;
+  
+  input {
+    width: 100%;
+    background: #fff !important;
+    color: #000 !important;
+    border: none;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+}
+
+.sla-industries .threat-derived,
+.sla-sheet .threat-derived {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.sla-industries .threat-box,
+.sla-sheet .threat-box {
+  background: #fff;
+  border: 1px solid #000;
+  padding: 2px 5px;
+  flex: 1;
+  min-width: 80px;
+  
+  label {
+    display: block;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 2px;
+  }
+  
+  input {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px dotted #ccc !important;
+    color: #000 !important;
+    font-weight: bold;
+    width: 100%;
+  }
+  
+  .flexrow {
+    align-items: center;
+    gap: 2px;
+  }
+}
+
+.sla-industries .threat-content-box,
+.sla-sheet .threat-content-box {
+  background: #fff;
+  border: 1px solid #999;
+  padding: 2px;
+  
+  &.editor {
+    min-height: 300px;
+    background: #fff;
+    color: #000;
+    
+    .editor {
+      min-height: 300px;
+      height: 100%;
+      color: #000;
+    }
+  }
+}
+
+.sla-industries .threat-item,
+.sla-sheet .threat-item {
+  padding: 3px;
+  border-bottom: 1px dotted #ccc;
+  align-items: center;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  .item-name {
+    color: #000;
+  }
+}
+
+/* ==========================================
+   ITEM SHEET THEMES - SCOPED
+   ========================================== */
+.sla-industries.sheet.item .window-content,
+.sla-sheet.item .window-content {
+  background: var(--sla-bg-dark) !important;
+  border: 4px solid var(--sla-border);
+  font-family: var(--sla-font-mono);
+  color: var(--sla-text-light);
+}
+
+/* Academic Theme (Skills/Traits) */
+.sla-industries.sheet.item.skill .window-content,
+.sla-industries.sheet.item.trait .window-content,
+.sla-sheet.item.skill .window-content,
+.sla-sheet.item.trait .window-content {
+  background: var(--sla-bg-dark) !important;
+  font-family: var(--sla-font-mono);
+  color: var(--sla-text-light);
+}
+
+.sla-industries.sheet.item.skill .sheet-header,
+.sla-industries.sheet.item.trait .sheet-header,
+.sla-sheet.item.skill .sheet-header,
+.sla-sheet.item.trait .sheet-header {
+  background: var(--sla-bg-panel) !important;
+  border: none;
+  border-bottom: 2px solid var(--sla-border);
+  color: var(--sla-text-light) !important;
+}
+
+.sla-industries.sheet.item.skill input,
+.sla-industries.sheet.item.trait input,
+.sla-sheet.item.skill input,
+.sla-sheet.item.trait input {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid var(--sla-border) !important;
+  border-bottom: 1px dotted var(--sla-border) !important;
+  color: var(--sla-text-light) !important;
+  font-family: var(--sla-font-mono);
+  font-weight: bold;
+}
+
+/* Spectral Theme (Ebb) */
+.sla-industries.sheet.item.ebbFormula .window-content,
+.sla-industries.sheet.item.discipline .window-content,
+.sla-sheet.item.ebbFormula .window-content,
+.sla-sheet.item.discipline .window-content {
+  background: #0a0011 !important;
+  color: #d8bfff !important;
+  border: 2px solid #8a2be2;
+}
+
+.sla-industries.sheet.item.ebbFormula .sheet-header,
+.sla-industries.sheet.item.discipline .sheet-header,
+.sla-sheet.item.ebbFormula .sheet-header,
+.sla-sheet.item.discipline .sheet-header {
+  background: linear-gradient(90deg, #1a002a, #30004a) !important;
+  border-bottom: 1px solid #8a2be2;
+}
+
+.sla-industries.sheet.item.ebbFormula input,
+.sla-industries.sheet.item.discipline input,
+.sla-sheet.item.ebbFormula input,
+.sla-sheet.item.discipline input {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid #8a2be2 !important;
+  color: #fff !important;
+  text-shadow: 0 0 5px #8a2be2;
+}
+
+/* ==========================================
+   EBB FORMULA DROP ZONE - SCOPED
+   ========================================== */
+.sla-industries .discipline-drop-zone,
+.sla-sheet .discipline-drop-zone {
+  border: 1px dashed #8a2be2;
+  background: rgba(138, 43, 226, 0.1);
+  padding: 5px;
+  border-radius: 4px;
+  text-align: center;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  
+  &.filled {
+    border-style: solid;
+    background: rgba(0, 0, 0, 0.4);
+  }
+}
+
+.sla-industries .linked-item,
+.sla-sheet .linked-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 5px;
+  
+  img {
+    width: 32px !important;
+    height: 32px !important;
+    object-fit: cover;
+    border: 1px solid #8a2be2;
+    background: #000;
+    flex: 0 0 32px;
+  }
+  
+  .linked-name {
+    flex: 1;
+    text-align: left;
+    font-weight: bold;
+    color: #d8bfff;
+  }
+  
+  .remove-discipline {
+    color: #ff4444;
+    cursor: pointer;
+  }
+}
+
+/* ==========================================
+   DOSSIER THEME (Species & Package) - SCOPED
+   ========================================== */
+.sla-industries.sheet.item.species .window-content,
+.sla-industries.sheet.item.package .window-content,
+.sla-sheet.item.species .window-content,
+.sla-sheet.item.package .window-content {
+  background: var(--sla-bg-dark) !important;
+  color: var(--sla-text-light);
+}
+
+.sla-industries.sheet.item.species .sheet-header,
+.sla-industries.sheet.item.package .sheet-header,
+.sla-sheet.item.species .sheet-header,
+.sla-sheet.item.package .sheet-header {
+  background: #000 !important;
+  border-bottom: 2px solid var(--sla-accent);
+  padding: 10px;
+}
+
+.sla-industries .office-dossier,
+.sla-sheet .office-dossier {
+  padding: 10px;
+  font-family: var(--sla-font-mono);
+}
+
+.sla-industries .dossier-stamp,
+.sla-sheet .dossier-stamp {
+  font-weight: 700;
+  font-size: 1.5em;
+  color: rgba(255, 50, 50, 0.7);
+  border: 3px solid rgba(255, 50, 50, 0.7);
+  display: inline-block;
+  padding: 5px 10px;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+}
+
+.sla-industries .paper-section,
+.sla-sheet .paper-section {
+  background: var(--sla-bg-panel);
+  border: 1px solid var(--sla-border);
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: var(--sla-radius);
+}
+
+.sla-industries .paper-header,
+.sla-sheet .paper-header {
+  font-family: var(--sla-font-header);
+  color: var(--sla-accent);
+  font-weight: 700;
+  border-bottom: 1px solid var(--sla-border);
+  margin-bottom: 8px;
+  padding-bottom: 2px;
+  text-transform: uppercase;
+}
+
+.sla-industries .paper-row,
+.sla-sheet .paper-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  
+  label {
+    font-weight: bold;
+    color: #ccc;
+  }
+  
+  input {
+    background: #000;
+    border: 1px solid #555;
+    color: #fff;
+    width: 60px;
+    text-align: center;
+  }
+}
+
+.sla-industries .stat-limits-grid,
+.sla-sheet .stat-limits-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.sla-industries .limit-box,
+.sla-sheet .limit-box {
+  background: #000;
+  border: 1px solid var(--sla-border);
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  
+  label {
+    font-size: 0.8em;
+    font-weight: 700;
+    color: #888;
+  }
+  
+  .flexrow {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #333;
+    color: #fff;
+    text-align: center;
+  }
+}
+
+/* ==========================================
+   SKILL GRANT CHIPS (Species/Packages/Weapons) - SCOPED
+   ========================================== */
+.sla-industries .skill-grant-area,
+.sla-sheet .skill-grant-area {
+  min-height: 40px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px dashed #555;
+  padding: 5px;
+  border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  transition: all 0.2s ease;
+  
+  &.filled {
+    border: 1px solid #444;
+    background: rgba(0, 0, 0, 0.4);
+  }
+}
+
+.sla-industries .granted-skill-chip,
+.sla-sheet .granted-skill-chip {
+  display: flex;
+  align-items: center;
+  background: #000;
+  border: 1px solid var(--sla-accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+  gap: 8px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+  
+  &:hover {
+    border-color: #fff;
+  }
+  
+  img {
+    width: 24px;
+    height: 24px;
+    object-fit: cover;
+    border: 1px solid #fff;
+    background: #000;
+  }
+  
+  .skill-name {
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 2px #000;
+    font-size: 0.95em;
+  }
+  
+  .delete-grant {
+    color: #ff5555;
+    cursor: pointer;
+    font-size: 1em;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+    
+    &:hover {
+      opacity: 1;
+      text-shadow: 0 0 5px red;
+    }
+  }
+}
+
+/* ==========================================
+   CATALOGUE THEME GRID - SCOPED
+   ========================================== */
+.sla-industries .catalogue-grid,
+.sla-sheet .catalogue-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 10px;
+}
+
+.sla-industries .item-catalogue .form-group,
+.sla-sheet .item-catalogue .form-group {
+  background: #ccc;
+  border: 1px solid #999;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  
+  label {
+    font-size: 0.7em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #555;
+  }
+  
+  input {
+    background: transparent;
+    border: none;
+    font-weight: bold;
+    color: #000;
+    border-bottom: 1px solid #999;
+  }
+}
+
+/* ==========================================
+   ACADEMIC THEME (Textbook) - SCOPED
+   ========================================== */
+.sla-industries .academic-paper,
+.sla-sheet .academic-paper {
+  padding: 20px;
+  font-family: var(--sla-font-mono);
+  background: var(--sla-bg-dark);
+  color: var(--sla-text-light);
+  border-radius: 4px;
+  height: 100%;
+  
+  .line-item {
+    display: flex;
+    align-items: baseline;
+    border-bottom: 1px dotted var(--sla-border);
+    margin-bottom: 8px;
+    padding-bottom: 2px;
+  }
+  
+  label {
+    flex: 0 0 auto;
+    font-weight: bold;
+    margin-right: 10px;
+    color: var(--sla-text-light);
+  }
+  
+  input,
+  select {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid var(--sla-border) !important;
+    font-family: inherit;
+    font-size: 1.1em;
+    color: var(--sla-text-light) !important;
+  }
+}
+
+/* ==========================================
+   SPECTRAL THEME (Ebb) - SCOPED
+   ========================================== */
+.sla-industries .spectral-container,
+.sla-sheet .spectral-container {
+  padding: 15px;
+  color: #d8bfff;
+  
+  .glow-input {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+    
+    label {
+      color: #a855f7;
+      font-size: 0.8em;
+      font-weight: bold;
+      text-shadow: 0 0 5px #a855f7;
+    }
+    
+    input {
+      background: rgba(0, 0, 0, 0.5) !important;
+      border: 1px solid #8a2be2 !important;
+      color: #fff !important;
+      box-shadow: 0 0 5px #8a2be2;
+      transition: all 0.3s ease;
+      padding: 2px 5px;
+      width: 50%;
+      height: 24px;
+      font-size: 1.1em;
+    }
+  }
+}
+
+/* ==========================================
+   GLOBAL DROP ZONES - SCOPED
+   ========================================== */
+.sla-industries .drop-zone,
+.sla-sheet .drop-zone {
+  border: 2px dashed #777;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 5px;
+  border-radius: 4px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-align: center;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #aaa;
+  }
+  
+  &.filled {
+    border: 2px solid #555;
+    background: transparent;
+  }
+}
+
+.sla-industries.sheet.item.ebbFormula .drop-zone,
+.sla-sheet.item.ebbFormula .drop-zone {
+  border-color: #8a2be2;
+  background: rgba(138, 43, 226, 0.1);
+  
+  &.filled {
+    border-style: solid;
+    background: rgba(0, 0, 0, 0.4);
+  }
+}
+
+.sla-industries.sheet.item.package .drop-zone,
+.sla-industries.sheet.item.species .drop-zone,
+.sla-sheet.item.package .drop-zone,
+.sla-sheet.item.species .drop-zone {
+  border-color: var(--sla-border);
+  
+  &.filled {
+    border-style: solid;
+  }
+}
+
+/* ==========================================
+   SINGLE VIEW LAYOUT - SCOPED
+   ========================================== */
+.sla-industries .sheet-body.single-view,
+.sla-sheet .sheet-body.single-view {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  height: 100%;
+  overflow: hidden;
+  gap: 15px;
+  
+  .sheet-attributes {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .sheet-description {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100px;
+    
+    .editor {
+      flex: 1;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+/* ==========================================
+   ITEM CHIP STYLING - SCOPED
+   ========================================== */
+.sla-industries .item-chip,
+.sla-sheet .item-chip {
+  flex: 1;
+  height: 100%;
+  background: #222;
+  border: 1px solid #39ff14;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  color: #fff;
+  
+  img {
+    height: 24px !important;
+    width: 24px !important;
+    margin-right: 5px;
+    border: 1px solid #555;
+    background: #000;
+    object-fit: cover;
+  }
+  
+  .chip-name {
+    flex: 1;
+    font-weight: bold;
+    color: #39ff14;
+  }
+}
+
+.sla-industries .item .item-image,
+.sla-sheet .item .item-image {
+  flex: 0 0 30px !important;
+  width: 30px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  img {
+    height: 24px !important;
+    width: 24px !important;
+    margin-right: 5px;
+    border: 1px solid #555;
+    background: #000;
+    object-fit: cover;
+  }
+}
+
+/* ==========================================
+   THREAT SHEET THEME OVERRIDES - SCOPED
+   ========================================== */
+.sla-sheet.threat-sheet {
+  --sla-accent: #b2d235;
+  --sla-accent-faint: rgba(178, 210, 53, 0.2);
+  --sla-border: #445522;
+  
+  .sheet-header {
+    border-color: var(--sla-accent);
+    background: #0a1100;
+  }
+  
+  .header-section-title {
+    background: #0a1100;
+    color: var(--sla-accent);
+    border-bottom-color: var(--sla-accent);
+  }
+  
+  .header-left {
+    background: #111a0a;
+    border-right-color: var(--sla-accent);
+  }
+  
+  .portrait-container {
+    border-right-color: var(--sla-accent);
+    background: #050800;
+  }
+  
+  .finance-box {
+    background: #111a0a;
+    
+    .finance-title {
+      color: var(--sla-accent);
+      border-bottom-color: var(--sla-accent);
+    }
+  }
+  
+  .rating-block {
+    background: #0a1100 !important;
+    border-color: var(--sla-border);
+    
+    &::after {
+      background: var(--sla-accent);
+    }
+    
+    .rating-val {
+      color: var(--sla-accent) !important;
+    }
+  }
+  
+  .stat-box {
+    background: #0a1100 !important;
+    border-color: var(--sla-border);
+    
+    label {
+      background: #111a0a !important;
+      border-right-color: var(--sla-border);
+      color: #ccc;
+    }
+    
+    input {
+      color: #deffaa !important;
+    }
+  }
+  
+  .sheet-tabs {
+    border-bottom-color: var(--sla-accent);
+    
+    .item.active {
+      background: var(--sla-accent);
+      color: #000;
+    }
+  }
+  
+  .editor-edit {
+    background: #1a2a0a !important;
+    border-color: var(--sla-accent) !important;
+    color: var(--sla-accent) !important;
+    
+    &:hover {
+      background: var(--sla-accent) !important;
+      color: #000 !important;
+    }
+  }
+}
+
+/* ==========================================
+   GRID UTILITIES - SCOPED (Only within SLA sheets)
+   ========================================== */
+.sla-industries .grid,
+.sla-industries .grid-2col,
+.sla-sheet .grid,
+.sla-sheet .grid-2col {
+  display: grid;
+  grid-column: span 2/span 2;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0;
+  padding: 0;
+}
+
+.sla-industries .grid-3col,
+.sla-sheet .grid-3col {
+  grid-column: span 3/span 3;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sla-industries .grid-4col,
+.sla-sheet .grid-4col {
+  grid-column: span 4/span 4;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.sla-industries .flexshrink,
+.sla-sheet .flexshrink {
+  flex: 0;
+}
+
+.sla-industries .flex-between,
+.sla-sheet .flex-between {
+  justify-content: space-between;
+}
+
+.sla-industries .flexlarge,
+.sla-sheet .flexlarge {
+  flex: 2;
+}
+
+.sla-industries .align-left,
+.sla-sheet .align-left {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.sla-industries .align-right,
+.sla-sheet .align-right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.sla-industries .align-center,
+.sla-sheet .align-center {
+  justify-content: center;
+  text-align: center;
+}

@@ -22,6 +22,10 @@
     "module/sla-industries.mjs"
   ],
   "styles": [
+    {
+      "src": "css/variables.css",
+      "layer": "variables"
+    },
     "css/sla-industries.css"
   ],
   "languages": [

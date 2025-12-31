@@ -1,13 +1,80 @@
 /* ==========================================
    3. HEADER LAYOUT
    ========================================== */
+// Root form container should be flex column to allow fixed-size header/stats
+// Use .sla-industries since that's the class actually on the form
+form.sla-industries,
+.sla-industries,
+form.sla-sheet,
+.sla-sheet {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+// Ensure header PART container is always visible and fixed size
+// Use .sla-industries since that's the class actually on the form
+.sla-industries > div[data-application-part="header"],
+.sla-sheet > div[data-application-part="header"] {
+    display: block !important;
+    visibility: visible !important;
+    flex: 0 0 180px; // Fixed height: 180px
+    height: 180px;
+    min-height: 180px;
+    max-height: 180px;
+    position: relative;
+    z-index: 10;
+    order: 1;
+    overflow: hidden;
+}
+
+.sla-industries .sheet-header,
 .sla-sheet .sheet-header {
     flex: 0 0 auto;
-    display: flex;
+    display: flex !important;
     flex-direction: row;
     margin-bottom: 10px;
     border: 2px solid var(--sla-border);
     background: #111;
+    visibility: visible !important;
+    height: 180px;
+    min-height: 180px;
+    max-height: 180px;
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+}
+
+// Ensure stats PART container is always visible and fixed size
+.sla-industries > div[data-application-part="stats"],
+.sla-industries .stats-strip-container,
+.sla-sheet > div[data-application-part="stats"],
+.sla-sheet .stats-strip-container {
+    flex: 0 0 80px; // Fixed height: approximately 80px for stats strip
+    display: block !important;
+    visibility: visible !important;
+    height: 80px;
+    min-height: 80px;
+    max-height: 80px;
+    position: relative;
+    z-index: 9;
+    order: 2;
+    overflow: hidden;
+}
+
+// Ensure tabs navigation is fixed and below header/stats
+.sla-industries > div[data-application-part="tabs"],
+.sla-sheet > div[data-application-part="tabs"] {
+    flex: 0 0 40px; // Fixed height: approximately 40px for tabs navigation
+    display: block !important;
+    visibility: visible !important;
+    height: 40px;
+    min-height: 40px;
+    max-height: 40px;
+    position: relative;
+    z-index: 8;
+    order: 3;
+    overflow: hidden;
 }
 
 .header-grid {
@@ -364,37 +431,167 @@
 /* ==========================================
    5. MAIN LAYOUT & PANELS
    ========================================== */
+// Sheet body container - use .sla-industries since that's the class actually on the form
+.sla-industries .sheet-body,
 .sla-sheet .sheet-body {
     flex: 1;
-    overflow-y: auto !important;
+    overflow-y: auto;
+    overflow-x: hidden;
     min-height: 0;
     padding: 5px;
     scrollbar-width: thin;
     scrollbar-color: var(--sla-accent) #000;
+    position: relative;
+    z-index: 1;
+    order: 4;
 
-    .tab {
+    // Tab visibility - hide all tabs by default, show active one
+    > section.tab,
+    > div > section.tab {
         display: none;
 
         &.active {
-            display: block;
+            display: flex !important;
+            flex-direction: column !important;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: var(--sla-accent) #000;
+            
+            // Ensure flexcol inside tab doesn't interfere with grid
+            > .flexcol {
+                display: flex !important;
+                flex-direction: column !important;
+                flex: 1;
+                min-height: 0;
+                min-width: 0; // Allow grid children to size properly
+                width: 100%; // Ensure full width
+                overflow-y: auto;
+                overflow-x: hidden;
+                scrollbar-width: thin;
+                scrollbar-color: var(--sla-accent) #000;
+            }
         }
+    }
+
+    // Force column layout for non-Main tabs (Combat, Inventory, Bio & Traits)
+    > section.tab.active:not([data-tab="main"]):not(.main),
+    > div > section.tab.active:not([data-tab="main"]):not(.main),
+    section.tab[data-tab="ebb"].active,
+    section.tab[data-tab="inventory"].active,
+    section.tab[data-tab="biography"].active,
+    section.tab.ebb.active,
+    section.tab.inventory.active,
+    section.tab.biography.active {
+        display: flex !important;
+        flex-direction: column !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        
+        > .flexcol {
+            display: flex !important;
+            flex-direction: column !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+    }
+
+    // Webkit scrollbar styling for better browser compatibility
+    &::-webkit-scrollbar,
+    section.tab.active::-webkit-scrollbar,
+    section.tab.active > .flexcol::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-track,
+    section.tab.active::-webkit-scrollbar-track,
+    section.tab.active > .flexcol::-webkit-scrollbar-track {
+        background: #000;
+    }
+
+    &::-webkit-scrollbar-thumb,
+    section.tab.active::-webkit-scrollbar-thumb,
+    section.tab.active > .flexcol::-webkit-scrollbar-thumb {
+        background: var(--sla-accent);
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover,
+    section.tab.active::-webkit-scrollbar-thumb:hover,
+    section.tab.active > .flexcol::-webkit-scrollbar-thumb:hover {
+        background: #e05e1a;
     }
 }
 
-.sla-sheet .main-split {
-    display: grid;
-    grid-template-columns: 2.2fr 1fr;
+// Main split layout - ONLY for the Main tab (data-tab="main" or class "main")
+// Use .sla-industries since that's the class actually on the form
+.sla-industries section.tab[data-tab="main"] .main-split,
+.sla-industries section.tab.main .main-split,
+.sla-industries section.tab[data-tab="main"] .flexcol .main-split,
+.sla-industries section.tab.main .flexcol .main-split,
+.sla-industries div[data-application-part] section.tab[data-tab="main"] .main-split,
+.sla-industries div[data-application-part] section.tab.main .main-split,
+.sla-sheet section.tab[data-tab="main"] .main-split,
+.sla-sheet section.tab.main .main-split,
+.sla-sheet section.tab[data-tab="main"] .flexcol .main-split,
+.sla-sheet section.tab.main .flexcol .main-split,
+.sla-sheet div[data-application-part] section.tab[data-tab="main"] .main-split,
+.sla-sheet div[data-application-part] section.tab.main .main-split {
+    display: grid !important;
+    grid-template-columns: 2.2fr 1fr !important;
     gap: 10px;
+    width: 100% !important;
     height: auto !important;
     align-items: start;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0; // Allow grid to shrink below content size
 }
 
-.sla-sheet .left-col,
-.sla-sheet .right-col {
+// Ensure non-Main tabs do NOT use grid layout - force block/flex instead
+.sla-industries section.tab:not([data-tab="main"]):not(.main) .main-split,
+.sla-industries section.tab:not([data-tab="main"]):not(.main) .flexcol .main-split,
+.sla-industries div[data-application-part] section.tab:not([data-tab="main"]):not(.main) .main-split,
+.sla-sheet section.tab:not([data-tab="main"]):not(.main) .main-split,
+.sla-sheet section.tab:not([data-tab="main"]):not(.main) .flexcol .main-split,
+.sla-sheet div[data-application-part] section.tab:not([data-tab="main"]):not(.main) .main-split {
+    display: block !important;
+    grid-template-columns: none !important;
+}
+
+// Left and right columns - ONLY for the Main tab
+.sla-industries section.tab[data-tab="main"] .left-col,
+.sla-industries section.tab.main .left-col,
+.sla-industries section.tab[data-tab="main"] .right-col,
+.sla-industries section.tab.main .right-col,
+.sla-industries section.tab[data-tab="main"] .flexcol .left-col,
+.sla-industries section.tab.main .flexcol .left-col,
+.sla-industries section.tab[data-tab="main"] .flexcol .right-col,
+.sla-industries section.tab.main .flexcol .right-col,
+.sla-industries div[data-application-part] section.tab[data-tab="main"] .left-col,
+.sla-industries div[data-application-part] section.tab.main .left-col,
+.sla-industries div[data-application-part] section.tab[data-tab="main"] .right-col,
+.sla-industries div[data-application-part] section.tab.main .right-col,
+.sla-sheet section.tab[data-tab="main"] .left-col,
+.sla-sheet section.tab.main .left-col,
+.sla-sheet section.tab[data-tab="main"] .right-col,
+.sla-sheet section.tab.main .right-col,
+.sla-sheet section.tab[data-tab="main"] .flexcol .left-col,
+.sla-sheet section.tab.main .flexcol .left-col,
+.sla-sheet section.tab[data-tab="main"] .flexcol .right-col,
+.sla-sheet section.tab.main .flexcol .right-col,
+.sla-sheet div[data-application-part] section.tab[data-tab="main"] .left-col,
+.sla-sheet div[data-application-part] section.tab.main .left-col,
+.sla-sheet div[data-application-part] section.tab[data-tab="main"] .right-col,
+.sla-sheet div[data-application-part] section.tab.main .right-col {
     display: flex;
     flex-direction: column;
     height: auto !important;
     min-width: 0;
+    overflow: hidden;
+    width: 100%; // Ensure grid items take full width of their grid cell
 }
 
 /* GENERIC SLA PANEL */
@@ -447,6 +644,9 @@
     margin-bottom: 5px;
     background: #1a1a25;
     flex: 0 0 auto;
+    position: relative;
+    z-index: 1;
+    margin-top: 0;
 
     .item {
         padding: 5px 15px;
@@ -1232,6 +1432,43 @@
 .granted-skill-chip .delete-grant:hover {
     opacity: 1;
     text-shadow: 0 0 5px red;
+}
+
+/* ==========================================
+   15. SKILL TABLE STYLES
+   ========================================== */
+.sla-table {
+    width: 100%;
+    border-collapse: collapse;
+    
+    // Reduce spacing for skill rows
+    tbody tr.item {
+        padding: 0;
+        margin: 0;
+        line-height: 1.2;
+        
+        td {
+            padding: 2px 4px;
+            vertical-align: middle;
+        }
+    }
+    
+    // Stat header (skill-group-header) - make it orange
+    .skill-group-header {
+        background: rgba(208, 94, 26, 0.2);
+        color: var(--sla-accent);
+        font-weight: 700;
+        font-family: var(--sla-font-header);
+        text-transform: uppercase;
+        padding: 4px 8px;
+        border-bottom: 1px solid var(--sla-accent);
+        
+        td {
+            padding: 4px 8px;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+        }
+    }
 }
 
 /* ==========================================

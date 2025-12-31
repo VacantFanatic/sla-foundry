@@ -28,7 +28,7 @@
 
                 {{!-- SKILL ROWS --}}
                 {{#each group.items as |skill|}}
-                <tr class="item" data-item-id="{{skill._id}}">
+                <tr class="item draggable" data-item-id="{{skill._id}}">
                     <td class="item-name rollable" data-roll-type="item"
                         style="font-weight: bold; color: #fff; padding-left: 10px;">
                         {{skill.name}}

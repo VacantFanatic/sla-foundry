@@ -125,7 +125,7 @@
 
             {{!-- List --}}
             {{#each data.items as |skill|}}
-            <div class="item threat-item flexrow" data-item-id="{{skill._id}}">
+            <div class="item draggable threat-item flexrow" data-item-id="{{skill._id}}">
                 <span class="item-name rollable" data-roll-type="skill" style="font-weight:bold;">{{skill.name}}:</span>
                 <span style="color:#000; margin-left:5px;">{{skill.system.rank}}</span>
                 <div class="item-controls" style="margin-left:auto;">
@@ -150,7 +150,7 @@
 
             {{!-- WEAPONS --}}
             {{#each weapons as |item|}}
-            <div class="item threat-item flexrow" data-item-id="{{item._id}}">
+            <div class="item draggable threat-item flexrow" data-item-id="{{item._id}}">
                 {{!-- Rollable Name --}}
                 <span class="item-name rollable" data-roll-type="item" style="font-weight:bold; cursor:pointer;">
                     {{item.name}}
@@ -191,7 +191,7 @@
 
             {{!-- ARMOR --}}
             {{#each armors as |item|}}
-            <div class="item threat-item flexrow" data-item-id="{{item._id}}"
+            <div class="item draggable threat-item flexrow" data-item-id="{{item._id}}"
                 style="align-items: center; padding: 2px 0;">
                 <span class="item-name" style="font-weight:bold;">{{item.name}}</span>
 
@@ -226,8 +226,13 @@
 
         {{!-- Removed inline style; CSS now handles height --}}
         <div class="threat-content-box editor">
-            {{editor enrichedBiography target="system.biography" engine="prosemirror" button=true owner=owner
-            editable=editable}}
+            {{#if editable}}
+            <prose-mirror name="system.biography" button="true" editable="{{editable}}" toggled="false" value="{{actor.system.biography}}">
+                {{{enrichedBiography}}}
+            </prose-mirror>
+            {{else}}
+            {{{enrichedBiography}}}
+            {{/if}}
         </div>
     </div>
 </form>

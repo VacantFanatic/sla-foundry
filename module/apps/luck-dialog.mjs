@@ -1,15 +1,40 @@
 import { calculateRollResult, getMOS, generateDiceTooltip } from "../helpers/dice.mjs";
 
 /**
- * Dialog for spending Luck points.
+ * V2-compatible Dialog for spending Luck points.
+ * Converted from V1 Dialog to V2 ApplicationV2
  */
-export class LuckDialog extends Dialog {
+const { ApplicationV2 } = foundry.applications.api;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
 
-    constructor(actor, roll, messageId, data, options) {
-        super(data, options);
-        this.actor = actor;
-        this.roll = roll;
-        this.messageId = messageId;
+export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
+
+    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+        classes: ["sla-industries", "luck-dialog"],
+        template: "systems/sla-industries/templates/dialogs/luck-dialog.hbs",
+        tag: "form", // V13: Required for dialogs and forms
+        position: {
+            width: 400,
+            height: "auto"
+        },
+        window: {
+            minimizable: false,
+            resizable: false
+        },
+        form: {
+            submitOnChange: false,
+            closeOnSubmit: false // We handle closing manually
+        }
+    });
+
+    // V13: Constructor takes ALL parameters in a single options object
+    constructor(options = {}) {
+        const mergedOptions = foundry.utils.mergeObject(LuckDialog.DEFAULT_OPTIONS, options);
+        super(mergedOptions);
+        // Extract actor, roll, messageId from options
+        this.actor = options.actor;
+        this.roll = options.roll;
+        this.messageId = options.messageId;
     }
 
     /**
@@ -62,36 +87,46 @@ export class LuckDialog extends Dialog {
             rofRerollSD: rofRerollSD // Passed to template to conditionally hide/disable SD reroll
         };
 
-        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/luck-dialog.hbs", templateData);
-
-        return new LuckDialog(actor, roll, messageId, {
-            title: "Use Luck",
-            content: content,
-            buttons: {} // No default buttons
-        }, { width: 400 }).render(true);
+        // V13: Pass all parameters in options object
+        const dialog = new LuckDialog({ actor, roll, messageId });
+        dialog.templateData = templateData;
+        return dialog.render(true);
     }
 
     /** @override */
-    activateListeners(html) {
-        super.activateListeners(html);
+    async _prepareContext(options) {
+        const context = await super._prepareContext(options);
+        // Merge in our template data
+        return foundry.utils.mergeObject(context, this.templateData || {});
+    }
 
-        html.find("button[data-action]").click(this._onAction.bind(this));
+    /** @override */
+    _onRender(context, options) {
+        super._onRender(context, options);
+        // V13: Use DOM methods instead of jQuery
+        const element = this.element;
+        
+        // V2: Use event delegation with DOM methods
+        element.querySelectorAll("button[data-action]").forEach(button => {
+            button.addEventListener("click", this._onAction.bind(this));
+        });
     }
 
     async _onAction(event) {
         event.preventDefault();
         const action = event.currentTarget.dataset.action;
-        const html = this.element;
+        // V13: Use DOM methods instead of jQuery
+        const element = this.element;
 
         if (action === "reroll-sd") {
             await this._applyRerollSD();
         } else if (action === "add-mod") {
-            const amount = Number(html.find("input[name='modAmount']").val());
+            const modInput = element.querySelector("input[name='modAmount']");
+            const amount = Number(modInput?.value || 1);
             await this._applyModifier(amount);
         } else if (action === "reroll-skill") {
-            const checkboxes = html.find("input[name='rerollSelect']:checked");
-            const indices = [];
-            checkboxes.each((i, el) => indices.push(Number(el.value)));
+            const checkboxes = element.querySelectorAll("input[name='rerollSelect']:checked");
+            const indices = Array.from(checkboxes).map(el => Number(el.value));
 
             if (indices.length === 0) return ui.notifications.warn("Select at least one die to reroll.");
             await this._applyRerollSkill(indices);

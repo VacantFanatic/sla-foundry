@@ -3,8 +3,8 @@
   "version": "2.0.0",
   "description": "CSS compiler for the Boilerplate system",
   "scripts": {
-    "build": "sass src/scss/sla-industries.scss css/sla-industries.css --style=expanded --no-source-map",
-    "watch": "sass src/scss/sla-industries.scss css/sla-industries.css --style=expanded --source-map --watch",
+    "build": "sass src/scss/variables.scss css/variables.css --style=expanded --no-source-map && sass src/scss/sla-industries.scss css/sla-industries.css --style=expanded --no-source-map",
+    "watch": "sass src/scss/variables.scss css/variables.css --style=expanded --source-map --watch & sass src/scss/sla-industries.scss css/sla-industries.css --style=expanded --source-map --watch",
     "generate": "node src/generate-boilerplate-system.mjs"
   },
   "browserslist": [

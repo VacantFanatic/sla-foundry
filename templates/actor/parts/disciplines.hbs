@@ -18,7 +18,7 @@
                 {{#each disciplines as |discipline|}}
 
                 {{!-- PARENT ROW: DISCIPLINE --}}
-                <tr class="item discipline-row" data-item-id="{{discipline._id}}">
+                <tr class="item draggable discipline-row" data-item-id="{{discipline._id}}">
                     <td class="item-name" style="font-weight: bold; color: #cfaaf5; padding-left: 5px;">
                         {{discipline.name}}
                     </td>
@@ -33,7 +33,7 @@
 
                 {{!-- CHILD ROWS: FORMULAS --}}
                 {{#each discipline.formulas as |formula|}}
-                <tr class="item formula-row" data-item-id="{{formula._id}}">
+                <tr class="item draggable formula-row" data-item-id="{{formula._id}}">
                     {{!-- Indented Name --}}
                     <td class="item-name rollable" data-roll-type="item"
                         style="padding-left: 20px; font-size: 0.9em; color: #ccc;">

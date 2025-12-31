@@ -1,16 +1,18 @@
-<div class="flexcol full-height">
+<section class="tab {{tabs.ebb.id}} {{tabs.ebb.cssClass}}" data-tab="{{tabs.ebb.id}}" data-group="{{tabs.ebb.group}}">
+    <div class="flexcol full-height">
 
-    {{!-- 1. STATUS & WOUNDS --}}
-    {{> "systems/sla-industries/templates/actor/parts/wounds.hbs"}}
+        {{!-- 1. STATUS & WOUNDS --}}
+        {{> "systems/sla-industries/templates/actor/parts/wounds.hbs"}}
 
-    {{!-- 2. COMBAT LOADOUT --}}
-    {{> "systems/sla-industries/templates/actor/parts/combat-loadout.hbs"}}
+        {{!-- 2. COMBAT LOADOUT --}}
+        {{> "systems/sla-industries/templates/actor/parts/combat-loadout.hbs"}}
 
-    {{!-- 3. EBB DISCIPLINES (Conditional) --}}
-    {{#if isEbonite}}
-    <div style="margin-top: 5px;">
-        {{> "systems/sla-industries/templates/actor/parts/disciplines.hbs"}}
+        {{!-- 3. EBB DISCIPLINES (Conditional) --}}
+        {{#if isEbonite}}
+        <div style="margin-top: 5px;">
+            {{> "systems/sla-industries/templates/actor/parts/disciplines.hbs"}}
+        </div>
+        {{/if}}
+
     </div>
-    {{/if}}
-
-</div>
+</section>

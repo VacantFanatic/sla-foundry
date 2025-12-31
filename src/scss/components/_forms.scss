@@ -10,7 +10,8 @@
     font-family: $font-primary;
 }
 
-.sheet-header {
+.sla-industries .sheet-header,
+.sla-sheet .sheet-header {
     flex: 0 auto;
     overflow: hidden;
     @include flex-between;
@@ -33,22 +34,29 @@
         padding: 0;
         margin: $padding-sm 0;
         border-bottom: 0;
+        font-family: 'Josefin Sans', sans-serif;
         
         input {
             width: 100%;
             height: 100%;
             margin: 0;
+            font-family: 'Josefin Sans', sans-serif;
+            font-weight: 600;
         }
     }
 }
 
-.sheet-tabs {
+.sla-industries .sheet-tabs,
+.sla-sheet .sheet-tabs {
     flex: 0;
 }
 
-.sheet-body,
-.sheet-body .tab,
-.sheet-body .tab .editor {
+.sla-industries .sheet-body,
+.sla-sheet .sheet-body,
+.sla-industries .sheet-body .tab,
+.sla-sheet .sheet-body .tab,
+.sla-industries .sheet-body .tab .editor,
+.sla-sheet .sheet-body .tab .editor {
     height: 100%;
 }
 

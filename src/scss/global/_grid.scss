@@ -1,6 +1,8 @@
 // Grid.
-.grid,
-.grid-2col {
+.sla-industries .grid,
+.sla-sheet .grid,
+.sla-industries .grid-2col,
+.sla-sheet .grid-2col {
   display: grid;
   grid-column: span 2 / span 2;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -9,77 +11,109 @@
   padding: 0;
 }
 
-.grid-3col {
+.sla-industries .grid-3col,
+.sla-sheet .grid-3col {
   grid-column: span 3 / span 3;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.grid-4col {
+.sla-industries .grid-4col,
+.sla-sheet .grid-4col {
   grid-column: span 4 / span 4;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.grid-5col {
+.sla-industries .grid-5col,
+.sla-sheet .grid-5col {
   grid-column: span 5 / span 5;
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
-.grid-6col {
+.sla-industries .grid-6col,
+.sla-sheet .grid-6col {
   grid-column: span 6 / span 6;
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
-.grid-7col {
+.sla-industries .grid-7col,
+.sla-sheet .grid-7col {
   grid-column: span 7 / span 7;
   grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
-.grid-8col {
+.sla-industries .grid-8col,
+.sla-sheet .grid-8col {
   grid-column: span 8 / span 8;
   grid-template-columns: repeat(8, minmax(0, 1fr));
 }
 
-.grid-9col {
+.sla-industries .grid-9col,
+.sla-sheet .grid-9col {
   grid-column: span 9 / span 9;
   grid-template-columns: repeat(9, minmax(0, 1fr));
 }
 
-.grid-10col {
+.sla-industries .grid-10col,
+.sla-sheet .grid-10col {
   grid-column: span 10 / span 10;
   grid-template-columns: repeat(10, minmax(0, 1fr));
 }
 
-.grid-11col {
+.sla-industries .grid-11col,
+.sla-sheet .grid-11col {
   grid-column: span 11 / span 11;
   grid-template-columns: repeat(11, minmax(0, 1fr));
 }
 
-.grid-12col {
+.sla-industries .grid-12col,
+.sla-sheet .grid-12col {
   grid-column: span 12 / span 12;
   grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 // Grid offset.
-.grid-start-2 { grid-column-start: 2 }
-.grid-start-3 { grid-column-start: 3 }
-.grid-start-4 { grid-column-start: 4 }
-.grid-start-5 { grid-column-start: 5 }
-.grid-start-6 { grid-column-start: 6 }
-.grid-start-7 { grid-column-start: 7 }
-.grid-start-8 { grid-column-start: 8 }
-.grid-start-9 { grid-column-start: 9 }
-.grid-start-10 { grid-column-start: 10 }
-.grid-start-11 { grid-column-start: 11 }
-.grid-start-12 { grid-column-start: 12 }
+.sla-industries .grid-start-2,
+.sla-sheet .grid-start-2 { grid-column-start: 2 }
+.sla-industries .grid-start-3,
+.sla-sheet .grid-start-3 { grid-column-start: 3 }
+.sla-industries .grid-start-4,
+.sla-sheet .grid-start-4 { grid-column-start: 4 }
+.sla-industries .grid-start-5,
+.sla-sheet .grid-start-5 { grid-column-start: 5 }
+.sla-industries .grid-start-6,
+.sla-sheet .grid-start-6 { grid-column-start: 6 }
+.sla-industries .grid-start-7,
+.sla-sheet .grid-start-7 { grid-column-start: 7 }
+.sla-industries .grid-start-8,
+.sla-sheet .grid-start-8 { grid-column-start: 8 }
+.sla-industries .grid-start-9,
+.sla-sheet .grid-start-9 { grid-column-start: 9 }
+.sla-industries .grid-start-10,
+.sla-sheet .grid-start-10 { grid-column-start: 10 }
+.sla-industries .grid-start-11,
+.sla-sheet .grid-start-11 { grid-column-start: 11 }
+.sla-industries .grid-start-12,
+.sla-sheet .grid-start-12 { grid-column-start: 12 }
 
-.grid-span-2 { grid-column-end: span 2 }
-.grid-span-3 { grid-column-end: span 3 }
-.grid-span-4 { grid-column-end: span 4 }
-.grid-span-5 { grid-column-end: span 5 }
-.grid-span-6 { grid-column-end: span 6 }
-.grid-span-7 { grid-column-end: span 7 }
-.grid-span-8 { grid-column-end: span 8 }
-.grid-span-9 { grid-column-end: span 9 }
-.grid-span-10 { grid-column-end: span 10 }
-.grid-span-11 { grid-column-end: span 11 }
-.grid-span-12 { grid-column-end: span 12 }
+.sla-industries .grid-span-2,
+.sla-sheet .grid-span-2 { grid-column-end: span 2 }
+.sla-industries .grid-span-3,
+.sla-sheet .grid-span-3 { grid-column-end: span 3 }
+.sla-industries .grid-span-4,
+.sla-sheet .grid-span-4 { grid-column-end: span 4 }
+.sla-industries .grid-span-5,
+.sla-sheet .grid-span-5 { grid-column-end: span 5 }
+.sla-industries .grid-span-6,
+.sla-sheet .grid-span-6 { grid-column-end: span 6 }
+.sla-industries .grid-span-7,
+.sla-sheet .grid-span-7 { grid-column-end: span 7 }
+.sla-industries .grid-span-8,
+.sla-sheet .grid-span-8 { grid-column-end: span 8 }
+.sla-industries .grid-span-9,
+.sla-sheet .grid-span-9 { grid-column-end: span 9 }
+.sla-industries .grid-span-10,
+.sla-sheet .grid-span-10 { grid-column-end: span 10 }
+.sla-industries .grid-span-11,
+.sla-sheet .grid-span-11 { grid-column-end: span 11 }
+.sla-industries .grid-span-12,
+.sla-sheet .grid-span-12 { grid-column-end: span 12 }

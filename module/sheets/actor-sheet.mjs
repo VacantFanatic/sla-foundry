@@ -3,22 +3,72 @@
  * @extends {ActorSheet}
  */
 import { LuckDialog } from "../apps/luck-dialog.mjs";
+import { ConfirmDialog } from "../apps/confirm-dialog.mjs";
 import { calculateRollResult, generateDiceTooltip, createSLARoll } from "../helpers/dice.mjs";
 import { prepareItems } from "../helpers/items.mjs";
 import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from "../helpers/modifiers.mjs";
 
-export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
+// Apply HandlebarsApplicationMixin for AppV2 rendering
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+const { ActorSheetV2 } = foundry.applications.sheets;
+
+export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     /** @override */
-    static get defaultOptions() {
-        return foundry.utils.mergeObject(super.defaultOptions, {
-            classes: ["sla-industries", "sheet", "actor"],
-            template: "systems/sla-industries/templates/actor/actor-sheet.hbs",
+    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+        classes: ["sla-industries", "sla-sheet", "sheet", "actor"],
+        template: "systems/sla-industries/templates/actor/actor-sheet.hbs",
+        tag: "form", // V13: Required for forms
+        position: {
             width: 850,
-            height: 850,
-            tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "main", group: "primary" }]
-        });
-    }
+            height: 850
+        },
+        window: {
+            resizable: true
+        },
+        form: {
+            submitOnChange: false,
+            closeOnSubmit: false // Actor sheets don't close on submit
+        }
+    });
+
+    /** @override */
+    static TABS = {
+        sheet: {
+            tabs: [
+                { id: 'main', group: 'sheet', label: 'Main' },
+                { id: 'ebb', group: 'sheet', label: 'Combat' },
+                { id: 'inventory', group: 'sheet', label: 'Inventory' },
+                { id: 'biography', group: 'sheet', label: 'Bio & Traits' }
+            ],
+            initial: 'main'
+        }
+    };
+
+    /** @override */
+    static PARTS = {
+        header: {
+            template: "systems/sla-industries/templates/actor/parts/header-card.hbs"
+        },
+        stats: {
+            template: "systems/sla-industries/templates/actor/parts/stats.hbs"
+        },
+        tabs: {
+            template: "systems/sla-industries/templates/actor/parts/tabs-nav.hbs"
+        },
+        main: {
+            template: "systems/sla-industries/templates/actor/parts/main-tab.hbs"
+        },
+        ebb: {
+            template: "systems/sla-industries/templates/actor/parts/combat-tab.hbs"
+        },
+        inventory: {
+            template: "systems/sla-industries/templates/actor/parts/inventory-tab.hbs"
+        },
+        biography: {
+            template: "systems/sla-industries/templates/actor/parts/bio-traits-tab.hbs"
+        }
+    };
 
     /** @override */
     get template() {
@@ -32,12 +82,50 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
     /* -------------------------------------------- */
 
     /** @override */
-    async getData() {
-        const context = await super.getData();
+    async _prepareContext(options) {
+        const context = await super._prepareContext(options);
         // CRITICAL FIX: Use 'this.actor.system' to access runtime derived data (like .total)
         // context.data (from super.getData) only contains the database properties in some versions.
         context.system = this.actor.system;
         context.flags = this.actor.flags;
+        
+        // Ensure cssClass is set for the template
+        if (!context.cssClass) {
+            context.cssClass = this.constructor.DEFAULT_OPTIONS.classes.join(' ');
+        }
+
+        // Prepare tabs context for AppV2 - MUST be done early so it's available for all templates
+        const tabsConfig = this.constructor.TABS?.sheet;
+        context.tabs = {};
+        context.tabsArray = [];
+        
+        if (tabsConfig && tabsConfig.tabs) {
+            // Create both object (for tab templates) and array (for navigation)
+            for (const tab of tabsConfig.tabs) {
+                const tabData = {
+                    id: tab.id,
+                    group: tab.group,
+                    label: tab.label,
+                    cssClass: tab.id === tabsConfig.initial ? 'active' : ''
+                };
+                context.tabs[tab.id] = tabData;
+                context.tabsArray.push(tabData);
+            }
+        }
+        
+        // Always ensure we have at least the fallback tabs
+        if (context.tabsArray.length === 0) {
+            context.tabsArray = [
+                { id: 'main', group: 'sheet', label: 'Main', cssClass: 'active' },
+                { id: 'ebb', group: 'sheet', label: 'Combat', cssClass: '' },
+                { id: 'inventory', group: 'sheet', label: 'Inventory', cssClass: '' },
+                { id: 'biography', group: 'sheet', label: 'Bio & Traits', cssClass: '' }
+            ];
+            // Also populate the tabs object
+            for (const tab of context.tabsArray) {
+                context.tabs[tab.id] = tab;
+            }
+        }
 
         // ... (Keep your existing stats/ratings/wounds initialization) ...
         context.system.stats = context.system.stats || {};
@@ -63,7 +151,14 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         // END NEW LOGIC
         // ======================================================
 
-        context.rollData = context.actor.getRollData();
+        // In AppV2, context.actor might not exist, use this.actor directly
+        context.actor = context.actor || this.actor;
+        context.rollData = this.actor.getRollData();
+
+        // Ensure context.items exists and is an array BEFORE calling _prepareItems
+        // In AppV2, items might be a Collection, convert to array if needed
+        const itemsCollection = context.items || this.actor.items;
+        context.items = Array.isArray(itemsCollection) ? itemsCollection : Array.from(itemsCollection || []);
 
         if (this.actor.type == 'character' || this.actor.type == 'npc') {
             this._prepareItems(context);
@@ -71,8 +166,10 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
         // ... (Keep existing speciesList logic) ...
 
-        context.speciesItem = this.actor.items.find(i => i.type === "species");
-        context.packageItem = this.actor.items.find(i => i.type === "package");
+        // Use the array version of items for finding species/package
+        const itemsArray = Array.isArray(context.items) ? context.items : Array.from(this.actor.items || []);
+        context.speciesItem = itemsArray.find(i => i.type === "species");
+        context.packageItem = itemsArray.find(i => i.type === "package");
 
         // --- CHECK IF EBONITE ---
         if (context.speciesItem && context.speciesItem.name) {
@@ -81,16 +178,29 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             context.isEbonite = false;
         }
 
-        context.enrichedBiography = await foundry.applications.ux.TextEditor.enrichHTML(this.actor.system.biography, { async: true, relativeTo: this.actor });
-        context.enrichedAppearance = await foundry.applications.ux.TextEditor.enrichHTML(this.actor.system.appearance, { async: true, relativeTo: this.actor });
-        context.enrichedNotes = await foundry.applications.ux.TextEditor.enrichHTML(this.actor.system.notes, { async: true, relativeTo: this.actor });
+        context.enrichedBiography = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+            this.actor.system.biography,
+            { secrets: this.actor.isOwner, relativeTo: this.actor }
+        );
+        context.enrichedAppearance = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+            this.actor.system.appearance,
+            { secrets: this.actor.isOwner, relativeTo: this.actor }
+        );
+        context.enrichedNotes = await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+            this.actor.system.notes,
+            { secrets: this.actor.isOwner, relativeTo: this.actor }
+        );
 
         return context;
     }
 
     _prepareItems(context) {
         // Use the helper function to prepare items
-        const itemData = prepareItems(context.items, context.rollData);
+        // Ensure items is an array (Collections need to be converted)
+        const itemsArray = Array.isArray(context.items) 
+            ? context.items 
+            : (context.items ? Array.from(context.items) : []);
+        const itemData = prepareItems(itemsArray, context.rollData);
         
         // Assign to context
         Object.assign(context, itemData);
@@ -101,182 +211,346 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
     /* -------------------------------------------- */
 
     /** @override */
-    activateListeners(html) {
-        super.activateListeners(html);
+    _onRender(context, options) {
+        super._onRender(context, options);
+        
         if (!this.isEditable) return;
 
+        // V13: this.element is a DOM element, not a jQuery object
+        const element = this.element;
+        
+        // V13: Initialize tabs manually since ApplicationV2's automatic system may not work with parts structure
+        this._initializeTabs();
+
         // --- HEADER DELETE (SPECIES) ---
-        html.find('.chip-delete[data-type="species"]').click(async ev => {
-            ev.preventDefault(); ev.stopPropagation();
-            const speciesItem = this.actor.items.find(i => i.type === "species");
-            if (!speciesItem) return;
+        // V13: Use DOM methods instead of jQuery
+        element.querySelectorAll('.chip-delete[data-type="species"]').forEach(button => {
+            button.addEventListener('click', async ev => {
+                ev.preventDefault(); 
+                ev.stopPropagation();
+                const speciesItem = this.actor.items.find(i => i.type === "species");
+                if (!speciesItem) return;
 
-            Dialog.confirm({
-                title: "Remove Species?",
-                content: `<p>Remove <strong>${speciesItem.name}</strong>?</p>`,
-                yes: async () => {
-                    // 1. Find all skills linked to this species
-                    const skillsToDelete = this.actor.items
-                        .filter(i => i.getFlag("sla-industries", "fromSpecies"))
-                        .map(i => i.id);
+                await ConfirmDialog.confirm({
+                    title: "Remove Species?",
+                    content: `<p>Remove <strong>${speciesItem.name}</strong>?</p>`,
+                    yes: async () => {
+                        // 1. Find all skills linked to this species
+                        const skillsToDelete = this.actor.items
+                            .filter(i => i.getFlag("sla-industries", "fromSpecies"))
+                            .map(i => i.id);
 
-                    // 2. Delete Items -> PREVENT RENDER HERE ({ render: false })
-                    // This stops the sheet from refreshing halfway through, preventing the crash.
-                    await this.actor.deleteEmbeddedDocuments("Item", [speciesItem.id, ...skillsToDelete], { render: false });
+                        // 2. Delete Items -> PREVENT RENDER HERE ({ render: false })
+                        // This stops the sheet from refreshing halfway through, preventing the crash.
+                        await this.actor.deleteEmbeddedDocuments("Item", [speciesItem.id, ...skillsToDelete], { render: false });
 
-                    // 3. Reset Stats -> THIS triggers the single, final render
-                    const resets = { "system.bio.species": "" };
-                    ["str", "dex", "know", "conc", "cha", "cool"].forEach(k => resets[`system.stats.${k}.value`] = 1);
+                        // 3. Reset Stats -> THIS triggers the single, final render
+                        const resets = { "system.bio.species": "" };
+                        ["str", "dex", "know", "conc", "cha", "cool"].forEach(k => resets[`system.stats.${k}.value`] = 1);
 
-                    await this.actor.update(resets);
-                }
+                        await this.actor.update(resets);
+                    }
+                });
             });
         });
 
-        // DRUG USE ICON
-        html.find('.item-use-drug').click(async ev => {
-            ev.preventDefault();
-            const li = $(ev.currentTarget).parents(".item");
-            const item = this.actor.items.get(li.data("itemId"));
+        // DRUG USE ICON - V13: Use DOM methods
+        element.querySelectorAll('.item-use-drug').forEach(button => {
+            button.addEventListener('click', async ev => {
+                ev.preventDefault();
+                // V13: Use DOM traversal instead of jQuery
+                const li = ev.currentTarget.closest(".item");
+                if (!li) return;
+                const itemId = li.dataset.itemId;
+                const item = this.actor.items.get(itemId);
 
-            if (!item || item.type !== "drug") return;
+                if (!item || item.type !== "drug") return;
 
-            const currentQty = item.system.quantity || 0;
+                const currentQty = item.system.quantity || 0;
 
-            // Safety check
-            if (currentQty <= 0) {
-                // If it's 0, just delete it immediately to clean up
-                return item.delete();
-            }
+                // Safety check
+                if (currentQty <= 0) {
+                    // If it's 0, just delete it immediately to clean up
+                    return item.delete();
+                }
 
-            const newQty = currentQty - 1;
+                const newQty = currentQty - 1;
 
-            // 1. Post Chat Message (Do this first while item exists)
-            // 1. Post Chat Message (Do this first while item exists)
-            const templateData = {
-                itemName: item.name.toUpperCase(),
-                actorName: this.actor.name,
-                duration: item.system.duration || "Unknown",
-                remaining: newQty
-            };
-            const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/drug-use.hbs", templateData);
+                // 1. Post Chat Message (Do this first while item exists)
+                const templateData = {
+                    itemName: item.name.toUpperCase(),
+                    actorName: this.actor.name,
+                    duration: item.system.duration || "Unknown",
+                    remaining: newQty
+                };
+                const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/drug-use.hbs", templateData);
 
-            ChatMessage.create({
-                speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-                content: content
+                ChatMessage.create({
+                    speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+                    content: content
+                });
+
+                // 2. Update or Delete
+                if (newQty <= 0) {
+                    await item.delete();
+                    ui.notifications.info(`Used the last dose of ${item.name}.`);
+                } else {
+                    await item.update({ "system.quantity": newQty });
+                }
             });
-
-            // 2. Update or Delete
-            if (newQty <= 0) {
-                await item.delete();
-                ui.notifications.info(`Used the last dose of ${item.name}.`);
-            } else {
-                await item.update({ "system.quantity": newQty });
-            }
         });
 
         // --- HEADER DELETE (PACKAGE) ---
-        html.find('.chip-delete[data-type="package"]').click(async ev => {
-            ev.preventDefault(); ev.stopPropagation();
-            const packageItem = this.actor.items.find(i => i.type === "package");
-            if (!packageItem) return;
+        // V13: Use DOM methods instead of jQuery
+        element.querySelectorAll('.chip-delete[data-type="package"]').forEach(button => {
+            button.addEventListener('click', async ev => {
+                ev.preventDefault(); 
+                ev.stopPropagation();
+                const packageItem = this.actor.items.find(i => i.type === "package");
+                if (!packageItem) return;
 
-            Dialog.confirm({
-                title: "Remove Package?",
-                content: `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
-                yes: async () => {
-                    const skillsToDelete = this.actor.items
-                        .filter(i => i.getFlag("sla-industries", "fromPackage"))
-                        .map(i => i.id);
+                await ConfirmDialog.confirm({
+                    title: "Remove Package?",
+                    content: `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
+                    yes: async () => {
+                        const skillsToDelete = this.actor.items
+                            .filter(i => i.getFlag("sla-industries", "fromPackage"))
+                            .map(i => i.id);
 
-                    // Fix applied here as well:
-                    await this.actor.deleteEmbeddedDocuments("Item", [packageItem.id, ...skillsToDelete], { render: false });
-                    await this.actor.update({ "system.bio.package": "" });
-                }
+                        // Fix applied here as well:
+                        await this.actor.deleteEmbeddedDocuments("Item", [packageItem.id, ...skillsToDelete], { render: false });
+                        await this.actor.update({ "system.bio.package": "" });
+                    }
+                });
             });
         });
 
         // --- INLINE ITEM EDITING ---
-        html.find('.inline-edit').change(async ev => {
-            ev.preventDefault();
-            const input = ev.currentTarget;
-            const itemId = input.dataset.itemId || $(input).parents(".item").data("itemId");
-            if (!itemId) return;
+        // V13: Use DOM methods instead of jQuery
+        element.querySelectorAll('.inline-edit').forEach(input => {
+            input.addEventListener('change', async ev => {
+                ev.preventDefault();
+                const itemId = input.dataset.itemId || input.closest(".item")?.dataset.itemId;
+                if (!itemId) return;
 
-            const item = this.actor.items.get(itemId);
-            const field = input.dataset.field;
+                const item = this.actor.items.get(itemId);
+                const field = input.dataset.field;
 
-            if (item && field) {
-                await item.update({ [field]: Number(input.value) });
-            }
+                if (item && field) {
+                    await item.update({ [field]: Number(input.value) });
+                }
+            });
         });
 
-        html.find('.item-edit').click(ev => {
-            const li = $(ev.currentTarget).parents(".item");
-            const item = this.actor.items.get(li.data("itemId"));
-            if (item) item.sheet.render(true);
+        element.querySelectorAll('.item-edit').forEach(button => {
+            button.addEventListener('click', ev => {
+                const li = ev.currentTarget.closest(".item");
+                if (!li) return;
+                const item = this.actor.items.get(li.dataset.itemId);
+                if (item) item.sheet.render();
+            });
         });
 
-        html.find('.item-delete').click(ev => {
-            const li = $(ev.currentTarget).parents(".item");
-            const item = this.actor.items.get(li.data("itemId"));
-            if (item) Dialog.confirm({ title: "Delete Item?", content: "<p>Are you sure?</p>", yes: () => { item.delete(); li.slideUp(200, () => this.render(false)); } });
+        element.querySelectorAll('.item-delete').forEach(button => {
+            button.addEventListener('click', async ev => {
+                const li = ev.currentTarget.closest(".item");
+                if (!li) return;
+                const item = this.actor.items.get(li.dataset.itemId);
+                if (item) {
+                    await ConfirmDialog.confirm({ 
+                        title: "Delete Item?", 
+                        content: "<p>Are you sure?</p>", 
+                        yes: async () => { 
+                            await item.delete(); 
+                            this.render();
+                        } 
+                    });
+                }
+            });
         });
 
-        html.find('.item-toggle').click(ev => {
-            const li = $(ev.currentTarget).parents(".item");
-            const item = this.actor.items.get(li.data("itemId"));
-            if (item.type === 'drug') item.toggleActive();
-            else item.update({ "system.equipped": !item.system.equipped });
+        element.querySelectorAll('.item-toggle').forEach(button => {
+            button.addEventListener('click', async ev => {
+                const li = ev.currentTarget.closest(".item");
+                if (!li) return;
+                const item = this.actor.items.get(li.dataset.itemId);
+                if (item) {
+                    if (item.type === 'drug') item.toggleActive();
+                    else await item.update({ "system.equipped": !item.system.equipped });
+                }
+            });
         });
 
         // --- NEW: Rollable Icon Listener ---
-        html.find('.item-rollable').click(ev => this._onRoll(ev));
+        element.querySelectorAll('.item-rollable').forEach(button => {
+            button.addEventListener('click', ev => this._onRoll(ev));
+        });
 
+        element.querySelectorAll('.item-reload').forEach(button => {
+            button.addEventListener('click', ev => this._onReloadWeapon(ev));
+        });
 
-        html.find('.item-reload').click(this._onReloadWeapon.bind(this));
-        html.find('.item-create').click(this._onItemCreate.bind(this));
-        html.find('.rollable').click(this._onRoll.bind(this));
+        element.querySelectorAll('.item-create').forEach(button => {
+            button.addEventListener('click', ev => this._onItemCreate(ev));
+        });
+
+        element.querySelectorAll('.rollable').forEach(button => {
+            button.addEventListener('click', ev => this._onRoll(ev));
+        });
 
         // --- CONDITIONS TOGGLE ---
-        html.find('.condition-toggle').click(async ev => {
-            ev.preventDefault();
-            const conditionId = ev.currentTarget.dataset.condition;
-            // This toggles the Active Effect on the Token
-            await this.actor.toggleStatusEffect(conditionId);
-            // The sheet will re-render, and getData() will now see the effect and light up the icon.
+        // V13: Use DOM methods instead of jQuery
+        element.querySelectorAll('.condition-toggle').forEach(button => {
+            button.addEventListener('click', async ev => {
+                ev.preventDefault();
+                const conditionId = ev.currentTarget.dataset.condition;
+                // This toggles the Active Effect on the Token
+                await this.actor.toggleStatusEffect(conditionId);
+                // The sheet will re-render, and _prepareContext() will now see the effect and light up the icon.
+            });
         });
 
         // --- WOUND CHECKBOXES ---
-        html.find('.wound-checkbox').change(async ev => {
-            const target = ev.currentTarget;
-            const isChecked = target.checked;
-            const field = target.name;
+        // V13: Use DOM methods instead of jQuery
+        element.querySelectorAll('.wound-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', async ev => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                ev.stopImmediatePropagation(); // Prevent other handlers from firing
+                
+                const target = ev.currentTarget;
+                const isChecked = target.checked;
+                const field = target.name;
 
-            // Update the actor. The _onUpdate method in Actor.mjs will handle
-            // the side effects (Bleeding, Stunned, Immobile).
-            await this.actor.update({ [field]: isChecked });
+                // Store current active tab before update
+                const activeTabLink = element.querySelector('nav[data-group="sheet"] a.item.active');
+                const activeTab = activeTabLink?.dataset.tab || 'main';
+                const navGroup = element.querySelector('nav[data-group="sheet"]')?.dataset.group || 'sheet';
+
+                // Update the actor without re-rendering the sheet to prevent tab reset
+                // The _onUpdate method in Actor.mjs will handle the side effects (Bleeding, Stunned, Immobile).
+                await this.actor.update({ [field]: isChecked }, { render: false });
+                
+                // Manually ensure the active tab remains active (defensive measure)
+                // This prevents any potential re-render or event bubbling from resetting the tab
+                setTimeout(() => {
+                    const currentActiveTabLink = this.element.querySelector(`nav[data-group="${navGroup}"] a.item.active`);
+                    const currentActiveTab = currentActiveTabLink?.dataset.tab;
+                    if (currentActiveTab !== activeTab) {
+                        // Restore the active tab if it was reset
+                        this.element.querySelectorAll(`nav[data-group="${navGroup}"] a.item`).forEach(a => a.classList.remove('active'));
+                        this.element.querySelectorAll(`section[data-group="${navGroup}"].tab`).forEach(section => {
+                            section.classList.remove('active');
+                            section.style.display = 'none';
+                        });
+                        
+                        const tabLink = this.element.querySelector(`nav[data-group="${navGroup}"] a.item[data-tab="${activeTab}"]`);
+                        const tabContent = this.element.querySelector(`section[data-group="${navGroup}"].tab[data-tab="${activeTab}"]`);
+                        
+                        if (tabLink && tabContent) {
+                            tabLink.classList.add('active');
+                            tabContent.classList.add('active');
+                            tabContent.style.display = 'flex';
+                            tabContent.style.flexDirection = 'column';
+                            tabContent.style.overflowY = 'auto';
+                            tabContent.style.overflowX = 'hidden';
+                        }
+                    }
+                }, 50);
+            });
         });
 
         // --- COMPENDIUM LINKS ---
-        html.find('.open-compendium').click(ev => {
-            ev.preventDefault();
-            const dataset = ev.currentTarget.dataset;
-            const compendiumId = dataset.compendium;
-            const pack = game.packs.get(compendiumId);
-            if (pack) {
-                pack.render(true);
-            } else {
-                ui.notifications.warn(`Compendium '${compendiumId}' not found.`);
-            }
+        // V13: Use DOM methods instead of jQuery
+        element.querySelectorAll('.open-compendium').forEach(link => {
+            link.addEventListener('click', ev => {
+                ev.preventDefault();
+                const compendiumId = ev.currentTarget.dataset.compendium;
+                const pack = game.packs.get(compendiumId);
+                if (pack) {
+                    pack.render();
+                } else {
+                    ui.notifications.warn(`Compendium '${compendiumId}' not found.`);
+                }
+            });
         });
+    }
+
+    /**
+     * Initialize tab switching for ApplicationV2
+     * @private
+     */
+    _initializeTabs() {
+        const element = this.element;
+        const tabsConfig = this.constructor.TABS?.sheet;
+        if (!tabsConfig) return;
+
+        const group = tabsConfig.tabs[0]?.group || 'sheet';
+        const initialTab = tabsConfig.initial || tabsConfig.tabs[0]?.id;
+
+        // Find all tab navigation links
+        const tabLinks = element.querySelectorAll(`nav[data-group="${group}"] a[data-tab]`);
+        
+        tabLinks.forEach(link => {
+            link.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                const tabId = ev.currentTarget.dataset.tab;
+                this._activateTab(tabId, group);
+            });
+        });
+
+        // Activate initial tab
+        if (initialTab) {
+            setTimeout(() => {
+                this._activateTab(initialTab, group);
+            }, 50);
+        }
+    }
+
+    /**
+     * Activate a specific tab
+     * @param {string} tabId - The ID of the tab to activate
+     * @param {string} group - The tab group
+     * @private
+     */
+    _activateTab(tabId, group) {
+        const element = this.element;
+        
+        // Remove active class from all tabs and hide all tab content
+        element.querySelectorAll(`nav[data-group="${group}"] a.item`).forEach(a => {
+            a.classList.remove('active');
+        });
+        
+        // Hide all tabs (including those nested in parts)
+        element.querySelectorAll(`section[data-group="${group}"].tab`).forEach(section => {
+            section.classList.remove('active');
+            section.style.display = 'none';
+        });
+
+        // Activate the clicked tab link
+        const tabLink = element.querySelector(`nav[data-group="${group}"] a[data-tab="${tabId}"]`);
+        if (tabLink) {
+            tabLink.classList.add('active');
+        }
+
+        // Show the corresponding tab content
+        const tabContent = element.querySelector(`section[data-group="${group}"].tab[data-tab="${tabId}"]`);
+        if (tabContent) {
+            tabContent.classList.add('active');
+            tabContent.style.display = 'flex';
+            tabContent.style.flexDirection = 'column';
+            tabContent.style.overflowY = 'auto';
+            tabContent.style.overflowX = 'hidden';
+        }
     }
 
     // --- RELOAD LOGIC (Match by Linked Weapon Name) ---
     async _onReloadWeapon(event) {
         event.preventDefault();
-        const li = $(event.currentTarget).parents(".item");
-        const weapon = this.actor.items.get(li.data("itemId"));
+        // V13: Use DOM methods instead of jQuery
+        const li = event.currentTarget.closest(".item");
+        if (!li) return;
+        const weapon = this.actor.items.get(li.dataset.itemId);
         const weaponName = weapon.name;
 
         // Find all magazines that claim to link to this weapon
@@ -308,7 +582,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 load: {
                     label: "Load Magazine",
                     callback: (html) => {
-                        const magId = html.find('#magazine-select').val();
+                        // V13: html is a DOM element, not jQuery
+                        const select = html.querySelector('#magazine-select');
+                        const magId = select?.value;
                         const mag = this.actor.items.get(magId);
                         if (mag) this._performReload(weapon, mag);
                     }
@@ -356,7 +632,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
         // Handle Item Rolls (triggered by your crosshairs icon)
         if (dataset.rollType === 'item') {
-            const itemId = $(element).parents('.item').data('itemId');
+            // V13: Use DOM methods instead of jQuery
+            const itemElement = element.closest('.item');
+            const itemId = itemElement?.dataset.itemId;
             const item = this.actor.items.get(itemId);
             if (item.type === 'weapon') {
                 // NEW LOGIC: Check the explicit 'attackType' property
@@ -384,7 +662,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             else if (item.type === 'ebbFormula') {
                 this._executeEbbRoll(item);
             } else {
-                item.sheet.render(true);
+                item.sheet.render();
             }
         }
 
@@ -552,7 +830,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
     async _executeSkillRoll(element) {
         // 1. GET ITEM & DATA
-        const itemId = $(element).parents('.item').data('itemId');
+        // V13: Use DOM methods instead of jQuery
+        const itemElement = element.closest('.item');
+        const itemId = itemElement?.dataset.itemId;
         const item = this.actor.items.get(itemId);
         if (!item) return;
 
@@ -1691,4 +1971,5 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         html += `</div>`;
         return html;
     }
+
 }

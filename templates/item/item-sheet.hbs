@@ -1,4 +1,5 @@
-<form class="{{cssClass}} sla-sheet sheet item {{item.type}}-theme" autocomplete="off">
+{{!-- V13: No <form> element - ApplicationV2 creates the form automatically when tag: 'form' is set --}}
+<div class="{{cssClass}} sla-sheet sheet item {{item.type}}-theme" autocomplete="off">
 
     {{!-- HEADER --}}
     <header class="sheet-header">
@@ -15,21 +16,14 @@
     {{!-- LOGIC: Group A (Tabs) vs Group B (Single View) --}}
     {{#if (or (eq item.type "weapon") (or (eq item.type "armor") (eq item.type "explosive")))}}
 
-    {{!-- === GROUP A: PRESERVE TABS === --}}
-    <nav class="sheet-tabs tabs" data-group="primary">
-        <a class="item" data-tab="attributes">Details</a>
-        <a class="item" data-tab="description">Description</a>
-    </nav>
+    {{!-- === GROUP A: PRESERVE TABS (V2) === --}}
+    {{!-- Tab Navigation (rendered as PART) --}}
+    <div data-application-part="tabs"></div>
 
+    {{!-- Tab Content (rendered as PARTS - AppV2 will render tab sections directly here) --}}
     <section class="sheet-body">
-        <div class="tab attributes" data-group="primary" data-tab="attributes">
-            {{> "systems/sla-industries/templates/item/parts/item-catalogue.hbs"}}
-        </div>
-
-        <div class="tab description" data-group="primary" data-tab="description">
-            {{editor enrichedDescription target="system.description" engine="prosemirror" button=true owner=owner
-            editable=editable}}
-        </div>
+        <div data-application-part="attributes"></div>
+        <div data-application-part="description"></div>
     </section>
 
     {{else}}
@@ -64,11 +58,16 @@
         {{!-- ROW 3: DESCRIPTION (Always at bottom) --}}
         <div class="sheet-description">
             <div class="sla-header-bar-small">Description</div>
-            {{editor enrichedDescription target="system.description" engine="prosemirror" button=true owner=owner
-            editable=editable}}
+            {{#if editable}}
+            <prose-mirror name="system.description" button="true" editable="{{editable}}" toggled="false" value="{{item.system.description}}">
+                {{{enrichedDescription}}}
+            </prose-mirror>
+            {{else}}
+            {{{enrichedDescription}}}
+            {{/if}}
         </div>
 
     </section>
 
     {{/if}}
-</form>
+</div>

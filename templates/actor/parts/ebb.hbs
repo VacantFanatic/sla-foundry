@@ -14,7 +14,7 @@
             </thead>
             <tbody>
                 {{#each ebbFormulas as |item id|}}
-                <tr class="item" data-item-id="{{item._id}}">
+                <tr class="item draggable" data-item-id="{{item._id}}">
                     <td class="item-name" style="padding-left: 5px; font-weight: bold; cursor: pointer;" title="Discipline: {{item.system.discipline}}">
                         <i class="fas fa-magic" style="margin-right: 5px; color: #8a2be2;"></i>
                         <span class="rollable" data-roll-type="item">{{item.name}}</span> 

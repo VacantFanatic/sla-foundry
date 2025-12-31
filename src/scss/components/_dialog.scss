@@ -62,3 +62,95 @@
         }
     }
 }
+
+/* Confirm Dialog (V2 Application) */
+.confirm-dialog {
+    background: var(--sla-bg-dark);
+    border: $border-width-thick solid var(--sla-border);
+    box-shadow: 0 0 20px #000;
+    color: var(--sla-text-light);
+    border-radius: 5px;
+    
+    /* Ensure window-content is visible */
+    .window-content {
+        background: var(--sla-bg-dark);
+        color: var(--sla-text-light);
+        padding: $padding-md;
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    .confirm-dialog-content {
+        padding: $padding-md;
+        display: block !important;
+        visibility: visible !important;
+        
+        .dialog-title {
+            @include font-header;
+            color: var(--sla-accent);
+            margin: 0 0 $padding-md 0;
+            border-bottom: $border-width solid var(--sla-accent);
+            padding-bottom: $padding-sm;
+        }
+
+        .dialog-message {
+            @include font-body;
+            margin: $padding-md 0;
+            color: var(--sla-text-light);
+            
+            p {
+                margin: 0 0 $padding-sm 0;
+            }
+            
+            strong {
+                color: var(--sla-accent);
+            }
+        }
+
+        .dialog-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: $padding-sm;
+            margin-top: $padding-md;
+
+            button {
+                @include font-header;
+                padding: $padding-sm $padding-md;
+                border: $border-width solid;
+                border-radius: var(--sla-radius);
+                cursor: pointer;
+                transition: all $transition-base;
+                min-width: 80px;
+
+                &.yes-button {
+                    background: var(--sla-accent);
+                    border-color: var(--sla-accent);
+                    color: #000;
+                    font-weight: bold;
+
+                    &:hover {
+                        background: #ff8800;
+                        box-shadow: 0 0 10px var(--sla-accent);
+                    }
+                }
+
+                &.no-button {
+                    background: var(--sla-bg-panel);
+                    border-color: #555;
+                    color: var(--sla-text-light);
+
+                    &:hover {
+                        background: #333;
+                        border-color: #888;
+                        box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+                    }
+                }
+
+                &:focus {
+                    outline: none;
+                    box-shadow: 0 0 5px var(--sla-accent);
+                }
+            }
+        }
+    }
+}

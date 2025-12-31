@@ -1,0 +1,12 @@
+{{!-- NAVIGATION --}}
+<nav class="sheet-tabs tabs" data-group="sheet" style="display: flex !important; visibility: visible !important;">
+    {{#each tabsArray}}
+    <a class="item {{this.cssClass}}" data-tab="{{this.id}}">{{this.label}}</a>
+    {{else}}
+    {{!-- Fallback if tabsArray is not available --}}
+    <a class="item active" data-tab="main">Main</a>
+    <a class="item" data-tab="ebb">Combat</a>
+    <a class="item" data-tab="inventory">Inventory</a>
+    <a class="item" data-tab="biography">Bio & Traits</a>
+    {{/each}}
+</nav>

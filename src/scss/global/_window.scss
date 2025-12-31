@@ -5,11 +5,13 @@
 
 @import '../utils/variables';
 
-.window-app {
+.sla-industries.window-app,
+.sla-sheet.window-app {
     font-family: $font-primary;
 }
 
-.rollable {
+.sla-industries .rollable,
+.sla-sheet .rollable {
     &:hover,
     &:focus {
         color: #000;
