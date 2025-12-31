@@ -4,6 +4,7 @@
  */
 import { LuckDialog } from "../apps/luck-dialog.mjs";
 import { ConfirmDialog } from "../apps/confirm-dialog.mjs";
+import { AttackDialog } from "../apps/attack-dialog.mjs";
 import { calculateRollResult, generateDiceTooltip, createSLARoll } from "../helpers/dice.mjs";
 import { prepareItems } from "../helpers/items.mjs";
 import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from "../helpers/modifiers.mjs";
@@ -20,8 +21,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         template: "systems/sla-industries/templates/actor/actor-sheet.hbs",
         tag: "form", // V13: Required for forms
         position: {
-            width: 850,
-            height: 850
+            width: 900,
+            height: 700
         },
         window: {
             resizable: true
@@ -221,13 +222,18 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         
         // V13: Initialize tabs manually since ApplicationV2's automatic system may not work with parts structure
         this._initializeTabs();
+        
+        // Attach compendium listeners after a short delay to ensure all parts are rendered
+        setTimeout(() => this._attachCompendiumListeners(), 100);
 
         // --- HEADER DELETE (SPECIES) ---
         // V13: Use DOM methods instead of jQuery
+        // IMPORTANT: Register this BEFORE rollable handlers to prevent event bubbling
         element.querySelectorAll('.chip-delete[data-type="species"]').forEach(button => {
             button.addEventListener('click', async ev => {
                 ev.preventDefault(); 
                 ev.stopPropagation();
+                ev.stopImmediatePropagation(); // Prevent other handlers from firing
                 const speciesItem = this.actor.items.find(i => i.type === "species");
                 if (!speciesItem) return;
 
@@ -251,7 +257,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                         await this.actor.update(resets);
                     }
                 });
-            });
+            }, true); // Use capture phase to ensure this fires first
         });
 
         // DRUG USE ICON - V13: Use DOM methods
@@ -302,10 +308,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         // --- HEADER DELETE (PACKAGE) ---
         // V13: Use DOM methods instead of jQuery
+        // IMPORTANT: Register this BEFORE rollable handlers to prevent event bubbling
         element.querySelectorAll('.chip-delete[data-type="package"]').forEach(button => {
             button.addEventListener('click', async ev => {
                 ev.preventDefault(); 
                 ev.stopPropagation();
+                ev.stopImmediatePropagation(); // Prevent other handlers from firing
                 const packageItem = this.actor.items.find(i => i.type === "package");
                 if (!packageItem) return;
 
@@ -322,7 +330,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                         await this.actor.update({ "system.bio.package": "" });
                     }
                 });
-            });
+            }, true); // Use capture phase to ensure this fires first
         });
 
         // --- INLINE ITEM EDITING ---
@@ -460,16 +468,53 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             });
         });
 
+    }
+    
+    /**
+     * Attach compendium link listeners
+     * @private
+     */
+    _attachCompendiumListeners() {
+        const element = this.element;
+        if (!element) return;
+        
         // --- COMPENDIUM LINKS ---
         // V13: Use DOM methods instead of jQuery
-        element.querySelectorAll('.open-compendium').forEach(link => {
+        const compendiumLinks = element.querySelectorAll('.open-compendium');
+        console.log('Compendium links found:', compendiumLinks.length);
+        
+        compendiumLinks.forEach(link => {
+            // Check if listener already attached
+            if (link.dataset.listenerAttached === 'true') {
+                console.log('Listener already attached to:', link);
+                return;
+            }
+            
+            console.log('Attaching listener to:', link, 'compendium:', link.dataset.compendium);
+            link.dataset.listenerAttached = 'true';
+            
             link.addEventListener('click', ev => {
                 ev.preventDefault();
+                ev.stopPropagation();
+                ev.stopImmediatePropagation();
+                
                 const compendiumId = ev.currentTarget.dataset.compendium;
+                console.log('Compendium link clicked:', compendiumId);
+                
+                if (!compendiumId) {
+                    console.error('No compendium ID found on element:', ev.currentTarget);
+                    ui.notifications.error('Compendium ID not found');
+                    return;
+                }
+                
                 const pack = game.packs.get(compendiumId);
+                console.log('Found pack:', pack);
+                
                 if (pack) {
-                    pack.render();
+                    pack.render(true);
+                    console.log('Compendium rendered:', compendiumId);
                 } else {
+                    console.warn('Compendium not found:', compendiumId, 'Available packs:', Array.from(game.packs.keys()));
                     ui.notifications.warn(`Compendium '${compendiumId}' not found.`);
                 }
             });
@@ -811,21 +856,16 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // For now, we will perform the calculation silently in _processWeaponRoll OR add it as a Note.
         // Let's pass it as 'rangeMsg' to see if we can easily slot it in, or just rely on the user knowing.
 
-        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/attack-dialog.hbs", templateData);
-
-        new Dialog({
+        // V2: Use ApplicationV2 instead of V1 Dialog
+        const dialog = new AttackDialog({
             title: `Attack: ${item.name} ${rangePenaltyMsg}`,
-            content: content,
-            buttons: {
-                roll: {
-                    label: "ROLL",
-                    callback: (html) => this._processWeaponRoll(item, html, isMelee)
-                }
-            },
-            default: "roll"
-        }, {
-            classes: ["sla-dialog-window", "dialog"]
-        }).render(true);
+            item: item,
+            isMelee: isMelee,
+            templateData: templateData,
+            onRoll: (element) => this._processWeaponRoll(item, element, isMelee)
+        });
+        
+        dialog.render(true);
     }
 
     async _executeSkillRoll(element) {
@@ -911,8 +951,9 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return generateDiceTooltip(roll, baseModifier, 0, successDieMod);
     }
 
-    async _processWeaponRoll(item, html, isMelee) {
-        const form = html[0].querySelector("form");
+    async _processWeaponRoll(item, element, isMelee) {
+        // V2: element is already a DOM element, not a jQuery object
+        const form = element.querySelector("form") || element; // element might be the form itself
         if (!form) return;
 
         // 1. SETUP
@@ -1302,25 +1343,21 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             recoil: 0
         };
 
-        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/attack-dialog.hbs", templateData);
-
-        new Dialog({
+        // V2: Use ApplicationV2 instead of V1 Dialog
+        const dialog = new AttackDialog({
             title: `Throw: ${item.name}`,
-            content: content,
-            buttons: {
-                roll: {
-                    label: "THROW",
-                    callback: (html) => this._processExplosiveRoll(item, html)
-                }
-            },
-            default: "roll"
-        }, {
-            classes: ["sla-dialog-window", "dialog"]
-        }).render(true);
+            item: item,
+            isMelee: false,
+            templateData: templateData,
+            onRoll: (element) => this._processExplosiveRoll(item, element)
+        });
+        
+        dialog.render(true);
     }
 
-    async _processExplosiveRoll(item, html) {
-        const form = html[0].querySelector("form");
+    async _processExplosiveRoll(item, element) {
+        // V2: element is already a DOM element, not a jQuery object
+        const form = element.querySelector("form") || element; // element might be the form itself
         if (!form) return;
 
         // 1. EXTRACT FORM DATA (Before closing dialog)
