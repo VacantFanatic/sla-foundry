@@ -82,9 +82,11 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         // Enrich description
         context.enrichedDescription = await enrichItemDescription(this.item);
 
-        // Prepare firing modes for weapons
+        // Prepare firing modes for weapons (always set, even if empty, so it's available in templates)
         if (this.item.type === "weapon") {
             context.firingModes = prepareFiringModes(this.item.system);
+        } else {
+            context.firingModes = null; // Explicitly set to null for non-weapons
         }
 
         // Get linked discipline image for Ebb Formulas
@@ -299,6 +301,9 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
                     await this.item.update({
                         "system.powered": isPowered
                     });
+                    
+                    // Re-render to show/hide powered armor fields based on new value
+                    await this.render();
                 });
             }
         }

@@ -6,7 +6,9 @@
     {{#if (eq item.type "skill")}}
     <div class="form-group line-item">
         <label>Stat:</label>
-        <select name="system.stat">{{selectOptions @root.config.stats selected=system.stat}}</select>
+        {{#with (or config @root.config) as |configObj|}}
+        <select name="system.stat">{{selectOptions configObj.stats selected=system.stat}}</select>
+        {{/with}}
     </div>
     {{/if}}
     {{#if (eq item.type "trait")}}

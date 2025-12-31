@@ -4,21 +4,28 @@
 
 /**
  * Prepares firing modes data for weapon items.
+ * Always returns all known firing modes, using source data if available,
+ * or default values if not.
  * @param {Object} itemSystem - The item's system data.
  * @returns {Object} Prepared firing modes object.
  */
 export function prepareFiringModes(itemSystem) {
     const firingModes = {};
-    const knownModes = ["single", "burst", "auto", "suppressive"];
+    const knownModes = {
+        single: { label: "Single", active: true, rounds: 1, recoil: 0 },
+        burst: { label: "Burst", active: false, rounds: 3, recoil: 0 },
+        auto: { label: "Full-Auto", active: false, rounds: 10, recoil: 0 },
+        suppressive: { label: "Suppressive", active: false, rounds: 20, recoil: 0 }
+    };
     const sourceModes = itemSystem.toObject().firingModes || {};
 
-    for (const key of knownModes) {
-        if (sourceModes[key]) {
-            firingModes[key] = {
-                ...sourceModes[key],
-                id: key
-            };
-        }
+    // Always return all known modes, merging with source data if available
+    for (const [key, defaults] of Object.entries(knownModes)) {
+        firingModes[key] = {
+            ...defaults,
+            ...(sourceModes[key] || {}),
+            id: key
+        };
     }
 
     return firingModes;

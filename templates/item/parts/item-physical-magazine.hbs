@@ -1,0 +1,20 @@
+{{!-- Physical Magazine Item: Common fields + Magazine-specific fields --}}
+<div class="catalogue-grid">
+    {{!-- COMMON FIELDS (Shared by all physical items) --}}
+    <div class="form-group">
+        <label>Weight</label>
+        <input type="number" name="system.weight" value="{{system.weight}}" step="0.1" />
+    </div>
+    <div class="form-group">
+        <label>Cost</label>
+        <input type="number" name="system.price" value="{{system.price}}" />
+    </div>
+    <div class="form-group">
+        <label>Qty</label>
+        <input type="number" name="system.quantity" value="{{system.quantity}}" />
+    </div>
+
+    {{!-- Magazine-specific fields --}}
+    {{> "systems/sla-industries/templates/item/parts/item-magazine.hbs"}}
+</div>
+

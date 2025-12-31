@@ -14,7 +14,7 @@
     </header>
 
     {{!-- LOGIC: Group A (Tabs) vs Group B (Single View) --}}
-    {{#if (or (eq item.type "weapon") (or (eq item.type "armor") (eq item.type "explosive")))}}
+    {{#if (or (eq item.type "weapon") (or (eq item.type "armor") (or (eq item.type "explosive") (or (eq item.type "magazine") (or (eq item.type "drug") (eq item.type "item"))))))}}
 
     {{!-- === GROUP A: PRESERVE TABS (V2) === --}}
     {{!-- Tab Navigation (rendered as PART) --}}
@@ -28,31 +28,14 @@
 
     {{else}}
 
-    {{!-- === GROUP B: SINGLE VIEW (Attributes -> Drop Zone -> Description) === --}}
+    {{!-- === GROUP B: SINGLE VIEW (Non-physical items: Skills, Traits, Ebb, Disciplines, Species, Packages) === --}}
     <section class="sheet-body single-view">
 
         {{!-- ROW 1 & 2: ATTRIBUTES & DROP ZONES (Handled by Partials) --}}
         <div class="sheet-attributes">
 
-            {{!-- Magazine / Drug / Generic Item (From Catalogue) --}}
-            {{#if (or (eq item.type "magazine") (or (eq item.type "drug") (eq item.type "item")))}}
-            {{> "systems/sla-industries/templates/item/parts/item-catalogue.hbs"}}
-            {{/if}}
-
-            {{!-- Academic (Skill / Trait) --}}
-            {{#if (or (eq item.type "skill") (eq item.type "trait"))}}
-            {{> "systems/sla-industries/templates/item/parts/item-academic.hbs"}}
-            {{/if}}
-
-            {{!-- Spectral (Ebb / Discipline) --}}
-            {{#if (or (eq item.type "ebbFormula") (eq item.type "discipline"))}}
-            {{> "systems/sla-industries/templates/item/parts/item-spectral.hbs"}}
-            {{/if}}
-
-            {{!-- Dossier (Species / Package) --}}
-            {{#if (or (eq item.type "species") (eq item.type "package"))}}
-            {{> "systems/sla-industries/templates/item/parts/item-dossier.hbs"}}
-            {{/if}}
+            {{!-- All non-physical item types use the catalogue dispatcher --}}
+            {{> "systems/sla-industries/templates/item/parts/item-catalogue.hbs" item=item system=system config=config firingModes=firingModes}}
         </div>
 
         {{!-- ROW 3: DESCRIPTION (Always at bottom) --}}

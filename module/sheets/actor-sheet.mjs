@@ -1094,9 +1094,38 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             
             // Update the actor - Foundry VTT handles dot notation automatically
             await this.actor.update({ [field]: isChecked }, { 
-                render: true,
+                render: false,
                 _preserveTab: true
             });
+            
+            // Ensure prepareDerivedData runs to recalculate conditions (critical, stunned, immobile)
+            await this.actor.prepareDerivedData();
+            
+            // Get the calculated conditions from the actor's system (after prepareDerivedData)
+            const calculatedConditions = this.actor.system.conditions || {};
+            
+            // Update the actor with the calculated conditions to persist them
+            const conditionUpdates = {};
+            if (calculatedConditions.stunned !== undefined) {
+                conditionUpdates["system.conditions.stunned"] = calculatedConditions.stunned;
+            }
+            if (calculatedConditions.immobile !== undefined) {
+                conditionUpdates["system.conditions.immobile"] = calculatedConditions.immobile;
+            }
+            if (calculatedConditions.critical !== undefined) {
+                conditionUpdates["system.conditions.critical"] = calculatedConditions.critical;
+            }
+            if (calculatedConditions.dead !== undefined) {
+                conditionUpdates["system.conditions.dead"] = calculatedConditions.dead;
+            }
+            
+            // Only update if there are condition changes
+            if (Object.keys(conditionUpdates).length > 0) {
+                await this.actor.update(conditionUpdates, { render: false, _preserveTab: true });
+            }
+            
+            // Re-render to show updated conditions
+            await this.render();
             
             // Immediately restore tab state after update
             this._restoreTabState(activeTab, navGroup);
@@ -1632,21 +1661,35 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                         }]);
                         combatant = combat.combatants.get(created[0].id);
                     } else {
-                        // Create a temporary token for the actor
-                        const tokenData = await this.actor.getTokenData();
-                        const createdToken = await scene.createEmbeddedDocuments("Token", [{
-                            ...tokenData,
-                            actorId: this.actor.id,
-                            x: 0,
-                            y: 0
-                        }]);
-                        // Create combatant with the new token
-                        const created = await combat.createEmbeddedDocuments("Combatant", [{
-                            tokenId: createdToken[0].id,
-                            actorId: this.actor.id,
-                            hidden: false
-                        }]);
-                        combatant = combat.combatants.get(created[0].id);
+                        // For NPCs without tokens, try to create one or use actor directly
+                        try {
+                            const tokenData = await this.actor.getTokenData();
+                            const createdToken = await scene.createEmbeddedDocuments("Token", [{
+                                ...tokenData,
+                                actorId: this.actor.id,
+                                x: 0,
+                                y: 0
+                            }]);
+                            // Create combatant with the new token
+                            const created = await combat.createEmbeddedDocuments("Combatant", [{
+                                tokenId: createdToken[0].id,
+                                actorId: this.actor.id,
+                                hidden: false
+                            }]);
+                            combatant = combat.combatants.get(created[0].id);
+                        } catch (tokenError) {
+                            console.warn("Could not create token for initiative roll, trying without token:", tokenError);
+                            // Try to create combatant without token (some systems allow this)
+                            try {
+                                const created = await combat.createEmbeddedDocuments("Combatant", [{
+                                    actorId: this.actor.id,
+                                    hidden: false
+                                }]);
+                                combatant = combat.combatants.get(created[0].id);
+                            } catch (combatantError) {
+                                throw new Error(`Cannot roll initiative: No token found and cannot create combatant. ${combatantError.message}`);
+                            }
+                        }
                     }
                 }
                 

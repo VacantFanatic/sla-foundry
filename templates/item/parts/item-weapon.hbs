@@ -40,8 +40,10 @@
         <div class="col-stat">Recoil</div>
     </div>
 
-    {{!-- Note: We iterate over 'firingModes' (prepared in sheet getData), NOT system.firingModes --}}
-    {{#each firingModes as |mode key|}}
+    {{!-- Note: We iterate over 'firingModes' (prepared in _prepareContext), NOT system.firingModes --}}
+    {{!-- firingModes is available from ApplicationV2 context, use @root to access from within #with blocks --}}
+    {{#if @root.firingModes}}
+    {{#each @root.firingModes as |mode key|}}
     <div class="firing-mode-row {{#if mode.active}}enabled{{/if}}">
         <div class="col-active">
             {{!-- The NAME is crucial: system.firingModes.<key>.active --}}
@@ -56,5 +58,32 @@
         </div>
     </div>
     {{/each}}
+    {{else}}
+    {{!-- Fallback: If firingModes not available, render default modes --}}
+    <div class="firing-mode-row enabled">
+        <div class="col-active"><input type="checkbox" name="system.firingModes.single.active" checked></div>
+        <div class="col-name">Single</div>
+        <div class="col-stat"><input type="number" name="system.firingModes.single.rounds" value="1" placeholder="-"></div>
+        <div class="col-stat"><input type="number" name="system.firingModes.single.recoil" value="0" placeholder="0"></div>
+    </div>
+    <div class="firing-mode-row">
+        <div class="col-active"><input type="checkbox" name="system.firingModes.burst.active"></div>
+        <div class="col-name">Burst</div>
+        <div class="col-stat"><input type="number" name="system.firingModes.burst.rounds" value="3" placeholder="-"></div>
+        <div class="col-stat"><input type="number" name="system.firingModes.burst.recoil" value="0" placeholder="0"></div>
+    </div>
+    <div class="firing-mode-row">
+        <div class="col-active"><input type="checkbox" name="system.firingModes.auto.active"></div>
+        <div class="col-name">Full-Auto</div>
+        <div class="col-stat"><input type="number" name="system.firingModes.auto.rounds" value="10" placeholder="-"></div>
+        <div class="col-stat"><input type="number" name="system.firingModes.auto.recoil" value="0" placeholder="0"></div>
+    </div>
+    <div class="firing-mode-row">
+        <div class="col-active"><input type="checkbox" name="system.firingModes.suppressive.active"></div>
+        <div class="col-name">Suppressive</div>
+        <div class="col-stat"><input type="number" name="system.firingModes.suppressive.rounds" value="20" placeholder="-"></div>
+        <div class="col-stat"><input type="number" name="system.firingModes.suppressive.recoil" value="0" placeholder="0"></div>
+    </div>
+    {{/if}}
 </div>
 {{/if}}

@@ -604,6 +604,14 @@ export class BoilerplateActor extends Actor {
     async _preUpdate(changed, options, user) {
         await super._preUpdate(changed, options, user);
 
+        // For NPCs, ensure maxHP exists before clamping
+        if (this.type === 'npc' && changed.system?.hp?.value !== undefined) {
+            if (!this.system.hp?.max && this.system.hp?.max !== 0) {
+                changed.system.hp = changed.system.hp || {};
+                changed.system.hp.max = 10;
+            }
+        }
+
         // HP Floor & Ceiling
         // IMPORTANT: Calculate max HP first to ensure we have the correct value for clamping
         // Also check if max HP is being updated - if so, clamp current HP to new max
@@ -620,16 +628,22 @@ export class BoilerplateActor extends Actor {
         }
         
         if (changed.system?.hp?.value !== undefined) {
-            // Always recalculate max HP to ensure it's correct (using base STR, not penalized STR)
-            // This ensures we use the current species and STR values
-            let hpBase = 10;
-            const speciesItem = this.items.find(i => i.type === 'species');
-            if (speciesItem && speciesItem.system.hp) {
-                hpBase = speciesItem.system.hp;
+            // Get the current max HP - for characters, calculate it; for NPCs, use existing value
+            let maxHp;
+            if (this.type === 'character') {
+                // Characters: Calculate max HP from species + STR
+                let hpBase = 10;
+                const speciesItem = this.items.find(i => i.type === 'species');
+                if (speciesItem && speciesItem.system.hp) {
+                    hpBase = speciesItem.system.hp;
+                }
+                // Use base STR value (before penalties) for max HP
+                const baseSTR = Number(this.system.stats.str?.value) || 0;
+                maxHp = hpBase + baseSTR;
+            } else {
+                // NPCs: Use existing max HP value (set manually)
+                maxHp = Number(this.system.hp?.max) || 10;
             }
-            // Use base STR value (before penalties) for max HP
-            const baseSTR = Number(this.system.stats.str?.value) || 0;
-            const maxHp = hpBase + baseSTR;
             
             // Get the new HP value
             let val = changed.system.hp.value;
@@ -638,8 +652,8 @@ export class BoilerplateActor extends Actor {
             if (val === '' || val === null || val === undefined) {
                 // Empty input - preserve current value, don't reset
                 delete changed.system.hp.value;
-                // Still update max HP if needed
-                if (changed.system.hp.max === undefined && this.system.hp.max !== maxHp) {
+                // Still update max HP if needed (only for characters)
+                if (this.type === 'character' && changed.system.hp.max === undefined && this.system.hp.max !== maxHp) {
                     changed.system.hp.max = maxHp;
                 }
                 return; // Exit early - don't process empty value
@@ -652,8 +666,8 @@ export class BoilerplateActor extends Actor {
             if (isNaN(val)) {
                 // Invalid number - preserve current HP value
                 delete changed.system.hp.value;
-                // Still update max HP if needed
-                if (changed.system.hp.max === undefined && this.system.hp.max !== maxHp) {
+                // Still update max HP if needed (only for characters)
+                if (this.type === 'character' && changed.system.hp.max === undefined && this.system.hp.max !== maxHp) {
                     changed.system.hp.max = maxHp;
                 }
                 return; // Exit early - don't process invalid value
@@ -664,8 +678,8 @@ export class BoilerplateActor extends Actor {
             if (val > maxHp) val = maxHp;
             changed.system.hp.value = val;
             
-            // Also update max HP if it's different (to keep them in sync)
-            if (changed.system.hp.max === undefined && this.system.hp.max !== maxHp) {
+            // Also update max HP if it's different (to keep them in sync) - only for characters
+            if (this.type === 'character' && changed.system.hp.max === undefined && this.system.hp.max !== maxHp) {
                 changed.system.hp.max = maxHp;
             }
         }

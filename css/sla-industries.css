@@ -2094,3 +2094,356 @@
   visibility: visible !important;
   opacity: 1 !important;
 }
+
+/* ==========================================
+   THREAT SHEET (NPC) STYLING
+   ========================================== */
+.sla-industries.sheet.actor .threat-sheet,
+.sla-sheet.threat-sheet {
+  background: #fdfbf7 !important;
+  color: #111 !important;
+  font-family: "Josefin Sans", sans-serif !important;
+  border: 2px solid #333 !important;
+  padding: 0 !important;
+  /* Threat Stats Table */
+  /* Threat Derived Stats */
+  /* Threat Content Lists */
+  /* Threat Editor Specifics */
+  /* Common utility classes scoped to threat sheet */
+  /* Input styling */
+  /* Select styling */
+  /* Button styling */
+  /* Inline edit inputs */
+  /* ProseMirror editor styling */
+  /* Icon styling */
+  /* Wounds & Conditions Section - Threat Sheet Specific Styling */
+}
+.sla-industries.sheet.actor .threat-sheet .threat-header,
+.sla-sheet.threat-sheet .threat-header {
+  background: #800000 !important;
+  color: #fff !important;
+  font-family: "Josefin Sans", sans-serif !important;
+  border-bottom: 2px solid #000 !important;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-header .header-name input,
+.sla-sheet.threat-sheet .threat-header .header-name input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.4em;
+  font-weight: bold;
+  font-family: "Josefin Sans", sans-serif;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-body,
+.sla-sheet.threat-sheet .threat-body {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sla-accent) #000;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-logo,
+.sla-sheet.threat-sheet .threat-logo {
+  flex: 0 0 50px;
+  width: 50px;
+  height: 50px;
+  border: none;
+  margin-right: 10px;
+  object-fit: cover;
+  background: #000;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-section-bar,
+.sla-sheet.threat-sheet .threat-section-bar {
+  background: #800000;
+  color: #fff;
+  font-family: "Josefin Sans", sans-serif;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-top: 2px solid #000;
+  border-bottom: 1px solid #000;
+  margin-top: 10px;
+  text-transform: uppercase;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-table,
+.sla-sheet.threat-sheet .threat-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-row-label th,
+.sla-sheet.threat-sheet .threat-row-label th {
+  background: #800000;
+  color: #fff;
+  border: 1px solid #999;
+  padding: 2px;
+  font-size: 0.9em;
+  font-weight: bold;
+  font-family: "Josefin Sans", sans-serif;
+  text-transform: uppercase;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-row-value td,
+.sla-sheet.threat-sheet .threat-row-value td {
+  padding: 0;
+  border: 1px solid #999;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-row-value input,
+.sla-sheet.threat-sheet .threat-row-value input {
+  width: 100%;
+  background: #fff !important;
+  color: #000 !important;
+  border: none;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-derived,
+.sla-sheet.threat-sheet .threat-derived {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-box,
+.sla-sheet.threat-sheet .threat-box {
+  background: #fff;
+  border: 1px solid #000;
+  padding: 2px 5px;
+  flex: 1;
+  min-width: 80px;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-box label,
+.sla-sheet.threat-sheet .threat-box label {
+  display: block;
+  font-size: 0.8em;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 2px;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-box input,
+.sla-sheet.threat-sheet .threat-box input {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px dotted #ccc !important;
+  color: #000 !important;
+  font-weight: bold;
+  width: 100%;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-box .flexrow,
+.sla-sheet.threat-sheet .threat-box .flexrow {
+  align-items: center;
+  gap: 2px;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-content-box,
+.sla-sheet.threat-sheet .threat-content-box {
+  background: #fff;
+  border: 1px solid #999;
+  padding: 2px;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-content-box.editor,
+.sla-sheet.threat-sheet .threat-content-box.editor {
+  min-height: 300px;
+  background: #fff;
+  color: #000;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-content-box.editor .editor,
+.sla-sheet.threat-sheet .threat-content-box.editor .editor {
+  min-height: 300px;
+  height: 100%;
+  color: #000;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-item,
+.sla-sheet.threat-sheet .threat-item {
+  padding: 3px;
+  border-bottom: 1px dotted #ccc;
+  align-items: center;
+  display: flex;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-item:last-child,
+.sla-sheet.threat-sheet .threat-item:last-child {
+  border-bottom: none;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-item .item-name,
+.sla-sheet.threat-sheet .threat-item .item-name {
+  color: #000;
+  font-weight: bold;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-item .item-name.rollable,
+.sla-sheet.threat-sheet .threat-item .item-name.rollable {
+  cursor: pointer;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-item .item-name.rollable:hover,
+.sla-sheet.threat-sheet .threat-item .item-name.rollable:hover {
+  color: #800000;
+  text-decoration: underline;
+}
+.sla-industries.sheet.actor .threat-sheet .flexrow,
+.sla-sheet.threat-sheet .flexrow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
+.sla-industries.sheet.actor .threat-sheet .item-controls,
+.sla-sheet.threat-sheet .item-controls {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.sla-industries.sheet.actor .threat-sheet .item-controls a,
+.sla-sheet.threat-sheet .item-controls a {
+  cursor: pointer;
+  color: #666;
+  padding: 2px 4px;
+}
+.sla-industries.sheet.actor .threat-sheet .item-controls a:hover,
+.sla-sheet.threat-sheet .item-controls a:hover {
+  color: #800000;
+}
+.sla-industries.sheet.actor .threat-sheet .rollable,
+.sla-sheet.threat-sheet .rollable {
+  cursor: pointer;
+  color: #000;
+}
+.sla-industries.sheet.actor .threat-sheet .rollable:hover,
+.sla-sheet.threat-sheet .rollable:hover {
+  color: #800000;
+  text-shadow: 0 0 2px rgba(128, 0, 0, 0.5);
+}
+.sla-industries.sheet.actor .threat-sheet input[type=text],
+.sla-industries.sheet.actor .threat-sheet input[type=number],
+.sla-sheet.threat-sheet input[type=text],
+.sla-sheet.threat-sheet input[type=number] {
+  background: #fff;
+  color: #000;
+  border: 1px solid #999;
+  padding: 2px 4px;
+  font-family: "Josefin Sans", sans-serif;
+}
+.sla-industries.sheet.actor .threat-sheet input[type=text]:focus,
+.sla-industries.sheet.actor .threat-sheet input[type=number]:focus,
+.sla-sheet.threat-sheet input[type=text]:focus,
+.sla-sheet.threat-sheet input[type=number]:focus {
+  outline: 1px solid #800000;
+  box-shadow: 0 0 3px rgba(128, 0, 0, 0.3);
+}
+.sla-industries.sheet.actor .threat-sheet select,
+.sla-sheet.threat-sheet select {
+  background: #fff;
+  color: #000;
+  border: 1px solid #999;
+  padding: 2px 4px;
+  font-family: "Josefin Sans", sans-serif;
+}
+.sla-industries.sheet.actor .threat-sheet select:focus,
+.sla-sheet.threat-sheet select:focus {
+  outline: 1px solid #800000;
+  box-shadow: 0 0 3px rgba(128, 0, 0, 0.3);
+}
+.sla-industries.sheet.actor .threat-sheet button,
+.sla-sheet.threat-sheet button {
+  background: #fff;
+  color: #000;
+  border: 1px solid #999;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: "Josefin Sans", sans-serif;
+}
+.sla-industries.sheet.actor .threat-sheet button:hover,
+.sla-sheet.threat-sheet button:hover {
+  background: #800000;
+  color: #fff;
+  border-color: #800000;
+}
+.sla-industries.sheet.actor .threat-sheet .inline-edit,
+.sla-sheet.threat-sheet .inline-edit {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid #888 !important;
+  border-radius: 3px !important;
+  color: #000 !important;
+  font-size: 0.9em !important;
+}
+.sla-industries.sheet.actor .threat-sheet .inline-edit:focus,
+.sla-sheet.threat-sheet .inline-edit:focus {
+  background: #fff !important;
+  outline: 1px solid #800000 !important;
+  box-shadow: 0 0 3px rgba(128, 0, 0, 0.3) !important;
+}
+.sla-industries.sheet.actor .threat-sheet .threat-content-box.editor prose-mirror,
+.sla-sheet.threat-sheet .threat-content-box.editor prose-mirror {
+  background: #fff;
+  color: #000;
+}
+.sla-industries.sheet.actor .threat-sheet .fas, .sla-industries.sheet.actor .threat-sheet .far, .sla-industries.sheet.actor .threat-sheet .fab,
+.sla-sheet.threat-sheet .fas,
+.sla-sheet.threat-sheet .far,
+.sla-sheet.threat-sheet .fab {
+  color: inherit;
+}
+.sla-industries.sheet.actor .threat-sheet .sla-panel,
+.sla-sheet.threat-sheet .sla-panel {
+  background: #fff !important;
+  border: 1px solid #999 !important;
+  margin-bottom: 10px;
+}
+.sla-industries.sheet.actor .threat-sheet .sla-panel .sla-header-bar,
+.sla-sheet.threat-sheet .sla-panel .sla-header-bar {
+  background: #800000 !important;
+  color: #fff !important;
+  font-family: "Josefin Sans", sans-serif !important;
+  font-weight: bold !important;
+  padding: 2px 5px !important;
+  border-top: 2px solid #000 !important;
+  border-bottom: 1px solid #000 !important;
+  margin-top: 10px !important;
+  text-transform: uppercase !important;
+  border-radius: 0 !important;
+}
+.sla-industries.sheet.actor .threat-sheet .sla-panel .sla-pad,
+.sla-sheet.threat-sheet .sla-panel .sla-pad {
+  padding: 5px !important;
+  background: #fff !important;
+}
+.sla-industries.sheet.actor .threat-sheet .sla-panel .wound-list,
+.sla-sheet.threat-sheet .sla-panel .wound-list {
+  background: #fff !important;
+  border: 1px solid #ccc !important;
+  margin-bottom: 5px !important;
+}
+.sla-industries.sheet.actor .threat-sheet .sla-panel .wound-list .wound-entry,
+.sla-sheet.threat-sheet .sla-panel .wound-list .wound-entry {
+  background: #fff !important;
+  border: 1px solid #ddd !important;
+  color: #000 !important;
+}
+.sla-industries.sheet.actor .threat-sheet .sla-panel .wound-list .wound-entry label,
+.sla-sheet.threat-sheet .sla-panel .wound-list .wound-entry label {
+  color: #000 !important;
+  font-family: "Josefin Sans", sans-serif !important;
+}
+.sla-industries.sheet.actor .threat-sheet .sla-panel .wound-list .wound-entry .wound-checkbox,
+.sla-sheet.threat-sheet .sla-panel .wound-list .wound-entry .wound-checkbox {
+  accent-color: #800000 !important;
+}
+.sla-industries.sheet.actor .threat-sheet .sla-panel .condition-grid .condition-toggle,
+.sla-sheet.threat-sheet .sla-panel .condition-grid .condition-toggle {
+  background: #fff !important;
+  border: 1px solid #999 !important;
+  color: #666 !important;
+}
+.sla-industries.sheet.actor .threat-sheet .sla-panel .condition-grid .condition-toggle:hover,
+.sla-sheet.threat-sheet .sla-panel .condition-grid .condition-toggle:hover {
+  background: #f0f0f0 !important;
+  border-color: #800000 !important;
+  color: #800000 !important;
+}
+.sla-industries.sheet.actor .threat-sheet .sla-panel .condition-grid .condition-toggle.active,
+.sla-sheet.threat-sheet .sla-panel .condition-grid .condition-toggle.active {
+  background: #800000 !important;
+  border-color: #800000 !important;
+  color: #fff !important;
+}

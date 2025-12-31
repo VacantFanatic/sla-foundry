@@ -1055,170 +1055,289 @@ form.sla-sheet,
    13. THREAT SHEET THEMES 
    ========================================== */
 /* Threat (NPC) Sheet */
-.sla-industries.sheet.actor .threat-sheet {
+.sla-industries.sheet.actor .threat-sheet,
+.sla-sheet.threat-sheet {
     background: #fdfbf7 !important;
     color: #111 !important;
-    font-family: "Georgia", serif !important;
+    font-family: 'Josefin Sans', sans-serif !important;
     border: 2px solid #333 !important;
     padding: 0 !important;
-}
 
-.threat-header {
-    background: #800000 !important;
-    color: #fff !important;
-    font-family: "Georgia", serif !important;
-    border-bottom: 2px solid #000 !important;
-    padding: 5px;
-    display: flex;
-    align-items: center;
-
-    .header-name input {
-        background: transparent;
-        border: none;
-        color: #fff;
-        font-size: 1.4em;
-        font-weight: bold;
-        font-family: "Georgia", serif;
-    }
-}
-
-.threat-body {
-    flex: 1;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--sla-accent) #000;
-}
-
-.threat-logo {
-    flex: 0 0 50px;
-    width: 50px;
-    height: 50px;
-    border: none;
-    margin-right: 10px;
-    object-fit: cover;
-    background: #000;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.threat-section-bar {
-    background: #800000;
-    color: #fff;
-    font-family: "Georgia", serif;
-    font-weight: bold;
-    padding: 2px 5px;
-    border-top: 2px solid #000;
-    border-bottom: 1px solid #000;
-    margin-top: 10px;
-    text-transform: uppercase;
-}
-
-/* Threat Stats Table */
-.threat-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 10px;
-}
-
-.threat-row-label th {
-    background: #800000;
-    color: #fff;
-    border: 1px solid #999;
-    padding: 2px;
-    font-size: 0.9em;
-    font-weight: bold;
-    font-family: "Georgia", serif;
-    text-transform: uppercase;
-}
-
-.threat-row-value {
-    td {
-        padding: 0;
-        border: 1px solid #999;
-    }
-
-    input {
-        width: 100%;
-        background: #fff !important;
-        color: #000 !important;
-        border: none;
-        text-align: center;
-        font-weight: bold;
-        font-size: 1.1em;
-    }
-}
-
-/* Threat Derived Stats */
-.threat-derived {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-bottom: 10px;
-}
-
-.threat-box {
-    background: #fff;
-    border: 1px solid #000;
-    padding: 2px 5px;
-    flex: 1;
-    min-width: 80px;
-
-    label {
-        display: block;
-        font-size: 0.8em;
-        font-weight: bold;
-        text-transform: uppercase;
-        border-bottom: 1px solid #ccc;
-        margin-bottom: 2px;
-    }
-
-    input {
-        background: transparent !important;
-        border: none !important;
-        /* Let them look cleaner inside the box */
-        border-bottom: 1px dotted #ccc !important;
-        color: #000 !important;
-        font-weight: bold;
-        width: 100%;
-    }
-
-    .flexrow {
+    .threat-header {
+        background: #800000 !important;
+        color: #fff !important;
+        font-family: "Georgia", serif !important;
+        border-bottom: 2px solid #000 !important;
+        padding: 5px;
+        display: flex;
         align-items: center;
-        gap: 2px;
+
+        .header-name input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.4em;
+            font-weight: bold;
+            font-family: 'Josefin Sans', sans-serif;
+        }
     }
-}
 
-/* Threat Content Lists */
-.threat-content-box {
-    background: #fff;
-    border: 1px solid #999;
-    padding: 2px;
-}
+    .threat-body {
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--sla-accent) #000;
+    }
 
-/* Threat Editor Specifics */
-.threat-content-box.editor {
-    min-height: 300px;
-    background: #fff;
-    color: #000;
+    .threat-logo {
+        flex: 0 0 50px;
+        width: 50px;
+        height: 50px;
+        border: none;
+        margin-right: 10px;
+        object-fit: cover;
+        background: #000;
+        border-radius: 4px;
+        cursor: pointer;
+    }
 
-    .editor {
+    .threat-section-bar {
+        background: #800000;
+        color: #fff;
+        font-family: 'Josefin Sans', sans-serif;
+        font-weight: bold;
+        padding: 2px 5px;
+        border-top: 2px solid #000;
+        border-bottom: 1px solid #000;
+        margin-top: 10px;
+        text-transform: uppercase;
+    }
+
+    /* Threat Stats Table */
+    .threat-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+    }
+
+    .threat-row-label th {
+        background: #800000;
+        color: #fff;
+        border: 1px solid #999;
+        padding: 2px;
+        font-size: 0.9em;
+        font-weight: bold;
+        font-family: 'Josefin Sans', sans-serif;
+        text-transform: uppercase;
+    }
+
+    .threat-row-value {
+        td {
+            padding: 0;
+            border: 1px solid #999;
+        }
+
+        input {
+            width: 100%;
+            background: #fff !important;
+            color: #000 !important;
+            border: none;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+    }
+
+    /* Threat Derived Stats */
+    .threat-derived {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+
+    .threat-box {
+        background: #fff;
+        border: 1px solid #000;
+        padding: 2px 5px;
+        flex: 1;
+        min-width: 80px;
+
+        label {
+            display: block;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 2px;
+        }
+
+        input {
+            background: transparent !important;
+            border: none !important;
+            /* Let them look cleaner inside the box */
+            border-bottom: 1px dotted #ccc !important;
+            color: #000 !important;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .flexrow {
+            align-items: center;
+            gap: 2px;
+        }
+    }
+
+    /* Threat Content Lists */
+    .threat-content-box {
+        background: #fff;
+        border: 1px solid #999;
+        padding: 2px;
+    }
+
+    /* Threat Editor Specifics */
+    .threat-content-box.editor {
         min-height: 300px;
-        height: 100%;
+        background: #fff;
         color: #000;
-    }
-}
 
-.threat-item {
-    padding: 3px;
-    border-bottom: 1px dotted #ccc;
-    align-items: center;
-
-    &:last-child {
-        border-bottom: none;
+        .editor {
+            min-height: 300px;
+            height: 100%;
+            color: #000;
+        }
     }
 
-    .item-name {
+    .threat-item {
+        padding: 3px;
+        border-bottom: 1px dotted #ccc;
+        align-items: center;
+        display: flex;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            color: #000;
+            font-weight: bold;
+            
+            &.rollable {
+                cursor: pointer;
+                
+                &:hover {
+                    color: #800000;
+                    text-decoration: underline;
+                }
+            }
+        }
+    }
+
+    /* Common utility classes scoped to threat sheet */
+    .flexrow {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .item-controls {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+
+        a {
+            cursor: pointer;
+            color: #666;
+            padding: 2px 4px;
+            
+            &:hover {
+                color: #800000;
+            }
+        }
+    }
+
+    .rollable {
+        cursor: pointer;
         color: #000;
+        
+        &:hover {
+            color: #800000;
+            text-shadow: 0 0 2px rgba(128, 0, 0, 0.5);
+        }
+    }
+
+    /* Input styling */
+    input[type="text"],
+    input[type="number"] {
+        background: #fff;
+        color: #000;
+        border: 1px solid #999;
+        padding: 2px 4px;
+        font-family: 'Josefin Sans', sans-serif;
+        
+        &:focus {
+            outline: 1px solid #800000;
+            box-shadow: 0 0 3px rgba(128, 0, 0, 0.3);
+        }
+    }
+
+    /* Select styling */
+    select {
+        background: #fff;
+        color: #000;
+        border: 1px solid #999;
+        padding: 2px 4px;
+        font-family: 'Josefin Sans', sans-serif;
+        
+        &:focus {
+            outline: 1px solid #800000;
+            box-shadow: 0 0 3px rgba(128, 0, 0, 0.3);
+        }
+    }
+
+    /* Button styling */
+    button {
+        background: #fff;
+        color: #000;
+        border: 1px solid #999;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-family: 'Josefin Sans', sans-serif;
+        
+        &:hover {
+            background: #800000;
+            color: #fff;
+            border-color: #800000;
+        }
+    }
+
+    /* Inline edit inputs */
+    .inline-edit {
+        background: rgba(255, 255, 255, 0.5) !important;
+        border: 1px solid #888 !important;
+        border-radius: 3px !important;
+        color: #000 !important;
+        font-size: 0.9em !important;
+        
+        &:focus {
+            background: #fff !important;
+            outline: 1px solid #800000 !important;
+            box-shadow: 0 0 3px rgba(128, 0, 0, 0.3) !important;
+        }
+    }
+
+    /* ProseMirror editor styling */
+    .threat-content-box.editor {
+        prose-mirror {
+            background: #fff;
+            color: #000;
+        }
+    }
+
+    /* Icon styling */
+    .fas, .far, .fab {
+        color: inherit;
     }
 }
 

@@ -1,91 +1,25 @@
-{{#if (eq item.type "drug")}}
-{{!-- DRUG SPECIFIC LAYOUT: Two Columns --}}
-<div class="catalogue-grid">
-
-    {{!-- Left Column: Generic Stats --}}
-    <div class="drug-generic-stats" style="display:flex; flex-direction:column; gap:10px;">
-        <div class="form-group">
-            <label>Weight</label>
-            <input type="number" name="system.weight" value="{{system.weight}}" step="0.1" />
-        </div>
-        <div class="form-group">
-            <label>Cost</label>
-            <input type="number" name="system.price" value="{{system.price}}" />
-        </div>
-        <div class="form-group">
-            <label>Qty</label>
-            <input type="number" name="system.quantity" value="{{system.quantity}}" />
-        </div>
-    </div>
-
-    {{!-- Right Column: Drug Specifics --}}
-    <div class="drug-panel-wrapper">
-        {{> "systems/sla-industries/templates/item/parts/item-drug.hbs"}}
-    </div>
-</div>
-
-{{else}}
-{{!-- STANDARD CATALOGUE LAYOUT (Only for physical items) --}}
-{{#if (or (eq item.type "weapon") (eq item.type "armor") (eq item.type "magazine") (eq item.type "explosive") (eq item.type "item"))}}
-<div class="catalogue-grid">
-    {{!-- COMMON FIELDS (Shared by all physical items) --}}
-    <div class="form-group">
-        <label>Weight</label>
-        <input type="number" name="system.weight" value="{{system.weight}}" step="0.1" />
-    </div>
-    <div class="form-group">
-        <label>Cost</label>
-        <input type="number" name="system.price" value="{{system.price}}" />
-    </div>
-    <div class="form-group">
-        <label>Qty</label>
-        <input type="number" name="system.quantity" value="{{system.quantity}}" />
-    </div>
-
-    {{!-- DYNAMIC PARTIALS --}}
-
-    {{!-- Weapon --}}
-    {{#if (eq item.type "weapon")}}
-    {{> "systems/sla-industries/templates/item/parts/item-weapon.hbs"}}
-    {{/if}}
-
-    {{!-- Explosive --}}
-    {{#if (eq item.type "explosive")}}
-    {{> "systems/sla-industries/templates/item/parts/item-explosive.hbs"}}
-    {{/if}}
-
-    {{!-- Armor --}}
-    {{#if (eq item.type "armor")}}
-    {{> "systems/sla-industries/templates/item/parts/item-armor.hbs"}}
-    {{/if}}
-
-    {{!-- Magazine --}}
-    {{#if (eq item.type "magazine")}}
-    {{> "systems/sla-industries/templates/item/parts/item-magazine.hbs"}}
-    {{/if}}
-
-    {{!-- Generic Item Notes (Fallback for type "item") --}}
-    {{#if (eq item.type "item")}}
-    <div class="form-group" style="grid-column: 1 / -1;">
-        <label>Notes</label>
-        <input type="text" name="system.typeNote" value="{{system.typeNote}}" />
-    </div>
-    {{/if}}
-</div>
-{{/if}}
-{{/if}}
-
-{{!-- SKILLS & TRAITS --}}
-{{#if (or (eq item.type "skill") (eq item.type "trait"))}}
-{{> "systems/sla-industries/templates/item/parts/item-academic.hbs"}}
-{{/if}}
-
-{{!-- EBB FORMULAS & DISCIPLINES --}}
-{{#if (or (eq item.type "ebb") (eq item.type "ebbFormula") (eq item.type "discipline"))}}
+{{!-- Item Catalogue Dispatcher: Routes to appropriate partial based on item type --}}
+{{!-- In ApplicationV2, all context from _prepareContext is available directly --}}
+{{#with item as |itemData|}}
+{{!-- Physical Items --}}
+{{#if (eq itemData.type "weapon")}}
+{{> "systems/sla-industries/templates/item/parts/item-physical-weapon.hbs" item=itemData}}
+{{else if (eq itemData.type "armor")}}
+{{> "systems/sla-industries/templates/item/parts/item-physical-armor.hbs"}}
+{{else if (eq itemData.type "magazine")}}
+{{> "systems/sla-industries/templates/item/parts/item-physical-magazine.hbs"}}
+{{else if (eq itemData.type "explosive")}}
+{{> "systems/sla-industries/templates/item/parts/item-physical-explosive.hbs"}}
+{{else if (eq itemData.type "drug")}}
+{{> "systems/sla-industries/templates/item/parts/item-physical-drug.hbs"}}
+{{else if (eq itemData.type "item")}}
+{{> "systems/sla-industries/templates/item/parts/item-physical-item.hbs"}}
+{{!-- Non-Physical Items --}}
+{{else if (or (eq itemData.type "skill") (eq itemData.type "trait"))}}
+{{> "systems/sla-industries/templates/item/parts/item-academic.hbs" item=itemData config=config}}
+{{else if (or (eq itemData.type "ebb") (eq itemData.type "ebbFormula") (eq itemData.type "discipline"))}}
 {{> "systems/sla-industries/templates/item/parts/item-spectral.hbs"}}
-{{/if}}
-
-{{!-- DOSSIER ITEMS (Species, Packages) --}}
-{{#if (or (eq item.type "species") (eq item.type "package"))}}
+{{else if (or (eq itemData.type "species") (eq itemData.type "package"))}}
 {{> "systems/sla-industries/templates/item/parts/item-dossier.hbs"}}
 {{/if}}
+{{/with}}
