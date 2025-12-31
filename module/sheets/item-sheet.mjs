@@ -190,6 +190,25 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
                 }
             });
         }
+
+        // --- 5. WEAPON ATTACK TYPE CHANGE (Re-render to show/hide firing modes) ---
+        const attackTypeSelect = element.querySelector('select[name="system.attackType"]');
+        if (attackTypeSelect) {
+            attackTypeSelect.addEventListener('change', async (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                // Get the form element
+                const form = ev.target.closest('form') || ev.target.form;
+                if (!form) return;
+                
+                // Update the item with the new attackType value
+                const newValue = ev.target.value;
+                await this.item.update({ "system.attackType": newValue });
+                
+                // Re-render to show/hide firing modes panel based on new value
+                await this.render();
+            });
+        }
     }
 
     /**

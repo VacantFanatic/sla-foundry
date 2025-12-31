@@ -22,7 +22,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         tag: "form", // V13: Required for forms
         position: {
             width: 900,
-            height: 700
+            height: 1400
         },
         window: {
             resizable: true
@@ -50,9 +50,6 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     static PARTS = {
         header: {
             template: "systems/sla-industries/templates/actor/parts/header-card.hbs"
-        },
-        stats: {
-            template: "systems/sla-industries/templates/actor/parts/stats.hbs"
         },
         tabs: {
             template: "systems/sla-industries/templates/actor/parts/tabs-nav.hbs"
@@ -210,6 +207,46 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     /* -------------------------------------------- */
     /* EVENT LISTENERS                              */
     /* -------------------------------------------- */
+
+    /** @override */
+    async render(force = false, options = {}) {
+        // Store current tab state before rendering (if we have a preserved tab, use that)
+        let activeTab = null;
+        let navGroup = 'sheet';
+        
+        if (this._preservedTab) {
+            // Use preserved tab state
+            activeTab = this._preservedTab.activeTab;
+            navGroup = this._preservedTab.navGroup;
+        } else {
+            // Try to get current tab state from DOM
+            const activeTabLink = this.element?.querySelector('nav[data-group="sheet"] a.item.active');
+            activeTab = activeTabLink?.dataset.tab || null;
+            navGroup = activeTabLink?.closest('nav')?.dataset.group || 'sheet';
+        }
+        
+        // Render the sheet
+        const result = await super.render(force, options);
+        
+        // If we had an active tab and this wasn't an initial render, restore it
+        if (activeTab && this.rendered && !options._initialRender) {
+            // Use multiple strategies to restore tab
+            setTimeout(() => {
+                this._restoreTabState(activeTab, navGroup);
+            }, 0);
+            
+            requestAnimationFrame(() => {
+                this._restoreTabState(activeTab, navGroup);
+            });
+        }
+        
+        // Clear preserved tab after render
+        if (this._preservedTab) {
+            delete this._preservedTab;
+        }
+        
+        return result;
+    }
 
     /** @override */
     _onRender(context, options) {
@@ -420,54 +457,122 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         // --- WOUND CHECKBOXES ---
         // V13: Use DOM methods instead of jQuery
-        element.querySelectorAll('.wound-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', async ev => {
-                ev.preventDefault();
-                ev.stopPropagation();
-                ev.stopImmediatePropagation(); // Prevent other handlers from firing
-                
-                const target = ev.currentTarget;
-                const isChecked = target.checked;
-                const field = target.name;
+        // Store reference to prevent re-attachment
+        if (!element._woundCheckboxesAttached) {
+            element._woundCheckboxesAttached = true;
+            element.querySelectorAll('.wound-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', async ev => {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    ev.stopImmediatePropagation(); // Prevent other handlers from firing
+                    
+                    const target = ev.currentTarget;
+                    const isChecked = target.checked;
+                    const field = target.name;
 
-                // Store current active tab before update
-                const activeTabLink = element.querySelector('nav[data-group="sheet"] a.item.active');
-                const activeTab = activeTabLink?.dataset.tab || 'main';
-                const navGroup = element.querySelector('nav[data-group="sheet"]')?.dataset.group || 'sheet';
+                    // Store current active tab IMMEDIATELY before any updates
+                    const activeTabLink = this.element.querySelector('nav[data-group="sheet"] a.item.active');
+                    const activeTab = activeTabLink?.dataset.tab || 'main';
+                    const navGroup = this.element.querySelector('nav[data-group="sheet"]')?.dataset.group || 'sheet';
 
-                // Update the actor without re-rendering the sheet to prevent tab reset
-                // The _onUpdate method in Actor.mjs will handle the side effects (Bleeding, Stunned, Immobile).
-                await this.actor.update({ [field]: isChecked }, { render: false });
-                
-                // Manually ensure the active tab remains active (defensive measure)
-                // This prevents any potential re-render or event bubbling from resetting the tab
-                setTimeout(() => {
-                    const currentActiveTabLink = this.element.querySelector(`nav[data-group="${navGroup}"] a.item.active`);
-                    const currentActiveTab = currentActiveTabLink?.dataset.tab;
-                    if (currentActiveTab !== activeTab) {
-                        // Restore the active tab if it was reset
-                        this.element.querySelectorAll(`nav[data-group="${navGroup}"] a.item`).forEach(a => a.classList.remove('active'));
-                        this.element.querySelectorAll(`section[data-group="${navGroup}"].tab`).forEach(section => {
-                            section.classList.remove('active');
-                            section.style.display = 'none';
-                        });
-                        
-                        const tabLink = this.element.querySelector(`nav[data-group="${navGroup}"] a.item[data-tab="${activeTab}"]`);
-                        const tabContent = this.element.querySelector(`section[data-group="${navGroup}"].tab[data-tab="${activeTab}"]`);
-                        
-                        if (tabLink && tabContent) {
-                            tabLink.classList.add('active');
-                            tabContent.classList.add('active');
-                            tabContent.style.display = 'flex';
-                            tabContent.style.flexDirection = 'column';
-                            tabContent.style.overflowY = 'auto';
-                            tabContent.style.overflowX = 'hidden';
-                        }
-                    }
-                }, 50);
+                    // Store tab state in a way that persists across renders
+                    this._preservedTab = { activeTab, navGroup };
+                    
+                    // Update the actor - the render override will preserve the tab
+                    await this.actor.update({ [field]: isChecked }, { 
+                        render: true, // Allow render, but our override will preserve tab
+                        _preserveTab: true // Custom flag to prevent re-renders in condition updates
+                    });
+                    
+                    // Immediately restore tab state after update
+                    this._restoreTabState(activeTab, navGroup);
+                    
+                    // Use multiple strategies to preserve tab state
+                    // Strategy 1: requestAnimationFrame for next frame
+                    requestAnimationFrame(() => {
+                        this._restoreTabState(activeTab, navGroup);
+                    });
+                    
+                    // Strategy 2: setTimeout as backup
+                    setTimeout(() => {
+                        this._restoreTabState(activeTab, navGroup);
+                    }, 50);
+                    
+                    // Strategy 3: Longer timeout for any delayed renders
+                    setTimeout(() => {
+                        this._restoreTabState(activeTab, navGroup);
+                    }, 200);
+                }, true); // Use capture phase to ensure we handle it first
             });
-        });
+        }
 
+    }
+
+    /**
+     * Override _onChangeInput to prevent form submission for wound checkboxes
+     * This prevents ApplicationV2 from automatically processing the change
+     * @override
+     */
+    _onChangeInput(ev) {
+        // If this is a wound checkbox, prevent default form handling
+        if (ev.target && ev.target.classList.contains('wound-checkbox')) {
+            // Don't call super - we handle this manually in _onRender
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.stopImmediatePropagation();
+            return false;
+        }
+        // For all other inputs, use the default behavior
+        return super._onChangeInput(ev);
+    }
+
+    /**
+     * Override _processFormData to exclude wound checkboxes from form processing
+     * @override
+     */
+    _processFormData(formData) {
+        // Remove wound checkbox fields from form data to prevent form submission
+        const processedData = super._processFormData(formData);
+        if (processedData) {
+            // Filter out wound-related fields
+            const woundFields = Object.keys(processedData).filter(key => 
+                key.startsWith('system.wounds.')
+            );
+            woundFields.forEach(field => {
+                delete processedData[field];
+            });
+        }
+        return processedData;
+    }
+
+    /**
+     * Restore tab state helper method
+     * @private
+     */
+    _restoreTabState(activeTab, navGroup) {
+        const currentActiveTabLink = this.element.querySelector(`nav[data-group="${navGroup}"] a.item.active`);
+        const currentActiveTab = currentActiveTabLink?.dataset.tab;
+        
+        if (currentActiveTab !== activeTab) {
+            // Restore the active tab if it was reset
+            this.element.querySelectorAll(`nav[data-group="${navGroup}"] a.item`).forEach(a => a.classList.remove('active'));
+            this.element.querySelectorAll(`section[data-group="${navGroup}"].tab`).forEach(section => {
+                section.classList.remove('active');
+                section.style.display = 'none';
+            });
+            
+            const tabLink = this.element.querySelector(`nav[data-group="${navGroup}"] a.item[data-tab="${activeTab}"]`);
+            const tabContent = this.element.querySelector(`section[data-group="${navGroup}"].tab[data-tab="${activeTab}"]`);
+            
+            if (tabLink && tabContent) {
+                tabLink.classList.add('active');
+                tabContent.classList.add('active');
+                tabContent.style.display = 'flex';
+                tabContent.style.flexDirection = 'column';
+                tabContent.style.overflowY = 'auto';
+                tabContent.style.overflowX = 'hidden';
+            }
+        }
     }
     
     /**

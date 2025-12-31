@@ -663,7 +663,9 @@ export class BoilerplateActor extends Actor {
                 if (isState === undefined) return;
                 const hasEffect = this.effects.some(e => e.statuses.has(id));
                 if (isState !== hasEffect) {
-                    await this.toggleStatusEffect(id, { active: isState });
+                    // If _preserveTab flag is set, don't render sheets when toggling status effects
+                    const renderOptions = options._preserveTab ? { render: false } : {};
+                    await this.toggleStatusEffect(id, { active: isState, ...renderOptions });
                 }
             };
             for (const [key, value] of Object.entries(conditionChanges)) {
@@ -673,7 +675,7 @@ export class BoilerplateActor extends Actor {
 
         // B. Handle Wound Logic (Head -> Stunned, Legs -> Immobile, Any -> Bleeding)
         if (woundChanges) {
-            await this._handleWoundEffects(woundChanges);
+            await this._handleWoundEffects(woundChanges, options);
         }
 
         // 2. SEPARATE LOGIC: Handle HP Auto-Wounding
@@ -685,7 +687,7 @@ export class BoilerplateActor extends Actor {
     /**
      * Handle Side-Effects of Wounds (Stunned, Immobile, Bleeding)
      */
-    async _handleWoundEffects(woundChanges) {
+    async _handleWoundEffects(woundChanges, options = {}) {
         // We need the *full* current state of wounds, merging the update with existing data
         // However, 'this.system.wounds' is already updated in memory by the time _onUpdate fires? 
         // ACTUALLY: In _onUpdate, 'this.system' IS already updated to the new state.
@@ -744,8 +746,10 @@ export class BoilerplateActor extends Actor {
 
         // EXECUTE UPDATES
         // processing sequentially to avoid race conditions
+        // If _preserveTab flag is set, prevent re-renders when toggling status effects
+        const renderOptions = options._preserveTab ? { render: false } : {};
         for (const change of effectsToToggle) {
-            await this.toggleStatusEffect(change.id, { active: change.active });
+            await this.toggleStatusEffect(change.id, { active: change.active, ...renderOptions });
         }
     }
 

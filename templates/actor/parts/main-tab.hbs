@@ -1,6 +1,12 @@
 <section class="tab {{tabs.main.id}} {{tabs.main.cssClass}}" data-tab="{{tabs.main.id}}" data-group="{{tabs.main.group}}">
     <div class="flexcol full-height">
 
+        {{!-- STATS BLOCK - Spans full width at top --}}
+        <div class="main-tab-stats">
+            {{> "systems/sla-industries/templates/actor/parts/stats.hbs"}}
+        </div>
+
+        {{!-- TWO COLUMN LAYOUT BELOW STATS --}}
         <div class="main-split">
             {{!-- LEFT: SKILLS --}}
             <div class="left-col flexcol full-height">
