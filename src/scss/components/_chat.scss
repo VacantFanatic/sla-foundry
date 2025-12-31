@@ -1,6 +1,7 @@
 /**
  * Chat Card Styling
  * Optimized with mixins and variables
+ * Ensures all chat cards use Josefin Sans font and consistent formatting
  */
 
 @import '../utils/mixins';
@@ -10,11 +11,52 @@
     @include font-body;
     font-size: 14px;
     color: #eee;
+    font-family: 'Josefin Sans', sans-serif;
+    background: #222;
+    border: 1px solid var(--sla-border);
+    padding: 5px;
+    border-radius: var(--sla-radius);
 
     h3 {
         @include font-header;
         margin: 0 0 $padding-sm 0;
         border-bottom: $border-width solid #555;
+        color: var(--sla-accent);
+        font-family: 'Josefin Sans', sans-serif;
+    }
+
+    // Ensure all text has proper contrast and font
+    p, span, div, label, strong, em {
+        color: inherit;
+        font-family: 'Josefin Sans', sans-serif;
+    }
+
+    // Success die display
+    .roll-toggle {
+        font-family: 'Josefin Sans', sans-serif;
+        cursor: pointer;
+        
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+
+    // Skill dice display
+    .skill-dice-display {
+        font-family: 'Josefin Sans', sans-serif;
+    }
+
+    // MOS/Effect text
+    .mos-effect {
+        font-family: 'Josefin Sans', sans-serif;
+    }
+
+    // Notes section
+    .chat-notes {
+        font-family: 'Josefin Sans', sans-serif;
+        font-size: 0.8em;
+        color: #ccc;
+        font-style: italic;
     }
 
     // New Class for Rerolled Dice
@@ -24,19 +66,20 @@
     }
 
     // Difficulty Adjustment Buttons
-    .sla-diff-btn {
+    .sla-diff-btn,
+    .diff-btn {
         padding: 2px 6px;
         border: $border-width solid #444;
         border-radius: $border-radius-sm;
         cursor: pointer;
-        font-family: var(--sla-font-mono);
+        font-family: 'Josefin Sans', sans-serif;
         font-size: 0.9em;
         transition: all $transition-base;
         text-transform: uppercase;
         font-weight: bold;
         background: #111;
         border-color: #444;
-        color: #aaa;
+        color: #ccc;
 
         &:hover {
             background: #333;
@@ -51,14 +94,89 @@
         }
     }
 
+    // Apply Damage Buttons
+    .apply-damage-btn {
+        background: #333;
+        border: $border-width solid #555;
+        color: #fff;
+        padding: 4px 8px;
+        border-radius: $border-radius-sm;
+        cursor: pointer;
+        font-family: 'Josefin Sans', sans-serif;
+        font-size: 0.9em;
+        transition: all $transition-base;
+        font-weight: bold;
+        
+        &:hover {
+            background: #444;
+            border-color: #777;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+        
+        &:focus {
+            outline: none;
+            box-shadow: 0 0 5px var(--sla-accent);
+        }
+    }
+
+    // Damage Roll Button
+    .damage-roll {
+        background: #ff4444;
+        color: #000;
+        border: $border-width solid #990000;
+        font-weight: bold;
+        padding: 4px 8px;
+        border-radius: $border-radius-sm;
+        cursor: pointer;
+        font-family: 'Josefin Sans', sans-serif;
+        font-size: 0.9em;
+        transition: all $transition-base;
+        
+        &:hover {
+            background: #ff6666;
+            box-shadow: 0 0 5px rgba(255, 68, 68, 0.4);
+        }
+        
+        &:focus {
+            outline: none;
+            box-shadow: 0 0 5px var(--sla-accent);
+        }
+    }
+
+    // Luck Button
+    .chat-btn-luck {
+        background: #39ff14;
+        color: #000;
+        border: $border-width solid #005500;
+        font-weight: bold;
+        padding: 4px 8px;
+        border-radius: $border-radius-sm;
+        cursor: pointer;
+        font-family: 'Josefin Sans', sans-serif;
+        font-size: 0.9em;
+        transition: all $transition-base;
+        
+        &:hover {
+            background: #5aff33;
+            box-shadow: 0 0 5px rgba(57, 255, 20, 0.4);
+        }
+        
+        &:focus {
+            outline: none;
+            box-shadow: 0 0 5px var(--sla-accent);
+        }
+    }
+
     // Tactical Choice Buttons
     .mos-choice-container {
+        font-family: 'Josefin Sans', sans-serif;
+        
         button {
             padding: 4px 8px;
             border: $border-width solid;
             border-radius: $border-radius-sm;
             cursor: pointer;
-            font-family: var(--sla-font-mono);
+            font-family: 'Josefin Sans', sans-serif;
             font-size: 0.9em;
             transition: all $transition-base;
             text-transform: uppercase;
@@ -102,6 +220,8 @@
     border: $border-width solid #d00;
     border-left: 4px solid #d00;
     box-shadow: 0 0 5px rgba(221, 0, 0, 0.2);
+    color: #eee;
+    font-family: 'Josefin Sans', sans-serif;
 
     .damage-header {
         color: #ff3333;
@@ -110,15 +230,27 @@
         border-bottom: $border-width solid #500;
         margin-bottom: 6px;
         padding-bottom: 2px;
+        font-family: 'Josefin Sans', sans-serif;
     }
 
     .damage-row {
         @include flex-between;
         margin-bottom: 2px;
         font-size: 0.95em;
+        color: #eee;
+        font-family: 'Josefin Sans', sans-serif;
+
+        span {
+            color: #ddd;
+            font-family: 'Josefin Sans', sans-serif;
+        }
+        
+        strong {
+            font-family: 'Josefin Sans', sans-serif;
+        }
 
         &.reduction {
-            color: #daa;
+            color: #ffcccc;
             font-style: italic;
             font-size: 0.9em;
         }
@@ -128,6 +260,7 @@
             padding-top: 4px;
             border-top: 1px dashed #500;
             font-size: 1.1em;
+            color: #eee;
         }
 
         .final-value {
@@ -143,22 +276,25 @@
         padding-top: 4px;
         border-top: $border-width solid #333;
         font-size: 0.9em;
-        color: #bbb;
+        color: #ddd;
+        font-family: 'Josefin Sans', sans-serif;
 
         strong {
             color: #fff;
+            font-family: 'Josefin Sans', sans-serif;
         }
     }
 
     .damage-armor {
         font-size: 0.85em;
-        color: #888;
+        color: #bbb;
         margin-top: 4px;
         @include flex-center;
         gap: $padding-sm;
+        font-family: 'Josefin Sans', sans-serif;
 
         i {
-            color: #666;
+            color: #999;
         }
     }
 }
@@ -171,6 +307,8 @@
     border: $border-width solid var(--sla-accent);
     border-left: 4px solid var(--sla-accent);
     box-shadow: 0 0 5px rgba(208, 94, 26, 0.2);
+    color: #eee;
+    font-family: 'Josefin Sans', sans-serif;
 
     .drug-header {
         color: var(--sla-accent);
@@ -179,21 +317,53 @@
         border-bottom: $border-width solid #555;
         margin-bottom: 6px;
         padding-bottom: 2px;
+        font-family: 'Josefin Sans', sans-serif;
     }
 
     .drug-content {
         font-size: 0.95em;
         margin-bottom: 8px;
+        color: #eee;
+        font-family: 'Josefin Sans', sans-serif;
     }
 
     .drug-details {
         font-size: 0.9em;
-        color: #aaa;
+        color: #ddd;
         padding-top: 6px;
         border-top: 1px dashed #444;
+        font-family: 'Josefin Sans', sans-serif;
 
         strong {
-            color: #ccc;
+            color: #fff;
+            font-family: 'Josefin Sans', sans-serif;
         }
+    }
+}
+
+/* Difficulty Select Container */
+.sla-difficulty-select {
+    font-family: 'Josefin Sans', sans-serif;
+    
+    div {
+        font-family: 'Josefin Sans', sans-serif;
+    }
+}
+
+/* Weapon Roll Chat Card - Additional Styling */
+.sla-chat-card {
+    // Result box styling
+    .result-box {
+        font-family: 'Josefin Sans', sans-serif;
+    }
+    
+    // Skill dice section
+    .skill-dice-section {
+        font-family: 'Josefin Sans', sans-serif;
+    }
+    
+    // Damage formula section
+    .damage-formula-section {
+        font-family: 'Josefin Sans', sans-serif;
     }
 }

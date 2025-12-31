@@ -1,6 +1,6 @@
-<p>Select magazine to load into <strong>{{weaponName}}</strong>:</p>
+<p style="color:#eee;">Select magazine to load into <strong style="color:#fff;">{{weaponName}}</strong>:</p>
 <div class="form-group">
-    <select id="magazine-select" style="width:100%; box-sizing:border-box;">
+    <select id="magazine-select" style="width:100%; box-sizing:border-box; background:#333; color:#fff; border:1px solid #555;">
         {{#each candidates}}
         <option value="{{this.id}}">{{this.name}} (Qty: {{this.system.quantity}})</option>
         {{/each}}

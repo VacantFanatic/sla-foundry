@@ -1,22 +1,22 @@
-<form>
+<form style="color:#eee;">
     <div class="form-group">
-        <label>Ammunition</label>
+        <label style="color:#eee;">Ammunition</label>
         <div class="form-fields">
-            <input type="text" value="{{ammoName}}" disabled/>
+            <input type="text" value="{{ammoName}}" disabled style="background:#333; color:#fff; border:1px solid #555;"/>
         </div>
     </div>
     
     <div class="form-group">
-        <label>Attack Result (Preview)</label>
+        <label style="color:#eee;">Attack Result (Preview)</label>
         <div class="form-fields">
-            <span style="line-height: 24px;">{{stats.damage}} DMG / {{stats.ad}} AD</span>
+            <span style="line-height: 24px; color:#fff;">{{stats.damage}} DMG / {{stats.ad}} AD</span>
         </div>
     </div>
 
     <div class="form-group">
-        <label>Situational Modifier</label>
+        <label style="color:#eee;">Situational Modifier</label>
         <div class="form-fields">
-            <input type="text" name="bonus" value="0" placeholder="+/- Mod"/>
+            <input type="text" name="bonus" value="0" placeholder="+/- Mod" style="background:#333; color:#fff; border:1px solid #555;"/>
         </div>
     </div>
 </form>

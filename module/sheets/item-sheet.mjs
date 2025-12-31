@@ -12,19 +12,26 @@ const { ItemSheetV2 } = foundry.applications.sheets;
 export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
     /** @override */
-    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-        classes: ["sla-industries", "sheet", "item"],
-        template: "systems/sla-industries/templates/item/item-sheet.hbs",
-        tag: "form", // V13: Required for forms
-        position: {
-            width: 550,
-            height: 600 // INCREASED from 480 to 600
-        },
-        form: {
-            submitOnChange: false,
-            closeOnSubmit: false // Item sheets don't close on submit
-        }
-    });
+    static get defaultOptions() {
+        const parentOptions = super.defaultOptions || {};
+        // Merge classes arrays properly - combine parent classes with our own
+        const parentClasses = Array.isArray(parentOptions.classes) ? parentOptions.classes : [];
+        const mergedClasses = [...new Set([...parentClasses, "sla-industries", "sheet", "item"])];
+        
+        return foundry.utils.mergeObject(parentOptions, {
+            classes: mergedClasses,
+            template: "systems/sla-industries/templates/item/item-sheet.hbs",
+            tag: "form", // V13: Required for forms
+            position: {
+                width: 550,
+                height: 600 // INCREASED from 480 to 600
+            },
+            form: {
+                submitOnChange: false,
+                closeOnSubmit: false // Item sheets don't close on submit
+            }
+        });
+    }
 
     /** @override */
     static TABS = {
@@ -68,7 +75,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         
         // Ensure cssClass is set for the template
         if (!context.cssClass) {
-            context.cssClass = this.constructor.DEFAULT_OPTIONS.classes.join(' ');
+            context.cssClass = this.constructor.defaultOptions.classes.join(' ');
         }
         context.config = CONFIG.SLA;
 
@@ -112,6 +119,29 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     /** @override */
     _onRender(context, options) {
         super._onRender(context, options);
+        
+        // CRITICAL: Ensure classes are applied to the window element
+        // In Foundry VTT V2, classes from defaultOptions should be on the window-app element
+        if (this.app?.element?.[0]) {
+            const windowElement = this.app.element[0];
+            const requiredClasses = this.constructor.defaultOptions.classes || [];
+            requiredClasses.forEach(cls => {
+                if (!windowElement.classList.contains(cls)) {
+                    windowElement.classList.add(cls);
+                }
+            });
+        }
+        
+        // Also ensure classes are on the form element (this.element) as a fallback
+        if (this.element) {
+            const requiredClasses = this.constructor.defaultOptions.classes || [];
+            requiredClasses.forEach(cls => {
+                if (!this.element.classList.contains(cls)) {
+                    this.element.classList.add(cls);
+                }
+            });
+        }
+        
         if (!this.isEditable) return;
 
         // V13: this.element is a DOM element, not a jQuery object
@@ -208,6 +238,129 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
                 // Re-render to show/hide firing modes panel based on new value
                 await this.render();
             });
+        }
+
+        // --- 6. FIRING MODE CHECKBOXES (Save immediately on change) ---
+        if (this.item.type === "weapon") {
+            // Handle firing mode active checkboxes
+            element.querySelectorAll('input[name^="system.firingModes."][name$=".active"]').forEach(checkbox => {
+                checkbox.addEventListener('change', async (ev) => {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    
+                    // Extract the firing mode key from the name attribute
+                    // e.g., "system.firingModes.single.active" -> "single"
+                    const nameMatch = ev.target.name.match(/system\.firingModes\.([^.]+)\.active/);
+                    if (!nameMatch) return;
+                    
+                    const modeKey = nameMatch[1];
+                    const isActive = ev.target.checked;
+                    
+                    // Update the item immediately
+                    await this.item.update({
+                        [`system.firingModes.${modeKey}.active`]: isActive
+                    });
+                });
+            });
+
+            // Handle firing mode rounds and recoil inputs (optional: save on change or on blur)
+            element.querySelectorAll('input[name^="system.firingModes."][name$=".rounds"], input[name^="system.firingModes."][name$=".recoil"]').forEach(input => {
+                input.addEventListener('blur', async (ev) => {
+                    ev.preventDefault();
+                    
+                    // Extract the firing mode key and field from the name attribute
+                    // e.g., "system.firingModes.single.rounds" -> ["single", "rounds"]
+                    const nameMatch = ev.target.name.match(/system\.firingModes\.([^.]+)\.(rounds|recoil)/);
+                    if (!nameMatch) return;
+                    
+                    const modeKey = nameMatch[1];
+                    const field = nameMatch[2];
+                    const value = field === 'rounds' ? parseInt(ev.target.value) || 0 : parseInt(ev.target.value) || 0;
+                    
+                    // Update the item immediately
+                    await this.item.update({
+                        [`system.firingModes.${modeKey}.${field}`]: value
+                    });
+                });
+            });
+        }
+
+        // --- 7. ARMOR POWERED CHECKBOX (Save immediately on change) ---
+        if (this.item.type === "armor") {
+            const poweredCheckbox = element.querySelector('input[name="system.powered"]');
+            if (poweredCheckbox) {
+                poweredCheckbox.addEventListener('change', async (ev) => {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    
+                    const isPowered = ev.target.checked;
+                    
+                    // Update the item immediately and re-render to show/hide powered armor fields
+                    await this.item.update({
+                        "system.powered": isPowered
+                    });
+                });
+            }
+        }
+
+        // --- 8. RANK FIELD (Skills, Traits, Disciplines) - Save immediately on change ---
+        // Handle rank inputs from both academic-paper (skills/traits) and spectral-container (disciplines)
+        element.querySelectorAll('input[name="system.rank"]').forEach(rankInput => {
+            rankInput.addEventListener('blur', async (ev) => {
+                ev.preventDefault();
+                
+                const rankValue = ev.target.value;
+                // Data model expects string for rank, so convert to string
+                const rankStr = String(rankValue || "0");
+                
+                // Update the item immediately
+                await this.item.update({
+                    "system.rank": rankStr
+                });
+            });
+
+            // Also save rank on Enter key
+            rankInput.addEventListener('keydown', async (ev) => {
+                if (ev.key === 'Enter') {
+                    ev.preventDefault();
+                    ev.target.blur(); // Trigger blur which will save
+                }
+            });
+        });
+
+        // --- 9. STAT SELECT (Skills) - Save immediately on change ---
+        if (this.item.type === "skill") {
+            const statSelect = element.querySelector('select[name="system.stat"]');
+            if (statSelect) {
+                statSelect.addEventListener('change', async (ev) => {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    
+                    const statValue = ev.target.value;
+                    
+                    // Update the item immediately
+                    await this.item.update({
+                        "system.stat": statValue
+                    });
+                });
+            }
+        }
+
+        // --- 10. TRAIT TYPE FIELD - Save on blur ---
+        if (this.item.type === "trait") {
+            const traitTypeInput = element.querySelector('input[name="system.type"]');
+            if (traitTypeInput) {
+                traitTypeInput.addEventListener('blur', async (ev) => {
+                    ev.preventDefault();
+                    
+                    const typeValue = ev.target.value;
+                    
+                    // Update the item immediately
+                    await this.item.update({
+                        "system.type": typeValue
+                    });
+                });
+            }
         }
     }
 

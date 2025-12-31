@@ -23,11 +23,17 @@
 .sla-industries.sheet.actor .window-header,
 .sla-industries.sheet.item .window-header {
   font-family: inherit !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .sla-industries.sheet.actor .window-header .header-control,
 .sla-industries.sheet.item .window-header .header-control {
   font-family: inherit !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 /* ==========================================
@@ -912,12 +918,23 @@
   font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "Font Awesome 6 Brands" !important;
 }
 
-/* Ensure window controls are not affected */
+/* Ensure window controls are not affected and visible */
+.sla-industries.sheet .window-header,
+.sla-sheet .window-header {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 1000 !important;
+}
+
 .sla-industries.sheet .window-header button,
 .sla-industries.sheet .header-control,
 .sla-sheet .window-header button,
 .sla-sheet .header-control {
   font-family: inherit !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
   background: inherit !important;
   border: inherit !important;
   color: inherit !important;
@@ -925,6 +942,8 @@
   font-size: inherit !important;
   text-transform: none !important;
   letter-spacing: normal !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
 }
 
 /* ==========================================

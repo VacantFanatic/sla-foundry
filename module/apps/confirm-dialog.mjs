@@ -8,32 +8,42 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class ConfirmDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     
-    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-        classes: ["sla-industries", "confirm-dialog"],
-        template: "systems/sla-industries/templates/dialogs/confirm-dialog.hbs",
-        tag: "form", // V13: Required for dialogs and forms
-        position: {
-            width: 400,
-            height: "auto"
-        },
-        window: {
-            minimizable: false,
-            resizable: false
-        },
-        form: {
-            submitOnChange: false,
-            closeOnSubmit: false // We handle closing manually
-        }
-    });
+    /** @override */
+    static get defaultOptions() {
+        const parentOptions = super.defaultOptions || {};
+        // Merge classes arrays properly - combine parent classes with our own
+        const parentClasses = Array.isArray(parentOptions.classes) ? parentOptions.classes : [];
+        const mergedClasses = [...new Set([...parentClasses, "sla-industries", "confirm-dialog"])];
+        
+        return foundry.utils.mergeObject(parentOptions, {
+            classes: mergedClasses,
+            template: "systems/sla-industries/templates/dialogs/confirm-dialog.hbs",
+            tag: "form", // V13: Required for dialogs and forms
+            position: {
+                width: 400,
+                height: "auto"
+            },
+            window: {
+                minimizable: false,
+                resizable: false
+            },
+            form: {
+                submitOnChange: false,
+                closeOnSubmit: false // We handle closing manually
+            }
+        });
+    }
 
     // V13: Constructor takes ALL parameters in a single options object
     constructor(options = {}) {
         // Extract data from options if provided, otherwise use options directly
         const data = options.data || options;
-        const mergedOptions = foundry.utils.mergeObject(ConfirmDialog.DEFAULT_OPTIONS, {
+        const mergedOptions = foundry.utils.mergeObject(ConfirmDialog.defaultOptions, {
             ...options,
             // Remove data from options as it's not a valid ApplicationV2 option
-            data: undefined
+            data: undefined,
+            // CRITICAL: Force the correct template - ensure we always use confirm-dialog.hbs
+            template: "systems/sla-industries/templates/dialogs/confirm-dialog.hbs"
         });
         super(mergedOptions);
         // Store data before any async operations
@@ -73,27 +83,30 @@ export class ConfirmDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         // V13: Use DOM methods instead of jQuery
         const element = this.element;
         
-        // Check if template content exists - if not, render it manually
+        // Check if template content exists - ApplicationV2 might render into window-content or directly into element
         const windowContent = element.querySelector('.window-content');
-        let content = element.querySelector('.confirm-dialog-content');
+        const hasContent = windowContent ? 
+            (windowContent.innerHTML?.trim().length > 0 && element.querySelector('.confirm-dialog-content')) : 
+            (element.innerHTML?.trim().length > 0);
         
-        console.log("ConfirmDialog _onRender check:", {
-            hasWindowContent: !!windowContent,
-            hasContent: !!content,
-            windowContentHTML: windowContent?.innerHTML?.substring(0, 100),
-            elementHTML: element.innerHTML.substring(0, 200)
-        });
-        
-        if (!content && windowContent) {
+        if (!hasContent) {
             // Template wasn't rendered automatically - render it manually
             try {
-                const template = ConfirmDialog.DEFAULT_OPTIONS.template;
-                const html = await foundry.applications.handlebars.renderTemplate(template, context);
-                windowContent.innerHTML = html;
-                content = element.querySelector('.confirm-dialog-content');
-                console.log("ConfirmDialog manually rendered template:", { html: html.substring(0, 100), content: !!content });
+                // Use the context passed to _onRender (which should already have our templateData merged)
+                // If context is not available, prepare it fresh
+                const templateContext = context || await this._prepareContext(options);
+                const template = "systems/sla-industries/templates/dialogs/confirm-dialog.hbs";
+                const html = await foundry.applications.handlebars.renderTemplate(template, templateContext);
+                if (windowContent) {
+                    windowContent.innerHTML = html;
+                } else {
+                    // For ApplicationV2 with tag: 'form', render directly into the form element
+                    element.innerHTML = html;
+                }
             } catch (error) {
                 console.error("ConfirmDialog template rendering error:", error);
+                ui.notifications.error("Failed to render confirm dialog template.");
+                return;
             }
         }
         

@@ -606,6 +606,12 @@ form.sla-sheet,
     border-radius: var(--sla-radius);
     flex: 0 0 auto;
     margin-bottom: 5px;
+    color: #eee;
+    
+    // Ensure text inside panels has proper contrast
+    label, p, span, div {
+        color: inherit;
+    }
 }
 
 .sla-header-bar {
@@ -619,7 +625,7 @@ form.sla-sheet,
 
 .sla-header-bar-small {
     background-color: rgba(208, 94, 26, 0.2);
-    color: #ddd;
+    color: #eee;
     font-family: var(--sla-font-header);
     padding: 2px 5px;
     font-weight: 700;

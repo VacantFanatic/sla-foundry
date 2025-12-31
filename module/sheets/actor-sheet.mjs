@@ -16,22 +16,33 @@ const { ActorSheetV2 } = foundry.applications.sheets;
 export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     /** @override */
-    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-        classes: ["sla-industries", "sla-sheet", "sheet", "actor"],
-        template: "systems/sla-industries/templates/actor/actor-sheet.hbs",
-        tag: "form", // V13: Required for forms
-        position: {
-            width: 900,
-            height: 1400
-        },
-        window: {
+    static get defaultOptions() {
+        const parentOptions = super.defaultOptions || {};
+        // Merge classes arrays properly - combine parent classes with our own
+        const parentClasses = Array.isArray(parentOptions.classes) ? parentOptions.classes : [];
+        const mergedClasses = [...new Set([...parentClasses, "sla-industries", "sla-sheet", "sheet", "actor"])];
+        
+        // Ensure window options are properly merged (not replaced)
+        const parentWindow = parentOptions.window || {};
+        const mergedWindow = foundry.utils.mergeObject(parentWindow, {
             resizable: true
-        },
-        form: {
-            submitOnChange: false,
-            closeOnSubmit: false // Actor sheets don't close on submit
-        }
-    });
+        });
+        
+        return foundry.utils.mergeObject(parentOptions, {
+            classes: mergedClasses,
+            template: "systems/sla-industries/templates/actor/actor-sheet.hbs",
+            tag: "form", // V13: Required for forms
+            position: {
+                width: 800,
+                height: 950
+            },
+            window: mergedWindow,
+            form: {
+                submitOnChange: false,
+                closeOnSubmit: false // Actor sheets don't close on submit
+            }
+        });
+    }
 
     /** @override */
     static TABS = {
@@ -89,11 +100,30 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         
         // Ensure cssClass is set for the template
         if (!context.cssClass) {
-            context.cssClass = this.constructor.DEFAULT_OPTIONS.classes.join(' ');
+            context.cssClass = this.constructor.defaultOptions.classes.join(' ');
         }
 
         // Prepare tabs context for AppV2 - MUST be done early so it's available for all templates
+        // ALWAYS use the current active tab, never default to "main"
+        let activeTabId = null;
+        
+        // Priority 1: Use preserved tab state (set before render)
+        if (this._preservedTab) {
+            activeTabId = this._preservedTab.activeTab;
+        }
+        // Priority 2: Get current tab from DOM if available
+        else if (this.element) {
+            const activeTabLink = this.element.querySelector('nav[data-group="sheet"] a.item.active');
+            activeTabId = activeTabLink?.dataset.tab || null;
+        }
+        // Priority 3: Only use config default if this is truly the first render
+        // But we'll try to avoid this by preserving tab state in render()
         const tabsConfig = this.constructor.TABS?.sheet;
+        const defaultTabId = tabsConfig?.initial || 'main';
+        
+        // Use active tab if we found one, otherwise use default (only on first render)
+        const initialTabId = activeTabId || defaultTabId;
+        
         context.tabs = {};
         context.tabsArray = [];
         
@@ -104,7 +134,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                     id: tab.id,
                     group: tab.group,
                     label: tab.label,
-                    cssClass: tab.id === tabsConfig.initial ? 'active' : ''
+                    cssClass: tab.id === initialTabId ? 'active' : ''
                 };
                 context.tabs[tab.id] = tabData;
                 context.tabsArray.push(tabData);
@@ -114,10 +144,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // Always ensure we have at least the fallback tabs
         if (context.tabsArray.length === 0) {
             context.tabsArray = [
-                { id: 'main', group: 'sheet', label: 'Main', cssClass: 'active' },
-                { id: 'ebb', group: 'sheet', label: 'Combat', cssClass: '' },
-                { id: 'inventory', group: 'sheet', label: 'Inventory', cssClass: '' },
-                { id: 'biography', group: 'sheet', label: 'Bio & Traits', cssClass: '' }
+                { id: 'main', group: 'sheet', label: 'Main', cssClass: initialTabId === 'main' ? 'active' : '' },
+                { id: 'ebb', group: 'sheet', label: 'Combat', cssClass: initialTabId === 'ebb' ? 'active' : '' },
+                { id: 'inventory', group: 'sheet', label: 'Inventory', cssClass: initialTabId === 'inventory' ? 'active' : '' },
+                { id: 'biography', group: 'sheet', label: 'Bio & Traits', cssClass: initialTabId === 'biography' ? 'active' : '' }
             ];
             // Also populate the tabs object
             for (const tab of context.tabsArray) {
@@ -210,47 +240,202 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     /** @override */
     async render(force = false, options = {}) {
-        // Store current tab state before rendering (if we have a preserved tab, use that)
+        // ALWAYS preserve current tab state before rendering
+        // This ensures _prepareContext uses the current tab, not "main"
         let activeTab = null;
         let navGroup = 'sheet';
         
         if (this._preservedTab) {
-            // Use preserved tab state
+            // Use preserved tab state (set by event handlers)
             activeTab = this._preservedTab.activeTab;
             navGroup = this._preservedTab.navGroup;
-        } else {
+        } else if (this.element) {
             // Try to get current tab state from DOM
-            const activeTabLink = this.element?.querySelector('nav[data-group="sheet"] a.item.active');
+            const activeTabLink = this.element.querySelector('nav[data-group="sheet"] a.item.active');
             activeTab = activeTabLink?.dataset.tab || null;
             navGroup = activeTabLink?.closest('nav')?.dataset.group || 'sheet';
+        }
+        
+        // ALWAYS store tab state for _prepareContext to use
+        // This ensures the template renders with the correct tab active from the start
+        // Only set if we don't already have a preserved tab (to respect event handler settings)
+        if (activeTab && !this._preservedTab) {
+            this._preservedTab = { activeTab, navGroup };
         }
         
         // Render the sheet
         const result = await super.render(force, options);
         
-        // If we had an active tab and this wasn't an initial render, restore it
-        if (activeTab && this.rendered && !options._initialRender) {
-            // Use multiple strategies to restore tab
-            setTimeout(() => {
-                this._restoreTabState(activeTab, navGroup);
-            }, 0);
+        // Ensure window size and resizable state are set correctly
+        // In Foundry VTT V2, the window is accessed via this.window (not this.app.window)
+        if (this.window && this.element) {
+            // Set default width/height - always set on force render to ensure defaults are applied
+            const defaultWidth = this.constructor.defaultOptions.position?.width || 800;
+            const defaultHeight = this.constructor.defaultOptions.position?.height || 950;
             
+            const currentWidth = this.element.offsetWidth || this.window.position?.width || 0;
+            
+            // Set default size if this is a forced render (new window) or if width is the old default (600)
+            if (force || currentWidth === 600 || currentWidth < 100) {
+                this.setPosition({ width: defaultWidth, height: defaultHeight });
+            }
+            
+            // Enable CSS resize as a fallback - use 'both' to allow resizing from bottom-right corner
+            // This provides browser-native resize functionality
+            if (this.element) {
+                this.element.style.setProperty('resize', 'both', 'important');
+                this.element.style.setProperty('overflow', 'auto', 'important');
+            }
+            
+            // Ensure resizable is enabled - window.resize might be null initially
+            // In Foundry VTT V2, the resize system might need to be initialized
+            const windowOptions = this.constructor.defaultOptions.window || {};
+            if (windowOptions.resizable !== false) {
+                // Try multiple approaches to enable Foundry's resize system
+                if (this.window?.resize) {
+                    this.window.resize.enabled = true;
+                }
+                // Also try setting it after delays to allow window to fully initialize
+                setTimeout(() => {
+                    if (this.window?.resize) {
+                        this.window.resize.enabled = true;
+                    }
+                    // Ensure CSS resize is still enabled
+                    if (this.element) {
+                        this.element.style.setProperty('resize', 'both', 'important');
+                        this.element.style.setProperty('overflow', 'auto', 'important');
+                    }
+                }, 50);
+                setTimeout(() => {
+                    if (this.window?.resize) {
+                        this.window.resize.enabled = true;
+                    }
+                    if (this.element) {
+                        this.element.style.setProperty('resize', 'both', 'important');
+                        this.element.style.setProperty('overflow', 'auto', 'important');
+                    }
+                }, 200);
+            }
+        }
+        
+        // If we had an active tab and this wasn't an initial render, verify it's still correct
+        // Since _prepareContext now sets the correct tab in the template, we only need to verify
+        if (activeTab && this.rendered && !options._initialRender) {
+            // Just verify the tab is correct (should already be from template, but double-check)
             requestAnimationFrame(() => {
                 this._restoreTabState(activeTab, navGroup);
             });
         }
         
-        // Clear preserved tab after render
-        if (this._preservedTab) {
-            delete this._preservedTab;
-        }
+        // DON'T clear preserved tab - keep it persistent across all renders
+        // This ensures _prepareContext always uses the current tab, not "main"
+        // The tab will only be cleared on forced renders (new window) or when explicitly changed
+        // This prevents the tab from reverting to "main" on every update
         
         return result;
     }
 
     /** @override */
+    async _onClose(options) {
+        // CRITICAL: Before closing, ensure luck and HP values are saved if they were modified
+        if (this.element && this.isEditable) {
+            const luckInput = this.element.querySelector('input[name="system.stats.luck.value"]');
+            if (luckInput) {
+                const value = luckInput.value;
+                if (value !== '' && value !== null && value !== undefined) {
+                    const numValue = Number(value);
+                    if (!isNaN(numValue)) {
+                        // Save luck value before closing
+                        await this.actor.update({ "system.stats.luck.value": numValue }, { render: false });
+                    }
+                }
+            }
+            
+            // Also save HP value before closing
+            const hpInput = this.element.querySelector('input[name="system.hp.value"]');
+            if (hpInput) {
+                const value = hpInput.value;
+                // Only save if the value is actually different from current and is valid
+                const currentHP = this.actor.system.hp.value || 0;
+                if (value !== '' && value !== null && value !== undefined) {
+                    const numValue = Number(value);
+                    if (!isNaN(numValue) && numValue !== currentHP) {
+                        // Save HP value before closing (will be clamped by _preUpdate)
+                        // Use a small delay to ensure any pending updates are processed first
+                        await this.actor.update({ "system.hp.value": numValue }, { render: false });
+                    }
+                }
+            }
+        }
+        return super._onClose(options);
+    }
+
+    /** @override */
     _onRender(context, options) {
         super._onRender(context, options);
+        
+        // CRITICAL: Ensure classes are applied to the window element
+        // In Foundry VTT V2, the form element (this.element) IS the window
+        // Enable CSS resize as a fallback to allow resizing
+        if (this.element) {
+            // Enable CSS resize to allow browser-native resizing from bottom-right corner
+            // Use multiple attempts to ensure it sticks (Foundry might override it)
+            const enableResize = () => {
+                if (this.element) {
+                    this.element.style.setProperty('resize', 'both', 'important');
+                    this.element.style.setProperty('overflow', 'auto', 'important');
+                }
+            };
+            
+            // Apply immediately
+            enableResize();
+            
+            // Also apply after delays to ensure it persists
+            setTimeout(enableResize, 50);
+            setTimeout(enableResize, 200);
+            setTimeout(enableResize, 500);
+        }
+        
+        // Ensure window resizable state is set
+        const windowOptions = this.constructor.defaultOptions.window || {};
+        if (windowOptions.resizable !== false) {
+            // Try to enable resize - window.resize might not be initialized yet
+            if (this.window?.resize) {
+                this.window.resize.enabled = true;
+            } else {
+                // Set it after delays to allow window to initialize
+                setTimeout(() => {
+                    if (this.window?.resize) {
+                        this.window.resize.enabled = true;
+                    }
+                }, 100);
+                setTimeout(() => {
+                    if (this.window?.resize) {
+                        this.window.resize.enabled = true;
+                    }
+                }, 500);
+            }
+        }
+        
+        // Ensure classes are on the form element (this.element) - this IS the window in V2
+        if (this.element) {
+            const requiredClasses = this.constructor.defaultOptions.classes || [];
+            requiredClasses.forEach(cls => {
+                if (!this.element.classList.contains(cls)) {
+                    this.element.classList.add(cls);
+                }
+            });
+        }
+        
+        // Also ensure classes are on the form element (this.element) as a fallback
+        if (this.element) {
+            const requiredClasses = this.constructor.defaultOptions.classes || [];
+            requiredClasses.forEach(cls => {
+                if (!this.element.classList.contains(cls)) {
+                    this.element.classList.add(cls);
+                }
+            });
+        }
         
         if (!this.isEditable) return;
 
@@ -262,15 +447,147 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         
         // Attach compendium listeners after a short delay to ensure all parts are rendered
         setTimeout(() => this._attachCompendiumListeners(), 100);
+        
+        // CRITICAL: Add blur handler for luck input to save value when user leaves the field
+        const luckInput = element.querySelector('input[name="system.stats.luck.value"]');
+        if (luckInput && !luckInput._blurHandlerAttached) {
+            luckInput._blurHandlerAttached = true;
+            luckInput.addEventListener('blur', async (ev) => {
+                const value = ev.target.value;
+                if (value !== '' && value !== null && value !== undefined) {
+                    const numValue = Number(value);
+                    if (!isNaN(numValue)) {
+                        // Save luck value when input loses focus
+                        await this.actor.update({ "system.stats.luck.value": numValue }, { render: false });
+                    }
+                }
+            });
+        }
+        
+        // CRITICAL: Add blur handler for HP input to save value when user leaves the field
+        const hpInput = element.querySelector('input[name="system.hp.value"]');
+        if (hpInput && !hpInput._blurHandlerAttached) {
+            hpInput._blurHandlerAttached = true;
+            hpInput.addEventListener('blur', async (ev) => {
+                const value = ev.target.value;
+                if (value !== '' && value !== null && value !== undefined) {
+                    const numValue = Number(value);
+                    if (!isNaN(numValue)) {
+                        // Save HP value when input loses focus (will be clamped by _preUpdate)
+                        await this.actor.update({ "system.hp.value": numValue }, { render: false, _preserveTab: true });
+                        // Sync input with actual actor value (in case it was clamped)
+                        ev.target.value = this.actor.system.hp.value;
+                    }
+                }
+            });
+        }
+        
+        // CRITICAL: Use event delegation at the element level with capture phase for delete buttons
+        // This ensures delete handlers fire BEFORE any other handlers
+        if (!element._deleteHandlerAttached) {
+            element._deleteHandlerAttached = true;
+            element.addEventListener('click', async (ev) => {
+                const target = ev.target;
+                // Check if this is a delete button click
+                const deleteButton = target.closest('.chip-delete') || 
+                                    target.closest('.item-delete') ||
+                                    (target.classList.contains('chip-delete') && target) ||
+                                    (target.classList.contains('item-delete') && target) ||
+                                    (target.closest('a.chip-delete')) ||
+                                    (target.closest('a.item-delete')) ||
+                                    (target.closest('i.fa-trash')?.closest('.item-delete')) ||
+                                    (target.closest('i.fa-times')?.closest('.chip-delete'));
+                
+                if (deleteButton) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    ev.stopImmediatePropagation();
+                    
+                    console.log("DELEGATED DELETE HANDLER FIRED", {
+                        target: target,
+                        deleteButton: deleteButton,
+                        type: deleteButton.dataset?.type
+                    });
+                    
+                    // Handle species delete
+                    if (deleteButton.classList.contains('chip-delete') && deleteButton.dataset.type === 'species') {
+                        const speciesItem = this.actor.items.find(i => i.type === "species");
+                        if (!speciesItem) return;
+                        
+                        await ConfirmDialog.confirm({
+                            title: "Remove Species?",
+                            content: `<p>Remove <strong>${speciesItem.name}</strong>?</p>`,
+                            yes: async () => {
+                                const skillsToDelete = this.actor.items
+                                    .filter(i => i.getFlag("sla-industries", "fromSpecies"))
+                                    .map(i => i.id);
+                                await this.actor.deleteEmbeddedDocuments("Item", [speciesItem.id, ...skillsToDelete], { render: false });
+                                const resets = { "system.bio.species": "" };
+                                ["str", "dex", "know", "conc", "cha", "cool"].forEach(k => resets[`system.stats.${k}.value`] = 1);
+                                await this.actor.update(resets);
+                            }
+                        });
+                        return;
+                    }
+                    
+                    // Handle package delete
+                    if (deleteButton.classList.contains('chip-delete') && deleteButton.dataset.type === 'package') {
+                        const packageItem = this.actor.items.find(i => i.type === "package");
+                        if (!packageItem) return;
+                        
+                        await ConfirmDialog.confirm({
+                            title: "Remove Package?",
+                            content: `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
+                            yes: async () => {
+                                const skillsToDelete = this.actor.items
+                                    .filter(i => i.getFlag("sla-industries", "fromPackage"))
+                                    .map(i => i.id);
+                                await this.actor.deleteEmbeddedDocuments("Item", [packageItem.id, ...skillsToDelete], { render: false });
+                                await this.actor.update({ "system.bio.package": "" });
+                            }
+                        });
+                        return;
+                    }
+                    
+                    // Handle item delete
+                    if (deleteButton.classList.contains('item-delete') || deleteButton.closest('.item-delete')) {
+                        const li = deleteButton.closest(".item");
+                        if (!li) return;
+                        const item = this.actor.items.get(li.dataset.itemId);
+                        if (item) {
+                            await ConfirmDialog.confirm({ 
+                                title: "Delete Item?", 
+                                content: "<p>Are you sure?</p>", 
+                                yes: async () => { 
+                                    await item.delete(); 
+                                    this.render();
+                                } 
+                            });
+                        }
+                        return;
+                    }
+                }
+            }, true); // Capture phase - fires FIRST
+        }
 
         // --- HEADER DELETE (SPECIES) ---
         // V13: Use DOM methods instead of jQuery
         // IMPORTANT: Register this BEFORE rollable handlers to prevent event bubbling
         element.querySelectorAll('.chip-delete[data-type="species"]').forEach(button => {
-            button.addEventListener('click', async ev => {
+            // Remove any existing listeners first
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            newButton.addEventListener('click', async ev => {
                 ev.preventDefault(); 
                 ev.stopPropagation();
                 ev.stopImmediatePropagation(); // Prevent other handlers from firing
+                
+                // Additional safety check
+                if (!ev.target.closest('.chip-delete[data-type="species"]')) {
+                    return;
+                }
+                
                 const speciesItem = this.actor.items.find(i => i.type === "species");
                 if (!speciesItem) return;
 
@@ -347,10 +664,20 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // V13: Use DOM methods instead of jQuery
         // IMPORTANT: Register this BEFORE rollable handlers to prevent event bubbling
         element.querySelectorAll('.chip-delete[data-type="package"]').forEach(button => {
-            button.addEventListener('click', async ev => {
+            // Remove any existing listeners first
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            newButton.addEventListener('click', async ev => {
                 ev.preventDefault(); 
                 ev.stopPropagation();
                 ev.stopImmediatePropagation(); // Prevent other handlers from firing
+                
+                // Additional safety check
+                if (!ev.target.closest('.chip-delete[data-type="package"]')) {
+                    return;
+                }
+                
                 const packageItem = this.actor.items.find(i => i.type === "package");
                 if (!packageItem) return;
 
@@ -387,17 +714,49 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             });
         });
 
-        element.querySelectorAll('.item-edit').forEach(button => {
-            button.addEventListener('click', ev => {
-                const li = ev.currentTarget.closest(".item");
-                if (!li) return;
-                const item = this.actor.items.get(li.dataset.itemId);
-                if (item) item.sheet.render();
-            });
-        });
+        // --- ITEM EDIT & DELETE (Register BEFORE rollable to prevent conflicts) ---
+        // Use event delegation to handle clicks on item-edit buttons (including icons inside them)
+        element.addEventListener('click', (ev) => {
+            // Check if the click is on an item-edit button or its icon
+            const editButton = ev.target.closest('.item-edit');
+            if (!editButton) return;
+            
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.stopImmediatePropagation();
+            
+            // Find the item row
+            const itemRow = editButton.closest(".item");
+            if (!itemRow) return;
+            
+            const itemId = itemRow.dataset.itemId;
+            if (!itemId) return;
+            
+            const item = this.actor.items.get(itemId);
+            if (item) {
+                item.sheet.render(true);
+            }
+        }, true); // Use capture phase to ensure this fires first
 
         element.querySelectorAll('.item-delete').forEach(button => {
-            button.addEventListener('click', async ev => {
+            // Clone button to remove any existing listeners
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            newButton.addEventListener('click', async ev => {
+                // CRITICAL: Stop everything immediately
+                ev.preventDefault();
+                ev.stopPropagation();
+                ev.stopImmediatePropagation();
+                
+                // Verify we're actually clicking on a delete button
+                const clickedElement = ev.target;
+                if (!clickedElement.closest('.item-delete') && 
+                    !clickedElement.classList.contains('item-delete') &&
+                    !clickedElement.closest('a.item-delete')) {
+                    return;
+                }
+                
                 const li = ev.currentTarget.closest(".item");
                 if (!li) return;
                 const item = this.actor.items.get(li.dataset.itemId);
@@ -411,7 +770,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                         } 
                     });
                 }
-            });
+            }, true); // Use capture phase to fire FIRST
         });
 
         element.querySelectorAll('.item-toggle').forEach(button => {
@@ -420,15 +779,66 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 if (!li) return;
                 const item = this.actor.items.get(li.dataset.itemId);
                 if (item) {
-                    if (item.type === 'drug') item.toggleActive();
-                    else await item.update({ "system.equipped": !item.system.equipped });
+                    // Store current active tab before update
+                    const activeTabLink = this.element.querySelector('nav[data-group="sheet"] a.item.active');
+                    const activeTab = activeTabLink?.dataset.tab || 'main';
+                    const navGroup = activeTabLink?.closest('nav')?.dataset.group || 'sheet';
+                    this._preservedTab = { activeTab, navGroup };
+                    
+                    if (item.type === 'drug') {
+                        await item.toggleActive();
+                    } else {
+                        await item.update({ "system.equipped": !item.system.equipped });
+                        // If armor was toggled, force recalculation of PV and derived data
+                        if (item.type === 'armor') {
+                            // Force prepareDerivedData to recalculate PV
+                            this.actor.prepareDerivedData();
+                        }
+                    }
+                    
+                    // Restore tab state after update
+                    this._restoreTabState(activeTab, navGroup);
+                    requestAnimationFrame(() => this._restoreTabState(activeTab, navGroup));
+                    setTimeout(() => this._restoreTabState(activeTab, navGroup), 50);
                 }
             });
         });
 
         // --- NEW: Rollable Icon Listener ---
         element.querySelectorAll('.item-rollable').forEach(button => {
-            button.addEventListener('click', ev => this._onRoll(ev));
+            button.addEventListener('click', ev => {
+                // CRITICAL: Check the actual clicked element first
+                const clickedElement = ev.target;
+                const currentTarget = ev.currentTarget;
+                
+                // Check if the click originated from or is inside a delete/edit button
+                // Check both the target and currentTarget, and also check the event path
+                const isDeleteButton = clickedElement.closest('.chip-delete') || 
+                                       clickedElement.closest('.item-delete') || 
+                                       clickedElement.closest('.item-edit') ||
+                                       currentTarget.closest('.chip-delete') ||
+                                       currentTarget.closest('.item-delete') ||
+                                       currentTarget.closest('.item-edit') ||
+                                       clickedElement.classList.contains('chip-delete') ||
+                                       clickedElement.classList.contains('item-delete') ||
+                                       clickedElement.classList.contains('item-edit') ||
+                                       clickedElement.closest('a.chip-delete') ||
+                                       clickedElement.closest('a.item-delete') ||
+                                       clickedElement.closest('a.item-edit') ||
+                                       (ev.composedPath && ev.composedPath().some(el => 
+                                           el.classList?.contains('chip-delete') || 
+                                           el.classList?.contains('item-delete') || 
+                                           el.classList?.contains('item-edit')
+                                       ));
+                
+                if (isDeleteButton) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    ev.stopImmediatePropagation();
+                    return;
+                }
+                this._onRoll(ev);
+            }, false); // Use bubble phase so delete handlers (capture) fire first
         });
 
         element.querySelectorAll('.item-reload').forEach(button => {
@@ -439,72 +849,271 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             button.addEventListener('click', ev => this._onItemCreate(ev));
         });
 
-        element.querySelectorAll('.rollable').forEach(button => {
-            button.addEventListener('click', ev => this._onRoll(ev));
-        });
+        // Use event delegation for rollable clicks to handle dynamically added elements
+        if (!element._rollableHandlerAttached) {
+            element._rollableHandlerAttached = true;
+            element.addEventListener('click', ev => {
+                // Check if the click target is a rollable element or inside one
+                const rollableElement = ev.target.closest('.rollable');
+                if (!rollableElement) return; // Not a rollable element, ignore
+                
+                // Skip if this element has .item-rollable (handled by specific listener above)
+                if (rollableElement.classList.contains('item-rollable')) {
+                    return; // Let the specific handler take care of it
+                }
+                
+                // Set currentTarget to the rollable element for consistency
+                const currentTarget = rollableElement;
+                const clickedElement = ev.target;
+                
+                // CRITICAL: Check event path FIRST - if ANY element in the path is a delete/edit button, abort immediately
+                // BUT allow rollable elements even if they're in item-controls
+                const path = ev.composedPath ? ev.composedPath() : [];
+                const isRollableClick = currentTarget.classList.contains('rollable');
+                
+                const hasDeleteInPath = path.some(el => {
+                    if (!el || !el.classList) return false;
+                    // Don't block if this is a rollable element inside item-controls
+                    if (el.classList.contains('item-controls') && isRollableClick) {
+                        return false;
+                    }
+                    return el.classList.contains('chip-delete') || 
+                           el.classList.contains('item-delete') || 
+                           el.classList.contains('item-edit') ||
+                           (el.tagName === 'A' && (el.classList.contains('item-delete') || el.classList.contains('item-edit'))) ||
+                           (el.tagName === 'I' && (el.classList.contains('fa-trash') || el.classList.contains('fa-times')));
+                });
+                
+                if (hasDeleteInPath) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    ev.stopImmediatePropagation();
+                    return;
+                }
+                
+                // CRITICAL: Check if click originated from item-controls cell (where delete buttons are)
+                // This must be checked BEFORE any other logic
+                // BUT allow rollable elements (like attack icons) to work even if they're in item-controls
+                const itemControlsCell = clickedElement.closest('.item-controls');
+                if (itemControlsCell) {
+                    // Check if this is a rollable element (attack icon, etc.) - if so, allow it
+                    const isRollableInControls = clickedElement.closest('.rollable') || currentTarget.classList.contains('rollable');
+                    if (!isRollableInControls) {
+                        // It's in item-controls but not a rollable, so abort (e.g., delete/edit buttons)
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        ev.stopImmediatePropagation();
+                        return;
+                    }
+                }
+                
+                // Check if the click originated from or is inside a delete/edit button
+                const isDeleteButton = clickedElement.closest('.chip-delete') || 
+                                       clickedElement.closest('.item-delete') || 
+                                       clickedElement.closest('.item-edit') ||
+                                       clickedElement.classList.contains('chip-delete') ||
+                                       clickedElement.classList.contains('item-delete') ||
+                                       clickedElement.classList.contains('item-edit') ||
+                                       clickedElement.closest('a.chip-delete') ||
+                                       clickedElement.closest('a.item-delete') ||
+                                       clickedElement.closest('a.item-edit') ||
+                                       clickedElement.closest('i.fa-trash') ||
+                                       clickedElement.closest('i.fa-times');
+                
+                if (isDeleteButton) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    ev.stopImmediatePropagation();
+                    return;
+                }
+                
+                // CRITICAL: Only process if the click is actually on the rollable element itself or its direct children
+                // If the click is on a different cell (like the delete button cell), ignore it
+                // The currentTarget is the rollable element (e.g., the <td class="item-name rollable">)
+                // The clickedElement might be a child of currentTarget (like text node) or a sibling (like delete button)
+                // We only want to proceed if the click is directly on the rollable element or its intended children
+                
+                // If clickedElement is not currentTarget, check if it's a descendant
+                // If not, it's a sibling or other element - don't process
+                if (currentTarget !== clickedElement && !currentTarget.contains(clickedElement)) {
+                    // Click is on a sibling or other element, not on the rollable element
+                    // This prevents clicks on adjacent cells (like item-controls) from triggering rolls
+                    return;
+                }
+                
+                // Double-check: if the clicked element or any ancestor is in item-controls, abort
+                // BUT allow rollable elements (like attack icons) to work even if they're in item-controls
+                const inItemControls = clickedElement.closest('.item-controls') || currentTarget.closest('.item-controls');
+                if (inItemControls) {
+                    // Check if this is a rollable element (attack icon, etc.) - if so, allow it
+                    const isRollableInControls = clickedElement.closest('.rollable') || currentTarget.classList.contains('rollable');
+                    if (!isRollableInControls) {
+                        // It's in item-controls but not a rollable, so abort (e.g., delete/edit buttons)
+                        return;
+                    }
+                }
+                
+                // Create a synthetic event object with the rollable element as currentTarget
+                // Use a Proxy to preserve all event methods while overriding currentTarget and target
+                const syntheticEv = new Proxy(ev, {
+                    get(target, prop) {
+                        if (prop === 'currentTarget') return currentTarget;
+                        if (prop === 'target') return clickedElement;
+                        // For all other properties/methods, use the original event
+                        const value = target[prop];
+                        // If it's a function, bind it to the original event
+                        return typeof value === 'function' ? value.bind(target) : value;
+                    }
+                });
+                
+                // Stop propagation to prevent other handlers from firing
+                ev.stopPropagation();
+                ev.stopImmediatePropagation();
+                
+                this._onRoll(syntheticEv);
+            }, false); // Use bubble phase so delete handlers (capture) fire first
+        }
 
         // --- CONDITIONS TOGGLE ---
         // V13: Use DOM methods instead of jQuery
-        element.querySelectorAll('.condition-toggle').forEach(button => {
-            button.addEventListener('click', async ev => {
-                ev.preventDefault();
-                const conditionId = ev.currentTarget.dataset.condition;
-                // This toggles the Active Effect on the Token
-                await this.actor.toggleStatusEffect(conditionId);
-                // The sheet will re-render, and _prepareContext() will now see the effect and light up the icon.
-            });
-        });
+        // Use event delegation to handle clicks on condition toggles (including icons inside them)
+        element.addEventListener('click', async (ev) => {
+            // Check if the click is on a condition toggle or its icon
+            const toggleButton = ev.target.closest('.condition-toggle');
+            if (!toggleButton) return;
+            
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.stopImmediatePropagation();
+            
+            const conditionId = toggleButton.dataset.condition;
+            if (!conditionId) return;
+            
+            // Store current active tab before update
+            const activeTabLink = this.element.querySelector('nav[data-group="sheet"] a.item.active');
+            const activeTab = activeTabLink?.dataset.tab || 'main';
+            const navGroup = this.element.querySelector('nav[data-group="sheet"]')?.dataset.group || 'sheet';
+            this._preservedTab = { activeTab, navGroup };
+            
+            // Check current state before toggling - find ALL effects with this status
+            const effectsWithStatus = this.actor.effects.filter(e => e.statuses.has(conditionId));
+            const currentHasEffect = effectsWithStatus.length > 0;
+            const newState = !currentHasEffect;
+            
+            // If there are duplicate effects, clean them up first
+            if (effectsWithStatus.length > 1) {
+                console.warn(`Found ${effectsWithStatus.length} duplicate effects for ${conditionId}, cleaning up...`);
+                // Keep the first one, delete the rest
+                for (let i = 1; i < effectsWithStatus.length; i++) {
+                    try {
+                        const effectId = effectsWithStatus[i].id;
+                        // Check if the effect still exists in the collection before trying to delete it
+                        const effectToDelete = this.actor.effects.get(effectId);
+                        if (effectToDelete && !effectToDelete.isDeleted) {
+                            await effectToDelete.delete();
+                        }
+                    } catch (err) {
+                        // Silently ignore errors if effect was already deleted or doesn't exist
+                        const errorMsg = err.message || String(err);
+                        if (!errorMsg.includes('does not exist') && !errorMsg.includes('isDeleted')) {
+                            console.warn(`Failed to delete duplicate effect:`, err);
+                        }
+                    }
+                }
+            }
+            
+            // Toggle the Active Effect on the Token
+            // IMPORTANT: Update system.conditions with _manualToggle flag to prevent _onUpdate from creating duplicates
+            try {
+                // Only toggle if the state actually needs to change
+                if (currentHasEffect !== newState) {
+                    // Update system.conditions first with _preserveTab flag to prevent tab switching
+                    await this.actor.update(
+                        { [`system.conditions.${conditionId}`]: newState }, 
+                        { _manualToggle: true, _preserveTab: true, render: false }
+                    );
+                    
+                    // Then toggle the ActiveEffect - this should sync with the condition we just set
+                    // Pass _preserveTab flag to prevent rendering
+                    await this.actor.toggleStatusEffect(conditionId, { 
+                        active: newState,
+                        _preserveTab: true
+                    });
+                }
+                
+                // Manually update the active class immediately for better UX
+                const hasEffect = this.actor.effects.some(e => e.statuses.has(conditionId));
+                if (hasEffect) {
+                    toggleButton.classList.add('active');
+                } else {
+                    toggleButton.classList.remove('active');
+                }
+                
+                // Restore tab state immediately and with delays to ensure it sticks
+                this._restoreTabState(activeTab, navGroup);
+                requestAnimationFrame(() => this._restoreTabState(activeTab, navGroup));
+                setTimeout(() => this._restoreTabState(activeTab, navGroup), 50);
+                setTimeout(() => this._restoreTabState(activeTab, navGroup), 200);
+            } catch (error) {
+                console.warn(`Failed to toggle condition ${conditionId}:`, error);
+                // Revert the UI state if toggle failed
+                if (currentHasEffect) {
+                    toggleButton.classList.add('active');
+                } else {
+                    toggleButton.classList.remove('active');
+                }
+                // Restore tab state even on error
+                this._restoreTabState(activeTab, navGroup);
+            }
+        }, true); // Use capture phase
 
         // --- WOUND CHECKBOXES ---
         // V13: Use DOM methods instead of jQuery
-        // Store reference to prevent re-attachment
-        if (!element._woundCheckboxesAttached) {
-            element._woundCheckboxesAttached = true;
-            element.querySelectorAll('.wound-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', async ev => {
-                    ev.preventDefault();
-                    ev.stopPropagation();
-                    ev.stopImmediatePropagation(); // Prevent other handlers from firing
-                    
-                    const target = ev.currentTarget;
-                    const isChecked = target.checked;
-                    const field = target.name;
+        // Use event delegation to handle clicks on wound checkboxes
+        element.addEventListener('change', async (ev) => {
+            // Check if the change is on a wound checkbox
+            const checkbox = ev.target;
+            if (!checkbox || !checkbox.classList.contains('wound-checkbox')) return;
+            
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.stopImmediatePropagation();
+            
+            const isChecked = checkbox.checked;
+            const field = checkbox.name;
+            
+            if (!field) return;
 
-                    // Store current active tab IMMEDIATELY before any updates
-                    const activeTabLink = this.element.querySelector('nav[data-group="sheet"] a.item.active');
-                    const activeTab = activeTabLink?.dataset.tab || 'main';
-                    const navGroup = this.element.querySelector('nav[data-group="sheet"]')?.dataset.group || 'sheet';
+            // Store current active tab IMMEDIATELY before any updates
+            const activeTabLink = this.element.querySelector('nav[data-group="sheet"] a.item.active');
+            const activeTab = activeTabLink?.dataset.tab || 'main';
+            const navGroup = this.element.querySelector('nav[data-group="sheet"]')?.dataset.group || 'sheet';
 
-                    // Store tab state in a way that persists across renders
-                    this._preservedTab = { activeTab, navGroup };
-                    
-                    // Update the actor - the render override will preserve the tab
-                    await this.actor.update({ [field]: isChecked }, { 
-                        render: true, // Allow render, but our override will preserve tab
-                        _preserveTab: true // Custom flag to prevent re-renders in condition updates
-                    });
-                    
-                    // Immediately restore tab state after update
-                    this._restoreTabState(activeTab, navGroup);
-                    
-                    // Use multiple strategies to preserve tab state
-                    // Strategy 1: requestAnimationFrame for next frame
-                    requestAnimationFrame(() => {
-                        this._restoreTabState(activeTab, navGroup);
-                    });
-                    
-                    // Strategy 2: setTimeout as backup
-                    setTimeout(() => {
-                        this._restoreTabState(activeTab, navGroup);
-                    }, 50);
-                    
-                    // Strategy 3: Longer timeout for any delayed renders
-                    setTimeout(() => {
-                        this._restoreTabState(activeTab, navGroup);
-                    }, 200);
-                }, true); // Use capture phase to ensure we handle it first
+            // Store tab state in a way that persists across renders
+            this._preservedTab = { activeTab, navGroup };
+            
+            // Update the actor - Foundry VTT handles dot notation automatically
+            await this.actor.update({ [field]: isChecked }, { 
+                render: true,
+                _preserveTab: true
             });
-        }
+            
+            // Immediately restore tab state after update
+            this._restoreTabState(activeTab, navGroup);
+            
+            // Use multiple strategies to preserve tab state
+            requestAnimationFrame(() => {
+                this._restoreTabState(activeTab, navGroup);
+            });
+            
+            setTimeout(() => {
+                this._restoreTabState(activeTab, navGroup);
+            }, 50);
+            
+            setTimeout(() => {
+                this._restoreTabState(activeTab, navGroup);
+            }, 200);
+        }, true); // Use capture phase to ensure we handle it first
 
     }
 
@@ -522,6 +1131,44 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             ev.stopImmediatePropagation();
             return false;
         }
+        
+        // CRITICAL: Handle luck and HP value changes immediately to prevent reset
+        const input = ev.target;
+        
+        // Handle luck value changes
+        if (input && input.name === 'system.stats.luck.value') {
+            const value = input.value;
+            // Only update if the value is actually a number (not empty string)
+            if (value !== '' && value !== null && value !== undefined) {
+                const numValue = Number(value);
+                if (!isNaN(numValue)) {
+                    // Save immediately to prevent reset
+                    const updateData = { "system.stats.luck.value": numValue };
+                    this.actor.update(updateData, { render: false }).catch(err => {
+                        console.error("Error updating luck value:", err);
+                    });
+                }
+            }
+            return false; // Prevent default form handling
+        }
+        
+        // Handle HP value changes - save immediately to prevent reset
+        if (input && input.name === 'system.hp.value') {
+            const value = input.value;
+            // Only update if the value is actually a number (not empty string)
+            if (value !== '' && value !== null && value !== undefined) {
+                const numValue = Number(value);
+                if (!isNaN(numValue)) {
+                    // Save immediately to prevent reset (will be clamped by _preUpdate)
+                    const updateData = { "system.hp.value": numValue };
+                    this.actor.update(updateData, { render: false }).catch(err => {
+                        console.error("Error updating HP value:", err);
+                    });
+                }
+            }
+            return false; // Prevent default form handling
+        }
+        
         // For all other inputs, use the default behavior
         return super._onChangeInput(ev);
     }
@@ -541,6 +1188,43 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             woundFields.forEach(field => {
                 delete processedData[field];
             });
+            
+            // CRITICAL: Ensure luck value is properly handled - don't let empty strings reset to 0
+            if (processedData['system.stats.luck.value'] !== undefined) {
+                const luckValue = processedData['system.stats.luck.value'];
+                // If empty string, preserve current value instead of resetting
+                if (luckValue === '' || luckValue === null) {
+                    delete processedData['system.stats.luck.value'];
+                } else {
+                    // Ensure it's a valid number
+                    const numValue = Number(luckValue);
+                    if (isNaN(numValue)) {
+                        // Invalid number - preserve current value
+                        delete processedData['system.stats.luck.value'];
+                    } else {
+                        processedData['system.stats.luck.value'] = numValue;
+                    }
+                }
+            }
+            
+            // CRITICAL: Ensure HP value is properly handled - don't let empty strings reset to 0 or max
+            if (processedData['system.hp.value'] !== undefined) {
+                const hpValue = processedData['system.hp.value'];
+                // If empty string, preserve current value instead of resetting
+                if (hpValue === '' || hpValue === null) {
+                    delete processedData['system.hp.value'];
+                } else {
+                    // Ensure it's a valid number
+                    const numValue = Number(hpValue);
+                    if (isNaN(numValue)) {
+                        // Invalid number - preserve current value
+                        delete processedData['system.hp.value'];
+                    } else {
+                        // Valid number - let _preUpdate handle clamping to max
+                        processedData['system.hp.value'] = numValue;
+                    }
+                }
+            }
         }
         return processedData;
     }
@@ -636,7 +1320,18 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (!tabsConfig) return;
 
         const group = tabsConfig.tabs[0]?.group || 'sheet';
-        const initialTab = tabsConfig.initial || tabsConfig.tabs[0]?.id;
+        
+        // Use preserved tab if available, otherwise use config default
+        let initialTab = null;
+        if (this._preservedTab && this._preservedTab.navGroup === group) {
+            initialTab = this._preservedTab.activeTab;
+        } else {
+            initialTab = tabsConfig.initial || tabsConfig.tabs[0]?.id;
+            // Update preserved tab state when initializing
+            if (initialTab) {
+                this._preservedTab = { activeTab: initialTab, navGroup: group };
+            }
+        }
 
         // Find all tab navigation links
         const tabLinks = element.querySelectorAll(`nav[data-group="${group}"] a[data-tab]`);
@@ -664,6 +1359,9 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      * @private
      */
     _activateTab(tabId, group) {
+        // Update preserved tab state when user manually switches tabs
+        // This ensures _prepareContext uses the current tab on next render
+        this._preservedTab = { activeTab: tabId, navGroup: group };
         const element = this.element;
         
         // Remove active class from all tabs and hide all tab content
@@ -776,17 +1474,206 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      * @private
      */
     async _onRoll(event) {
+        // Prevent double-firing: check if we're already processing this roll
+        const targetElement = event.currentTarget;
+        const targetRollType = (targetElement.dataset?.rollType || targetElement.getAttribute('data-roll-type')) || '';
+        
+        // For initiative rolls, use a debounce key based on actor ID and roll type
+        if (targetRollType === 'init') {
+            const debounceKey = `initiative_roll_${this.actor.id}`;
+            const now = Date.now();
+            const lastRollTime = this._lastRollTime || {};
+            
+            // If we rolled initiative for this actor in the last 500ms, skip this call
+            if (lastRollTime[debounceKey] && (now - lastRollTime[debounceKey]) < 500) {
+                console.log("_onRoll: Skipping duplicate initiative roll (debounced)");
+                return;
+            }
+            
+            // Record this roll time
+            if (!this._lastRollTime) this._lastRollTime = {};
+            this._lastRollTime[debounceKey] = now;
+        }
+        
+        // CRITICAL: Check the actual clicked element first, before doing anything else
+        const clickedElement = event.target;
+        const currentTarget = event.currentTarget;
+        
+        console.log("_onRoll called", {
+            target: clickedElement,
+            targetClasses: clickedElement?.className,
+            currentTarget: currentTarget,
+            currentTargetClasses: currentTarget?.className,
+            path: event.composedPath ? event.composedPath().map(el => ({
+                tag: el.tagName,
+                classes: el.className
+            })) : []
+        });
+        
+        // Check event path FIRST - most reliable way to detect delete buttons
+        // BUT allow rollable elements even if they're in item-controls
+        const path = event.composedPath ? event.composedPath() : [];
+        const isRollableClick = currentTarget.classList.contains('rollable');
+        const hasDeleteInPath = path.some(el => {
+            if (!el || !el.classList) return false;
+            // Don't block if this is a rollable element inside item-controls
+            if (el.classList.contains('item-controls') && isRollableClick) {
+                return false;
+            }
+            return el.classList.contains('chip-delete') || 
+                   el.classList.contains('item-delete') ||
+                   el.classList.contains('item-edit') ||
+                   (el.tagName === 'A' && (el.classList.contains('item-delete') || el.classList.contains('item-edit'))) ||
+                   (el.tagName === 'I' && (el.classList.contains('fa-trash') || el.classList.contains('fa-times')));
+        });
+        
+        if (hasDeleteInPath) {
+            console.log("_onRoll: Aborting - delete button in path");
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            return;
+        }
+        
+        // Also check if click is in item-controls cell
+        // BUT allow rollable elements (like attack icons) to work even if they're in item-controls
+        const itemControls = clickedElement.closest('.item-controls');
+        if (itemControls) {
+            // Check if this is a rollable element (attack icon, etc.) - if so, allow it
+            const isRollableInControls = clickedElement.closest('.rollable') || currentTarget.classList.contains('rollable');
+            if (!isRollableInControls) {
+                // It's in item-controls but not a rollable, so abort (e.g., delete/edit buttons)
+                console.log("_onRoll: Aborting - click in item-controls (not rollable)");
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                return;
+            }
+        }
+        
+        // Check if the click originated from or is inside a delete/edit button
+        // Check both the target and currentTarget, and also check the event path
+        const isDeleteButton = clickedElement.closest('.chip-delete') || 
+                               clickedElement.closest('.item-delete') || 
+                               clickedElement.closest('.item-edit') ||
+                               currentTarget.closest('.chip-delete') ||
+                               currentTarget.closest('.item-delete') ||
+                               currentTarget.closest('.item-edit') ||
+                               clickedElement.classList.contains('chip-delete') ||
+                               clickedElement.classList.contains('item-delete') ||
+                               clickedElement.classList.contains('item-edit') ||
+                               clickedElement.closest('a.chip-delete') ||
+                               clickedElement.closest('a.item-delete') ||
+                               clickedElement.closest('a.item-edit') ||
+                               clickedElement.closest('i.fa-trash') ||
+                               clickedElement.closest('i.fa-times');
+        
+        if (isDeleteButton) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            return;
+        }
+        
         event.preventDefault();
+        event.stopPropagation();
+        
         const element = event.currentTarget;
-        const dataset = element.dataset;
+        // Safely access dataset - fallback to getting attribute directly if dataset is not available
+        const dataset = element.dataset || {};
+        const rollType = dataset.rollType || element.getAttribute('data-roll-type');
+        
+        console.log("_onRoll: Checking rollType", {
+            element: element,
+            elementClasses: element.className,
+            dataset: dataset,
+            rollType: rollType,
+            directAttr: element.getAttribute('data-roll-type')
+        });
+
+        // INITIATIVE ROLL - Check this first as it's simple and doesn't need item context
+        if (rollType === 'init') {
+            console.log("_onRoll: Initiating initiative roll");
+            try {
+                // Get or create combat
+                let combat = game.combat;
+                if (!combat) {
+                    // Create a new combat if none exists
+                    const sceneId = game.scenes.active?.id;
+                    if (!sceneId) {
+                        ui.notifications.warn("No active scene. Please activate a scene first.");
+                        return;
+                    }
+                    combat = await Combat.create({ scene: sceneId });
+                    // Refresh combat tracker to show the new combat
+                    if (ui.combat) {
+                        ui.combat.render();
+                    }
+                }
+                
+                // Find existing combatant or create one
+                let combatant = combat.combatants.find(c => c.actor?.id === this.actor.id);
+                
+                if (!combatant) {
+                    // Try to find a token for this actor on the current scene
+                    const scene = game.scenes.active;
+                    if (!scene) {
+                        ui.notifications.warn("No active scene. Please activate a scene first.");
+                        return;
+                    }
+                    
+                    const token = scene.tokens.find(t => t.actor?.id === this.actor.id);
+                    if (token) {
+                        // Create combatant with existing token
+                        const created = await combat.createEmbeddedDocuments("Combatant", [{
+                            tokenId: token.id,
+                            actorId: this.actor.id,
+                            hidden: false
+                        }]);
+                        combatant = combat.combatants.get(created[0].id);
+                    } else {
+                        // Create a temporary token for the actor
+                        const tokenData = await this.actor.getTokenData();
+                        const createdToken = await scene.createEmbeddedDocuments("Token", [{
+                            ...tokenData,
+                            actorId: this.actor.id,
+                            x: 0,
+                            y: 0
+                        }]);
+                        // Create combatant with the new token
+                        const created = await combat.createEmbeddedDocuments("Combatant", [{
+                            tokenId: createdToken[0].id,
+                            actorId: this.actor.id,
+                            hidden: false
+                        }]);
+                        combatant = combat.combatants.get(created[0].id);
+                    }
+                }
+                
+                // Roll initiative on the combatant using Combat.rollInitiative() which displays dice and chat
+                if (combatant) {
+                    // Use Combat.rollInitiative() which handles dice rolling and chat messages properly
+                    await combat.rollInitiative([combatant.id]);
+                    console.log("_onRoll: Initiative rolled successfully");
+                } else {
+                    throw new Error("Failed to create or find combatant");
+                }
+            } catch (error) {
+                console.error("_onRoll: Initiative roll error:", error);
+                ui.notifications.error(`Failed to roll initiative: ${error.message}`);
+            }
+            return;
+        }
+        
+        console.log("_onRoll: rollType is not 'init', it is:", rollType);
 
         // Handle Item Rolls (triggered by your crosshairs icon)
-        if (dataset.rollType === 'item') {
+        if (rollType === 'item') {
             // V13: Use DOM methods instead of jQuery
             const itemElement = element.closest('.item');
-            const itemId = itemElement?.dataset.itemId;
+            const itemId = itemElement?.dataset?.itemId || itemElement?.getAttribute('data-item-id');
             const item = this.actor.items.get(itemId);
-            if (item.type === 'weapon') {
+            if (item?.type === 'weapon') {
                 // NEW LOGIC: Check the explicit 'attackType' property
                 // We default to "melee" if the property is missing (e.g. on old items)
                 const attackType = item.system.attackType || "melee";
@@ -804,16 +1691,20 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
                 // Pass the flag to your existing dialog renderer
                 await this._renderAttackDialog(item, isMelee);
-
+                return;
             }
-            else if (item.type === 'explosive') {
+            else if (item?.type === 'explosive') {
                 await this._renderExplosiveDialog(item);
+                return;
             }
-            else if (item.type === 'ebbFormula') {
+            else if (item?.type === 'ebbFormula') {
                 this._executeEbbRoll(item);
-            } else {
+                return;
+            } else if (item) {
                 item.sheet.render();
+                return;
             }
+            return;
         }
 
         let globalMod = 0;
@@ -821,8 +1712,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (this.actor.system.conditions?.stunned) globalMod -= 1;
 
         // STAT ROLL
-        if (dataset.rollType === 'stat') {
-            const statKey = dataset.key.toLowerCase();
+        if (rollType === 'stat') {
+            const statKey = (dataset.key || element.getAttribute('data-key'))?.toLowerCase();
+            if (!statKey) return;
+            
             const statLabel = statKey.toUpperCase();
             const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
             const penalty = this.actor.system.wounds.penalty || 0;
@@ -874,14 +1767,13 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                     }
                 }
             });
+            return;
         }
 
-        if (dataset.rollType === 'skill') {
+        // SKILL ROLL
+        if (rollType === 'skill') {
             this._executeSkillRoll(element);
-        }
-
-        if (dataset.rollType === 'init') {
-            await this.actor.rollInitiative({ createCombatants: true });
+            return;
         }
     }
 

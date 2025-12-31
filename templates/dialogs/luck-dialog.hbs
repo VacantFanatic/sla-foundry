@@ -1,6 +1,6 @@
 {{!-- V13: No <form> element - ApplicationV2 creates the form automatically when tag: 'form' is set --}}
 <div class="luck-dialog" style="color:#eee;">
-    <p class="notes" style="margin-bottom:10px;">Select a benefit to apply. You have <strong>{{luck.value}}</strong> /
+    <p class="notes" style="margin-bottom:10px; color:#eee;">Select a benefit to apply. You have <strong style="color:#fff;">{{luck.value}}</strong> /
         {{luck.max}} Luck remaining.</p>
 
     <!-- SECTION 1: GENERIC OPTIONS -->
@@ -31,11 +31,11 @@
     <div class="sla-panel sla-dialog-panel">
         <div class="sla-header-bar-small">Reroll Skill Dice (Cost: 1 Total)</div>
         <div style="padding: 5px;">
-            <p class="notes" style="font-size: 0.8em; margin: 0 0 5px 0;">Select dice to reroll:</p>
+            <p class="notes" style="font-size: 0.8em; margin: 0 0 5px 0; color:#ccc;">Select dice to reroll:</p>
             <div class="skill-dice-list" style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px;">
                 {{#each skillDice}}
                 <label class="dice-checkbox"
-                    style="border: 1px solid #555; padding: 5px; border-radius: 4px; display: flex; align-items: center; cursor: pointer; background:#222; {{#if this.disabled}}opacity:0.5; cursor:not-allowed;{{/if}}">
+                    style="border: 1px solid #555; padding: 5px; border-radius: 4px; display: flex; align-items: center; cursor: pointer; background:#222; color:#eee; {{#if this.disabled}}opacity:0.5; cursor:not-allowed;{{/if}}">
                     <input type="checkbox" name="rerollSelect" value="{{@index}}" {{#if this.disabled}}disabled{{/if}}>
                     <span
                         style="font-weight: bold; margin-left: 5px; color: {{this.borderColor}};">{{this.total}}</span>

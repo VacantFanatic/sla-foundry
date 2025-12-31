@@ -21,7 +21,12 @@ export class BoilerplateActor extends Actor {
 
             // 1. RESET TOTALS TO BASE VALUES
             // We must start fresh every update cycle
+            // Exclude luck and flux as they don't have 'total' properties (only value/max)
+            // Store base STR value before penalties for max HP calculation
+            const baseSTR = Number(system.stats.str?.value) || 0;
+            
             for (const [key, stat] of Object.entries(system.stats)) {
+                if (key === 'luck' || key === 'flux') continue; // Skip luck and flux - they don't have totals
                 stat.total = Number(stat.value) || 0;
             }
 
@@ -41,7 +46,8 @@ export class BoilerplateActor extends Actor {
             this._applyPenalties(system);
 
             // 6. CALCULATE DERIVED (HP, Init, Move) - Requires Final Stats
-            this._calculateDerived(system);
+            // Pass base STR so max HP uses unpenalized STR
+            this._calculateDerived(system, baseSTR);
         }
     }
 
@@ -134,10 +140,13 @@ export class BoilerplateActor extends Actor {
         system.conditions.immobile = hasEffect("immobile");
 
         // Logic-based Conditions
-        const isDead = system.hp.value === 0 || woundCount >= 6;
+        const isDead = system.hp.value <= 0 || woundCount >= 6;
         system.conditions.dead = isDead;
 
-        const isCritical = system.hp.value < 6 && !isDead;
+        // Critical condition: HP <= Max/2 AND not dead
+        // Use the same logic as _handleWoundThresholds for consistency
+        const maxHP = system.hp.max || 10;
+        const isCritical = system.hp.value <= (maxHP / 2) && system.hp.value > 0 && !isDead;
         system.conditions.critical = isCritical;
 
         // Wounds forcing conditions
@@ -191,6 +200,10 @@ export class BoilerplateActor extends Actor {
                 if (currentPV > highestPV) highestPV = currentPV;
             }
         }
+
+        // Set the actor's PV from equipped armor
+        if (!system.armor) system.armor = {};
+        system.armor.pv = highestPV;
 
         // Create encumbrance object if missing (for safety, though we check below)
         // Or better: Only write to it if it exists.
@@ -249,10 +262,16 @@ export class BoilerplateActor extends Actor {
         // system.armor.pv = Math.max(system.armor.pv || 0, highestPV);
         // This *should* work if 'system.armor.pv' is 0.
 
-        // Maybe the issue is type coercion?
-        const basePV = Number(system.armor.pv) || 0;
-
-        system.armor.pv = Math.max(basePV, highestPV);
+        // Set PV from equipped armor (highest PV wins)
+        // For NPCs, use the higher of base PV or calculated PV
+        // For Characters, always use calculated PV from equipped armor
+        if (this.type === 'npc') {
+            const basePV = Number(system.armor.pv) || 0;
+            system.armor.pv = Math.max(basePV, highestPV);
+        } else {
+            // Characters: Always use calculated PV from equipped armor
+            system.armor.pv = highestPV;
+        }
 
         // Also ensure derived 'value' property exists if templates use it
         system.armor.value = system.armor.pv;
@@ -279,7 +298,7 @@ export class BoilerplateActor extends Actor {
     /* -------------------------------------------- */
     /* 5. Derived Stats (HP, Init, Move)            */
     /* -------------------------------------------- */
-    _calculateDerived(system) {
+    _calculateDerived(system, baseSTR = null) {
         // A. HP Calculation
         let hpBase = 10;
         const speciesItem = this.items.find(i => i.type === 'species');
@@ -288,8 +307,18 @@ export class BoilerplateActor extends Actor {
             hpBase = speciesItem.system.hp;
         }
 
-        // HP Max = Base + Final STR
-        system.hp.max = hpBase + (system.stats.str?.total || 0);
+        // HP Max = Base + Base STR (before penalties)
+        // Use baseSTR parameter if provided, otherwise fall back to current value
+        // This ensures max HP doesn't decrease when STR is penalized
+        const strForHP = baseSTR !== null ? baseSTR : (system.stats.str?.value || 0);
+        const newMaxHP = hpBase + strForHP;
+        system.hp.max = newMaxHP;
+        
+        // CRITICAL: Clamp current HP to new max if it exceeds it
+        // This prevents HP from being above max when max HP changes
+        if (system.hp.value > newMaxHP) {
+            system.hp.value = newMaxHP;
+        }
 
         // B. Initiative (Character Only)
         if (this.type === 'character') {
@@ -576,19 +605,97 @@ export class BoilerplateActor extends Actor {
         await super._preUpdate(changed, options, user);
 
         // HP Floor & Ceiling
+        // IMPORTANT: Calculate max HP first to ensure we have the correct value for clamping
+        // Also check if max HP is being updated - if so, clamp current HP to new max
+        if (changed.system?.hp?.max !== undefined) {
+            // Max HP is being updated - clamp current HP to new max
+            const newMaxHP = Number(changed.system.hp.max);
+            if (!isNaN(newMaxHP)) {
+                const currentHP = changed.system.hp.value !== undefined ? Number(changed.system.hp.value) : this.system.hp.value;
+                if (!isNaN(currentHP) && currentHP > newMaxHP) {
+                    // Current HP exceeds new max - clamp it
+                    changed.system.hp.value = newMaxHP;
+                }
+            }
+        }
+        
         if (changed.system?.hp?.value !== undefined) {
-            const maxHp = this.system.hp.max || 0;
+            // Always recalculate max HP to ensure it's correct (using base STR, not penalized STR)
+            // This ensures we use the current species and STR values
+            let hpBase = 10;
+            const speciesItem = this.items.find(i => i.type === 'species');
+            if (speciesItem && speciesItem.system.hp) {
+                hpBase = speciesItem.system.hp;
+            }
+            // Use base STR value (before penalties) for max HP
+            const baseSTR = Number(this.system.stats.str?.value) || 0;
+            const maxHp = hpBase + baseSTR;
+            
+            // Get the new HP value
             let val = changed.system.hp.value;
+            
+            // Handle different input types
+            if (val === '' || val === null || val === undefined) {
+                // Empty input - preserve current value, don't reset
+                delete changed.system.hp.value;
+                // Still update max HP if needed
+                if (changed.system.hp.max === undefined && this.system.hp.max !== maxHp) {
+                    changed.system.hp.max = maxHp;
+                }
+                return; // Exit early - don't process empty value
+            }
+            
+            // Convert to number
+            val = Number(val);
+            
+            // If not a valid number, preserve current value (don't reset to 0 or max)
+            if (isNaN(val)) {
+                // Invalid number - preserve current HP value
+                delete changed.system.hp.value;
+                // Still update max HP if needed
+                if (changed.system.hp.max === undefined && this.system.hp.max !== maxHp) {
+                    changed.system.hp.max = maxHp;
+                }
+                return; // Exit early - don't process invalid value
+            }
+            
+            // Valid number - clamp to valid range
             if (val < 0) val = 0;
             if (val > maxHp) val = maxHp;
             changed.system.hp.value = val;
+            
+            // Also update max HP if it's different (to keep them in sync)
+            if (changed.system.hp.max === undefined && this.system.hp.max !== maxHp) {
+                changed.system.hp.max = maxHp;
+            }
         }
 
         // Luck & Flux Clamping
         if (changed.system?.stats?.luck?.value !== undefined) {
             const max = this.system.stats.luck.max || 0;
-            if (changed.system.stats.luck.value > max) changed.system.stats.luck.value = max;
-            if (changed.system.stats.luck.value < 0) changed.system.stats.luck.value = 0;
+            let luckValue = changed.system.stats.luck.value;
+            
+            // Handle empty string - preserve current value instead of resetting to 0
+            if (luckValue === "" || luckValue === null || luckValue === undefined) {
+                // Preserve the existing value - don't reset to 0
+                luckValue = this.system.stats.luck.value;
+                // Only update if we have a valid existing value
+                if (luckValue !== undefined && luckValue !== null) {
+                    changed.system.stats.luck.value = luckValue;
+                } else {
+                    // If no existing value, allow 0 but don't force it
+                    delete changed.system.stats.luck.value;
+                }
+            } else {
+                luckValue = Number(luckValue);
+                if (isNaN(luckValue)) {
+                    // If not a valid number, preserve current value
+                    luckValue = this.system.stats.luck.value || 0;
+                }
+                if (luckValue > max) luckValue = max;
+                if (luckValue < 0) luckValue = 0;
+                changed.system.stats.luck.value = luckValue;
+            }
         }
         if (changed.system?.stats?.flux?.value !== undefined) {
             const max = this.system.stats.flux.max || 0;
@@ -652,20 +759,91 @@ export class BoilerplateActor extends Actor {
     async _onUpdate(changed, options, userId) {
         super._onUpdate(changed, options, userId);
 
+        // 0. CRITICAL: Clamp HP to max if max HP changed or if HP exceeds max
+        // This ensures HP is always valid after any update
+        if (foundry.utils.hasProperty(changed, "system.hp.max") || foundry.utils.hasProperty(changed, "system.hp.value")) {
+            // Recalculate derived data to get accurate max HP
+            this.prepareDerivedData();
+            const maxHP = this.system.hp.max || 0;
+            const currentHP = this.system.hp.value || 0;
+            
+            // If current HP exceeds max, clamp it
+            if (currentHP > maxHP && maxHP > 0) {
+                await this.update({ "system.hp.value": maxHP }, { render: false, _preserveTab: true });
+            }
+        }
+
         // 1. STOP if the update didn't touch conditions OR wounds.
         // This prevents HP updates or Bio updates from triggering the condition loop.
         const conditionChanges = foundry.utils.getProperty(changed, "system.conditions");
         const woundChanges = foundry.utils.getProperty(changed, "system.wounds");
 
         // A. Handle Manual Condition Toggles (Clicking icons)
-        if (conditionChanges) {
+        // BUT: Skip if this was triggered by a manual toggle or HP update handling (to prevent duplicates)
+        if (conditionChanges && !options._manualToggle && !options._handlingHPUpdate) {
             const syncStatus = async (id, isState) => {
                 if (isState === undefined) return;
-                const hasEffect = this.effects.some(e => e.statuses.has(id));
-                if (isState !== hasEffect) {
+                // Re-check effects each time to ensure we have the latest state
+                // Check for duplicates first
+                const effectsWithStatus = this.effects.filter(e => e.statuses.has(id));
+                const hasEffect = effectsWithStatus.length > 0;
+                
+                // Clean up duplicates if found
+                if (effectsWithStatus.length > 1) {
+                    console.warn(`Found ${effectsWithStatus.length} duplicate effects for ${id} in _onUpdate, cleaning up...`);
+                    // Keep the first one, delete the rest
+                    for (let i = 1; i < effectsWithStatus.length; i++) {
+                        try {
+                            await effectsWithStatus[i].delete();
+                        } catch (err) {
+                            console.warn(`Failed to delete duplicate effect:`, err);
+                        }
+                    }
+                    // After cleanup, re-check the effect state
+                    const afterCleanupEffects = this.effects.filter(e => e.statuses.has(id));
+                    const afterCleanupHasEffect = afterCleanupEffects.length > 0;
+                    // If after cleanup the state matches, don't toggle
+                    if (isState === afterCleanupHasEffect) {
+                        return; // State already matches after cleanup, no need to toggle
+                    }
+                }
+                
+                // CRITICAL: Double-check effect state before toggling to prevent race conditions
+                // This prevents duplicate toggles when toggleStatusEffect updates the condition
+                // Wait a small delay to ensure any pending toggles complete
+                await new Promise(resolve => setTimeout(resolve, 50));
+                const finalCheckEffects = this.effects.filter(e => e.statuses.has(id));
+                const finalCheckHasEffect = finalCheckEffects.length > 0;
+                
+                // Only toggle if the state actually doesn't match
+                // This prevents duplicate creation when toggleStatusEffect triggers _onUpdate
+                if (isState !== finalCheckHasEffect) {
                     // If _preserveTab flag is set, don't render sheets when toggling status effects
                     const renderOptions = options._preserveTab ? { render: false } : {};
-                    await this.toggleStatusEffect(id, { active: isState, ...renderOptions });
+                    try {
+                        await this.toggleStatusEffect(id, { active: isState, ...renderOptions });
+                    } catch (error) {
+                        // Handle case where effect doesn't exist (already deleted or never created)
+                        const errorMsg = error.message || String(error);
+                        if (!errorMsg.includes('does not exist')) {
+                            console.warn(`Failed to toggle status effect ${id}:`, error);
+                        }
+                        // If we're trying to activate but it failed, try creating it directly
+                        // But first check if it was created by another process
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                        const retryCheckEffects = this.effects.filter(e => e.statuses.has(id));
+                        const retryCheckHasEffect = retryCheckEffects.length > 0;
+                        if (isState && !retryCheckHasEffect) {
+                            try {
+                                await this.toggleStatusEffect(id, { active: true, ...renderOptions });
+                            } catch (err) {
+                                const errMsg = err.message || String(err);
+                                if (!errMsg.includes('does not exist')) {
+                                    console.error(`Failed to create status effect ${id}:`, err);
+                                }
+                            }
+                        }
+                    }
                 }
             };
             for (const [key, value] of Object.entries(conditionChanges)) {
@@ -680,7 +858,13 @@ export class BoilerplateActor extends Actor {
 
         // 2. SEPARATE LOGIC: Handle HP Auto-Wounding
         if (foundry.utils.hasProperty(changed, "system.hp.value")) {
-            await this._handleWoundThresholds();
+            // Recalculate derived data first to ensure max HP is correct
+            this.prepareDerivedData();
+            // Then handle wound thresholds (critical, dead)
+            // Pass _handlingHPUpdate flag to prevent _onUpdate from processing condition changes
+            await this._handleWoundThresholds({ _handlingHPUpdate: true });
+            // After setting critical condition, recalculate again to apply penalties
+            this.prepareDerivedData();
         }
     }
 
@@ -747,19 +931,97 @@ export class BoilerplateActor extends Actor {
         // EXECUTE UPDATES
         // processing sequentially to avoid race conditions
         // If _preserveTab flag is set, prevent re-renders when toggling status effects
+        // IMPORTANT: Use _manualToggle flag to prevent _onUpdate from processing condition changes
+        // This prevents duplicate creation when toggleStatusEffect updates system.conditions
         const renderOptions = options._preserveTab ? { render: false } : {};
         for (const change of effectsToToggle) {
-            await this.toggleStatusEffect(change.id, { active: change.active, ...renderOptions });
+            try {
+                // Re-check effect state before toggling to avoid race conditions
+                // Find ALL effects with this status to check for duplicates
+                const effectsWithStatus = Array.from(this.effects).filter(e => e.statuses.has(change.id));
+                const currentHasEffect = effectsWithStatus.length > 0;
+                
+                // Clean up duplicates first - but check if they still exist before deleting
+                if (effectsWithStatus.length > 1) {
+                    console.warn(`Found ${effectsWithStatus.length} duplicate effects for ${change.id}, cleaning up...`);
+                    // Keep the first one, delete the rest
+                    for (let i = 1; i < effectsWithStatus.length; i++) {
+                        try {
+                            const effectId = effectsWithStatus[i].id;
+                            // Check if the effect still exists in the collection before trying to delete it
+                            const effectToDelete = this.effects.get(effectId);
+                            if (effectToDelete && !effectToDelete.isDeleted) {
+                                await effectToDelete.delete();
+                            }
+                        } catch (err) {
+                            // Silently ignore errors if effect was already deleted or doesn't exist
+                            // Only log unexpected errors
+                            const errorMsg = err.message || String(err);
+                            if (!errorMsg.includes('does not exist') && !errorMsg.includes('isDeleted')) {
+                                console.warn(`Failed to delete duplicate effect:`, err);
+                            }
+                        }
+                    }
+                }
+                
+                // Re-check after cleanup to get current state
+                const finalEffectsWithStatus = Array.from(this.effects).filter(e => e.statuses.has(change.id));
+                const finalHasEffect = finalEffectsWithStatus.length > 0;
+                
+                // Only toggle if the state actually needs to change
+                // Note: _calculateWounds() already sets system.conditions in derived data during prepareDerivedData(),
+                // so we don't need to manually update it here. toggleStatusEffect() will handle syncing to the database.
+                if (change.active !== finalHasEffect) {
+                    // Use the value from _calculateWounds() instead of manually updating
+                    // toggleStatusEffect will handle updating both the effect and the condition
+                    await this.toggleStatusEffect(change.id, { 
+                        active: change.active,
+                        _manualToggle: true,
+                        _preserveTab: true,
+                        ...renderOptions 
+                    });
+                }
+            } catch (error) {
+                // Handle case where effect doesn't exist (already deleted or never created)
+                // Only log if it's not a "does not exist" error
+                const errorMsg = error.message || String(error);
+                if (!errorMsg.includes('does not exist')) {
+                    console.warn(`Failed to toggle wound effect ${change.id}:`, error);
+                }
+                // If we're trying to activate but it failed, and effect doesn't exist, try creating it
+                if (change.active) {
+                    const currentHasEffect = Array.from(this.effects).some(e => e.statuses.has(change.id));
+                    if (!currentHasEffect) {
+                        try {
+                            // toggleStatusEffect will handle updating the condition
+                            await this.toggleStatusEffect(change.id, { 
+                                active: true,
+                                _manualToggle: true,
+                                ...renderOptions 
+                            });
+                        } catch (err) {
+                            // Only log if it's not a "does not exist" error
+                            const errMsg = err.message || String(err);
+                            if (!errMsg.includes('does not exist')) {
+                                console.error(`Failed to create wound effect ${change.id}:`, err);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
     /**
      * Separate function to handle HP math logic
      */
-    async _handleWoundThresholds() {
+    async _handleWoundThresholds(options = {}) {
+        // Note: prepareDerivedData() is already called in _onUpdate before this function,
+        // so we don't need to call it again here. Using the already-calculated derived data.
+        
         // Calculate your thresholds
-        const hp = this.system.hp.value;
-        const max = this.system.hp.max;
+        const hp = Number(this.system.hp.value) || 0;
+        const max = Number(this.system.hp.max) || 10;
 
         // Helper to check if effect exists
         const hasEffect = (id) => this.effects.some(e => e.statuses.has(id));
@@ -767,20 +1029,51 @@ export class BoilerplateActor extends Actor {
         // 1. DEAD (HP <= 0)
         // We apply as overlay for visual emphasis
         const isDead = hp <= 0;
-        if (isDead && !hasEffect("dead")) {
-            await this.toggleStatusEffect("dead", { active: true, overlay: true });
-        } else if (!isDead && hasEffect("dead")) {
-            await this.toggleStatusEffect("dead", { active: false });
+        const hasDeadEffect = hasEffect("dead");
+        if (isDead && !hasDeadEffect) {
+            try {
+                await this.toggleStatusEffect("dead", { 
+                    active: true, 
+                    overlay: true, 
+                    _preserveTab: true,
+                    _manualToggle: true // Prevent _onUpdate from processing this
+                });
+            } catch (error) {
+                console.warn("Failed to toggle dead effect:", error);
+            }
+        } else if (!isDead && hasDeadEffect) {
+            try {
+                await this.toggleStatusEffect("dead", { 
+                    active: false, 
+                    _preserveTab: true,
+                    _manualToggle: true // Prevent _onUpdate from processing this
+                });
+            } catch (error) {
+                console.warn("Failed to remove dead effect:", error);
+            }
         }
 
         // 2. CRITICAL (HP <= Max/2 AND Not Dead)
-        // Note: We use the Effect ID (e.g., 'critical') not the boolean
-        const isCritical = hp <= (max / 2) && hp > 0;
-
-        if (isCritical && !hasEffect("critical")) {
-            await this.toggleStatusEffect("critical", { active: true });
-        } else if (!isCritical && hasEffect("critical")) {
-            await this.toggleStatusEffect("critical", { active: false });
+        // Note: _calculateWounds() already sets system.conditions.critical in derived data during prepareDerivedData().
+        // We use that value directly instead of recalculating to avoid duplication.
+        // We only need to sync it to the database and toggle the effect.
+        const isCritical = this.system.conditions.critical;
+        const hasCriticalEffect = hasEffect("critical");
+        
+        // Only toggle the effect if the state doesn't match - toggleStatusEffect will handle updating the condition
+        if (isCritical !== hasCriticalEffect) {
+            try {
+                await this.toggleStatusEffect("critical", { 
+                    active: isCritical, 
+                    _preserveTab: true,
+                    _manualToggle: true // Prevent _onUpdate from processing this
+                });
+            } catch (error) {
+                console.warn("Failed to toggle critical effect:", error);
+            }
         }
+        
+        // After updating critical condition, recalculate derived data to apply penalties
+        this.prepareDerivedData();
     }
 }

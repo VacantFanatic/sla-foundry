@@ -8,27 +8,35 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class AttackDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
-    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-        classes: ["sla-industries", "sla-dialog-window", "dialog", "attack-dialog"],
-        template: "systems/sla-industries/templates/dialogs/attack-dialog.hbs",
-        tag: "form", // V13: Required for forms
-        position: {
-            width: 500,
-            height: "auto"
-        },
-        window: {
-            minimizable: false,
-            resizable: true
-        },
-        form: {
-            submitOnChange: false,
-            closeOnSubmit: false // We handle closing manually
-        }
-    });
+    /** @override */
+    static get defaultOptions() {
+        const parentOptions = super.defaultOptions || {};
+        // Merge classes arrays properly - combine parent classes with our own
+        const parentClasses = Array.isArray(parentOptions.classes) ? parentOptions.classes : [];
+        const mergedClasses = [...new Set([...parentClasses, "sla-industries", "sla-dialog-window", "dialog", "attack-dialog"])];
+        
+        return foundry.utils.mergeObject(parentOptions, {
+            classes: mergedClasses,
+            template: "systems/sla-industries/templates/dialogs/attack-dialog.hbs",
+            tag: "form", // V13: Required for forms
+            position: {
+                width: 500,
+                height: "auto"
+            },
+            window: {
+                minimizable: false,
+                resizable: true
+            },
+            form: {
+                submitOnChange: false,
+                closeOnSubmit: false // We handle closing manually
+            }
+        });
+    }
 
     // V13: Constructor takes ALL parameters in a single options object
     constructor(options = {}) {
-        const mergedOptions = foundry.utils.mergeObject(AttackDialog.DEFAULT_OPTIONS, options);
+        const mergedOptions = foundry.utils.mergeObject(AttackDialog.defaultOptions, options);
         super(mergedOptions);
         // Store dialog data
         this.item = options.item;
@@ -49,6 +57,32 @@ export class AttackDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         await super._onRender(context, options);
         // V13: Use DOM methods instead of jQuery
         const element = this.element;
+        
+        // Check if template content exists - ApplicationV2 might render into window-content or directly into element
+        const windowContent = element.querySelector('.window-content');
+        const hasContent = windowContent ? (windowContent.innerHTML?.trim().length > 0) : (element.innerHTML?.trim().length > 0);
+        
+        if (!hasContent) {
+            // Template wasn't rendered automatically - render it manually
+            try {
+                // Use the context passed to _onRender (which should already have our templateData merged)
+                // If context is not available, prepare it fresh
+                const templateContext = context || await this._prepareContext(options);
+                const template = "systems/sla-industries/templates/dialogs/attack-dialog.hbs";
+                const html = await foundry.applications.handlebars.renderTemplate(template, templateContext);
+                if (windowContent) {
+                    windowContent.innerHTML = html;
+                } else {
+                    // For ApplicationV2 with tag: 'form', render directly into the form element
+                    // But preserve the form wrapper structure
+                    element.innerHTML = html;
+                }
+            } catch (error) {
+                console.error("AttackDialog template rendering error:", error);
+                ui.notifications.error("Failed to render attack dialog template.");
+                return;
+            }
+        }
         
         // Handle Roll button
         const rollButton = element.querySelector('button[data-action="roll"]');

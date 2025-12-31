@@ -25,7 +25,8 @@
 </div>
 
 {{else}}
-{{!-- STANDARD CATALOGUE LAYOUT --}}
+{{!-- STANDARD CATALOGUE LAYOUT (Only for physical items) --}}
+{{#if (or (eq item.type "weapon") (eq item.type "armor") (eq item.type "magazine") (eq item.type "explosive") (eq item.type "item"))}}
 <div class="catalogue-grid">
     {{!-- COMMON FIELDS (Shared by all physical items) --}}
     <div class="form-group">
@@ -71,4 +72,20 @@
     </div>
     {{/if}}
 </div>
+{{/if}}
+{{/if}}
+
+{{!-- SKILLS & TRAITS --}}
+{{#if (or (eq item.type "skill") (eq item.type "trait"))}}
+{{> "systems/sla-industries/templates/item/parts/item-academic.hbs"}}
+{{/if}}
+
+{{!-- EBB FORMULAS & DISCIPLINES --}}
+{{#if (or (eq item.type "ebb") (eq item.type "ebbFormula") (eq item.type "discipline"))}}
+{{> "systems/sla-industries/templates/item/parts/item-spectral.hbs"}}
+{{/if}}
+
+{{!-- DOSSIER ITEMS (Species, Packages) --}}
+{{#if (or (eq item.type "species") (eq item.type "package"))}}
+{{> "systems/sla-industries/templates/item/parts/item-dossier.hbs"}}
 {{/if}}

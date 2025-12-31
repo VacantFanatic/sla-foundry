@@ -3,7 +3,7 @@
     {{!-- COMMON HEADER --}}
     <div class="form-group"
         style="margin-bottom:5px; display: flex; justify-content: space-between; align-items: center;">
-        <label style="font-weight: bold;">Generic Modifier (+/-)</label>
+        <label style="font-weight: bold; color: #eee;">Generic Modifier (+/-)</label>
         <input type="number" name="modifier" value="0" placeholder="0"
             style="background:#333; color:#fff; border:1px solid #555; text-align:center; width:50px; height: 28px;" />
     </div>
@@ -19,22 +19,22 @@
         <div class="sla-header-bar-small">Attacker Stance & Options</div>
         <div style="padding: 5px;">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px;">
-                <div><label><input type="checkbox" name="charging" /> Charging</label></div>
-                <div><label><input type="checkbox" name="targetCharged" /> Target Charged/Moved Fast</label></div>
-                <div><label><input type="checkbox" name="sameTarget" /> Same Target</label></div>
-                <div><label><input type="checkbox" name="breakOff" /> Break Off</label></div>
-                <div><label><input type="checkbox" name="natural" /> Natural Wpn</label></div>
-                <div><label><input type="checkbox" name="prone" /> Target Prone/Stunned/Immobile (+2)</label></div>
+                <div><label style="color: #eee;"><input type="checkbox" name="charging" /> Charging</label></div>
+                <div><label style="color: #eee;"><input type="checkbox" name="targetCharged" /> Target Charged/Moved Fast</label></div>
+                <div><label style="color: #eee;"><input type="checkbox" name="sameTarget" /> Same Target</label></div>
+                <div><label style="color: #eee;"><input type="checkbox" name="breakOff" /> Break Off</label></div>
+                <div><label style="color: #eee;"><input type="checkbox" name="natural" /> Natural Wpn</label></div>
+                <div><label style="color: #eee;"><input type="checkbox" name="prone" /> Target Prone/Stunned/Immobile (+2)</label></div>
             </div>
 
             {{!-- NEW FIELD: Reserved Dice --}}
             <div class="form-group" style="border-top: 1px solid #333; padding-top: 5px;">
                 <label style="color: var(--sla-accent); font-weight: bold;">Reserve Combat Dice</label>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 0.8em; color: #aaa; font-style: italic;">Subtracted from your Skill Dice
+                    <div style="font-size: 0.8em; color: #ccc; font-style: italic;">Subtracted from your Skill Dice
                         pool.</div>
                     <input type="number" name="reservedDice" value="0" min="0" placeholder="0"
-                        style="width:50px; text-align: center;" />
+                        style="width:50px; text-align: center; background:#333; color:#fff; border:1px solid #555;" />
                 </div>
             </div>
         </div>
@@ -45,19 +45,19 @@
         <div class="sla-header-bar-small">Target Defense Modifiers</div>
         <div style="padding: 5px;">
             <div class="form-group" style="margin-bottom: 5px;">
-                <label style="font-weight: bold;">Target Combat Def Rating</label>
+                <label style="font-weight: bold; color: #eee;">Target Combat Def Rating</label>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 0.8em; color: #aaa;">Applies -1 modifier per point.</div>
+                    <div style="font-size: 0.8em; color: #ccc;">Applies -1 modifier per point.</div>
                     <input type="number" name="combatDef" value="0" min="0" placeholder="0"
-                        style="width:50px; text-align: center;" />
+                        style="width:50px; text-align: center; background:#333; color:#fff; border:1px solid #555;" />
                 </div>
             </div>
             <div class="form-group">
-                <label style="font-weight: bold;">Target Acrobatics Rank</label>
+                <label style="font-weight: bold; color: #eee;">Target Acrobatics Rank</label>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 0.8em; color: #aaa;">Applies -2 modifier per rank.</div>
+                    <div style="font-size: 0.8em; color: #ccc;">Applies -2 modifier per rank.</div>
                     <input type="number" name="acroDef" value="0" min="0" placeholder="0"
-                        style="width:50px; text-align: center;" />
+                        style="width:50px; text-align: center; background:#333; color:#fff; border:1px solid #555;" />
                 </div>
             </div>
         </div>
@@ -66,8 +66,8 @@
 
     {{!-- RANGED SECTION (Unchanged) --}}
     {{else}}
-    <h3>Ranged Options</h3>
-    <div style="font-size:0.8em; color:#aaa; margin-bottom: 10px;">
+    <h3 style="color: #eee;">Ranged Options</h3>
+    <div style="font-size:0.8em; color:#ccc; margin-bottom: 10px;">
         <span style="color:var(--sla-accent)">Base Recoil for this weapon:</span> -{{recoil}} SD
     </div>
 
@@ -75,9 +75,9 @@
         <div style="display:grid; grid-template-columns: 1fr; gap: 8px;">
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
                 <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-                    <label>Fire Mode</label>
+                    <label style="color: #eee;">Fire Mode</label>
                     {{!-- ADDED: name="fireMode" so we can find it in the JS --}}
-                    <select name="fireMode" id="fire-mode" style="width: 65%;">
+                    <select name="fireMode" id="fire-mode" style="width: 65%; background:#333; color:#fff; border:1px solid #555;">
                         {{#each validModes as |mode key|}}
                         {{!-- ADDED: The {{#if}} block to handle the default selection --}}
                         <option value="{{key}}" data-recoil="{{mode.recoil}}" data-rounds="{{mode.rounds}}" {{#if (eq
@@ -90,8 +90,8 @@
             </div>
 
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-                <label>Cover</label>
-                <select name="cover" style="width: 65%;">
+                <label style="color: #eee;">Cover</label>
+                <select name="cover" style="width: 65%; background:#333; color:#fff; border:1px solid #555;">
                     <option value="0">None</option>
                     <option value="-1">Light Cover (-1 SD)</option>
                     <option value="-2">Heavy Cover (-2 SD)</option>
@@ -105,12 +105,12 @@
                     Rounds)</div>
                 <div style="display:flex; justify-content: space-between; gap: 5px;">
                     <div style="flex:1; text-align:center;">
-                        <label style="display:block; font-size:0.8em; color:#aaa;">+1 Success Die</label>
+                        <label style="display:block; font-size:0.8em; color:#ccc;">+1 Success Die</label>
                         <input type="number" name="aim_sd" value="0" min="0" max="{{aimLimit}}"
                             style="width: 100%; text-align:center; background:#222; color:#fff; border:1px solid #555;">
                     </div>
                     <div style="flex:1; text-align:center;">
-                        <label style="display:block; font-size:0.8em; color:#aaa;">Auto Skill Hit</label>
+                        <label style="display:block; font-size:0.8em; color:#ccc;">Auto Skill Hit</label>
                         <input type="number" name="aim_auto" value="0" min="0" max="{{aimLimit}}"
                             style="width: 100%; text-align:center; background:#222; color:#fff; border:1px solid #555;">
                     </div>
@@ -119,8 +119,8 @@
             {{/if}}
 
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-                <label>Dual Wielding</label>
-                <select name="dual" style="width: 65%;">
+                <label style="color: #eee;">Dual Wielding</label>
+                <select name="dual" style="width: 65%; background:#333; color:#fff; border:1px solid #555;">
                     <option value="0">No</option>
                     <option value="-2">Same Target (-2 SD)</option>
                     <option value="-4">Diff Target (-4 SD)</option>
@@ -131,9 +131,9 @@
         <hr style="border-top:1px dashed #333; margin: 10px 0;">
 
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-            <div><label><input type="checkbox" name="targetMoved" /> Target Moving Fast</label></div>
-            <div><label><input type="checkbox" name="blind" /> Blind Firing</label></div>
-            <div><label><input type="checkbox" name="prone" /> Firer Prone</label></div>
+            <div><label style="color: #eee;"><input type="checkbox" name="targetMoved" /> Target Moving Fast</label></div>
+            <div><label style="color: #eee;"><input type="checkbox" name="blind" /> Blind Firing</label></div>
+            <div><label style="color: #eee;"><input type="checkbox" name="prone" /> Firer Prone</label></div>
         </div>
     </div>
     {{/if}}

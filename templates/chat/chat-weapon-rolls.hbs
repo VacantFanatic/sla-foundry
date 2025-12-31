@@ -1,5 +1,5 @@
 <div class="sla-chat-card" data-actor-uuid="{{actorUuid}}"
-    style="background:#222; border:1px solid {{borderColor}}; padding:5px;">
+    style="background:#222; border:1px solid {{borderColor}}; padding:5px; color:#eee;">
 
     {{!-- HEADER --}}
     <h3 style="color:{{headerColor}}; border-bottom:1px solid #555; margin:0 0 5px 0; font-size:1.1em;">
@@ -9,7 +9,7 @@
     {{!-- RESULT BOX --}}
     <div
         style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:5px; align-items:center;">
-        <span style="font-size:0.9em; color:#aaa;">SUCCESS DIE</span>
+        <span style="font-size:0.9em; color:#ccc;">SUCCESS DIE</span>
         <div style="text-align:right;">
             {{!-- UPDATE: Added 'roll-toggle' class, pointer cursor, and title --}}
             <span class="roll-toggle {{#if sdIsReroll}}dice-rerolled{{/if}}"
@@ -26,7 +26,7 @@
     {{!-- SKILL DICE RESULTS --}}
     {{#if skillDice.length}}
     <div style="margin-top:5px; font-size:0.85em;">
-        <div style="color:#aaa; border-bottom:1px dotted #444;">SKILL DICE</div>
+        <div style="color:#ccc; border-bottom:1px dotted #444;">SKILL DICE</div>
         <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:2px;">
             {{#each skillDice as |die|}}
             <span class="{{#if die.isReroll}}dice-rerolled{{/if}}"
@@ -39,7 +39,7 @@
     {{/if}}
 
     {{!-- MOS / EFFECT TEXT --}}
-    <div style="margin-top:8px; padding:4px; background:rgba(255,255,255,0.05); font-size:0.9em;">
+    <div style="margin-top:8px; padding:4px; background:rgba(255,255,255,0.05); font-size:0.9em; color:#eee;">
         {{{mos.effect}}}
     </div>
 
@@ -76,7 +76,7 @@
     {{!-- DAMAGE FORMULA (Standard Hit) --}}
     {{#if showDamageButton}}
     <div style="margin-top:8px; text-align:center;">
-        <div style="font-size:0.8em; color:#aaa; margin-bottom:2px;">DAMAGE</div>
+        <div style="font-size:0.8em; color:#ccc; margin-bottom:2px;">DAMAGE</div>
         <button class="damage-roll" data-formula="{{dmgFormula}}" data-ad="{{adValue}}" data-min="{{minDamage}}"
             style="background:#ff4444; color:#000; border:1px solid #990000; font-weight:bold;">
             <i class="fas fa-droplet"></i> {{dmgFormula}}
@@ -87,7 +87,7 @@
     {{!-- DIFFICULTY ADJUSTMENT (Skills Only) - Difficulty is Fixed 10 for Combat and Formula Rating for Ebb --}}
     {{#unless (or isWeapon isEbb)}}
     <div class="sla-difficulty-select" style="margin-top:8px; border-top:1px dashed #555; padding-top:4px;">
-        <div style="font-size:0.8em; color:#aaa; margin-bottom:2px; text-align:center;">ADJUST DIFFICULTY (TN)</div>
+        <div style="font-size:0.8em; color:#ccc; margin-bottom:2px; text-align:center;">ADJUST DIFFICULTY (TN)</div>
         <div style="display:flex; gap:2px; justify-content:center;">
             <button class="diff-btn sla-diff-btn" data-tn="4" title="Simple">4</button>
             <button class="diff-btn sla-diff-btn" data-tn="7" title="Challenging">7</button>
@@ -101,7 +101,7 @@
     {{!-- NOTES --}}
     {{#if notes}}
     <div
-        style="margin-top:5px; font-size:0.8em; color:#aaa; font-style:italic; border-top:1px solid #444; padding-top:2px;">
+        style="margin-top:5px; font-size:0.8em; color:#ccc; font-style:italic; border-top:1px solid #444; padding-top:2px;">
         {{{notes}}}
     </div>
     {{/if}}

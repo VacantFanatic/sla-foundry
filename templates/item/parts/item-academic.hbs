@@ -1,5 +1,8 @@
 <div class="academic-paper">
-    <div class="form-group line-item"><label>Rank:</label><input type="number" name="system.rank" value="{{system.rank}}"/></div>
+    <div class="form-group line-item">
+        <label>Rank:</label>
+        <input type="number" name="system.rank" value="{{system.rank}}" min="0" />
+    </div>
     {{#if (eq item.type "skill")}}
     <div class="form-group line-item">
         <label>Stat:</label>
@@ -9,5 +12,4 @@
     {{#if (eq item.type "trait")}}
     <div class="form-group line-item"><label>Type:</label><input type="text" name="system.type" value="{{system.type}}"/></div>
     {{/if}}
-    <div class="form-group line-item"><label>XP Cost:</label><input type="number" name="system.xpCost" value="{{system.xpCost}}"/></div>
 </div>

@@ -9,27 +9,35 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
-    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-        classes: ["sla-industries", "luck-dialog"],
-        template: "systems/sla-industries/templates/dialogs/luck-dialog.hbs",
-        tag: "form", // V13: Required for dialogs and forms
-        position: {
-            width: 400,
-            height: "auto"
-        },
-        window: {
-            minimizable: false,
-            resizable: false
-        },
-        form: {
-            submitOnChange: false,
-            closeOnSubmit: false // We handle closing manually
-        }
-    });
+    /** @override */
+    static get defaultOptions() {
+        const parentOptions = super.defaultOptions || {};
+        // Merge classes arrays properly - combine parent classes with our own
+        const parentClasses = Array.isArray(parentOptions.classes) ? parentOptions.classes : [];
+        const mergedClasses = [...new Set([...parentClasses, "sla-industries", "luck-dialog"])];
+        
+        return foundry.utils.mergeObject(parentOptions, {
+            classes: mergedClasses,
+            template: "systems/sla-industries/templates/dialogs/luck-dialog.hbs",
+            tag: "form", // V13: Required for dialogs and forms
+            position: {
+                width: 400,
+                height: "auto"
+            },
+            window: {
+                minimizable: false,
+                resizable: false
+            },
+            form: {
+                submitOnChange: false,
+                closeOnSubmit: false // We handle closing manually
+            }
+        });
+    }
 
     // V13: Constructor takes ALL parameters in a single options object
     constructor(options = {}) {
-        const mergedOptions = foundry.utils.mergeObject(LuckDialog.DEFAULT_OPTIONS, options);
+        const mergedOptions = foundry.utils.mergeObject(LuckDialog.defaultOptions, options);
         super(mergedOptions);
         // Extract actor, roll, messageId from options
         this.actor = options.actor;
@@ -101,10 +109,35 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /** @override */
-    _onRender(context, options) {
-        super._onRender(context, options);
+    async _onRender(context, options) {
+        await super._onRender(context, options);
         // V13: Use DOM methods instead of jQuery
         const element = this.element;
+        
+        // Check if template content exists - ApplicationV2 might render into window-content or directly into element
+        const windowContent = element.querySelector('.window-content');
+        const hasContent = windowContent ? (windowContent.innerHTML?.trim().length > 0) : (element.innerHTML?.trim().length > 0);
+        
+        if (!hasContent) {
+            // Template wasn't rendered automatically - render it manually
+            try {
+                // Use the context passed to _onRender (which should already have our templateData merged)
+                // If context is not available, prepare it fresh
+                const templateContext = context || await this._prepareContext(options);
+                const template = "systems/sla-industries/templates/dialogs/luck-dialog.hbs";
+                const html = await foundry.applications.handlebars.renderTemplate(template, templateContext);
+                if (windowContent) {
+                    windowContent.innerHTML = html;
+                } else {
+                    // For ApplicationV2 with tag: 'form', render directly into the form element
+                    element.innerHTML = html;
+                }
+            } catch (error) {
+                console.error("LuckDialog template rendering error:", error);
+                ui.notifications.error("Failed to render luck dialog template.");
+                return;
+            }
+        }
         
         // V2: Use event delegation with DOM methods
         element.querySelectorAll("button[data-action]").forEach(button => {
