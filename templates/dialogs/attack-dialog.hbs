@@ -19,11 +19,11 @@
         <div style="padding: 5px;">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px;">
                 <div><label><input type="checkbox" name="charging" /> Charging</label></div>
-                <div><label><input type="checkbox" name="targetCharged" /> Target Charged</label></div>
+                <div><label><input type="checkbox" name="targetCharged" /> Target Charged/Moved Fast</label></div>
                 <div><label><input type="checkbox" name="sameTarget" /> Same Target</label></div>
                 <div><label><input type="checkbox" name="breakOff" /> Break Off</label></div>
                 <div><label><input type="checkbox" name="natural" /> Natural Wpn</label></div>
-                <div><label><input type="checkbox" name="prone" /> Target Prone (+2)</label></div>
+                <div><label><input type="checkbox" name="prone" /> Target Prone/Stunned/Immobile (+2)</label></div>
             </div>
 
             {{!-- NEW FIELD: Reserved Dice --}}
@@ -86,15 +86,6 @@
                         {{/each}}
                     </select>
                 </div>
-            </div>
-
-            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-                <label>Cover</label>
-                <select name="cover" style="width: 65%;">
-                    <option value="0">None</option>
-                    <option value="-1">Light Cover (-1 SD)</option>
-                    <option value="-2">Heavy Cover (-2 SD)</option>
-                </select>
             </div>
 
             <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">

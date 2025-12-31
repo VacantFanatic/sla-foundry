@@ -710,8 +710,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             if (token) {
                 const rangeData = calculateRangePenalty(token, target, maxRange);
                 if (rangeData.isLongRange) {
-                    mods.successDie -= 1;
-                    notes.push("Long Range (-1 SD)");
+                    // Rulebook: "-1 Skill Die" (not Success Die)
+                    mods.rank -= 1;
+                    notes.push("Long Range (-1 Skill Die)");
                 }
             }
         }
@@ -922,6 +923,16 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             else if (skillSuccessCount >= 4) {
                 mosDamageBonus = 6;
                 mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)";
+                
+                // AUTO-APPLY HEAD WOUND ON HEAD SHOT
+                if (game.user.targets.size > 0) {
+                    const target = game.user.targets.first();
+                    const targetActor = target?.actor;
+                    if (targetActor && !targetActor.system.wounds.head) {
+                        await targetActor.update({ "system.wounds.head": true });
+                        notes.push(`<span style="color:#ff5555">Head Wound Applied!</span>`);
+                    }
+                }
             }
         }
 
@@ -955,7 +966,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             notes: notes.join(" "),
             showDamageButton: showButton,
             dmgFormula: finalDmgFormula,
-            minDamage: item.system.minDamage || 0,
+            minDamage: Number(item.system.minDamage) || 0,
 
             adValue: adValue, // <--- CRITICAL FIX: Pass AD to template
 
@@ -1182,7 +1193,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         await roll.evaluate();
 
         // 5. RESULTS AND DEVIATION
-        const TN = 11;
+        const TN = 10; // All ranged attacks (including thrown explosives) use TN 10
         const sdRaw = roll.terms[0].results[0].result;
         const sdTotal = sdRaw + baseModifier + mods.successDie;
         let isBaseSuccess = sdTotal >= TN;
@@ -1314,7 +1325,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             notes: notes.join(" "),
             showDamageButton: true,
             dmgFormula: baseDmg,
-            minDamage: item.system.minDamage || 0,
+            minDamage: Number(item.system.minDamage) || 0,
             adValue: adValue,
             mos: {
                 isSuccess: isSuccess,

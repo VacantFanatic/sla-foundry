@@ -61,14 +61,42 @@ export class SLAChat {
                 const location = btn.data("location");
                 let woundSuccess = false;
 
-                // Update Wounds Logic
-                const wounds = actor.system.wounds;
-                if (location === "arm") {
-                    if (!wounds.larm) { await actor.update({ "system.wounds.larm": true }); woundSuccess = true; flavorText = `<span style="color:#ff4444">Snapped Left Arm!</span>`; }
-                    else if (!wounds.rarm) { await actor.update({ "system.wounds.rarm": true }); woundSuccess = true; flavorText = `<span style="color:#ff4444">Snapped Right Arm!</span>`; }
-                } else if (location === "leg") {
-                    if (!wounds.lleg) { await actor.update({ "system.wounds.lleg": true }); woundSuccess = true; flavorText = `<span style="color:#ff4444">Broken Left Leg!</span>`; }
-                    else if (!wounds.rleg) { await actor.update({ "system.wounds.rleg": true }); woundSuccess = true; flavorText = `<span style="color:#ff4444">Broken Right Leg!</span>`; }
+                // Get target from parent message (wound is applied to the TARGET, not the attacker)
+                const messageId = card.closest(".message").data("messageId");
+                const parentMessage = game.messages.get(messageId);
+                const parentTargets = parentMessage?.flags?.sla?.targets || [];
+                
+                // Apply wound to the first target
+                if (parentTargets.length > 0) {
+                    const targetToken = await fromUuid(parentTargets[0]);
+                    const targetActor = targetToken?.actor;
+                    
+                    if (targetActor) {
+                        const wounds = targetActor.system.wounds;
+                        if (location === "arm") {
+                            if (!wounds.lArm) { 
+                                await targetActor.update({ "system.wounds.lArm": true }); 
+                                woundSuccess = true; 
+                                flavorText = `<span style="color:#ff4444">Snapped ${targetActor.name}'s Left Arm!</span>`; 
+                            }
+                            else if (!wounds.rArm) { 
+                                await targetActor.update({ "system.wounds.rArm": true }); 
+                                woundSuccess = true; 
+                                flavorText = `<span style="color:#ff4444">Snapped ${targetActor.name}'s Right Arm!</span>`; 
+                            }
+                        } else if (location === "leg") {
+                            if (!wounds.lLeg) { 
+                                await targetActor.update({ "system.wounds.lLeg": true }); 
+                                woundSuccess = true; 
+                                flavorText = `<span style="color:#ff4444">Broken ${targetActor.name}'s Left Leg!</span>`; 
+                            }
+                            else if (!wounds.rLeg) { 
+                                await targetActor.update({ "system.wounds.rLeg": true }); 
+                                woundSuccess = true; 
+                                flavorText = `<span style="color:#ff4444">Broken ${targetActor.name}'s Right Leg!</span>`; 
+                            }
+                        }
+                    }
                 }
 
                 if (woundSuccess) {
@@ -93,14 +121,22 @@ export class SLAChat {
         let roll = new Roll(rollFormula);
         await roll.evaluate();
 
-        // CHECK MIN DAMAGE
-        const minDmg = Number(btn.data("min")) || 0;
-        let finalTotal = roll.total;
+        // CHECK MIN DAMAGE AND PREVENT NEGATIVE DAMAGE
+        // If min damage is not populated, assume it's 0
+        // Handle both string and number formats - use attr() for reliable reading
+        const minDmgRaw = btn.attr("data-min") || btn.data("min") || "0";
+        const minDmg = Math.max(0, Number(minDmgRaw) || 0);
+        let finalTotal = Math.max(0, roll.total); // Never allow negative damage
 
-        if (minDmg > 0 && finalTotal < minDmg) {
+        console.log(`SLA | Damage Roll - Raw: ${roll.total}, Min Damage (raw: "${minDmgRaw}", parsed: ${minDmg}), Final Before Check: ${finalTotal}`);
+
+        // Always enforce minimum damage (even if it's 0)
+        if (finalTotal < minDmg) {
             console.log(`SLA | Min Damage Triggered: ${finalTotal} -> ${minDmg}`);
             finalTotal = minDmg;
-            flavorText += `<br/><span style="color:orange; font-size:0.9em;">(Raised to Min Damage ${minDmg})</span>`;
+            if (minDmg > 0) {
+                flavorText += `<br/><span style="color:orange; font-size:0.9em;">(Raised to Min Damage ${minDmg})</span>`;
+            }
 
             // Critical: Force the text property of the roll instance
             // The Roll instance is immutable-ish, but for display and apply buttons data, we need this.
@@ -108,6 +144,8 @@ export class SLAChat {
         } else {
             console.log(`SLA | Min Damage Check: ${finalTotal} >= ${minDmg} (No Change)`);
         }
+        
+        console.log(`SLA | Final Damage Total: ${finalTotal}`);
 
         const templateData = {
             damageTotal: finalTotal,
@@ -122,14 +160,115 @@ export class SLAChat {
         const parentMessage = game.messages.get(messageId);
         const parentTargets = parentMessage?.flags?.sla?.targets || [];
 
-        roll.toMessage({
+        const damageMessage = await roll.toMessage({
             speaker: ChatMessage.getSpeaker({ actor: actor }),
             content: content,
             flags: {
                 sla: {
-                    targets: parentTargets
+                    targets: parentTargets,
+                    autoApply: action === "wound" // Flag for auto-apply
                 }
             }
+        });
+
+        // AUTO-APPLY DAMAGE FOR WOUND CHOICES
+        if (action === "wound" && parentTargets.length > 0) {
+            // Wait a moment for the message to render
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Get the first target (primary target)
+            const targetUuid = parentTargets[0];
+            if (targetUuid) {
+                // Automatically apply damage to the target
+                await this._applyDamageToTarget(finalTotal, adValue, targetUuid);
+            }
+        }
+    }
+
+    /**
+     * Helper: Apply damage directly to a target (used for auto-apply on wound choices)
+     */
+    static async _applyDamageToTarget(rawDamage, ad, targetUuid) {
+        // Find the target token/actor
+        const token = await fromUuid(targetUuid);
+        const victim = token?.actor;
+        
+        if (!victim) {
+            console.warn("SLA | Auto-apply: Target not found", targetUuid);
+            return;
+        }
+
+        // 3. ARMOR LOGIC (Find Equipped Armor)
+        const armorItem = victim.items.find(i => i.type === "armor" && i.system.equipped);
+
+        let targetPV = 0;
+        let armorData = null;
+
+        // A. Determine PV (Protection Value)
+        if (armorItem) {
+            targetPV = armorItem.system.pv || 0;
+        } else if (victim.system.armor?.pv) {
+            // Natural Armor Fallback (NPCs)
+            targetPV = victim.system.armor.pv || 0;
+        }
+
+        // B. Apply AD (Armor Degradation) Logic
+        let effectivePV = targetPV;
+
+        if (armorItem && ad > 0) {
+            const currentRes = armorItem.system.resistance?.value || 0;
+            const maxRes = armorItem.system.resistance?.max || 10;
+
+            // 1. Reduce Resistance
+            const newRes = Math.max(0, currentRes - ad);
+
+            // 2. Update the Item
+            await armorItem.update({ "system.resistance.value": newRes });
+
+            // 3. Calculate Effective PV based on NEW Resistance state
+            if (newRes <= 0) {
+                effectivePV = 0; // Armor Destroyed
+            } else if (newRes < (maxRes / 2)) {
+                effectivePV = Math.floor(targetPV / 2); // Armor Compromised
+            } else {
+                effectivePV = targetPV; // Armor Intact
+            }
+
+            // Prepare Data for Template
+            armorData = {
+                current: currentRes,
+                new: newRes,
+                ad: ad,
+                effectivePV: effectivePV
+            };
+        }
+
+        // 4. DAMAGE CALCULATION (Dmg - Effective PV)
+        let finalDamage = Math.max(0, rawDamage - effectivePV);
+
+        // 5. APPLY TO HP
+        let currentHP = victim.system.hp.value;
+        let newHP = currentHP - finalDamage;
+
+        await victim.update({ "system.hp.value": newHP });
+
+        // 6. CHAT REPORT
+        const templateData = {
+            victimName: victim.name,
+            rawDamage: rawDamage,
+            targetPV: targetPV,
+            finalDamage: finalDamage,
+            hpData: {
+                old: currentHP,
+                new: newHP
+            },
+            armorData: armorData
+        };
+
+        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-damage-result.hbs", templateData);
+
+        ChatMessage.create({
+            content: content
         });
     }
 
@@ -345,7 +484,20 @@ export class SLAChat {
                 if (skillSuccessCount === 1) { mosDamageBonus = 1; mosEffectText = "+1 Damage"; }
                 else if (skillSuccessCount === 2) { mosEffectText = "MOS 2: Choose Effect"; mosChoiceData = { hasChoice: true, choiceType: "arm", choiceDmg: 2 }; }
                 else if (skillSuccessCount === 3) { mosEffectText = "MOS 3: Choose Effect"; mosChoiceData = { hasChoice: true, choiceType: "leg", choiceDmg: 4 }; }
-                else if (skillSuccessCount >= 4) { mosDamageBonus = 6; mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)"; }
+                else if (skillSuccessCount >= 4) { 
+                    mosDamageBonus = 6; 
+                    mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)";
+                    
+                    // AUTO-APPLY HEAD WOUND ON HEAD SHOT (when recalculated)
+                    const targets = flags.targets || [];
+                    if (targets.length > 0) {
+                        const targetToken = await fromUuid(targets[0]);
+                        const targetActor = targetToken?.actor;
+                        if (targetActor && !targetActor.system.wounds.head) {
+                            await targetActor.update({ "system.wounds.head": true });
+                        }
+                    }
+                }
             } else if (result.successThroughExperience) {
                 mosEffectText = "Success Through Experience";
             }

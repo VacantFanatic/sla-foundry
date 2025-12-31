@@ -147,30 +147,46 @@ export function prepareItems(items, rollData) {
 function resolveDamage(dmg, minDamage, rollData) {
     try {
         const dmgStr = String(dmg || "0");
+        const minDmg = Math.max(0, Number(minDamage) || 0);
         
-        // Only resolve if it contains a variable (e.g. @stats) or math
+        // Check if it contains dice (e.g., "1d6", "2d4+1")
+        if (dmgStr.includes("d")) {
+            // Keep formula if dice present (minDamage will be enforced during roll)
+            return dmgStr;
+        }
+        
+        // Check if it contains a variable (e.g. @stats) or math operators
         if (typeof dmg === "string" && (dmgStr.includes("@") || dmgStr.match(/[+\-*\/]/))) {
-            // If no dice, we can try to evaluate it.
-            if (!dmgStr.includes("d")) {
-                // Helper: Replace data
-                const resolvedFormula = Roll.replaceFormulaData(dmgStr, rollData);
-                // Evaluate math string
-                let total = Math.round(Number(Function('"use strict";return (' + resolvedFormula + ')')()));
+            // Resolve formula with variables
+            const resolvedFormula = Roll.replaceFormulaData(dmgStr, rollData);
+            // Evaluate math string
+            let total = Math.round(Number(Function('"use strict";return (' + resolvedFormula + ')')()));
 
-                // CHECK MIN DAMAGE
-                if (!isNaN(total)) {
-                    const minDmg = Number(minDamage) || 0;
-                    if (total < minDmg) {
-                        total = minDmg;
-                    }
+            // CHECK MIN DAMAGE
+            if (!isNaN(total)) {
+                total = Math.max(0, total); // Never allow negative damage
+                if (total < minDmg) {
+                    total = minDmg;
                 }
-
-                return isNaN(total) ? dmgStr : total;
-            } else {
-                return dmgStr; // Keep formula if dice present
             }
+
+            return isNaN(total) ? dmgStr : total;
         } else {
-            return dmg;
+            // Static damage value (no formula, no dice)
+            // Convert to number and apply minDamage
+            let total = Number(dmg);
+            if (isNaN(total)) {
+                // If conversion fails, return original
+                return dmg;
+            }
+            
+            // Apply minDamage to static values
+            total = Math.max(0, total); // Never allow negative damage
+            if (total < minDmg) {
+                total = minDmg;
+            }
+            
+            return total;
         }
     } catch (err) {
         console.warn(`SLA | Failed to resolve damage`, err);

@@ -9,27 +9,36 @@
  * @param {Object} mods - The modifiers object to update.
  */
 export function applyMeleeModifiers(form, strValue, mods) {
-    // STR Bonus
+    // STR Bonus (Rulebook: STR 1-4 = no modifier, STR 5 = +1, STR 6 = +2, STR 7+ = +4)
     if (strValue >= 7) mods.damage += 4;
     else if (strValue === 6) mods.damage += 2;
     else if (strValue === 5) mods.damage += 1;
+    // STR 1-4: No modifier (implicit)
 
-    // Checkboxes
+    // Checkboxes (Hand-to-Hand Attack Modifiers)
+    // Charging: -1 to Success Die and +1 Skill Die success
     if (form.charging?.checked) { 
         mods.successDie -= 1; 
         mods.autoSkillSuccesses += 1; 
     }
+    // Target charged you OR moved more than Closing speed: -1 to Success Die
     if (form.targetCharged?.checked) mods.successDie -= 1;
+    // Successfully hit same target last round: +1 to Success Die
     if (form.sameTarget?.checked) mods.successDie += 1;
+    // Target performing Break Off: +1 to Success Die
     if (form.breakOff?.checked) mods.successDie += 1;
+    // Attacking with natural weapons: +1 to Success Die
     if (form.natural?.checked) mods.successDie += 1;
+    // Target Prone/Stunned/Immobile: +2 to Success Die
     if (form.prone?.checked) mods.successDie += 2;
 
     // Read Reserved Dice Input
     mods.reservedDice = Number(form.reservedDice?.value) || 0;
 
     // Defense Inputs
+    // Combat Defence: -1 to all dice per rank
     mods.allDice -= (Number(form.combatDef?.value) || 0);
+    // Acrobatic Defence: -2 to all dice per rank
     mods.allDice -= ((Number(form.acroDef?.value) || 0) * 2);
 }
 
@@ -94,9 +103,10 @@ export async function applyRangedModifiers(item, form, mods, notes, flags) {
     }
 
     // 3. APPLY RECOIL
+    // Rulebook: "-1 to Success Die for each point of recoil"
     if (recoilPenalty > 0) {
-        mods.allDice -= recoilPenalty;
-        notes.push(`Recoil -${recoilPenalty}.`);
+        mods.successDie -= recoilPenalty;
+        notes.push(`Recoil -${recoilPenalty} SD.`);
     }
 
     // 4. CONSUME AMMO
@@ -114,8 +124,9 @@ export async function applyRangedModifiers(item, form, mods, notes, flags) {
     if (form.prone?.checked) mods.successDie += 1;
 
     if (form.longRange?.checked) {
+        // Rulebook: "-1 Skill Die" (reducing rank by 1 reduces skill dice by 1)
         mods.rank -= 1;
-        notes.push("Long Range.");
+        notes.push("Long Range (-1 Skill Die).");
     }
 
     if (modeKey !== "suppressive" && modeKey !== "suppress") {
@@ -144,7 +155,7 @@ export function calculateRangePenalty(token, target, maxRange) {
     
     return {
         isLongRange,
-        penaltyMsg: isLongRange ? "Long Range (-1 Success Die)" : ""
+        penaltyMsg: isLongRange ? "Long Range (-1 Skill Die)" : ""
     };
 }
 
