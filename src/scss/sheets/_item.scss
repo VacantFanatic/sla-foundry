@@ -3,10 +3,10 @@
    ========================================== */
 /* Basic Item */
 .item .window-content {
-    background: #e0e0e0 !important;
-    border: 4px solid #333;
-    font-family: "Arial", sans-serif;
-    color: #111;
+    background: var(--sla-bg-dark) !important;
+    border: 4px solid var(--sla-border);
+    font-family: var(--sla-font-mono);
+    color: var(--sla-text-light);
 }
 
 .item .sheet-header {
@@ -31,25 +31,26 @@
 /* Academic Theme (Skills/Traits) */
 .item.skill .window-content,
 .item.trait .window-content {
-    background: #ffffff !important;
-    font-family: "Georgia", serif;
+    background: var(--sla-bg-dark) !important;
+    font-family: var(--sla-font-mono);
+    color: var(--sla-text-light);
 }
 
 .item.skill .sheet-header,
 .item.trait .sheet-header {
-    background: transparent !important;
+    background: var(--sla-bg-panel) !important;
     border: none;
-    border-bottom: 2px solid #000;
-    color: #000 !important;
+    border-bottom: 2px solid var(--sla-border);
+    color: var(--sla-text-light) !important;
 }
 
 .item.skill input,
 .item.trait input {
-    background: transparent !important;
-    border: none !important;
-    border-bottom: 1px dotted #000 !important;
-    color: #000 !important;
-    font-family: "Georgia", serif;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid var(--sla-border) !important;
+    border-bottom: 1px dotted var(--sla-border) !important;
+    color: var(--sla-text-light) !important;
+    font-family: var(--sla-font-mono);
     font-weight: bold;
 }
 
@@ -319,9 +320,9 @@
    ========================================== */
 .academic-paper {
     padding: 20px;
-    font-family: "Georgia", serif;
-    background: #ffffff;
-    color: #000000;
+    font-family: var(--sla-font-mono);
+    background: var(--sla-bg-dark);
+    color: var(--sla-text-light);
     border-radius: 4px;
     height: 100%;
 }
@@ -329,7 +330,7 @@
 .academic-paper .line-item {
     display: flex;
     align-items: baseline;
-    border-bottom: 1px dotted #666;
+    border-bottom: 1px dotted var(--sla-border);
     margin-bottom: 8px;
     padding-bottom: 2px;
 }
@@ -338,17 +339,17 @@
     flex: 0 0 auto;
     font-weight: bold;
     margin-right: 10px;
-    color: #333;
+    color: var(--sla-text-light);
 }
 
 .academic-paper input,
 .academic-paper select {
     flex: 1;
-    background: transparent !important;
-    border: none !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid var(--sla-border) !important;
     font-family: inherit;
     font-size: 1.1em;
-    color: #000 !important;
+    color: var(--sla-text-light) !important;
 }
 
 /* ==========================================

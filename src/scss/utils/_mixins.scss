@@ -1,16 +1,156 @@
+/**
+ * Reusable SCSS Mixins
+ */
+
+// ==========================================
+// UTILITY MIXINS
+// ==========================================
+
 @mixin element-invisible {
   position: absolute;
-
   width: 1px;
   height: 1px;
   margin: -1px;
   border: 0;
   padding: 0;
-
   clip: rect(0 0 0 0);
   overflow: hidden;
 }
 
 @mixin hide {
   display: none;
+}
+
+// ==========================================
+// LAYOUT MIXINS
+// ==========================================
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// ==========================================
+// TYPOGRAPHY MIXINS
+// ==========================================
+
+@mixin font-header {
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+@mixin font-body {
+  font-family: var(--sla-font-mono);
+  font-size: 13px;
+}
+
+// ==========================================
+// BUTTON MIXINS
+// ==========================================
+
+@mixin button-base {
+  padding: 4px 8px;
+  border: $border-width solid;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  font-family: var(--sla-font-mono);
+  font-size: 0.9em;
+  transition: all $transition-base;
+  text-transform: uppercase;
+  font-weight: bold;
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 5px var(--sla-accent);
+  }
+}
+
+@mixin button-primary {
+  @include button-base;
+  background: #000;
+  border-color: #39ff14;
+  color: #39ff14;
+  
+  &:hover {
+    background: #002200;
+    box-shadow: 0 0 5px rgba(57, 255, 20, 0.4);
+  }
+}
+
+@mixin button-danger {
+  @include button-base;
+  background: #330000;
+  border-color: #ff4444;
+  color: #ffcccc;
+  
+  &:hover {
+    background: #550000;
+    box-shadow: 0 0 5px rgba(255, 68, 68, 0.4);
+  }
+}
+
+// ==========================================
+// INPUT MIXINS
+// ==========================================
+
+@mixin input-base {
+  background: #000;
+  color: var(--sla-text-light);
+  border: $border-width solid #555;
+  border-radius: var(--sla-radius);
+  height: 26px;
+  padding: 1px $padding-sm;
+  font-family: var(--sla-font-mono);
+  
+  &:focus {
+    box-shadow: 0 0 5px var(--sla-accent);
+    background: #111;
+    outline: none;
+  }
+}
+
+// ==========================================
+// CARD MIXINS
+// ==========================================
+
+@mixin card-base {
+  padding: 8px;
+  border-radius: $border-radius;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+@mixin card-accent($color: var(--sla-accent)) {
+  @include card-base;
+  background: #000;
+  border: $border-width solid $color;
+  border-left: 4px solid $color;
+}
+
+// ==========================================
+// SECTION HEADER MIXIN
+// ==========================================
+
+@mixin section-header {
+  @include font-header;
+  background: #111;
+  color: var(--sla-accent);
+  padding: 4px;
+  margin: -8px -8px 8px -8px;
+  border-bottom: $border-width solid var(--sla-border);
+  text-align: center;
+  letter-spacing: 1px;
 }

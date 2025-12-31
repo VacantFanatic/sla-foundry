@@ -1,6 +1,17 @@
 /* ==========================================
    SLA Industries 2E - Main SCSS
    ========================================== */
+/**
+ * Consolidated Variables
+ * Single source of truth for all SCSS variables
+ */
+/**
+ * Reusable SCSS Mixins
+ */
+/**
+ * CSS Custom Properties (Variables)
+ * These are available at runtime and can be overridden
+ */
 @import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&display=swap");
 :root {
   --sla-bg-dark: #1a1a25;
@@ -12,25 +23,39 @@
   --sla-font-mono: Josefin Sans, sans-serif;
   --sla-font-header: Josefin Sans, sans-serif;
   --sla-radius: 4px;
+  --sla-padding-sm: 5px;
+  --sla-padding-md: 10px;
+  --sla-padding-lg: 20px;
+  --sla-transition: 0.2s ease;
 }
 
+/**
+ * Global Base Styles
+ * Uses mixins and variables for consistency
+ */
+/**
+ * Reusable SCSS Mixins
+ */
+/**
+ * Consolidated Variables
+ * Single source of truth for all SCSS variables
+ */
 /* ==========================================
    0. FONTS
    ========================================== */
 /* ==========================================
-   1. GLOBAL VARIABLES & WINDOW STYLES
+   1. WINDOW STYLES
    ========================================== */
-/* WINDOW CONTENT (Dark Theme) */
 .sla-industries.sheet.actor .window-content,
 .sla-industries.sheet.item .window-content {
-  background-image: none !important;
-  background: var(--sla-bg-dark) !important;
-  background-color: var(--sla-bg-dark) !important;
+  background-image: none;
+  background: var(--sla-bg-dark);
+  background-color: var(--sla-bg-dark);
   color: var(--sla-text-light);
   font-family: var(--sla-font-mono);
   font-size: 13px;
-  padding: 0 !important;
-  overflow: hidden !important;
+  padding: 0;
+  overflow: hidden;
   border: 2px solid var(--sla-border);
 }
 
@@ -39,14 +64,14 @@ form.sla-sheet {
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow: hidden !important;
-  background: transparent !important;
+  overflow: hidden;
+  background: transparent;
   padding: 5px;
 }
 
 /* UTILITIES */
 .sla-pad {
-  padding: 8px !important;
+  padding: 8px;
 }
 
 /* ==========================================
@@ -56,15 +81,15 @@ form.sla-sheet {
 .sla-sheet input[type=number],
 .sla-sheet select {
   background: #000;
-  color: #e0e0e0;
+  color: var(--sla-text-light);
   border: 1px solid #555;
   border-radius: var(--sla-radius);
   height: 26px;
   padding: 1px 5px;
   font-family: var(--sla-font-mono);
 }
-
-.sla-sheet input:focus,
+.sla-sheet input[type=text]:focus,
+.sla-sheet input[type=number]:focus,
 .sla-sheet select:focus {
   box-shadow: 0 0 5px var(--sla-accent);
   background: #111;
@@ -72,7 +97,20 @@ form.sla-sheet {
 }
 
 /* ==========================================
-   12. PAUSE ANIMATION
+   3. DROPDOWN CONTRAST FIX
+   ========================================== */
+select {
+  background-color: #222;
+  color: #fff;
+  border: 1px solid #444;
+}
+select option {
+  background-color: #222;
+  color: #fff;
+}
+
+/* ==========================================
+   4. PAUSE ANIMATION
    ========================================== */
 #pause {
   background: rgba(0, 0, 0, 0.7);
@@ -83,9 +121,10 @@ form.sla-sheet {
 #pause figcaption {
   font-family: var(--sla-font-header);
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   font-size: 2em;
   letter-spacing: 2px;
-  text-transform: uppercase;
   animation: slaRedPulse 2s infinite ease-in-out;
 }
 
@@ -116,98 +155,328 @@ form.sla-sheet {
     opacity: 1;
   }
 }
-/* ==========================================
-   15. DROPDOWN CONTRAST FIX
-   ========================================== */
-select {
-  background-color: #222;
-  color: #fff;
-  border: 1px solid #444;
-}
-select option {
-  background-color: #222;
-  color: #fff;
+/**
+ * Window Styles
+ * Optimized with variables
+ */
+/**
+ * Consolidated Variables
+ * Single source of truth for all SCSS variables
+ */
+.window-app {
+  font-family: "Josefin Sans", sans-serif;
 }
 
-/* ==========================================
-   11. DIALOG THEME (Attack & Luck)
-   ========================================== */
+.rollable:hover, .rollable:focus {
+  color: #000;
+  text-shadow: 0 0 10px red;
+  cursor: pointer;
+}
+
+.flex-group-center,
+.flex-group-left,
+.flex-group-right {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.flex-group-left {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.flex-group-right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.flexshrink {
+  flex: 0;
+}
+
+.flex-between {
+  justify-content: space-between;
+}
+
+.flexlarge {
+  flex: 2;
+}
+
+.align-left {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.align-right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.align-center {
+  justify-content: center;
+  text-align: center;
+}
+
+.grid,
+.grid-2col {
+  display: grid;
+  grid-column: span 2/span 2;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0;
+  padding: 0;
+}
+
+.grid-3col {
+  grid-column: span 3/span 3;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-4col {
+  grid-column: span 4/span 4;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid-5col {
+  grid-column: span 5/span 5;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.grid-6col {
+  grid-column: span 6/span 6;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.grid-7col {
+  grid-column: span 7/span 7;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.grid-8col {
+  grid-column: span 8/span 8;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.grid-9col {
+  grid-column: span 9/span 9;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+}
+
+.grid-10col {
+  grid-column: span 10/span 10;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+}
+
+.grid-11col {
+  grid-column: span 11/span 11;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+}
+
+.grid-12col {
+  grid-column: span 12/span 12;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.grid-start-2 {
+  grid-column-start: 2;
+}
+
+.grid-start-3 {
+  grid-column-start: 3;
+}
+
+.grid-start-4 {
+  grid-column-start: 4;
+}
+
+.grid-start-5 {
+  grid-column-start: 5;
+}
+
+.grid-start-6 {
+  grid-column-start: 6;
+}
+
+.grid-start-7 {
+  grid-column-start: 7;
+}
+
+.grid-start-8 {
+  grid-column-start: 8;
+}
+
+.grid-start-9 {
+  grid-column-start: 9;
+}
+
+.grid-start-10 {
+  grid-column-start: 10;
+}
+
+.grid-start-11 {
+  grid-column-start: 11;
+}
+
+.grid-start-12 {
+  grid-column-start: 12;
+}
+
+.grid-span-2 {
+  grid-column-end: span 2;
+}
+
+.grid-span-3 {
+  grid-column-end: span 3;
+}
+
+.grid-span-4 {
+  grid-column-end: span 4;
+}
+
+.grid-span-5 {
+  grid-column-end: span 5;
+}
+
+.grid-span-6 {
+  grid-column-end: span 6;
+}
+
+.grid-span-7 {
+  grid-column-end: span 7;
+}
+
+.grid-span-8 {
+  grid-column-end: span 8;
+}
+
+.grid-span-9 {
+  grid-column-end: span 9;
+}
+
+.grid-span-10 {
+  grid-column-end: span 10;
+}
+
+.grid-span-11 {
+  grid-column-end: span 11;
+}
+
+.grid-span-12 {
+  grid-column-end: span 12;
+}
+
+/**
+ * Dialog Theme (Attack & Luck)
+ * Optimized with mixins and reduced !important usage
+ */
+/**
+ * Reusable SCSS Mixins
+ */
+/**
+ * Consolidated Variables
+ * Single source of truth for all SCSS variables
+ */
 .sla-dialog-window.dialog {
-  background: url("") !important;
-  background-color: var(--sla-bg-dark) !important;
-  border: 2px solid var(--sla-border) !important;
+  background: url("");
+  background-color: var(--sla-bg-dark);
+  border: 2px solid var(--sla-border);
   box-shadow: 0 0 20px #000;
   color: var(--sla-text-light);
   border-radius: 5px;
 }
 .sla-dialog-window.dialog .window-header {
-  background: #111 !important;
+  background: #111;
   border-bottom: 2px solid var(--sla-accent);
-  color: #fff !important;
+  color: #fff;
   font-family: var(--sla-font-header);
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
   padding: 5px 10px;
 }
 .sla-dialog-window.dialog .window-content {
-  background: var(--sla-bg-dark) !important;
+  background: var(--sla-bg-dark);
   color: var(--sla-text-light);
   padding: 10px;
   font-family: var(--sla-font-header);
 }
 .sla-dialog-window.dialog select,
 .sla-dialog-window.dialog input {
-  background-color: #000 !important;
-  color: #fff !important;
-  border: 1px solid var(--sla-border) !important;
+  background: #000;
+  color: var(--sla-text-light);
+  border: 1px solid #555;
   border-radius: var(--sla-radius);
   height: 28px;
-  padding-left: 5px;
+  padding: 1px 5px;
+  font-family: var(--sla-font-mono);
+}
+.sla-dialog-window.dialog select:focus,
+.sla-dialog-window.dialog input:focus {
+  box-shadow: 0 0 5px var(--sla-accent);
+  background: #111;
+  outline: none;
 }
 .sla-dialog-window.dialog .dialog-buttons .dialog-button {
-  background: #2a2a35;
+  background: var(--sla-bg-panel);
   border: 1px solid var(--sla-accent);
   color: var(--sla-accent);
   font-family: var(--sla-font-header);
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
   margin-top: 15px;
+  padding: 5px 10px;
+  transition: all 0.2s ease;
 }
 .sla-dialog-window.dialog .dialog-buttons .dialog-button:hover {
   background: var(--sla-accent);
   color: #000;
-  box-shadow: 0 0 15px var(--sla-accent-faint);
+  box-shadow: 0 0 10px var(--sla-accent);
 }
 
-/* ==========================================
-   10. CHAT CARD STYLING
-   ========================================== */
+/**
+ * Chat Card Styling
+ * Optimized with mixins and variables
+ */
+/**
+ * Reusable SCSS Mixins
+ */
+/**
+ * Consolidated Variables
+ * Single source of truth for all SCSS variables
+ */
 .sla-chat-card {
-  font-family: "Josefin Sans", sans-serif;
+  font-family: var(--sla-font-mono);
+  font-size: 13px;
   font-size: 14px;
   color: #eee;
 }
 .sla-chat-card h3 {
-  font-family: "Josefin Sans", sans-serif;
-  font-weight: bold;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
   margin: 0 0 5px 0;
   border-bottom: 1px solid #555;
 }
 .sla-chat-card .dice-rerolled {
-  border-style: dotted !important;
-  text-decoration-style: dotted !important;
+  border-style: dotted;
+  text-decoration-style: dotted;
 }
 .sla-chat-card .sla-diff-btn {
-  background: #111;
-  border: 1px solid #444;
-  color: #aaa;
   padding: 2px 6px;
-  font-family: "Josefin Sans", sans-serif;
-  font-size: 0.9em;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  border: 1px solid #444;
   border-radius: 2px;
+  cursor: pointer;
+  font-family: var(--sla-font-mono);
+  font-size: 0.9em;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  font-weight: bold;
+  background: #111;
+  border-color: #444;
+  color: #aaa;
 }
 .sla-chat-card .sla-diff-btn:hover {
   background: #333;
@@ -215,19 +484,28 @@ select option {
   color: #fff;
   box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
 }
+.sla-chat-card .sla-diff-btn:focus {
+  outline: none;
+  box-shadow: 0 0 5px var(--sla-accent);
+}
 .sla-chat-card .mos-choice-container button {
-  font-family: "Josefin Sans", sans-serif;
-  font-size: 0.9em;
   padding: 4px 8px;
+  border: 1px solid;
+  border-radius: 2px;
   cursor: pointer;
+  font-family: var(--sla-font-mono);
+  font-size: 0.9em;
+  transition: all 0.2s ease;
   text-transform: uppercase;
   font-weight: bold;
-  border-radius: 2px;
-  transition: all 0.2s ease;
+}
+.sla-chat-card .mos-choice-container button:focus {
+  outline: none;
+  box-shadow: 0 0 5px var(--sla-accent);
 }
 .sla-chat-card .mos-choice-container .chat-btn-wound {
   background: #330000;
-  border: 1px solid #ff4444;
+  border-color: #ff4444;
   color: #ffcccc;
 }
 .sla-chat-card .mos-choice-container .chat-btn-wound:hover {
@@ -236,7 +514,7 @@ select option {
 }
 .sla-chat-card .mos-choice-container .chat-btn-damage {
   background: #000;
-  border: 1px solid #39ff14;
+  border-color: #39ff14;
   color: #39ff14;
 }
 .sla-chat-card .mos-choice-container .chat-btn-damage:hover {
@@ -246,28 +524,28 @@ select option {
 
 /* Damage Result Card */
 .sla-chat-card.damage-result {
+  padding: 8px;
+  border-radius: 4px;
   background: #000;
   border: 1px solid #d00;
   border-left: 4px solid #d00;
-  padding: 8px;
-  border-radius: 4px;
   box-shadow: 0 0 5px rgba(221, 0, 0, 0.2);
 }
 .sla-chat-card.damage-result .damage-header {
   color: #ff3333;
   font-family: var(--sla-font-header);
   font-weight: 700;
-  font-size: 1.1em;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 1.1em;
   border-bottom: 1px solid #500;
   margin-bottom: 6px;
   padding-bottom: 2px;
-  letter-spacing: 0.5px;
 }
 .sla-chat-card.damage-result .damage-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 2px;
   font-size: 0.95em;
 }
@@ -304,6 +582,7 @@ select option {
   margin-top: 4px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
 }
 .sla-chat-card.damage-result .damage-armor i {
@@ -312,23 +591,23 @@ select option {
 
 /* Drug Use Card */
 .sla-chat-card.drug-use {
-  background: #1a1a25;
-  border: 1px solid #d05e1a;
-  border-left: 4px solid #d05e1a;
   padding: 8px;
   border-radius: 4px;
+  background: #000;
+  border: 1px solid var(--sla-accent);
+  border-left: 4px solid var(--sla-accent);
   box-shadow: 0 0 5px rgba(208, 94, 26, 0.2);
 }
 .sla-chat-card.drug-use .drug-header {
-  color: #d05e1a;
+  color: var(--sla-accent);
   font-family: var(--sla-font-header);
   font-weight: 700;
-  font-size: 1.1em;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 1.1em;
   border-bottom: 1px solid #555;
   margin-bottom: 6px;
   padding-bottom: 2px;
-  letter-spacing: 0.5px;
 }
 .sla-chat-card.drug-use .drug-content {
   font-size: 0.95em;
@@ -342,6 +621,188 @@ select option {
 }
 .sla-chat-card.drug-use .drug-details strong {
   color: #ccc;
+}
+
+/**
+ * Form Styles
+ * Optimized with mixins
+ */
+/**
+ * Reusable SCSS Mixins
+ */
+/**
+ * Consolidated Variables
+ * Single source of truth for all SCSS variables
+ */
+.item-form {
+  font-family: "Josefin Sans", sans-serif;
+}
+
+.sheet-header {
+  flex: 0 auto;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+}
+.sheet-header .profile-img {
+  flex: 0 0 100px;
+  height: 100px;
+  margin-right: 10px;
+}
+.sheet-header .header-fields {
+  flex: 1;
+}
+.sheet-header h1.charname {
+  height: 50px;
+  padding: 0;
+  margin: 5px 0;
+  border-bottom: 0;
+}
+.sheet-header h1.charname input {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.sheet-tabs {
+  flex: 0;
+}
+
+.sheet-body,
+.sheet-body .tab,
+.sheet-body .tab .editor {
+  height: 100%;
+}
+
+.tox .tox-editor-container {
+  background: #fff;
+}
+.tox .tox-edit-area {
+  padding: 0 8px;
+}
+
+.items-header {
+  height: 28px;
+  margin: 2px 0;
+  padding: 0;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.05);
+  border: 2px groove #eeede0;
+  font-weight: bold;
+}
+.items-header > * {
+  font-size: 14px;
+  text-align: center;
+}
+.items-header .item-name {
+  font-weight: bold;
+  padding-left: 5px;
+  text-align: left;
+  display: flex;
+}
+
+.items-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  color: #444;
+}
+.items-list .item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.items-list .item-name {
+  flex: 2;
+  margin: 0;
+  overflow: hidden;
+  font-size: 13px;
+  text-align: left;
+  align-items: center;
+  display: flex;
+}
+.items-list .item-name h3, .items-list .item-name h4 {
+  margin: 0;
+  white-space: nowrap;
+  overflow-x: hidden;
+}
+.items-list .item-controls {
+  display: flex;
+  flex: 0 0 100px;
+  justify-content: flex-end;
+}
+.items-list .item-controls a {
+  font-size: 12px;
+  text-align: center;
+  margin: 0 6px;
+}
+.items-list .item {
+  align-items: center;
+  padding: 0 2px;
+  border-bottom: 1px solid #c9c7b8;
+}
+.items-list .item:last-child {
+  border-bottom: none;
+}
+.items-list .item .item-name {
+  color: #191813;
+}
+.items-list .item .item-name .item-image {
+  flex: 0 0 30px;
+  height: 30px;
+  background-size: 30px;
+  border: none;
+  margin-right: 5px;
+}
+.items-list .item-prop {
+  text-align: center;
+  border-left: 1px solid #c9c7b8;
+  border-right: 1px solid #c9c7b8;
+  font-size: 12px;
+}
+.items-list .items-header {
+  height: 28px;
+  margin: 2px 0;
+  padding: 0;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.05);
+  border: 2px groove #eeede0;
+  font-weight: bold;
+}
+.items-list .items-header > * {
+  font-size: 12px;
+  text-align: center;
+}
+.items-list .items-header .item-name {
+  padding-left: 5px;
+  text-align: left;
+}
+
+.item-formula {
+  flex: 0 0 200px;
+  padding: 0 8px;
+}
+
+.effects .item .effect-source,
+.effects .item .effect-duration,
+.effects .item .effect-controls {
+  text-align: center;
+  border-left: 1px solid #c9c7b8;
+  border-right: 1px solid #c9c7b8;
+  font-size: 12px;
+}
+.effects .item .effect-controls {
+  border: none;
+}
+
+.resource-label {
+  font-weight: bold;
 }
 
 /* ==========================================
@@ -1601,10 +2062,10 @@ select option {
    ========================================== */
 /* Basic Item */
 .item .window-content {
-  background: #e0e0e0 !important;
-  border: 4px solid #333;
-  font-family: "Arial", sans-serif;
-  color: #111;
+  background: var(--sla-bg-dark) !important;
+  border: 4px solid var(--sla-border);
+  font-family: var(--sla-font-mono);
+  color: var(--sla-text-light);
 }
 
 .item .sheet-header {
@@ -1628,25 +2089,26 @@ select option {
 /* Academic Theme (Skills/Traits) */
 .item.skill .window-content,
 .item.trait .window-content {
-  background: #ffffff !important;
-  font-family: "Georgia", serif;
+  background: var(--sla-bg-dark) !important;
+  font-family: var(--sla-font-mono);
+  color: var(--sla-text-light);
 }
 
 .item.skill .sheet-header,
 .item.trait .sheet-header {
-  background: transparent !important;
+  background: var(--sla-bg-panel) !important;
   border: none;
-  border-bottom: 2px solid #000;
-  color: #000 !important;
+  border-bottom: 2px solid var(--sla-border);
+  color: var(--sla-text-light) !important;
 }
 
 .item.skill input,
 .item.trait input {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 1px dotted #000 !important;
-  color: #000 !important;
-  font-family: "Georgia", serif;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid var(--sla-border) !important;
+  border-bottom: 1px dotted var(--sla-border) !important;
+  color: var(--sla-text-light) !important;
+  font-family: var(--sla-font-mono);
   font-weight: bold;
 }
 
@@ -1915,9 +2377,9 @@ select option {
    ========================================== */
 .academic-paper {
   padding: 20px;
-  font-family: "Georgia", serif;
-  background: #ffffff;
-  color: #000000;
+  font-family: var(--sla-font-mono);
+  background: var(--sla-bg-dark);
+  color: var(--sla-text-light);
   border-radius: 4px;
   height: 100%;
 }
@@ -1925,7 +2387,7 @@ select option {
 .academic-paper .line-item {
   display: flex;
   align-items: baseline;
-  border-bottom: 1px dotted #666;
+  border-bottom: 1px dotted var(--sla-border);
   margin-bottom: 8px;
   padding-bottom: 2px;
 }
@@ -1934,17 +2396,17 @@ select option {
   flex: 0 0 auto;
   font-weight: bold;
   margin-right: 10px;
-  color: #333;
+  color: var(--sla-text-light);
 }
 
 .academic-paper input,
 .academic-paper select {
   flex: 1;
-  background: transparent !important;
-  border: none !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid var(--sla-border) !important;
   font-family: inherit;
   font-size: 1.1em;
-  color: #000 !important;
+  color: var(--sla-text-light) !important;
 }
 
 /* ==========================================

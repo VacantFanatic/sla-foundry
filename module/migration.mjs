@@ -6,13 +6,16 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
 
 // 1. Define the target version for THIS specific migration
 //    (Matches the version in your system.json)
-export const CURRENT_MIGRATION_VERSION = "0.20.0";
+export const CURRENT_MIGRATION_VERSION = "0.21.0";
 
 /**
  * Main Entry Point
  */
 export async function migrateWorld() {
     ui.notifications.info(`SLA Industries System: Applying Migration to version ${CURRENT_MIGRATION_VERSION}. Please wait...`, { permanent: true });
+
+    // Run version-specific migrations
+    await migrateTo0210();
 
     const meleeSkills = ["melee", "unarmed", "thrown"];
 
@@ -315,4 +318,19 @@ async function getSpeciesMigrationData(item) {
     }
 
     return hasChanges ? updateData : null;
+}
+
+/**
+ * Migration for version 0.21.0
+ * Handles any data structure changes introduced in this version
+ */
+async function migrateTo0210() {
+    // Version 0.21.0: Code refactoring and CSS optimization
+    // No data structure changes required
+    // This migration function is a placeholder for future migrations
+    
+    // If any data migrations are needed in the future, add them here
+    // For now, this version only includes code refactoring improvements
+    
+    console.log("SLA Industries | Migration 0.21.0: Code refactoring (no data changes required)");
 }

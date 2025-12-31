@@ -2,14 +2,26 @@
    SLA Industries 2E - Main SCSS
    ========================================== */
 
-// Global Config
+// Import order matters - variables and mixins first
+@import 'utils/variables';
 @import 'utils/typography';
+@import 'utils/mixins';
+@import 'utils/colors';
+
+// Global styles
 @import 'global/variables';
 @import 'global/base';
+@import 'global/window';
+@import 'global/flex';
+@import 'global/grid';
 
 // Components
 @import 'components/dialog';
 @import 'components/chat';
+@import 'components/forms';
+@import 'components/items';
+@import 'components/effects';
+@import 'components/resource';
 
 // Sheets
 @import 'sheets/actor';
