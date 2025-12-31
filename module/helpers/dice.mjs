@@ -6,7 +6,7 @@
  * Calculates the success state of a roll.
  * @param {Roll} roll - The Foundry Roll object.
  * @param {number} baseModifier - The numeric modifier added to dice results.
- * @param {number} tn - Target Number (default 11).
+ * @param {number} tn - Target Number (default 10).
  * @param {object} options - Additional options (e.g. luck bonus).
  * @returns {object} { isSuccess, total, skillHits, skillDiceData, sdRaw, successThroughExperience }
  */
