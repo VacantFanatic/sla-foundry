@@ -1,14 +1,27 @@
-// ==========================================
-//    GLOBAL VARIABLES
-// ==========================================
+/**
+ * CSS Custom Properties (Variables)
+ * These are available at runtime and can be overridden
+ */
+
 :root {
+    // Colors
     --sla-bg-dark: #1a1a25;
     --sla-bg-panel: #2a2a35;
     --sla-border: #444455;
     --sla-text-light: #e0e0e0;
     --sla-accent: #D05E1A;
     --sla-accent-faint: #D05E1A40;
+    
+    // Typography
     --sla-font-mono: #{$font-secondary};
     --sla-font-header: #{$font-primary};
+    
+    // Spacing
     --sla-radius: 4px;
+    --sla-padding-sm: #{$padding-sm};
+    --sla-padding-md: #{$padding-md};
+    --sla-padding-lg: #{$padding-lg};
+    
+    // Transitions
+    --sla-transition: #{$transition-base};
 }

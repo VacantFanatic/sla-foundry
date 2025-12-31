@@ -4,6 +4,8 @@
  */
 import { LuckDialog } from "../apps/luck-dialog.mjs";
 import { calculateRollResult, generateDiceTooltip, createSLARoll } from "../helpers/dice.mjs";
+import { prepareItems } from "../helpers/items.mjs";
+import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from "../helpers/modifiers.mjs";
 
 export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
@@ -87,182 +89,11 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
     }
 
     _prepareItems(context) {
-        // 1. Initialize Containers
-        const inventory = {
-            weapon: { label: "Weapons", items: [] },
-            armor: { label: "Armor", items: [] },
-            explosive: { label: "Explosives", items: [] },
-            magazine: { label: "Ammunition", items: [] },
-            drug: { label: "Drugs", items: [] },
-            item: { label: "Gear", items: [] }
-        };
-
-        const traits = [];
-        const ebbFormulas = [];
-        const disciplines = [];
-        const skills = [];
-
-        // Skill Buckets
-        const skillsByStat = {
-            "str": { label: "STR", items: [] },
-            "dex": { label: "DEX", items: [] },
-            "know": { label: "KNOW", items: [] },
-            "conc": { label: "CONC", items: [] },
-            "cha": { label: "CHA", items: [] },
-            "cool": { label: "COOL", items: [] },
-            "other": { label: "OTHER", items: [] }
-        };
-
-        // Separate Arrays for Combat Tab
-        const weapons = [];
-        const armors = [];
-
-        // 2. Sort Items into Containers
-        for (let i of context.items) {
-            i.img = i.img || DEFAULT_TOKEN;
-
-            // INVENTORY GROUPS
-            if (inventory[i.type]) {
-                inventory[i.type].items.push(i);
-            }
-
-            // COMBAT TAB SPECIFIC
-            if (i.type === 'weapon') {
-                // --- NEW: RELOAD LOGIC ---
-                // Hide reload button if skill is melee or unarmed
-                const skillKey = (i.system.skill || "").toLowerCase();
-                i.isReloadable = !["melee", "unarmed"].includes(skillKey);
-
-                weapons.push(i);
-
-                // --- NEW: Resolve Display Damage ---
-                try {
-                    const dmg = i.system.damage || "0";
-                    // Only resolve if it contains a variable (e.g. @stats) or math
-                    if (typeof dmg === "string" && (dmg.includes("@") || dmg.match(/[+\-*\/]/))) {
-                        // Create a temporary roll to solve the equation
-                        // We use the actor's roll data
-                        const r = new Roll(dmg, context.rollData);
-                        // Safe synchronous evaluation if possible, or use safeEval if not
-                        // V12+: r.evaluateSync() exists for purely deterministic rolls? 
-                        // Actually, Roll.evaluate() is async. 
-                        // But we are in a sync function (_prepareItems).
-                        // However, simple math with data substitution often doesn't need the async evaluation if no dice are involved.
-                        // Let's use string replacement + math evaluation if dice are NOT involved.
-
-                        if (!dmg.includes("d")) {
-                            // If no dice, we can try to evaluate it.
-                            // Helper: Replace data
-                            const resolvedFormula = Roll.replaceFormulaData(dmg, context.rollData);
-                            // Evaluate math string
-                            let total = Math.round(Number(Function('"use strict";return (' + resolvedFormula + ')')()));
-
-                            // CHECK MIN DAMAGE
-                            if (!isNaN(total)) {
-                                const minDmg = Number(i.system.minDamage) || 0;
-                                if (total < minDmg) {
-                                    total = minDmg;
-                                }
-                            }
-
-                            i.resolvedDamage = isNaN(total) ? dmg : total;
-                        } else {
-                            i.resolvedDamage = dmg; // Keep formula if dice present
-                        }
-                    } else {
-                        i.resolvedDamage = dmg;
-                    }
-                } catch (err) {
-                    console.warn(`SLA | Failed to resolve damage for ${i.name}`, err);
-                    i.resolvedDamage = i.system.damage;
-                }
-                // -----------------------------------
-            }
-
-            if (i.type === 'explosive') {
-                weapons.push(i); // Add to combat tab
-                i.resolvedDamage = i.system.damage;
-            }
-
-            if (i.type === 'armor') armors.push(i);
-
-            // OTHER ITEMS
-            if (i.type === 'trait') traits.push(i);
-            else if (i.type === 'ebbFormula') ebbFormulas.push(i);
-            else if (i.type === 'discipline') disciplines.push(i);
-
-            else if (i.type === 'skill') {
-                const stat = (i.system.stat || "dex").toLowerCase();
-                if (skillsByStat[stat]) skillsByStat[stat].items.push(i);
-                else skillsByStat["other"].items.push(i);
-                skills.push(i);
-            }
-        }
-
-        // 3. Sorting Function (Alphabetical)
-        const sortFn = (a, b) => a.name.localeCompare(b.name);
-
-        // Sort every list
-        Object.values(inventory).forEach(cat => cat.items.sort(sortFn));
-        traits.sort(sortFn);
-        ebbFormulas.sort(sortFn);
-        disciplines.sort(sortFn);
-        weapons.sort(sortFn);
-        armors.sort(sortFn);
-        skills.sort(sortFn);
-
-        for (const key in skillsByStat) {
-            skillsByStat[key].items.sort(sortFn);
-        }
-
-        // 4. Ebb Nesting Logic
-        // FIX: Config property is 'disciplineSkills', not 'ebbDisciplines'
-        const configDis = CONFIG.SLA?.disciplineSkills || {};
-        const nestedDisciplines = [];
-        const rawFormulas = [...ebbFormulas];
-
-        disciplines.forEach(d => {
-            d.formulas = [];
-            nestedDisciplines.push(d);
-        });
-
-        rawFormulas.forEach(f => {
-            const rawKey = f.system.discipline || "";
-            const key = rawKey.toLowerCase();
-
-            // Find parent where Name matches Key OR Name matches Config Label
-            const parent = nestedDisciplines.find(d => {
-                const dName = d.name.toLowerCase();
-                // Check 1: Direct Match (case-insensitive)
-                if (dName === key) return true;
-
-                // Check 2: Config Match
-                // If the formula has a key like "telekinesis", config might have "Telekinesis"
-                const label = configDis[rawKey] || configDis[key];
-                if (label && dName === label.toLowerCase()) return true;
-
-                return false;
-            });
-
-            if (parent) parent.formulas.push(f);
-            else {
-                // Push to a "Uncategorized" pseudo-parent? 
-                // Or just leave them in top list?
-                // For now, if no parent found, they might disappear from the tree view if the HBS expects them nested.
-                // We should probably check HBS. If HBS iterates 'disciplines' and then 'd.formulas', unnested ones are lost?
-                // Let's verify HBS. For now, this FIXES the matching issue.
-            }
-        });
-
-        // 5. Assign to Context
-        context.inventory = inventory;
-        context.traits = traits;
-        context.disciplines = nestedDisciplines;
-        context.skillsByStat = skillsByStat;
-
-        context.weapons = weapons;
-        context.armors = armors;
-        context.skills = skills;
+        // Use the helper function to prepare items
+        const itemData = prepareItems(context.items, context.rollData);
+        
+        // Assign to context
+        Object.assign(context, itemData);
     }
 
     /* -------------------------------------------- */
@@ -668,14 +499,10 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             const strRange = item.system.range || "10";
             const maxRange = parseInt(strRange) || 10; // Simple integer parse
 
-            // Measure Distance
-            const dist = canvas.grid.measurePath([token, target]).distance;
-
-            // Check > 50%
-            if (dist > (maxRange / 2)) {
-                isLongRange = true;
-                rangePenaltyMsg = "Long Range (-1 Success Die)";
-            }
+            // Use helper function
+            const rangeData = calculateRangePenalty(token, target, maxRange);
+            isLongRange = rangeData.isLongRange;
+            rangePenaltyMsg = rangeData.penaltyMsg;
         }
         // -------------------------
 
@@ -873,7 +700,6 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             const strRange = item.system.range || "10";
             const maxRange = parseInt(strRange) || 10;
 
-            // Measure Distance
             // Use token associated with actor, or default to checking canvas
             let token = this.actor.token?.object || this.token;
             if (!token) {
@@ -882,8 +708,8 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             }
 
             if (token) {
-                const dist = canvas.grid.measurePath([token, target]).distance;
-                if (dist > (maxRange / 2)) {
+                const rangeData = calculateRangePenalty(token, target, maxRange);
+                if (rangeData.isLongRange) {
                     mods.successDie -= 1;
                     notes.push("Long Range (-1 SD)");
                 }
@@ -1821,112 +1647,12 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
     // --- HELPER: MELEE LOGIC ---
     _applyMeleeModifiers(form, strValue, mods) {
-        // STR Bonus
-        if (strValue >= 7) mods.damage += 4;
-        else if (strValue === 6) mods.damage += 2;
-        else if (strValue === 5) mods.damage += 1;
-
-        // Checkboxes (Use ?.checked)
-        if (form.charging?.checked) { mods.successDie -= 1; mods.autoSkillSuccesses += 1; }
-        if (form.targetCharged?.checked) mods.successDie -= 1;
-        if (form.sameTarget?.checked) mods.successDie += 1;
-        if (form.breakOff?.checked) mods.successDie += 1;
-        if (form.natural?.checked) mods.successDie += 1;
-        if (form.prone?.checked) mods.successDie += 2;
-
-        // NEW: Read Reserved Dice Input
-        mods.reservedDice = Number(form.reservedDice?.value) || 0;
-
-        // Defense Inputs (Use ?.value)
-        mods.allDice -= (Number(form.combatDef?.value) || 0);
-        mods.allDice -= ((Number(form.acroDef?.value) || 0) * 2);
+        applyMeleeModifiers(form, strValue, mods);
     }
 
     // --- HELPER: RANGED LOGIC ---
     async _applyRangedModifiers(item, form, mods, notes, flags) {
-        const modeSelect = $(form).find('#fire-mode').find(':selected');
-        const modeKey = modeSelect.val() || "single";
-
-        const roundsUsed = parseInt(modeSelect.data("rounds")) || 1;
-        const recoilPenalty = parseInt(modeSelect.data("recoil")) || 0;
-
-        // FIX 1: Read 'ammo' directly as a number (matches your HBS partial)
-        const currentAmmo = Number(item.system.ammo) || 0;
-
-        // 1. VALIDATE AMMO RULES
-        const activeModes = Object.values(item.system.firingModes || {}).filter(m => m.active);
-        const minDeviceRounds = activeModes.reduce((min, m) => Math.min(min, m.rounds), 999);
-
-        // Rule A: Not enough ammo
-        if (currentAmmo < roundsUsed) {
-            // Rule B: Only allow if this is the lowest mode
-            if (roundsUsed > minDeviceRounds) {
-                ui.notifications.error(`Not enough ammo for ${modeSelect.text().split('(')[0].trim()}. Switch to a lower mode.`);
-                return false; // STOP THE ROLL
-            }
-
-            // Rule C: Lowest mode penalty
-            mods.damage -= 2;
-            notes.push("Low Ammo (-2 DMG).");
-
-            const minDmg = item.system.minDamage || "0";
-            if (minDmg !== "0") notes.push(`(Min DMG ${minDmg} applies)`);
-        }
-
-        // 2. APPLY MODE BONUSES
-        switch (modeKey) {
-            case "burst":
-                mods.damage += 2;
-                notes.push("Burst (+2 Dmg).");
-                flags.rerollSD = true;
-                break;
-            case "auto":
-                mods.damage += 4;
-                notes.push("Full Auto (+4 Dmg).");
-                flags.rerollAll = true;
-                break;
-            case "suppressive":
-            case "suppress":
-                mods.autoSkillSuccesses += 2;
-                mods.damage += 4;
-                notes.push("Suppressive (+4 Dmg, +2 Auto Hits).");
-                flags.rerollAll = true;
-                break;
-        }
-
-        // 3. APPLY RECOIL
-        if (recoilPenalty > 0) {
-            mods.allDice -= recoilPenalty;
-            notes.push(`Recoil -${recoilPenalty}.`);
-        }
-
-        // 4. CONSUME AMMO
-        const actualCost = Math.min(currentAmmo, roundsUsed);
-        if (actualCost > 0) {
-            // FIX 2: Update 'system.ammo' directly (Removed .value)
-            await item.update({ "system.ammo": currentAmmo - actualCost });
-        }
-
-        // 5. OTHER INPUTS (Cover, Aiming, etc.)
-        mods.successDie += (Number(form.cover?.value) || 0);
-        mods.successDie += (Number(form.dual?.value) || 0);
-
-        if (form.targetMoved?.checked) mods.successDie -= 1;
-        if (form.blind?.checked) mods.allDice -= 1;
-        if (form.prone?.checked) mods.successDie += 1;
-
-        if (form.longRange?.checked) {
-            mods.rank -= 1;
-            notes.push("Long Range.");
-        }
-
-        if (modeKey !== "suppressive" && modeKey !== "suppress") {
-            const aimVal = form.aiming?.value;
-            if (aimVal === "sd") mods.successDie += 1;
-            if (aimVal === "skill") mods.autoSkillSuccesses += 1;
-        }
-
-        return true;
+        return await applyRangedModifiers(item, form, mods, notes, flags);
     }
 
     // --- HELPERS: HTML GENERATION ---

@@ -1,5 +1,49 @@
+/**
+ * Consolidated Variables
+ * Single source of truth for all SCSS variables
+ */
+
+// ==========================================
+// TYPOGRAPHY
+// ==========================================
+$font-primary: "Josefin Sans", sans-serif;
+$font-secondary: "Josefin Sans", sans-serif;
+
+// ==========================================
+// SPACING
+// ==========================================
+$padding-xs: 2px;
 $padding-sm: 5px;
 $padding-md: 10px;
 $padding-lg: 20px;
 
+$margin-xs: 2px;
+$margin-sm: 5px;
+$margin-md: 10px;
+$margin-lg: 20px;
+
+// ==========================================
+// BORDERS
+// ==========================================
+$border-width: 1px;
+$border-width-thick: 2px;
+$border-radius: 4px;
+$border-radius-sm: 2px;
 $border-groove: 2px groove #eeede0;
+
+// ==========================================
+// LEGACY COLORS (for backward compatibility)
+// ==========================================
+$c-white: #fff;
+$c-black: #000;
+$c-dark: #191813;
+$c-faint: #c9c7b8;
+$c-beige: #b5b3a4;
+$c-tan: #444;
+
+// ==========================================
+// TRANSITIONS
+// ==========================================
+$transition-fast: 0.15s ease;
+$transition-base: 0.2s ease;
+$transition-slow: 0.3s ease;
