@@ -442,7 +442,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 flags: {
                     sla: {
                         baseModifier: finalMod,
-                        itemName: `${statLabel} CHECK`
+                        itemName: `${statLabel} CHECK`,
+                        notes: "", // Store notes in flags for difficulty recalculation
+                        tn: 10 // Store TN for reference
                     }
                 }
             });
@@ -619,7 +621,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                     baseModifier: baseModifier,
                     itemName: item.name.toUpperCase(),
                     rofRerollSD: false,
-                    rofRerollSkills: []
+                    rofRerollSkills: [],
+                    notes: "", // Store notes in flags for difficulty recalculation
+                    tn: 10 // Store TN for reference
                 }
             }
         });
@@ -771,7 +775,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         await roll.evaluate();
 
         // We pass the final Base Mod and Success Die Mod
-        const result = calculateRollResult(roll, baseModifier, undefined, {
+        // TN (Target Number) is 10 for all weapon attacks (melee and ranged)
+        const TN = 10;
+        const result = calculateRollResult(roll, baseModifier, TN, {
             autoSkillSuccesses: mods.aimAuto || 0,
             successDieModifier: mods.successDie // Pass explicit SD mod
         });
@@ -1005,7 +1011,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                     autoSkillSuccesses: mods.autoSkillSuccesses,
                     // NEW FLAGS for Recalculation
                     successDieModifier: mods.successDie,
-                    isWeapon: true
+                    isWeapon: true,
+                    notes: notes.join(" "), // Store notes in flags for difficulty recalculation
+                    tn: TN // Store TN for reference
                 }
             }
         });
@@ -1348,7 +1356,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                     itemName: item.name.toUpperCase(),
                     targets: Array.from(game.user.targets).map(t => t.document.uuid),
                     damageBase: baseDmg,
-                    adValue: adValue
+                    adValue: adValue,
+                    notes: notes.join(" "), // Store notes in flags for difficulty recalculation
+                    tn: 10 // Store TN for reference (explosives use TN 10)
                 }
             }
         });
@@ -1513,7 +1523,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                     baseModifier: modifier,
                     itemName: item.name.toUpperCase(),
                     isWeapon: false,
-                    isEbb: true // Flag as Ebb
+                    isEbb: true, // Flag as Ebb
+                    notes: `<strong>Formula Rating:</strong> ${formulaRating}`, // Store notes in flags for difficulty recalculation
+                    tn: formulaRating // Store TN (Formula Rating) for reference
                 }
             }
         });
