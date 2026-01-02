@@ -1,0 +1,20 @@
+name: my-module CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create Release
+      id: create_latest_release
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true
+        name: Latest
+        draft: true
+        prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: './system.json'
+        tag: latest
