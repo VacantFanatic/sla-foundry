@@ -112,6 +112,14 @@ export class BoilerplateActor extends Actor {
         // Ensure wounds object exists (should be in schema, but defensive check)
         if (!system.wounds) system.wounds = {};
         
+        // Initialize wound fields if they don't exist (for NPCs that were created before schema update)
+        const woundFields = ['head', 'torso', 'lArm', 'rArm', 'lLeg', 'rLeg'];
+        for (const field of woundFields) {
+            if (system.wounds[field] === undefined) {
+                system.wounds[field] = false;
+            }
+        }
+        
         let woundCount = 0;
         const w = system.wounds;
         // Safely count wounds (handles undefined/null values)
@@ -661,6 +669,13 @@ export class BoilerplateActor extends Actor {
         const conditionChanges = foundry.utils.getProperty(changed, "system.conditions");
         const woundChanges = foundry.utils.getProperty(changed, "system.wounds");
 
+        // Debug logging for NPCs
+        if (this.type === 'npc') {
+            console.log("SLA | NPC _onUpdate - changed:", changed);
+            console.log("SLA | NPC _onUpdate - woundChanges:", woundChanges);
+            console.log("SLA | NPC _onUpdate - conditionChanges:", conditionChanges);
+        }
+
         // A. Handle Manual Condition Toggles (Clicking icons)
         if (conditionChanges) {
             const syncStatus = async (id, isState) => {
@@ -676,8 +691,33 @@ export class BoilerplateActor extends Actor {
         }
 
         // B. Handle Wound Logic (Head -> Stunned, Legs -> Immobile, Any -> Bleeding)
+        // Check if ANY wound field changed - Foundry uses flat keys like "system.wounds.head"
+        const woundFieldNames = ["head", "torso", "lArm", "rArm", "lLeg", "rLeg"];
+        let hasWoundChange = false;
+        
+        // Check if woundChanges object exists (nested update)
         if (woundChanges) {
-            await this._handleWoundEffects(woundChanges);
+            hasWoundChange = true;
+        } else {
+            // Check for flat path updates (e.g., "system.wounds.head")
+            // Also check if any key in changed starts with "system.wounds."
+            const changedKeys = Object.keys(changed);
+            for (const key of changedKeys) {
+                if (key.startsWith("system.wounds.")) {
+                    const fieldName = key.replace("system.wounds.", "");
+                    if (woundFieldNames.includes(fieldName)) {
+                        hasWoundChange = true;
+                        break;
+                    }
+                }
+            }
+        }
+            
+        if (hasWoundChange) {
+            console.log("SLA | Wound change detected, calling _handleWoundEffects");
+            console.log("SLA | Changed object:", changed);
+            console.log("SLA | Changed object keys:", Object.keys(changed));
+            await this._handleWoundEffects(woundChanges || {});
         }
 
         // 2. SEPARATE LOGIC: Handle HP Auto-Wounding
@@ -699,6 +739,12 @@ export class BoilerplateActor extends Actor {
         if (!this.system.wounds) this.system.wounds = {};
         const w = this.system.wounds;
         const effectsToToggle = [];
+
+        // Debug logging
+        if (this.type === 'npc') {
+            console.log("SLA | _handleWoundEffects - Current wounds:", w);
+            console.log("SLA | _handleWoundEffects - woundChanges:", woundChanges);
+        }
 
         // Helper to check if effect exists
         const hasEffect = (id) => this.effects.some(e => e.statuses.has(id));
@@ -753,6 +799,9 @@ export class BoilerplateActor extends Actor {
 
         // EXECUTE UPDATES
         // processing sequentially to avoid race conditions
+        if (this.type === 'npc' && effectsToToggle.length > 0) {
+            console.log("SLA | NPC - Toggling effects:", effectsToToggle);
+        }
         for (const change of effectsToToggle) {
             await this.toggleStatusEffect(change.id, { active: change.active });
         }
