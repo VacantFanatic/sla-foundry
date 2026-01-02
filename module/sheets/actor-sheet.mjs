@@ -250,12 +250,61 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         // --- WOUND CHECKBOXES ---
         html.find('.wound-checkbox').change(async ev => {
             const target = ev.currentTarget;
-            const isChecked = target.checked;
             const field = target.name;
+            const isChecked = target.checked;
+            
+            // Get current value before update - use the correct path
+            const systemPath = field.replace("system.", "");
+            const currentValue = foundry.utils.getProperty(this.actor.system, systemPath);
+            
+            console.log("SLA Industries | Wound checkbox changed:", {
+                field: field,
+                systemPath: systemPath,
+                checked: isChecked,
+                currentValue: currentValue,
+                actorType: this.actor.type,
+                actorName: this.actor.name
+            });
 
-            // Update the actor. The _onUpdate method in Actor.mjs will handle
-            // the side effects (Bleeding, Stunned, Immobile).
-            await this.actor.update({ [field]: isChecked });
+            // Update the actor - Foundry's default form handling might not work reliably for nested properties
+            const updateData = { [field]: isChecked };
+            console.log("SLA Industries | Calling actor.update with:", updateData);
+            
+            try {
+                await this.actor.update(updateData);
+                console.log("SLA Industries | actor.update completed");
+                
+                // Handle wound effects after a brief delay to let data sync
+                if (field.startsWith("system.wounds.")) {
+                    // Ensure checkbox state is correct immediately
+                    target.checked = isChecked;
+                    
+                    // Wait longer for Foundry to sync the data model
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    // Verify the update took effect
+                    const updatedValue = foundry.utils.getProperty(this.actor.system, systemPath);
+                    console.log("SLA Industries | After delay, wound value is:", updatedValue);
+                    
+                    // Ensure checkbox state matches
+                    target.checked = isChecked;
+                    
+                    console.log("SLA Industries | Wound field updated, calling _handleWoundEffects");
+                    
+                    if (this.actor._handleWoundEffects) {
+                        // Pass the update data so _handleWoundEffects can use it
+                        const woundUpdateData = { [field]: isChecked };
+                        console.log("SLA Industries | Passing woundUpdateData to _handleWoundEffects:", woundUpdateData);
+                        await this.actor._handleWoundEffects(woundUpdateData);
+                    } else {
+                        console.warn("SLA Industries | _handleWoundEffects method not found on actor");
+                    }
+                }
+            } catch (error) {
+                console.error("SLA Industries | Error updating actor:", error);
+                // Revert checkbox on error
+                target.checked = !isChecked;
+            }
         });
 
         // --- COMPENDIUM LINKS ---
