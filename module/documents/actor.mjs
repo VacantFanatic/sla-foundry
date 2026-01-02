@@ -109,14 +109,18 @@ export class BoilerplateActor extends Actor {
     /* 2. Wounds & Conditions                       */
     /* -------------------------------------------- */
     _calculateWounds(system) {
+        // Ensure wounds object exists (should be in schema, but defensive check)
+        if (!system.wounds) system.wounds = {};
+        
         let woundCount = 0;
         const w = system.wounds;
-        if (w.head) woundCount++;
-        if (w.torso) woundCount++;
-        if (w.lArm) woundCount++;
-        if (w.rArm) woundCount++;
-        if (w.lLeg) woundCount++;
-        if (w.rLeg) woundCount++;
+        // Safely count wounds (handles undefined/null values)
+        if (w.head === true) woundCount++;
+        if (w.torso === true) woundCount++;
+        if (w.lArm === true) woundCount++;
+        if (w.rArm === true) woundCount++;
+        if (w.lLeg === true) woundCount++;
+        if (w.rLeg === true) woundCount++;
 
         system.wounds.total = woundCount;
         system.wounds.penalty = woundCount;
@@ -140,9 +144,9 @@ export class BoilerplateActor extends Actor {
         const isCritical = system.hp.value < 6 && !isDead;
         system.conditions.critical = isCritical;
 
-        // Wounds forcing conditions
-        if (w.head) system.conditions.stunned = true;
-        if (w.lLeg && w.rLeg) system.conditions.immobile = true;
+        // Wounds forcing conditions (only set if wound exists)
+        if (w.head === true) system.conditions.stunned = true;
+        if (w.lLeg === true && w.rLeg === true) system.conditions.immobile = true;
     }
 
     /* -------------------------------------------- */
@@ -691,6 +695,8 @@ export class BoilerplateActor extends Actor {
         // ACTUALLY: In _onUpdate, 'this.system' IS already updated to the new state.
         // 'changed' only contains the diff.
 
+        // Ensure wounds object exists
+        if (!this.system.wounds) this.system.wounds = {};
         const w = this.system.wounds;
         const effectsToToggle = [];
 
@@ -699,7 +705,7 @@ export class BoilerplateActor extends Actor {
 
         // 1. HEAD WOUND -> STUNNED
         // If head is wounded and we are not stunned, ADD Stunned
-        if (w.head && !hasEffect("stunned")) {
+        if (w.head === true && !hasEffect("stunned")) {
             // We only add it. We don't remove it auto-magically if healed, 
             // unless the user specifically wants that. 
             // Rule: "Stunned is removed with medical intervention... or rest"
@@ -708,7 +714,7 @@ export class BoilerplateActor extends Actor {
             // but allow manual toggle back if needed.
             effectsToToggle.push({ id: "stunned", active: true });
         }
-        else if (!w.head && hasEffect("stunned")) {
+        else if (w.head !== true && hasEffect("stunned")) {
             // Only remove if it was the head wound causing it? 
             // Hard to know. But typically if you heal the head, the stun might fade.
             // Let's be aggressive for UX: Remove it.
@@ -716,24 +722,27 @@ export class BoilerplateActor extends Actor {
         }
 
         // 2. BOT LEG WOUNDS -> IMMOBILE
-        const legsGone = w.lLeg && w.rLeg;
+        const legsGone = w.lLeg === true && w.rLeg === true;
         if (legsGone && !hasEffect("immobile")) {
             effectsToToggle.push({ id: "immobile", active: true });
         }
         else if (!legsGone && hasEffect("immobile")) {
             // Check if immobile was caused by something else (Encumbrance)?
             // If Encumbrance is forcing immobile, we shouldn't remove it.
-            // We can check encumbrance state.
-            const isEncumbered = this.system.conditions.immobile && (this.system.encumbrance.value > this.system.encumbrance.max);
+            // We can check encumbrance state (only for characters, NPCs don't have encumbrance)
+            const hasEncumbrance = this.system.encumbrance && (this.system.encumbrance.value !== undefined);
+            const isEncumbered = hasEncumbrance && (this.system.encumbrance.value > this.system.encumbrance.max);
 
-            // Only remove if NOT encumbered
+            // Only remove if NOT encumbered (or if NPC which doesn't have encumbrance)
             if (!isEncumbered) {
                 effectsToToggle.push({ id: "immobile", active: false });
             }
         }
 
         // 3. ANY WOUND -> BLEEDING
-        const woundCount = (w.head ? 1 : 0) + (w.torso ? 1 : 0) + (w.lArm ? 1 : 0) + (w.rArm ? 1 : 0) + (w.lLeg ? 1 : 0) + (w.rLeg ? 1 : 0);
+        const woundCount = (w.head === true ? 1 : 0) + (w.torso === true ? 1 : 0) + 
+                          (w.lArm === true ? 1 : 0) + (w.rArm === true ? 1 : 0) + 
+                          (w.lLeg === true ? 1 : 0) + (w.rLeg === true ? 1 : 0);
 
         if (woundCount > 0 && !hasEffect("bleeding")) {
             effectsToToggle.push({ id: "bleeding", active: true });
