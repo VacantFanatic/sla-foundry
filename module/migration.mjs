@@ -6,7 +6,7 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
 
 // 1. Define the target version for THIS specific migration
 //    (Matches the version in your system.json)
-export const CURRENT_MIGRATION_VERSION = "0.21.0";
+export const CURRENT_MIGRATION_VERSION = "0.22.0";
 
 /**
  * Main Entry Point

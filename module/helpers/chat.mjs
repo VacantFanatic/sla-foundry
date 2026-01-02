@@ -539,9 +539,13 @@ export class SLAChat {
         // We reuse the existing flags for adValue, itemName, etc.
         // Get original TN from flags or default to 10
         const originalTN = flags.tn || 10;
-        const baseNotes = flags.notes || "";
+        let baseNotes = flags.notes || "";
+        // Strip any existing TN notes from baseNotes to prevent accumulation
+        // Pattern matches: " (TN X)" or " (TN X → Y)" (matches anywhere, but typically at end)
+        baseNotes = baseNotes.replace(/\s*\(TN\s+\d+(?:\s*→\s*\d+)?\)/g, "").trim();
         // Append TN change note if TN changed
         const tnNote = (newTN !== originalTN) ? ` (TN ${originalTN} → ${newTN})` : ` (TN ${newTN})`;
+        // tnNote already starts with a space, so append it to baseNotes
         const finalNotes = baseNotes + tnNote;
         
         const templateData = {
