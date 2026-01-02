@@ -1,9 +1,6 @@
-name: my-module CI
+name: sla-industries CI
 
-on:
-  push:
-    tags:
-      - v*
+on: [push]
 
 jobs:
   build:
@@ -14,7 +11,7 @@ jobs:
       shell: bash
       id: get-version
       run: echo "::set-output name=version::$(node ./.github/workflows/get-version.js)"
-    - run: zip -r ./my-module.zip module.json my-module.js lang/ templates/
+    - run: git archive --format=zip --output=sla-industries.zip main
     - name: Create Release                                # Create an additional release for this version
       id: create_versioned_release
       uses: ncipollo/release-action@v1
@@ -24,7 +21,7 @@ jobs:
         draft: true
         prerelease: false
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: './module.json,./my-module.zip'
+        artifacts: './system.json,./sla-industries.zip'
         tag: ${{ steps.get-version.outputs.version }} # Use the version as the tag
     - name: Create Release
       id: create_latest_release
@@ -36,5 +33,5 @@ jobs:
         draft: true
         prerelease: false
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: './module.json,./my-module.zip'
+        artifacts: './system.json,./sla-industries.zip'
         tag: latest
