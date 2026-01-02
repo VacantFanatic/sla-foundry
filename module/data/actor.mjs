@@ -58,6 +58,17 @@ export class SlaCharacterData extends foundry.abstract.TypeDataModel {
             xp: new fields.SchemaField({
                 value: new fields.NumberField({ initial: 0, min: 0, integer: true })
             }),
+            xpLedger: new fields.ArrayField(
+                new fields.SchemaField({
+                    timestamp: new fields.NumberField({ initial: 0 }),
+                    type: new fields.StringField(), // "add", "remove", "stat", "skill", "discipline"
+                    description: new fields.StringField(),
+                    xpChange: new fields.NumberField({ initial: 0 }), // positive for add/spend, negative for removal
+                    creditChange: new fields.NumberField({ initial: 0 }), // positive for add/spend, negative for removal
+                    details: new fields.ObjectField({ required: false }) // Additional context (stat name, skill name, etc.)
+                }),
+                { initial: [] }
+            ),
             encumbrance: new fields.SchemaField({
                 value: new fields.NumberField({ initial: 0, min: 0 }),
                 max: new fields.NumberField({ initial: 10, min: 0 })

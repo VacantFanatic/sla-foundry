@@ -97,8 +97,10 @@ Hooks.once('init', async function () {
 /* -------------------------------------------- */
 Handlebars.registerHelper('toLowerCase', function (str) { return str ? str.toLowerCase() : ""; });
 Handlebars.registerHelper('eq', function (a, b) { return a === b; });
+Handlebars.registerHelper('ne', function (a, b) { return a !== b; });
 Handlebars.registerHelper('or', function (a, b) { return a || b; });
 Handlebars.registerHelper('gt', function (a, b) { return a > b; });
+Handlebars.registerHelper('lt', function (a, b) { return a < b; });
 Handlebars.registerHelper('and', function (a, b) { return a && b; });
 
 

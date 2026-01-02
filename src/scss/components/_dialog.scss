@@ -62,3 +62,56 @@
         }
     }
 }
+
+/* XP Dialog Specific Styling */
+.xp-dialog-window.dialog {
+    background: #000 !important;
+    
+    .window-header {
+        background: #000 !important;
+        border-bottom: $border-width-thick solid var(--sla-accent);
+    }
+
+    .window-content {
+        background: #000 !important;
+    }
+
+    .dialog-buttons {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 10px !important;
+        justify-content: flex-end !important;
+        margin-top: 10px !important;
+
+        .dialog-button {
+            margin-top: 0 !important;
+            flex: 0 0 auto !important;
+            
+            &[data-button="cancel"],
+            &.cancel {
+                background: #2a0000 !important;
+                border-color: #ff5555 !important;
+                color: #ff5555 !important;
+                
+                &:hover {
+                    background: #ff5555 !important;
+                    color: #000 !important;
+                    box-shadow: 0 0 10px #ff5555 !important;
+                }
+            }
+            
+            &[data-button="commit"],
+            &.commit {
+                background: #002a00 !important;
+                border-color: #39ff14 !important;
+                color: #39ff14 !important;
+                
+                &:hover {
+                    background: #39ff14 !important;
+                    color: #000 !important;
+                    box-shadow: 0 0 10px #39ff14 !important;
+                }
+            }
+        }
+    }
+}
