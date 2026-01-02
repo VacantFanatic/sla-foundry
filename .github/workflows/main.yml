@@ -1,5 +1,8 @@
 name: sla-industries CI
 
+permissions:
+  contents: write
+
 on: [push]
 
 jobs:
