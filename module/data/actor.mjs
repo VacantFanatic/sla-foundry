@@ -79,7 +79,8 @@ export class SlaCharacterData extends foundry.abstract.TypeDataModel {
                 prone: new fields.BooleanField({ initial: false }),
                 stunned: new fields.BooleanField({ initial: false }),
                 immobile: new fields.BooleanField({ initial: false }),
-                critical: new fields.BooleanField({ initial: false })
+                critical: new fields.BooleanField({ initial: false }),
+                dead: new fields.BooleanField({ initial: false })
             }),
             armor: new fields.SchemaField({
                 pv: new fields.NumberField({ initial: 0 }),
@@ -122,7 +123,23 @@ export class SlaNPCData extends foundry.abstract.TypeDataModel {
                 max: new fields.NumberField({ initial: 10, integer: true })
             }),
             wounds: new fields.SchemaField({
-                penalty: new fields.NumberField({ initial: 0 })
+                head: new fields.BooleanField({ initial: false }),
+                lArm: new fields.BooleanField({ initial: false }),
+                rArm: new fields.BooleanField({ initial: false }),
+                torso: new fields.BooleanField({ initial: false }),
+                lLeg: new fields.BooleanField({ initial: false }),
+                rLeg: new fields.BooleanField({ initial: false }),
+                penalty: new fields.NumberField({ initial: 0 }),
+                damageReduction: new fields.NumberField({ initial: 0 })
+            }),
+            conditions: new fields.SchemaField({
+                bleeding: new fields.BooleanField({ initial: false }),
+                burning: new fields.BooleanField({ initial: false }),
+                prone: new fields.BooleanField({ initial: false }),
+                stunned: new fields.BooleanField({ initial: false }),
+                immobile: new fields.BooleanField({ initial: false }),
+                critical: new fields.BooleanField({ initial: false }),
+                dead: new fields.BooleanField({ initial: false })
             }),
             armor: new fields.SchemaField({
                 pv: new fields.NumberField({ initial: 0 }),

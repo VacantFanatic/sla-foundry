@@ -6,7 +6,7 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
 
 // 1. Define the target version for THIS specific migration
 //    (Matches the version in your system.json)
-export const CURRENT_MIGRATION_VERSION = "0.21.0";
+export const CURRENT_MIGRATION_VERSION = "0.22.0";
 
 /**
  * Main Entry Point
@@ -38,6 +38,60 @@ export async function migrateWorld() {
             if (typeof oldResist === "number") {
                 console.log(`Migrating Actor Data for ${actor.name}: armor.resist to Schema`);
                 actorUpdate["system.armor.resist"] = { value: 0, max: 0 };
+            }
+
+            // Migrate NPC Wound and Condition Fields (if missing)
+            if (actor.type === 'npc') {
+                const wounds = foundry.utils.getProperty(actor, "system.wounds") || {};
+                
+                // Initialize individual wound fields if missing
+                if (wounds.head === undefined) {
+                    actorUpdate["system.wounds.head"] = false;
+                }
+                if (wounds.torso === undefined) {
+                    actorUpdate["system.wounds.torso"] = false;
+                }
+                if (wounds.lArm === undefined) {
+                    actorUpdate["system.wounds.lArm"] = false;
+                }
+                if (wounds.rArm === undefined) {
+                    actorUpdate["system.wounds.rArm"] = false;
+                }
+                if (wounds.lLeg === undefined) {
+                    actorUpdate["system.wounds.lLeg"] = false;
+                }
+                if (wounds.rLeg === undefined) {
+                    actorUpdate["system.wounds.rLeg"] = false;
+                }
+
+                // Initialize conditions field if missing
+                const conditions = foundry.utils.getProperty(actor, "system.conditions");
+                if (!conditions || typeof conditions !== 'object') {
+                    // Entire conditions object is missing - set it all at once
+                    actorUpdate["system.conditions"] = {
+                        bleeding: false,
+                        burning: false,
+                        prone: false,
+                        stunned: false,
+                        immobile: false,
+                        critical: false,
+                        dead: false
+                    };
+                } else {
+                    // Conditions object exists, but individual fields might be missing
+                    // Initialize individual condition fields if missing
+                    if (conditions.bleeding === undefined) actorUpdate["system.conditions.bleeding"] = false;
+                    if (conditions.burning === undefined) actorUpdate["system.conditions.burning"] = false;
+                    if (conditions.prone === undefined) actorUpdate["system.conditions.prone"] = false;
+                    if (conditions.stunned === undefined) actorUpdate["system.conditions.stunned"] = false;
+                    if (conditions.immobile === undefined) actorUpdate["system.conditions.immobile"] = false;
+                    if (conditions.critical === undefined) actorUpdate["system.conditions.critical"] = false;
+                    if (conditions.dead === undefined) actorUpdate["system.conditions.dead"] = false;
+                }
+
+                if (Object.keys(actorUpdate).some(key => key.startsWith("system.wounds.") || key.startsWith("system.conditions"))) {
+                    console.log(`Migrating NPC ${actor.name}: Adding wound and condition fields`);
+                }
             }
 
             // Migrate Luck & Flux Max

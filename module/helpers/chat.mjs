@@ -27,16 +27,17 @@ export class SLAChat {
         const btn = $(ev.currentTarget);
         const card = btn.closest(".sla-chat-card");
 
-        // Determine Action Type
-        const action = btn.data("action") || "standard";
+        try {
+            // Determine Action Type
+            const action = btn.data("action") || "standard";
 
-        // 1. Get Actor
-        const uuid = card.data("actor-uuid");
-        const actorId = card.data("actor-id");
-        let actor = uuid ? await fromUuid(uuid) : game.actors.get(actorId);
+            // 1. Get Actor
+            const uuid = card.data("actor-uuid");
+            const actorId = card.data("actor-id");
+            let actor = uuid ? await fromUuid(uuid) : game.actors.get(actorId);
 
-        if (!actor) return ui.notifications.error("SLA | Actor not found.");
-        if (!actor.isOwner) return ui.notifications.warn("You do not own this actor.");
+            if (!actor) return ui.notifications.error("SLA | Actor not found.");
+            if (!actor.isOwner) return ui.notifications.warn("You do not own this actor.");
 
         // 2. Data Setup
         let rollFormula = "";
@@ -183,6 +184,11 @@ export class SLAChat {
                 await this._applyDamageToTarget(finalTotal, adValue, targetUuid);
             }
         }
+        } catch (err) {
+            console.error("SLA | Error in _onRollDamage:", err);
+            ui.notifications.error("SLA | Failed to roll damage. See console for details.");
+            btn.prop("disabled", false); // Re-enable button on error
+        }
     }
 
     /**
@@ -279,20 +285,21 @@ export class SLAChat {
         ev.preventDefault();
         const btn = $(ev.currentTarget);
 
-        // 1. Get Data from Button
-        const rawDamage = Number(btn.data("dmg"));
-        const ad = Number(btn.data("ad"));
-        const type = btn.data("target");
-        const targetUuid = btn.data("target-uuid");
+        try {
+            // 1. Get Data from Button
+            const rawDamage = Number(btn.data("dmg"));
+            const ad = Number(btn.data("ad"));
+            const type = btn.data("target");
+            const targetUuid = btn.data("target-uuid");
 
-        // 2. Find Victim
-        let victim = null;
+            // 2. Find Victim
+            let victim = null;
 
-        // A. Specific Target (from GM button)
-        if (targetUuid) {
-            const token = await fromUuid(targetUuid);
-            victim = token?.actor;
-        }
+            // A. Specific Target (from GM button)
+            if (targetUuid) {
+                const token = await fromUuid(targetUuid);
+                victim = token?.actor;
+            }
         // B. Selected Token (Apply to Selected)
         else if (type === "selected") {
             victim = canvas.tokens.controlled[0]?.actor;
@@ -376,6 +383,10 @@ export class SLAChat {
         ChatMessage.create({
             content: content
         });
+        } catch (err) {
+            console.error("SLA | Error in _onApplyDamage:", err);
+            ui.notifications.error("SLA | Failed to apply damage. See console for details.");
+        }
     }
 
     /**
@@ -432,17 +443,18 @@ export class SLAChat {
         const btn = $(ev.currentTarget);
         if (!game.user.isGM) return ui.notifications.warn("Only GM can adjust difficulty.");
 
-        const card = btn.closest(".sla-chat-card");
-        const newTN = Number(btn.data("tn"));
+        try {
+            const card = btn.closest(".sla-chat-card");
+            const newTN = Number(btn.data("tn"));
 
-        // Retrieve Data
-        const messageId = card.closest(".message").data("messageId");
-        const message = game.messages.get(messageId);
-        if (!message) return;
+            // Retrieve Data
+            const messageId = card.closest(".message").data("messageId");
+            const message = game.messages.get(messageId);
+            if (!message) return;
 
-        const flags = message.flags.sla || {};
-        const roll = message.rolls[0];
-        if (!roll) return;
+            const flags = message.flags.sla || {};
+            const roll = message.rolls[0];
+            if (!roll) return;
 
         // Preserve Min Damage from existing card if possible
         const minDamage = Number(card.find(".damage-roll").data("min")) || 0;
@@ -525,6 +537,17 @@ export class SLAChat {
 
         // Render Method
         // We reuse the existing flags for adValue, itemName, etc.
+        // Get original TN from flags or default to 10
+        const originalTN = flags.tn || 10;
+        let baseNotes = flags.notes || "";
+        // Strip any existing TN notes from baseNotes to prevent accumulation
+        // Pattern matches: " (TN X)" or " (TN X → Y)" (matches anywhere, but typically at end)
+        baseNotes = baseNotes.replace(/\s*\(TN\s+\d+(?:\s*→\s*\d+)?\)/g, "").trim();
+        // Append TN change note if TN changed
+        const tnNote = (newTN !== originalTN) ? ` (TN ${originalTN} → ${newTN})` : ` (TN ${newTN})`;
+        // tnNote already starts with a space, so append it to baseNotes
+        const finalNotes = baseNotes + tnNote;
+        
         const templateData = {
             actorUuid: card.data("actor-uuid"),
             borderColor: resultColor,
@@ -534,11 +557,7 @@ export class SLAChat {
             successTotal: result.total,
             tooltip: await roll.getTooltip(), // Use standard tooltip or regenerate? Standard is fine.
             skillDice: result.skillDiceData,
-            notes: (flags.notes || "") + ` (TN ${newTN})`, // Append TN note? flags.notes isn't stored! 
-            // Better: Read notes from DOM? Or just ignore notes updates since they are static.
-            // Actually, notes are not in flags.sla. They will be LOST if not preserved.
-            // Let's try to capture them from DOM.
-            notes: card.find("div[style*='font-style:italic']").html(),
+            notes: finalNotes, // Use notes from flags instead of DOM parsing
 
             showDamageButton: showButton,
             dmgFormula: finalDmgFormula,
@@ -569,8 +588,13 @@ export class SLAChat {
 
         await message.update({
             content: chatContent,
-            "flags.sla.tn": newTN
+            "flags.sla.tn": newTN,
+            "flags.sla.notes": finalNotes // Update notes in flags to preserve them
         });
+        } catch (err) {
+            console.error("SLA | Error in _onChangeDifficulty:", err);
+            ui.notifications.error("SLA | Failed to change difficulty. See console for details.");
+        }
     }
 
     /**
@@ -593,13 +617,18 @@ export class SLAChat {
         // 2. Dynamic Target Button for GM
         const targets = message.flags?.sla?.targets || [];
         if (targets.length > 0) {
-            const targetUuid = targets[0]; // Take first target
-            const tokenDocument = await fromUuid(targetUuid);
+            try {
+                const targetUuid = targets[0]; // Take first target
+                const tokenDocument = await fromUuid(targetUuid);
 
-            if (tokenDocument) {
-                const targetBtn = $html.find('.apply-damage-btn[data-target="target"]');
-                targetBtn.html(`<i class="fas fa-crosshairs"></i> Apply to ${tokenDocument.name}`);
-                targetBtn.attr("data-target-uuid", targetUuid);
+                if (tokenDocument) {
+                    const targetBtn = $html.find('.apply-damage-btn[data-target="target"]');
+                    targetBtn.html(`<i class="fas fa-crosshairs"></i> Apply to ${tokenDocument.name}`);
+                    targetBtn.attr("data-target-uuid", targetUuid);
+                }
+            } catch (err) {
+                console.error("SLA | Error in onRenderChatMessage (target button):", err);
+                // Non-critical error, don't show notification
             }
         }
     }
