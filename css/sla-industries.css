@@ -435,6 +435,92 @@ select option {
   box-shadow: 0 0 10px var(--sla-accent);
 }
 
+/* XP Dialog Specific Styling */
+.window-app.xp-dialog-window,
+.window-app.xp-dialog-window .dialog {
+  background: #000 !important;
+}
+
+.window-app.xp-dialog-window .window-header {
+  background: #000 !important;
+  border-bottom: 2px solid var(--sla-accent) !important;
+}
+
+.window-app.xp-dialog-window .window-content {
+  background: #000 !important;
+}
+
+.window-app.xp-dialog-window .dialog-buttons {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 10px !important;
+  justify-content: flex-end !important;
+  margin-top: 10px !important;
+  align-items: center !important;
+}
+
+.window-app.xp-dialog-window .dialog-buttons .dialog-button {
+  margin-top: 0 !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: auto !important;
+  max-width: none !important;
+  padding: 5px 10px !important;
+  font-family: var(--sla-font-header) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-size: inherit !important;
+}
+
+.window-app.xp-dialog-window .dialog-buttons .dialog-button:first-child {
+  background: #2a0000 !important;
+  border-color: #ff5555 !important;
+  color: #ff5555 !important;
+}
+
+.window-app.xp-dialog-window .dialog-buttons .dialog-button:first-child:hover {
+  background: #ff5555 !important;
+  color: #000 !important;
+  box-shadow: 0 0 10px #ff5555 !important;
+}
+
+.window-app.xp-dialog-window .dialog-buttons .dialog-button:last-child {
+  background: #002a00 !important;
+  border-color: #39ff14 !important;
+  color: #39ff14 !important;
+}
+
+.window-app.xp-dialog-window .dialog-buttons .dialog-button:last-child:hover {
+  background: #39ff14 !important;
+  color: #000 !important;
+  box-shadow: 0 0 10px #39ff14 !important;
+}
+
+.window-app.xp-dialog-window .dialog-buttons .dialog-button[data-button="cancel"] {
+  background: #2a0000 !important;
+  border-color: #ff5555 !important;
+  color: #ff5555 !important;
+}
+
+.window-app.xp-dialog-window .dialog-buttons .dialog-button[data-button="cancel"]:hover {
+  background: #ff5555 !important;
+  color: #000 !important;
+  box-shadow: 0 0 10px #ff5555 !important;
+}
+
+.window-app.xp-dialog-window .dialog-buttons .dialog-button[data-button="commit"] {
+  background: #002a00 !important;
+  border-color: #39ff14 !important;
+  color: #39ff14 !important;
+}
+
+.window-app.xp-dialog-window .dialog-buttons .dialog-button[data-button="commit"]:hover {
+  background: #39ff14 !important;
+  color: #000 !important;
+  box-shadow: 0 0 10px #39ff14 !important;
+}
+
 /**
  * Chat Card Styling
  * Optimized with mixins and variables

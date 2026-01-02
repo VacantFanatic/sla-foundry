@@ -1,0 +1,226 @@
+<form class="xp-dialog sla-dialog" style="color:#eee;">
+    {{#if isGM}}
+    {{!-- GM MODE: Simple XP Add/Remove --}}
+    <div class="sla-panel sla-dialog-panel" style="margin-bottom: 8px;">
+        <div class="sla-header-bar-small">Manage Experience Points</div>
+        <div style="padding: 8px;">
+            <p class="notes" style="margin-bottom: 8px; font-size: 0.9em;">
+                Current XP: <strong style="color: #39ff14;">{{currentXP}}</strong>
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-size: 0.9em; margin-bottom: 4px; display: block;">XP Change:</label>
+                    <input type="number" name="xpChange" value="0" 
+                        style="width: 100%; background:#111; color:#fff; border:1px solid #555; padding: 4px 6px; font-size: 0.95em;">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-size: 0.9em; margin-bottom: 4px; display: block;">Reason (optional):</label>
+                    <input type="text" name="xpReason" placeholder="e.g., Session reward" 
+                        style="width: 100%; background:#111; color:#fff; border:1px solid #555; padding: 4px 6px; font-size: 0.95em;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{!-- XP LEDGER --}}
+    {{#if ledgerEntries}}
+    <div class="sla-panel sla-dialog-panel">
+        <div class="sla-header-bar-small">XP Ledger</div>
+        <div style="padding: 6px;">
+            <div style="max-height: 250px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 1em;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #555;">
+                            <th style="text-align: left; padding: 6px 8px; color: #888; font-size: 0.95em;">Date</th>
+                            <th style="text-align: left; padding: 6px 8px; color: #888; font-size: 0.95em;">Type</th>
+                            <th style="text-align: left; padding: 6px 8px; color: #888; font-size: 0.95em;">Description</th>
+                            <th style="text-align: right; padding: 6px 8px; color: #888; font-size: 0.95em;">XP</th>
+                            <th style="text-align: right; padding: 6px 8px; color: #888; font-size: 0.95em;">Credits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each ledgerEntries}}
+                        <tr style="border-bottom: 1px solid #333;">
+                            <td style="padding: 6px 8px; color: #aaa; font-size: 0.95em;">{{this.dateFormatted}}</td>
+                            <td style="padding: 6px 8px;">
+                                <span style="padding: 3px 6px; border-radius: 3px; font-size: 0.85em; 
+                                    {{#if (eq this.type "add")}}background: #0a5; color: #fff;
+                                    {{else if (eq this.type "remove")}}background: #a50; color: #fff;
+                                    {{else if (eq this.type "stat")}}background: #39f; color: #fff;
+                                    {{else if (eq this.type "skill")}}background: #93f; color: #fff;
+                                    {{else if (eq this.type "discipline")}}background: #cfaaf5; color: #000;
+                                    {{else}}background: #555; color: #fff;{{/if}}">
+                                    {{this.type}}
+                                </span>
+                            </td>
+                            <td style="padding: 6px 8px; color: #eee; font-size: 1em;">{{this.description}}</td>
+                            <td style="padding: 6px 8px; text-align: right; font-weight: bold; font-size: 1em;
+                                {{#if (gt this.xpChange 0)}}color: #39ff14;
+                                {{else if (lt this.xpChange 0)}}color: #ff5555;
+                                {{else}}color: #888;{{/if}}">
+                                {{#if (gt this.xpChange 0)}}+{{/if}}{{this.xpChange}}
+                            </td>
+                            <td style="padding: 6px 8px; text-align: right; font-weight: bold; font-size: 1em;
+                                {{#if (gt this.creditChange 0)}}color: #39ff14;
+                                {{else if (lt this.creditChange 0)}}color: #ff5555;
+                                {{else}}color: #888;{{/if}}">
+                                {{#if (gt this.creditChange 0)}}+{{/if}}{{#if (ne this.creditChange 0)}}{{this.creditChange}}{{else}}—{{/if}}
+                            </td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {{/if}}
+
+    {{else}}
+    {{!-- PLAYER MODE: Purchase Upgrades --}}
+    <div class="sla-panel sla-dialog-panel" style="margin-bottom: 10px;">
+        <div class="sla-header-bar-small">Available Resources</div>
+        <div style="padding: 10px;">
+            <div style="display: flex; justify-content: space-around;">
+                <div>
+                    <strong>XP:</strong> {{currentXP}}
+                </div>
+                <div>
+                    <strong>Credits:</strong> {{currentCredits}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{!-- STAT UPGRADES --}}
+    <div class="sla-panel sla-dialog-panel" style="margin-bottom: 10px;">
+        <div class="sla-header-bar-small">Stat Improvements</div>
+        <div style="padding: 10px;">
+            <p class="notes" style="font-size: 0.85em; margin-bottom: 10px;">
+                Cost: 5 + current rank XP per increase. Each stat can only be improved by 1 rank per downtime.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                {{#each stats}}
+                <div class="stat-upgrade-control" style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="font-weight: bold;">{{this.name}}</label>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span style="font-size: 0.9em; color: #888;">Current: {{this.currentValue}}</span>
+                        <button type="button" data-action="increase-stat" data-stat="{{this.key}}" 
+                            style="flex: 1; background:#111; border:1px solid #444; color:#fff; padding: 5px;">
+                            +1
+                        </button>
+                        <button type="button" data-action="decrease-stat" data-stat="{{this.key}}"
+                            style="flex: 1; background:#111; border:1px solid #444; color:#fff; padding: 5px;"
+                            disabled>
+                            -1
+                        </button>
+                    </div>
+                    <div class="pending-stat-{{this.key}}" style="font-size: 0.8em; color: #39ff14; display: none;">
+                        +<span class="pending-stat-value">0</span>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+    </div>
+
+    {{!-- SKILL UPGRADES --}}
+    <div class="sla-panel sla-dialog-panel" style="margin-bottom: 10px;">
+        <div class="sla-header-bar-small">Skill Improvements</div>
+        <div style="padding: 10px;">
+            <p class="notes" style="font-size: 0.85em; margin-bottom: 10px;">
+                Existing skills: 2 + (3 × current rank) XP. Rank 4 requires 500c. New skills: 2 XP at rank 1.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto;">
+                {{#each skills}}
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="flex: 1; min-width: 150px;">{{this.name}} (Rank {{this.system.rank}}):</label>
+                    <select name="skill-upgrade" data-skill-id="{{this._id}}" 
+                        style="flex: 1; background:#333; color:#fff; border:1px solid #555;">
+                        <option value="">-- No change --</option>
+                        {{#each this.upgradeOptions}}
+                        <option value="{{../this._id}}" data-rank="{{this.rank}}">{{this.label}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                {{/each}}
+                {{#if availableSkills.length}}
+                <div style="border-top: 1px solid #555; padding-top: 10px; margin-top: 10px;">
+                    <label style="font-weight: bold;">Learn New Skill:</label>
+                    <select name="new-skill" style="width: 100%; background:#333; color:#fff; border:1px solid #555; margin-top: 5px;">
+                        <option value="">-- Select skill to learn --</option>
+                        {{#each availableSkills}}
+                        <option value="{{this._id}}" data-compendium-id="{{this.compendium.id}}">{{this.name}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+
+    {{!-- DISCIPLINE UPGRADES --}}
+    <div class="sla-panel sla-dialog-panel" style="margin-bottom: 10px;">
+        <div class="sla-header-bar-small">Ebb Discipline Improvements</div>
+        <div style="padding: 10px;">
+            <p class="notes" style="font-size: 0.85em; margin-bottom: 10px;">
+                Existing disciplines: 2 + (3 × current rank) XP. Rank 4: +3 XP (no credit cost). New disciplines: 2 XP at rank 1.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto;">
+                {{#each disciplines}}
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="flex: 1; min-width: 150px;">{{this.name}} (Rank {{this.system.rank}}):</label>
+                    <select name="discipline-upgrade" data-discipline-id="{{this._id}}"
+                        style="flex: 1; background:#333; color:#fff; border:1px solid #555;">
+                        <option value="">-- No change --</option>
+                        {{#each this.upgradeOptions}}
+                        <option value="{{../this._id}}" data-rank="{{this.rank}}">{{this.label}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                {{/each}}
+                {{#if availableDisciplines.length}}
+                <div style="border-top: 1px solid #555; padding-top: 10px; margin-top: 10px;">
+                    <label style="font-weight: bold;">Learn New Discipline:</label>
+                    <select name="new-discipline" style="width: 100%; background:#333; color:#fff; border:1px solid #555; margin-top: 5px;">
+                        <option value="">-- Select discipline to learn --</option>
+                        {{#each availableDisciplines}}
+                        <option value="{{this._id}}" data-compendium-id="{{this.compendium.id}}">{{this.name}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+    </div>
+
+    {{!-- COST SUMMARY --}}
+    <div class="sla-panel sla-dialog-panel" style="margin-bottom: 10px;">
+        <div class="sla-header-bar-small">Cost Summary</div>
+        <div style="padding: 10px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>Total XP Cost:</span>
+                <strong class="total-cost-xp">0</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>Total Credit Cost:</span>
+                <strong class="total-cost-credits">0</strong>
+            </div>
+            <div class="cost-warning" style="display: none; color: #ff5555; font-size: 0.9em; margin-top: 10px;">
+                <div class="cost-warning-xp"></div>
+                <div class="cost-warning-credits"></div>
+            </div>
+        </div>
+    </div>
+
+    {{!-- PENDING UPGRADES LIST --}}
+    <div class="sla-panel sla-dialog-panel pending-upgrades-list" style="display: none;">
+        <div class="sla-header-bar-small">Pending Upgrades</div>
+        <div style="padding: 10px;">
+            <div class="pending-upgrades-content">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+    {{/if}}
+</form>
+

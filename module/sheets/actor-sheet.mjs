@@ -3,6 +3,7 @@
  * @extends {ActorSheet}
  */
 import { LuckDialog } from "../apps/luck-dialog.mjs";
+import { XPDialog } from "../apps/xp-dialog.mjs";
 import { calculateRollResult, generateDiceTooltip, createSLARoll } from "../helpers/dice.mjs";
 import { prepareItems } from "../helpers/items.mjs";
 import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from "../helpers/modifiers.mjs";
@@ -278,6 +279,12 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             } else {
                 ui.notifications.warn(`Compendium '${compendiumId}' not found.`);
             }
+        });
+
+        // --- XP BUTTON ---
+        html.find('.xp-button').click(async ev => {
+            ev.preventDefault();
+            await XPDialog.create(this.actor);
         });
     }
 

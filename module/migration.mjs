@@ -6,7 +6,7 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
 
 // 1. Define the target version for THIS specific migration
 //    (Matches the version in your system.json)
-export const CURRENT_MIGRATION_VERSION = "0.22.0";
+export const CURRENT_MIGRATION_VERSION = "0.23.0";
 
 /**
  * Main Entry Point
@@ -31,14 +31,22 @@ export async function migrateWorld() {
     for (const actor of game.actors) {
         let actorUpdate = {};
 
-        // A. Migrate Actor Data (Armor Resist)
-        if (actor.type === 'character' || actor.type === 'npc') {
-            // Check if resist is a number (old schema)
-            const oldResist = foundry.utils.getProperty(actor, "system.armor.resist");
-            if (typeof oldResist === "number") {
-                console.log(`Migrating Actor Data for ${actor.name}: armor.resist to Schema`);
-                actorUpdate["system.armor.resist"] = { value: 0, max: 0 };
-            }
+            // A. Migrate Actor Data (Armor Resist)
+            if (actor.type === 'character' || actor.type === 'npc') {
+                // Check if resist is a number (old schema)
+                const oldResist = foundry.utils.getProperty(actor, "system.armor.resist");
+                if (typeof oldResist === "number") {
+                    console.log(`Migrating Actor Data for ${actor.name}: armor.resist to Schema`);
+                    actorUpdate["system.armor.resist"] = { value: 0, max: 0 };
+                }
+
+                // Initialize xpLedger for character actors (new in 0.23.0)
+                if (actor.type === 'character') {
+                    const xpLedger = foundry.utils.getProperty(actor, "system.xpLedger");
+                    if (xpLedger === undefined || xpLedger === null) {
+                        actorUpdate["system.xpLedger"] = [];
+                    }
+                }
 
             // Migrate NPC Wound and Condition Fields (if missing)
             if (actor.type === 'npc') {
