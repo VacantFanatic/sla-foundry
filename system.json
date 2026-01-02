@@ -45,7 +45,7 @@
   ],
   "url": "https://github.com/VacantFanatic/sla-foundry",
   "manifest": "https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json",
-  "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/0.22.0/sla-industries.zip",
+  "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/v0.22.0/sla-industries.zip",
   "packs": [
     {
       "name": "skills",

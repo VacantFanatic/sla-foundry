@@ -252,54 +252,14 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             const target = ev.currentTarget;
             const field = target.name;
             const isChecked = target.checked;
-            
-            // Get current value before update - use the correct path
-            const systemPath = field.replace("system.", "");
-            const currentValue = foundry.utils.getProperty(this.actor.system, systemPath);
-            
-            console.log("SLA Industries | Wound checkbox changed:", {
-                field: field,
-                systemPath: systemPath,
-                checked: isChecked,
-                currentValue: currentValue,
-                actorType: this.actor.type,
-                actorName: this.actor.name
-            });
 
             // Update the actor - Foundry's default form handling might not work reliably for nested properties
             const updateData = { [field]: isChecked };
-            console.log("SLA Industries | Calling actor.update with:", updateData);
             
             try {
+                // Update the actor. The _onUpdate method in Actor.mjs will handle
+                // the side effects (Bleeding, Stunned, Immobile) automatically.
                 await this.actor.update(updateData);
-                console.log("SLA Industries | actor.update completed");
-                
-                // Handle wound effects after a brief delay to let data sync
-                if (field.startsWith("system.wounds.")) {
-                    // Ensure checkbox state is correct immediately
-                    target.checked = isChecked;
-                    
-                    // Wait longer for Foundry to sync the data model
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    
-                    // Verify the update took effect
-                    const updatedValue = foundry.utils.getProperty(this.actor.system, systemPath);
-                    console.log("SLA Industries | After delay, wound value is:", updatedValue);
-                    
-                    // Ensure checkbox state matches
-                    target.checked = isChecked;
-                    
-                    console.log("SLA Industries | Wound field updated, calling _handleWoundEffects");
-                    
-                    if (this.actor._handleWoundEffects) {
-                        // Pass the update data so _handleWoundEffects can use it
-                        const woundUpdateData = { [field]: isChecked };
-                        console.log("SLA Industries | Passing woundUpdateData to _handleWoundEffects:", woundUpdateData);
-                        await this.actor._handleWoundEffects(woundUpdateData);
-                    } else {
-                        console.warn("SLA Industries | _handleWoundEffects method not found on actor");
-                    }
-                }
             } catch (error) {
                 console.error("SLA Industries | Error updating actor:", error);
                 // Revert checkbox on error
@@ -491,7 +451,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 flags: {
                     sla: {
                         baseModifier: finalMod,
-                        itemName: `${statLabel} CHECK`
+                        itemName: `${statLabel} CHECK`,
+                        notes: "", // Store notes in flags for difficulty recalculation
+                        tn: 10 // Store TN for reference
                     }
                 }
             });
@@ -668,7 +630,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                     baseModifier: baseModifier,
                     itemName: item.name.toUpperCase(),
                     rofRerollSD: false,
-                    rofRerollSkills: []
+                    rofRerollSkills: [],
+                    notes: "", // Store notes in flags for difficulty recalculation
+                    tn: 10 // Store TN for reference
                 }
             }
         });
@@ -820,15 +784,15 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         await roll.evaluate();
 
         // We pass the final Base Mod and Success Die Mod
-        const result = calculateRollResult(roll, baseModifier, undefined, {
+        // TN (Target Number) is 10 for all weapon attacks (melee and ranged)
+        const TN = 10;
+        const result = calculateRollResult(roll, baseModifier, TN, {
             autoSkillSuccesses: mods.aimAuto || 0,
             successDieModifier: mods.successDie // Pass explicit SD mod
         });
 
         // --- ROF REROLL LOGIC (Burst / Auto) ---
         // "May reroll...". We interpret this as "Keep Highest" for user convenience.
-        console.log("SLA | ROF Check - Flags:", flags);
-        console.log("SLA | Initial Roll Terms:", roll.terms);
 
         // We track which dice were rerolled to prevent Luck abuse.
         let rofRerollSD = false;
@@ -855,11 +819,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             rofRerollSD = true;
 
             if (outcome.rerolled) {
-                console.log(`SLA | Rerolling SD. Old: ${oldVal}, New: ${outcome.result}`);
                 sdTerm.results[0].result = outcome.result;
                 notes.push(`<strong>ROF:</strong> Success Die Improved (${oldVal} ➔ ${outcome.result})`);
             } else {
-                console.log(`SLA | SD Kept (Old: ${oldVal} >= New: ${outcome.result})`);
                 notes.push(`<strong>ROF:</strong> Success Die Kept (${oldVal})`);
             }
         }
@@ -898,7 +860,6 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
         // 5. RESULTS
         // 5. RESULTS
-        const TN = 10;
         const sdRaw = roll.terms[0].results[0].result;
         // FIX: Display total correctly
         const sdTotal = sdRaw + baseModifier + mods.successDie;
@@ -1054,7 +1015,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                     autoSkillSuccesses: mods.autoSkillSuccesses,
                     // NEW FLAGS for Recalculation
                     successDieModifier: mods.successDie,
-                    isWeapon: true
+                    isWeapon: true,
+                    notes: notes.join(" "), // Store notes in flags for difficulty recalculation
+                    tn: TN // Store TN for reference
                 }
             }
         });
@@ -1397,7 +1360,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                     itemName: item.name.toUpperCase(),
                     targets: Array.from(game.user.targets).map(t => t.document.uuid),
                     damageBase: baseDmg,
-                    adValue: adValue
+                    adValue: adValue,
+                    notes: notes.join(" "), // Store notes in flags for difficulty recalculation
+                    tn: 10 // Store TN for reference (explosives use TN 10)
                 }
             }
         });
@@ -1562,7 +1527,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                     baseModifier: modifier,
                     itemName: item.name.toUpperCase(),
                     isWeapon: false,
-                    isEbb: true // Flag as Ebb
+                    isEbb: true, // Flag as Ebb
+                    notes: `<strong>Formula Rating:</strong> ${formulaRating}`, // Store notes in flags for difficulty recalculation
+                    tn: formulaRating // Store TN (Formula Rating) for reference
                 }
             }
         });
@@ -1620,7 +1587,6 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             }
 
             if (toCreate.length > 0) {
-                console.log("Creating Skills:", toCreate); // Debug log to verify data
                 await this.actor.createEmbeddedDocuments("Item", toCreate);
             }
             if (toUpdate.length > 0) {

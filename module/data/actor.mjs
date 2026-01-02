@@ -128,7 +128,8 @@ export class SlaNPCData extends foundry.abstract.TypeDataModel {
                 torso: new fields.BooleanField({ initial: false }),
                 lLeg: new fields.BooleanField({ initial: false }),
                 rLeg: new fields.BooleanField({ initial: false }),
-                penalty: new fields.NumberField({ initial: 0 })
+                penalty: new fields.NumberField({ initial: 0 }),
+                damageReduction: new fields.NumberField({ initial: 0 })
             }),
             conditions: new fields.SchemaField({
                 bleeding: new fields.BooleanField({ initial: false }),

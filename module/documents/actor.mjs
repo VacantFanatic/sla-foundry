@@ -109,14 +109,26 @@ export class BoilerplateActor extends Actor {
     /* 2. Wounds & Conditions                       */
     /* -------------------------------------------- */
     _calculateWounds(system) {
+        // Ensure wounds object exists (should be in schema, but defensive check)
+        if (!system.wounds) system.wounds = {};
+        
+        // Initialize wound fields if they don't exist (for NPCs that were created before schema update)
+        const woundFields = ['head', 'torso', 'lArm', 'rArm', 'lLeg', 'rLeg'];
+        for (const field of woundFields) {
+            if (system.wounds[field] === undefined) {
+                system.wounds[field] = false;
+            }
+        }
+        
         let woundCount = 0;
         const w = system.wounds;
-        if (w.head) woundCount++;
-        if (w.torso) woundCount++;
-        if (w.lArm) woundCount++;
-        if (w.rArm) woundCount++;
-        if (w.lLeg) woundCount++;
-        if (w.rLeg) woundCount++;
+        // Safely count wounds (handles undefined/null values)
+        if (w.head === true) woundCount++;
+        if (w.torso === true) woundCount++;
+        if (w.lArm === true) woundCount++;
+        if (w.rArm === true) woundCount++;
+        if (w.lLeg === true) woundCount++;
+        if (w.rLeg === true) woundCount++;
 
         system.wounds.total = woundCount;
         system.wounds.penalty = woundCount;
@@ -140,9 +152,9 @@ export class BoilerplateActor extends Actor {
         const isCritical = system.hp.value < 6 && !isDead;
         system.conditions.critical = isCritical;
 
-        // Wounds forcing conditions
-        if (w.head) system.conditions.stunned = true;
-        if (w.lLeg && w.rLeg) system.conditions.immobile = true;
+        // Wounds forcing conditions (only set if wound exists)
+        if (w.head === true) system.conditions.stunned = true;
+        if (w.lLeg === true && w.rLeg === true) system.conditions.immobile = true;
     }
 
     /* -------------------------------------------- */
@@ -678,32 +690,16 @@ export class BoilerplateActor extends Actor {
     }
 
     async _onUpdate(changed, options, userId) {
-        console.log("SLA Industries | _onUpdate ENTRY - Method called at all");
         try {
             await super._onUpdate(changed, options, userId);
         } catch (error) {
             console.error("SLA Industries | Error in super._onUpdate:", error);
         }
 
-        console.log("SLA Industries | _onUpdate called:", {
-            actorType: this.type,
-            actorName: this.name,
-            changedKeys: Object.keys(changed),
-            changed: JSON.parse(JSON.stringify(changed))
-        });
-
         // 1. STOP if the update didn't touch conditions OR wounds.
         // This prevents HP updates or Bio updates from triggering the condition loop.
         const conditionChanges = foundry.utils.getProperty(changed, "system.conditions");
         const woundChanges = foundry.utils.getProperty(changed, "system.wounds");
-
-        console.log("SLA Industries | Detection results:", {
-            conditionChanges: conditionChanges,
-            woundChanges: woundChanges,
-            hasWoundProperty: this._hasWoundProperty(changed),
-            hasSystemWounds: !!changed.system?.wounds,
-            systemWoundsKeys: changed.system?.wounds ? Object.keys(changed.system.wounds) : []
-        });
 
         // A. Handle Manual Condition Toggles (Clicking icons)
         if (conditionChanges) {
@@ -720,36 +716,30 @@ export class BoilerplateActor extends Actor {
         }
 
         // B. Handle Wound Logic (Head -> Stunned, Legs -> Immobile, Any -> Bleeding)
-        // Check if any wound property changed using multiple detection methods
-        const hasWoundChange = woundChanges || 
-            this._hasWoundProperty(changed) ||
-            foundry.utils.hasProperty(changed, "system.wounds.head") ||
-            foundry.utils.hasProperty(changed, "system.wounds.torso") ||
-            foundry.utils.hasProperty(changed, "system.wounds.lArm") ||
-            foundry.utils.hasProperty(changed, "system.wounds.rArm") ||
-            foundry.utils.hasProperty(changed, "system.wounds.lLeg") ||
-            foundry.utils.hasProperty(changed, "system.wounds.rLeg");
+        // Check if ANY wound field changed - Foundry uses flat keys like "system.wounds.head"
+        const woundFieldNames = ["head", "torso", "lArm", "rArm", "lLeg", "rLeg"];
+        let hasWoundChange = false;
         
-        console.log("SLA Industries | Wound change detection:", {
-            hasWoundChange: hasWoundChange,
-            woundChanges: woundChanges,
-            recursiveCheck: this._hasWoundProperty(changed),
-            individualChecks: {
-                head: foundry.utils.hasProperty(changed, "system.wounds.head"),
-                torso: foundry.utils.hasProperty(changed, "system.wounds.torso"),
-                lArm: foundry.utils.hasProperty(changed, "system.wounds.lArm"),
-                rArm: foundry.utils.hasProperty(changed, "system.wounds.rArm"),
-                lLeg: foundry.utils.hasProperty(changed, "system.wounds.lLeg"),
-                rLeg: foundry.utils.hasProperty(changed, "system.wounds.rLeg")
-            }
-        });
-        
-        if (hasWoundChange) {
-            console.log("SLA Industries | Calling _handleWoundEffects");
-            // _handleWoundEffects uses this.system.wounds (current state after update), so woundChanges param is optional
-            await this._handleWoundEffects(woundChanges);
+        // Check if woundChanges object exists (nested update)
+        if (woundChanges) {
+            hasWoundChange = true;
         } else {
-            console.log("SLA Industries | No wound change detected, skipping _handleWoundEffects");
+            // Check for flat path updates (e.g., "system.wounds.head")
+            // Also check if any key in changed starts with "system.wounds."
+            const changedKeys = Object.keys(changed);
+            for (const key of changedKeys) {
+                if (key.startsWith("system.wounds.")) {
+                    const fieldName = key.replace("system.wounds.", "");
+                    if (woundFieldNames.includes(fieldName)) {
+                        hasWoundChange = true;
+                        break;
+                    }
+                }
+            }
+        }
+            
+        if (hasWoundChange) {
+            await this._handleWoundEffects(woundChanges || {});
         }
 
         // 2. SEPARATE LOGIC: Handle HP Auto-Wounding
@@ -762,50 +752,14 @@ export class BoilerplateActor extends Actor {
      * Handle Side-Effects of Wounds (Stunned, Immobile, Bleeding)
      */
     async _handleWoundEffects(woundChanges) {
-        console.log("SLA Industries | _handleWoundEffects called:", {
-            actorType: this.type,
-            actorName: this.name,
-            currentWounds: this.system.wounds,
-            woundChanges: woundChanges,
-            currentEffects: this.effects.map(e => Array.from(e.statuses))
-        });
-
         // We need the *full* current state of wounds, merging the update with existing data
-        // If woundChanges is provided (from fallback), merge it with current state
-        // Otherwise, use this.system.wounds which should be updated by now
-        
-        let w = this.system.wounds;
-        
-        // If woundChanges is provided and contains dot-notation updates, merge them
-        // IMPORTANT: woundChanges contains the NEW state, so we should use it directly
-        if (woundChanges && typeof woundChanges === 'object') {
-            // Handle dot-notation updates like { "system.wounds.head": true }
-            // Start with current wounds, but prioritize the update data
-            const mergedWounds = foundry.utils.deepClone(this.system.wounds || {});
-            
-            console.log("SLA Industries | Before merge - currentWounds:", mergedWounds, "woundChanges:", woundChanges);
-            
-            for (const [key, value] of Object.entries(woundChanges)) {
-                console.log("SLA Industries | Processing wound change:", key, "=", value);
-                if (key.startsWith("system.wounds.")) {
-                    const propName = key.replace("system.wounds.", "");
-                    console.log("SLA Industries | Setting mergedWounds[" + propName + "] =", value);
-                    // Force the new value - this is the update we just made
-                    mergedWounds[propName] = !!value; // Ensure boolean
-                } else if (key === "system.wounds" && typeof value === 'object') {
-                    // Handle nested object updates
-                    Object.assign(mergedWounds, value);
-                }
-            }
-            
-            w = mergedWounds;
-            console.log("SLA Industries | Merged wounds from update data (FINAL):", w);
-            console.log("SLA Industries | w.head value:", w.head, "type:", typeof w.head);
-        } else {
-            // Use current system state (should be updated by now)
-            w = this.system.wounds;
-            console.log("SLA Industries | Using current system.wounds (no merge):", w);
-        }
+        // However, 'this.system.wounds' is already updated in memory by the time _onUpdate fires? 
+        // ACTUALLY: In _onUpdate, 'this.system' IS already updated to the new state.
+        // 'changed' only contains the diff.
+
+        // Ensure wounds object exists
+        if (!this.system.wounds) this.system.wounds = {};
+        const w = this.system.wounds;
         const effectsToToggle = [];
 
         // Helper to check if effect exists
@@ -813,68 +767,44 @@ export class BoilerplateActor extends Actor {
 
         // 1. HEAD WOUND -> STUNNED
         // If head is wounded and we are not stunned, ADD Stunned
-        // Ensure w.head is a proper boolean
-        const headWounded = !!w.head;
-        const isStunned = hasEffect("stunned");
-        
-        console.log("SLA Industries | Head wound logic:", {
-            headWounded: headWounded,
-            wHeadValue: w.head,
-            wHeadType: typeof w.head,
-            isStunned: isStunned,
-            shouldAddStunned: headWounded && !isStunned,
-            shouldRemoveStunned: !headWounded && isStunned
-        });
-        
-        if (headWounded && !isStunned) {
-            // Head is wounded and not stunned - ADD Stunned
-            console.log("SLA Industries | Adding Stunned condition (head wounded)");
+        if (w.head === true && !hasEffect("stunned")) {
+            // We only add it. We don't remove it auto-magically if healed, 
+            // unless the user specifically wants that. 
+            // Rule: "Stunned is removed with medical intervention... or rest"
+            // So it's safer to Auto-Add, but maybe Auto-Remove is convenient?
+            // Let's do Auto-Add and Auto-Remove for immediate feedback, 
+            // but allow manual toggle back if needed.
             effectsToToggle.push({ id: "stunned", active: true });
         }
-        else if (!headWounded && isStunned) {
-            // Head is not wounded but stunned - REMOVE Stunned
-            console.log("SLA Industries | Removing Stunned condition (head not wounded)");
+        else if (w.head !== true && hasEffect("stunned")) {
+            // Only remove if it was the head wound causing it? 
+            // Hard to know. But typically if you heal the head, the stun might fade.
+            // Let's be aggressive for UX: Remove it.
             effectsToToggle.push({ id: "stunned", active: false });
-        } else {
-            console.log("SLA Industries | No change needed for Stunned condition");
         }
 
         // 2. BOT LEG WOUNDS -> IMMOBILE
-        const legsGone = w.lLeg && w.rLeg;
+        const legsGone = w.lLeg === true && w.rLeg === true;
         if (legsGone && !hasEffect("immobile")) {
             effectsToToggle.push({ id: "immobile", active: true });
         }
         else if (!legsGone && hasEffect("immobile")) {
             // Check if immobile was caused by something else (Encumbrance)?
             // If Encumbrance is forcing immobile, we shouldn't remove it.
-            // We can check encumbrance state.
-            const isEncumbered = this.system.conditions.immobile && (this.system.encumbrance.value > this.system.encumbrance.max);
+            // We can check encumbrance state (only for characters, NPCs don't have encumbrance)
+            const hasEncumbrance = this.system.encumbrance && (this.system.encumbrance.value !== undefined);
+            const isEncumbered = hasEncumbrance && (this.system.encumbrance.value > this.system.encumbrance.max);
 
-            // Only remove if NOT encumbered
+            // Only remove if NOT encumbered (or if NPC which doesn't have encumbrance)
             if (!isEncumbered) {
                 effectsToToggle.push({ id: "immobile", active: false });
             }
         }
 
         // 3. ANY WOUND -> BLEEDING
-        const woundCount = (w.head ? 1 : 0) + (w.torso ? 1 : 0) + (w.lArm ? 1 : 0) + (w.rArm ? 1 : 0) + (w.lLeg ? 1 : 0) + (w.rLeg ? 1 : 0);
-
-        console.log("SLA Industries | Wound analysis:", {
-            woundCount: woundCount,
-            wounds: {
-                head: w.head,
-                torso: w.torso,
-                lArm: w.lArm,
-                rArm: w.rArm,
-                lLeg: w.lLeg,
-                rLeg: w.rLeg
-            },
-            currentEffects: {
-                stunned: hasEffect("stunned"),
-                immobile: hasEffect("immobile"),
-                bleeding: hasEffect("bleeding")
-            }
-        });
+        const woundCount = (w.head === true ? 1 : 0) + (w.torso === true ? 1 : 0) + 
+                          (w.lArm === true ? 1 : 0) + (w.rArm === true ? 1 : 0) + 
+                          (w.lLeg === true ? 1 : 0) + (w.rLeg === true ? 1 : 0);
 
         if (woundCount > 0 && !hasEffect("bleeding")) {
             effectsToToggle.push({ id: "bleeding", active: true });
@@ -883,22 +813,16 @@ export class BoilerplateActor extends Actor {
             effectsToToggle.push({ id: "bleeding", active: false });
         }
 
-        console.log("SLA Industries | Effects to toggle:", effectsToToggle);
-
         // EXECUTE UPDATES
         // processing sequentially to avoid race conditions
         for (const change of effectsToToggle) {
-            console.log(`SLA Industries | Toggling status effect: ${change.id} -> ${change.active}`);
             await this.toggleStatusEffect(change.id, { active: change.active });
-            console.log(`SLA Industries | Status effect ${change.id} toggled. Current effects:`, this.effects.map(e => Array.from(e.statuses)));
         }
         
         // Force sheet to re-render if it's open to update the condition icons
         if (this.sheet?.rendered) {
             await this.sheet.render(false);
         }
-        
-        console.log("SLA Industries | _handleWoundEffects completed");
     }
 
     /**
