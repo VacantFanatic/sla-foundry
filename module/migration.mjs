@@ -74,7 +74,8 @@ export async function migrateWorld() {
                         prone: false,
                         stunned: false,
                         immobile: false,
-                        critical: false
+                        critical: false,
+                        dead: false
                     };
                 } else {
                     // Conditions object exists, but individual fields might be missing
@@ -85,6 +86,7 @@ export async function migrateWorld() {
                     if (conditions.stunned === undefined) actorUpdate["system.conditions.stunned"] = false;
                     if (conditions.immobile === undefined) actorUpdate["system.conditions.immobile"] = false;
                     if (conditions.critical === undefined) actorUpdate["system.conditions.critical"] = false;
+                    if (conditions.dead === undefined) actorUpdate["system.conditions.dead"] = false;
                 }
 
                 if (Object.keys(actorUpdate).some(key => key.startsWith("system.wounds.") || key.startsWith("system.conditions"))) {

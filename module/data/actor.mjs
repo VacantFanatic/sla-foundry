@@ -79,7 +79,8 @@ export class SlaCharacterData extends foundry.abstract.TypeDataModel {
                 prone: new fields.BooleanField({ initial: false }),
                 stunned: new fields.BooleanField({ initial: false }),
                 immobile: new fields.BooleanField({ initial: false }),
-                critical: new fields.BooleanField({ initial: false })
+                critical: new fields.BooleanField({ initial: false }),
+                dead: new fields.BooleanField({ initial: false })
             }),
             armor: new fields.SchemaField({
                 pv: new fields.NumberField({ initial: 0 }),
@@ -137,7 +138,8 @@ export class SlaNPCData extends foundry.abstract.TypeDataModel {
                 prone: new fields.BooleanField({ initial: false }),
                 stunned: new fields.BooleanField({ initial: false }),
                 immobile: new fields.BooleanField({ initial: false }),
-                critical: new fields.BooleanField({ initial: false })
+                critical: new fields.BooleanField({ initial: false }),
+                dead: new fields.BooleanField({ initial: false })
             }),
             armor: new fields.SchemaField({
                 pv: new fields.NumberField({ initial: 0 }),
