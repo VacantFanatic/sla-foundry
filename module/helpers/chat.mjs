@@ -424,11 +424,17 @@ export class SLAChat {
         const message = game.messages.get(messageId);
         if (!message) return;
 
-        // 3. Get Roll
+        // 3. Check if luck has already been spent
+        const flags = message.flags.sla || {};
+        if (flags.luckSpent) {
+            return ui.notifications.warn("SLA | Luck has already been spent on this roll. Only one option may be applied per roll.");
+        }
+
+        // 4. Get Roll
         const roll = message.rolls[0];
         if (!roll) return ui.notifications.warn("No roll data found.");
 
-        // 4. Open Dialog
+        // 5. Open Dialog
         LuckDialog.create(actor, roll, messageId);
     }
     // ... (Luck Method above) ...
@@ -575,13 +581,14 @@ export class SLAChat {
             canUseLuck: (card.find(".chat-btn-luck").length > 0), // Basic check if luck button was there
             luckValue: 0, // Visual only, doesn't matter much if we don't know exact value. 
             // Or we could re-fetch actor?
-            luckSpent: false
+            luckSpent: flags.luckSpent || false // Read from flags to preserve state
         };
 
-        // Refetch actor for Luck Value?
+        // Refetch actor for Luck Value and canUseLuck
         const actor = await fromUuid(templateData.actorUuid);
         if (actor) {
             templateData.luckValue = actor.system.stats.luck.value;
+            templateData.canUseLuck = actor.system.stats.luck.value > 0;
         }
 
         const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
