@@ -346,14 +346,33 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
         // 3. Consume Magazine
         const newQty = (magazine.system.quantity || 1) - 1;
+        const magazineDepleted = newQty <= 0;
 
-        if (newQty <= 0) {
+        if (magazineDepleted) {
             await magazine.delete();
-            ui.notifications.info(`Reloaded ${weapon.name} with ${magazine.name}. Magazine depleted.`);
         } else {
             await magazine.update({ "system.quantity": newQty });
-            ui.notifications.info(`Reloaded ${weapon.name} with ${magazine.name}. ${newQty} remaining.`);
         }
+
+        // 4. Post Chat Message
+        const templateData = {
+            weaponName: weapon.name.toUpperCase(),
+            actorName: this.actor.name,
+            magazineName: magazine.name,
+            ammoLoaded: capacity,
+            magazineDepleted: magazineDepleted,
+            magazinesRemaining: newQty
+        };
+
+        const content = await foundry.applications.handlebars.renderTemplate(
+            "systems/sla-industries/templates/chat/reload.hbs",
+            templateData
+        );
+
+        ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+            content: content
+        });
     }
 
     /* -------------------------------------------- */
