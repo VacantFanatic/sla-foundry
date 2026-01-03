@@ -709,6 +709,40 @@ select option {
   color: #ccc;
 }
 
+/* Reload Action Card */
+.sla-chat-card.reload-action {
+  padding: 8px;
+  border-radius: 4px;
+  background: #000;
+  border: 1px solid #39ff14;
+  border-left: 4px solid #39ff14;
+  box-shadow: 0 0 5px rgba(57, 255, 20, 0.2);
+}
+.sla-chat-card.reload-action .reload-header {
+  color: #39ff14;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 1.1em;
+  border-bottom: 1px solid #555;
+  margin-bottom: 6px;
+  padding-bottom: 2px;
+}
+.sla-chat-card.reload-action .reload-content {
+  font-size: 0.95em;
+  margin-bottom: 8px;
+}
+.sla-chat-card.reload-action .reload-details {
+  font-size: 0.9em;
+  color: #aaa;
+  padding-top: 6px;
+  border-top: 1px dashed #444;
+}
+.sla-chat-card.reload-action .reload-details strong {
+  color: #ccc;
+}
+
 /**
  * Form Styles
  * Optimized with mixins
