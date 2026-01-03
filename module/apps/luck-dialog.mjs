@@ -41,9 +41,15 @@ export class LuckDialog extends Dialog {
 
 
 
-        // --- CHECK ROF RESTRICTIONS ---
+        // --- CHECK LUCK ALREADY SPENT ---
         const message = game.messages.get(messageId);
         const flags = message.flags.sla || {};
+        if (flags.luckSpent) {
+            ui.notifications.warn("SLA | Luck has already been spent on this roll. Only one option may be applied per roll.");
+            return; // Don't open the dialog
+        }
+
+        // --- CHECK ROF RESTRICTIONS ---
         const rofRerollSD = flags.rofRerollSD || false;
         const rofRerollSkills = flags.rofRerollSkills || [];
 
@@ -276,6 +282,8 @@ export class LuckDialog extends Dialog {
                 choiceDmg: mos.choiceDmg
             },
             luckSpent: true,
+            canUseLuck: this.actor.system.stats.luck.value > 0,
+            luckValue: this.actor.system.stats.luck.value,
             actorUuid: this.actor.uuid
         };
 
