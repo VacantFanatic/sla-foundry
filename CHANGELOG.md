@@ -1,4 +1,10 @@
 # CHANGELOG
+
+# v0.20.1
+
+### Fixes
+*   **Melee Weapon Rolls**: Fixed weapon roll calculations to use STR for melee weapons instead of always using DEX. This corrects the base modifier calculation (e.g., STR 3 + Melee 3 now correctly shows base 6).
+*   **Defense Modifiers**: Fixed double-application of Combat Defense and Acrobatic Defense penalties in melee attacks.
     
 # v0.20.0
 
