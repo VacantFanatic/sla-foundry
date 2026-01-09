@@ -675,7 +675,8 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         if (!form) return;
 
         // 1. SETUP
-        const statKey = "dex";
+        // FIX: Melee weapons use STR, ranged weapons use DEX
+        const statKey = isMelee ? "str" : "dex";
         const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
         const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0);
 
@@ -761,14 +762,13 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         if (isMelee) {
             this._applyMeleeModifiers(form, strValue, mods);
 
-            // --- DEFENSE MODIFIERS (Melee) ---
+            // --- DEFENSE MODIFIERS (Melee) - Note: applied in _applyMeleeModifiers ---
+            // Add notes for display (modifiers already applied in helper)
             if (mods.combatDef > 0) {
-                mods.allDice -= mods.combatDef;
                 notes.push(`Defended (Combat Def: -${mods.combatDef})`);
             }
             if (mods.acroDef > 0) {
                 const pen = mods.acroDef * 2;
-                mods.allDice -= pen;
                 notes.push(`Defended (Acrobatics: -${pen})`);
             }
             if (mods.targetProne) {
