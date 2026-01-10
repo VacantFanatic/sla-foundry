@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# v0.24.0
+
+### Features
+*   **Optional Long Range Feature**: Added a system setting to toggle the long range penalty feature on/off. When disabled, ranged attacks will not apply the -1 Skill Die penalty for long range.
+*   **Optional Target-Required Features**: Added a system setting to toggle target requirement checks on/off. When disabled, attacks can be made without selecting a target and range calculations are skipped.
+
 # v0.20.1
 
 ### Fixes

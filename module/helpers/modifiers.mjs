@@ -123,7 +123,7 @@ export async function applyRangedModifiers(item, form, mods, notes, flags) {
     if (form.blind?.checked) mods.allDice -= 1;
     if (form.prone?.checked) mods.successDie += 1;
 
-    if (form.longRange?.checked) {
+    if (form.longRange?.checked && game.settings.get("sla-industries", "enableLongRangeFeature")) {
         // Rulebook: "-1 Skill Die" (reducing rank by 1 reduces skill dice by 1)
         mods.rank -= 1;
         notes.push("Long Range (-1 Skill Die).");

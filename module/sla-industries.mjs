@@ -66,6 +66,24 @@ Hooks.once('init', async function () {
         default: "0.0.0"
     });
 
+    game.settings.register("sla-industries", "enableLongRangeFeature", {
+        name: "Enable Long Range Feature",
+        hint: "When enabled, ranged attacks beyond half the weapon's maximum range apply a -1 Skill Die penalty.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
+    game.settings.register("sla-industries", "enableTargetRequiredFeatures", {
+        name: "Enable Target-Required Features",
+        hint: "When enabled, attacks require a target to be selected and range calculations are performed. When disabled, attacks can be made without targets and range calculations are skipped.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
     CONFIG.statusEffects = SLA.statusEffects;
     CONFIG.Actor.trackableAttributes = SLA.trackableAttributes;
 

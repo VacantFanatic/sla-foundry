@@ -403,7 +403,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
                 // --- TARGET ENFORCEMENT ---
                 // User requirement: Must have a target if using a weapon (excluding explosives)
-                if (game.user.targets.size === 0) {
+                if (game.settings.get("sla-industries", "enableTargetRequiredFeatures") && game.user.targets.size === 0) {
                     ui.notifications.warn("You must select a target to attack.");
                     return;
                 }
@@ -523,7 +523,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         let rangePenaltyMsg = "";
         let isLongRange = false;
 
-        if (!isMelee && game.user.targets.size > 0) {
+        if (game.settings.get("sla-industries", "enableTargetRequiredFeatures") && !isMelee && game.user.targets.size > 0) {
             // Robust Token Retrieval
             const token = this.actor.token?.object || this.token || (this.actor.getActiveTokens().length > 0 ? this.actor.getActiveTokens()[0] : null);
 
@@ -734,7 +734,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         if (mods.aimAuto > 0) mods.autoSkillSuccesses += mods.aimAuto;
 
         // --- RANGE PENALTY LOGIC ---
-        if (!isMelee && game.user.targets.size > 0) {
+        if (game.settings.get("sla-industries", "enableTargetRequiredFeatures") && !isMelee && game.user.targets.size > 0) {
             const target = game.user.targets.first();
             // Get Weapon Range
             const strRange = item.system.range || "10";
@@ -749,7 +749,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
             if (token) {
                 const rangeData = calculateRangePenalty(token, target, maxRange);
-                if (rangeData.isLongRange) {
+                if (game.settings.get("sla-industries", "enableLongRangeFeature") && rangeData.isLongRange) {
                     // Rulebook: "-1 Skill Die" (not Success Die)
                     mods.rank -= 1;
                     notes.push("Long Range (-1 Skill Die)");
