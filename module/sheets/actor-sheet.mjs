@@ -403,7 +403,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
                 // --- TARGET ENFORCEMENT ---
                 // User requirement: Must have a target if using a weapon (excluding explosives)
-                if (game.user.targets.size === 0) {
+                if (game.settings.get("sla-industries", "enableTargetRequiredFeatures") && game.user.targets.size === 0) {
                     ui.notifications.warn("You must select a target to attack.");
                     return;
                 }
@@ -433,7 +433,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             const statLabel = statKey.toUpperCase();
             const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
             const penalty = this.actor.system.wounds.penalty || 0;
-            const finalMod = statValue - penalty + globalMod;
+            const finalMod = statValue - (game.settings.get("sla-industries", "enableAutomaticWoundPenalties") ? penalty : 0) + globalMod;
 
             let roll = createSLARoll("1d10");
             // ---------------------------------------------
@@ -523,7 +523,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         let rangePenaltyMsg = "";
         let isLongRange = false;
 
-        if (!isMelee && game.user.targets.size > 0) {
+        if (game.settings.get("sla-industries", "enableTargetRequiredFeatures") && !isMelee && game.user.targets.size > 0) {
             // Robust Token Retrieval
             const token = this.actor.token?.object || this.token || (this.actor.getActiveTokens().length > 0 ? this.actor.getActiveTokens()[0] : null);
 
@@ -605,7 +605,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         if (this.actor.system.conditions?.stunned) globalMod -= 1;
         const penalty = this.actor.system.wounds.penalty || 0;
 
-        const baseModifier = statValue + rank + globalMod - penalty;
+        const baseModifier = statValue + rank + globalMod - (game.settings.get("sla-industries", "enableAutomaticWoundPenalties") ? penalty : 0);
 
         // 3. ROLL FORMULA
         // Unskilled Rule: If Rank 0, still roll.
@@ -734,7 +734,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         if (mods.aimAuto > 0) mods.autoSkillSuccesses += mods.aimAuto;
 
         // --- RANGE PENALTY LOGIC ---
-        if (!isMelee && game.user.targets.size > 0) {
+        if (game.settings.get("sla-industries", "enableTargetRequiredFeatures") && !isMelee && game.user.targets.size > 0) {
             const target = game.user.targets.first();
             // Get Weapon Range
             const strRange = item.system.range || "10";
@@ -749,7 +749,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
             if (token) {
                 const rangeData = calculateRangePenalty(token, target, maxRange);
-                if (rangeData.isLongRange) {
+                if (game.settings.get("sla-industries", "enableLongRangeFeature") && rangeData.isLongRange) {
                     // Rulebook: "-1 Skill Die" (not Success Die)
                     mods.rank -= 1;
                     notes.push("Long Range (-1 Skill Die)");
@@ -794,7 +794,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         }
 
         const penalty = this.actor.system.wounds.penalty || 0;
-        mods.allDice -= penalty;
+        if (game.settings.get("sla-industries", "enableAutomaticWoundPenalties")) {
+            mods.allDice -= penalty;
+        }
 
         // 4. ROLL
         // FIX: Base Modifier should NOT include Success Die specific modifiers (Aim, Prone Target)
@@ -1214,7 +1216,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         if (this.actor.system.conditions?.prone) mods.allDice -= 1;
         if (this.actor.system.conditions?.stunned) mods.allDice -= 1;
         const penalty = this.actor.system.wounds.penalty || 0;
-        mods.allDice -= penalty;
+        if (game.settings.get("sla-industries", "enableAutomaticWoundPenalties")) {
+            mods.allDice -= penalty;
+        }
 
         // Form Inputs
         mods.successDie += rollData.cover;
@@ -1433,7 +1437,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         if (this.actor.system.conditions?.stunned) globalMod -= 1;
         const penalty = this.actor.system.wounds.penalty || 0;
 
-        const modifier = statValue + rank - penalty + globalMod;
+        const modifier = statValue + rank - (game.settings.get("sla-industries", "enableAutomaticWoundPenalties") ? penalty : 0) + globalMod;
 
         // 4. Roll Formula: 1d10 + (Rank + 1)d10
         const skillDiceCount = rank + 1;

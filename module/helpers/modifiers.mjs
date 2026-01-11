@@ -62,23 +62,25 @@ export async function applyRangedModifiers(item, form, mods, notes, flags) {
     const currentAmmo = Number(item.system.ammo) || 0;
 
     // 1. VALIDATE AMMO RULES
-    const activeModes = Object.values(item.system.firingModes || {}).filter(m => m.active);
-    const minDeviceRounds = activeModes.reduce((min, m) => Math.min(min, m.rounds), 999);
+    if (game.settings.get("sla-industries", "enableLowAmmoValidation")) {
+        const activeModes = Object.values(item.system.firingModes || {}).filter(m => m.active);
+        const minDeviceRounds = activeModes.reduce((min, m) => Math.min(min, m.rounds), 999);
 
-    // Rule A: Not enough ammo
-    if (currentAmmo < roundsUsed) {
-        // Rule B: Only allow if this is the lowest mode
-        if (roundsUsed > minDeviceRounds) {
-            ui.notifications.error(`Not enough ammo for ${modeSelect.text().split('(')[0].trim()}. Switch to a lower mode.`);
-            return false; // STOP THE ROLL
+        // Rule A: Not enough ammo
+        if (currentAmmo < roundsUsed) {
+            // Rule B: Only allow if this is the lowest mode
+            if (roundsUsed > minDeviceRounds) {
+                ui.notifications.error(`Not enough ammo for ${modeSelect.text().split('(')[0].trim()}. Switch to a lower mode.`);
+                return false; // STOP THE ROLL
+            }
+
+            // Rule C: Lowest mode penalty
+            mods.damage -= 2;
+            notes.push("Low Ammo (-2 DMG).");
+
+            const minDmg = item.system.minDamage || "0";
+            if (minDmg !== "0") notes.push(`(Min DMG ${minDmg} applies)`);
         }
-
-        // Rule C: Lowest mode penalty
-        mods.damage -= 2;
-        notes.push("Low Ammo (-2 DMG).");
-
-        const minDmg = item.system.minDamage || "0";
-        if (minDmg !== "0") notes.push(`(Min DMG ${minDmg} applies)`);
     }
 
     // 2. APPLY MODE BONUSES
@@ -110,9 +112,11 @@ export async function applyRangedModifiers(item, form, mods, notes, flags) {
     }
 
     // 4. CONSUME AMMO
-    const actualCost = Math.min(currentAmmo, roundsUsed);
-    if (actualCost > 0) {
-        await item.update({ "system.ammo": currentAmmo - actualCost });
+    if (game.settings.get("sla-industries", "enableAutomaticAmmoConsumption")) {
+        const actualCost = Math.min(currentAmmo, roundsUsed);
+        if (actualCost > 0) {
+            await item.update({ "system.ammo": currentAmmo - actualCost });
+        }
     }
 
     // 5. OTHER INPUTS (Cover, Aiming, etc.)
@@ -123,7 +127,7 @@ export async function applyRangedModifiers(item, form, mods, notes, flags) {
     if (form.blind?.checked) mods.allDice -= 1;
     if (form.prone?.checked) mods.successDie += 1;
 
-    if (form.longRange?.checked) {
+    if (form.longRange?.checked && game.settings.get("sla-industries", "enableLongRangeFeature")) {
         // Rulebook: "-1 Skill Die" (reducing rank by 1 reduces skill dice by 1)
         mods.rank -= 1;
         notes.push("Long Range (-1 Skill Die).");

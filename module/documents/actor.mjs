@@ -109,6 +109,15 @@ export class BoilerplateActor extends Actor {
     /* 2. Wounds & Conditions                       */
     /* -------------------------------------------- */
     _calculateWounds(system) {
+        // Skip wound calculations for NPCs if disabled
+        if (this.type === 'npc' && !game.settings.get("sla-industries", "enableNPCWoundTracking")) {
+            // Set defaults but don't calculate
+            if (!system.wounds) system.wounds = {};
+            system.wounds.total = 0;
+            system.wounds.penalty = 0;
+            return;
+        }
+
         // Ensure wounds object exists (should be in schema, but defensive check)
         if (!system.wounds) system.wounds = {};
         

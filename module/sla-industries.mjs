@@ -66,6 +66,60 @@ Hooks.once('init', async function () {
         default: "0.0.0"
     });
 
+    game.settings.register("sla-industries", "enableLongRangeFeature", {
+        name: "Enable Long Range Feature",
+        hint: "When enabled, ranged attacks beyond half the weapon's maximum range apply a -1 Skill Die penalty.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
+    game.settings.register("sla-industries", "enableTargetRequiredFeatures", {
+        name: "Enable Target-Required Features",
+        hint: "When enabled, attacks require a target to be selected and range calculations are performed. When disabled, attacks can be made without targets and range calculations are skipped.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
+    game.settings.register("sla-industries", "enableAutomaticAmmoConsumption", {
+        name: "Enable Automatic Ammo Consumption",
+        hint: "When enabled, ammo is automatically reduced when firing ranged weapons. When disabled, ammo must be tracked manually.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
+    game.settings.register("sla-industries", "enableLowAmmoValidation", {
+        name: "Enable Low Ammo Validation",
+        hint: "When enabled, prevents firing high-cost modes without enough ammo and applies -2 DMG penalty for low ammo. When disabled, these restrictions are removed.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
+    game.settings.register("sla-industries", "enableAutomaticWoundPenalties", {
+        name: "Enable Automatic Wound Penalties",
+        hint: "When enabled, wound count automatically reduces all dice rolls. When disabled, wound penalties are not applied.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
+    game.settings.register("sla-industries", "enableNPCWoundTracking", {
+        name: "Enable NPC Wound Tracking",
+        hint: "When enabled, NPCs track wounds and display the wounds section. When disabled, NPC wound tracking is disabled and the wounds section is hidden.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
     CONFIG.statusEffects = SLA.statusEffects;
     CONFIG.Actor.trackableAttributes = SLA.trackableAttributes;
 

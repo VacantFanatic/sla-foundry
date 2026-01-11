@@ -4,6 +4,7 @@
     <div class="sla-pad">
         
         {{!-- Wounds Grid (Explicitly Defined) --}}
+        {{#if (ne enableNPCWoundTracking false)}}
         <div class="wound-list">
             {{!-- HEAD --}}
             <div class="wound-entry">
@@ -38,6 +39,7 @@
                 <input type="checkbox" class="wound-checkbox" id="wound-rleg" name="system.wounds.rLeg" {{checked system.wounds.rLeg}}/>
             </div>
         </div>
+        {{/if}}
 
         {{!-- Conditions Grid --}}
         <div class="condition-grid">

@@ -16,6 +16,13 @@ export class SlaNPCSheet extends SlaActorSheet {
   }
 
   /** @override */
+  async getData() {
+    const context = await super.getData();
+    context.enableNPCWoundTracking = game.settings.get("sla-industries", "enableNPCWoundTracking");
+    return context;
+  }
+
+  /** @override */
   activateListeners(html) {
     super.activateListeners(html);
     if (!this.isEditable) return;
