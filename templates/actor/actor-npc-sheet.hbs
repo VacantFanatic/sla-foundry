@@ -101,7 +101,9 @@
         </div>
 
         {{!-- 1. WOUNDS & CONDITIONS PARTIAL --}}
+        {{#if enableNPCWoundTracking}}
         {{> "systems/sla-industries/templates/actor/parts/wounds.hbs"}}
+        {{/if}}
 
         {{!-- 1. SKILLS SECTION --}}
         <div class="threat-section-bar">SKILLS</div>

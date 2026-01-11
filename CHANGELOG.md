@@ -5,6 +5,10 @@
 ### Features
 *   **Optional Long Range Feature**: Added a system setting to toggle the long range penalty feature on/off. When disabled, ranged attacks will not apply the -1 Skill Die penalty for long range.
 *   **Optional Target-Required Features**: Added a system setting to toggle target requirement checks on/off. When disabled, attacks can be made without selecting a target and range calculations are skipped.
+*   **Optional Automatic Ammo Consumption**: Added a system setting to toggle automatic ammo reduction when firing ranged weapons. When disabled, ammo must be tracked manually.
+*   **Optional Low Ammo Validation**: Added a system setting to toggle low ammo validation and penalties. When disabled, players can fire modes without enough ammo and the -2 DMG low ammo penalty is not applied.
+*   **Optional Automatic Wound Penalties**: Added a system setting to toggle automatic wound penalties on dice rolls. When disabled, wound count does not reduce dice rolls.
+*   **Optional NPC Wound Tracking**: Added a system setting to toggle wound tracking for NPCs. When disabled, NPCs do not track wounds and the wounds section is hidden on NPC sheets.
 
 # v0.20.1
 
