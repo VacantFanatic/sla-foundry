@@ -2,7 +2,7 @@
   "id": "sla-industries",
   "title": "SLA Industries 2nd Edition",
   "description": "A fully automated character sheet and combat system for SLA Industries 2nd Edition (S5S). Features include calculated derived stats, S5S dice rolling, species limits, and custom weapon/armor logic.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "compatibility": {
     "minimum": "13",
     "verified": "13.351"
@@ -45,7 +45,7 @@
   ],
   "url": "https://github.com/VacantFanatic/sla-foundry",
   "manifest": "https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json",
-  "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/1.0.0/sla-industries.zip",
+  "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/1.0.1/sla-industries.zip",
   "packs": [
     {
       "name": "skills",
@@ -75,12 +75,6 @@
       "name": "disciplines",
       "label": "Disciplines",
       "path": "packs/disciplines.db",
-      "type": "Item"
-    },
-    {
-      "name": "packages",
-      "label": "Training Packages",
-      "path": "packs/packages.db",
       "type": "Item"
     }
   ],

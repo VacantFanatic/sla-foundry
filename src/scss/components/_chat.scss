@@ -7,7 +7,7 @@
 @import '../utils/variables';
 
 .sla-chat-card {
-    @include font-body;
+    font-family: var(--sla-font-mono);
     font-size: 14px;
     color: #eee;
 
@@ -187,6 +187,41 @@
     }
 
     .drug-details {
+        font-size: 0.9em;
+        color: #aaa;
+        padding-top: 6px;
+        border-top: 1px dashed #444;
+
+        strong {
+            color: #ccc;
+        }
+    }
+}
+
+/* Reload Action Card */
+.sla-chat-card.reload-action {
+    padding: 8px;
+    border-radius: $border-radius;
+    background: #000;
+    border: $border-width solid #39ff14;
+    border-left: 4px solid #39ff14;
+    box-shadow: 0 0 5px rgba(57, 255, 20, 0.2);
+
+    .reload-header {
+        color: #39ff14;
+        @include font-header;
+        font-size: 1.1em;
+        border-bottom: $border-width solid #555;
+        margin-bottom: 6px;
+        padding-bottom: 2px;
+    }
+
+    .reload-content {
+        font-size: 0.95em;
+        margin-bottom: 8px;
+    }
+
+    .reload-details {
         font-size: 0.9em;
         color: #aaa;
         padding-top: 6px;
