@@ -64,53 +64,86 @@
 }
 
 /* XP Dialog Specific Styling */
-.xp-dialog-window.dialog {
+.window-app.xp-dialog-window,
+.window-app.xp-dialog-window .dialog {
     background: #000 !important;
-    
-    .window-header {
-        background: #000 !important;
-        border-bottom: $border-width-thick solid var(--sla-accent);
-    }
+}
 
-    .window-content {
-        background: #000 !important;
-    }
+.window-app.xp-dialog-window .window-header {
+    background: #000 !important;
+    border-bottom: $border-width-thick solid var(--sla-accent) !important;
+}
 
-    .dialog-buttons {
-        display: flex !important;
-        flex-direction: row !important;
-        gap: 10px !important;
-        justify-content: flex-end !important;
-        margin-top: 10px !important;
+.window-app.xp-dialog-window .window-content {
+    background: #000 !important;
+}
 
-        .dialog-button {
-            margin-top: 0 !important;
-            flex: 0 0 auto !important;
-            
-            &[data-button="cancel"],
-            &.cancel {
-                background: #2a0000 !important;
-                border-color: #ff5555 !important;
-                color: #ff5555 !important;
-                
-                &:hover {
-                    background: #ff5555 !important;
-                    color: #000 !important;
-                    box-shadow: 0 0 10px #ff5555 !important;
-                }
+.window-app.xp-dialog-window .dialog-buttons {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+    justify-content: flex-end !important;
+    margin-top: 10px !important;
+    align-items: center !important;
+
+    .dialog-button {
+        margin-top: 0 !important;
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: auto !important;
+        max-width: none !important;
+        padding: $padding-sm $padding-md !important;
+        font-family: var(--sla-font-header) !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        font-size: inherit !important;
+
+        &:first-child {
+            background: #2a0000 !important;
+            border-color: #ff5555 !important;
+            color: #ff5555 !important;
+
+            &:hover {
+                background: #ff5555 !important;
+                color: #000 !important;
+                box-shadow: 0 0 10px #ff5555 !important;
             }
-            
-            &[data-button="commit"],
-            &.commit {
-                background: #002a00 !important;
-                border-color: #39ff14 !important;
-                color: #39ff14 !important;
-                
-                &:hover {
-                    background: #39ff14 !important;
-                    color: #000 !important;
-                    box-shadow: 0 0 10px #39ff14 !important;
-                }
+        }
+
+        &:last-child {
+            background: #002a00 !important;
+            border-color: #39ff14 !important;
+            color: #39ff14 !important;
+
+            &:hover {
+                background: #39ff14 !important;
+                color: #000 !important;
+                box-shadow: 0 0 10px #39ff14 !important;
+            }
+        }
+
+        &[data-button="cancel"] {
+            background: #2a0000 !important;
+            border-color: #ff5555 !important;
+            color: #ff5555 !important;
+
+            &:hover {
+                background: #ff5555 !important;
+                color: #000 !important;
+                box-shadow: 0 0 10px #ff5555 !important;
+            }
+        }
+
+        &[data-button="commit"] {
+            background: #002a00 !important;
+            border-color: #39ff14 !important;
+            color: #39ff14 !important;
+
+            &:hover {
+                background: #39ff14 !important;
+                color: #000 !important;
+                box-shadow: 0 0 10px #39ff14 !important;
             }
         }
     }

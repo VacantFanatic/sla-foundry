@@ -458,7 +458,6 @@ select option {
   margin-top: 10px !important;
   align-items: center !important;
 }
-
 .window-app.xp-dialog-window .dialog-buttons .dialog-button {
   margin-top: 0 !important;
   flex: 0 0 auto !important;
@@ -472,50 +471,42 @@ select option {
   letter-spacing: 0.5px !important;
   font-size: inherit !important;
 }
-
 .window-app.xp-dialog-window .dialog-buttons .dialog-button:first-child {
   background: #2a0000 !important;
   border-color: #ff5555 !important;
   color: #ff5555 !important;
 }
-
 .window-app.xp-dialog-window .dialog-buttons .dialog-button:first-child:hover {
   background: #ff5555 !important;
   color: #000 !important;
   box-shadow: 0 0 10px #ff5555 !important;
 }
-
 .window-app.xp-dialog-window .dialog-buttons .dialog-button:last-child {
   background: #002a00 !important;
   border-color: #39ff14 !important;
   color: #39ff14 !important;
 }
-
 .window-app.xp-dialog-window .dialog-buttons .dialog-button:last-child:hover {
   background: #39ff14 !important;
   color: #000 !important;
   box-shadow: 0 0 10px #39ff14 !important;
 }
-
-.window-app.xp-dialog-window .dialog-buttons .dialog-button[data-button="cancel"] {
+.window-app.xp-dialog-window .dialog-buttons .dialog-button[data-button=cancel] {
   background: #2a0000 !important;
   border-color: #ff5555 !important;
   color: #ff5555 !important;
 }
-
-.window-app.xp-dialog-window .dialog-buttons .dialog-button[data-button="cancel"]:hover {
+.window-app.xp-dialog-window .dialog-buttons .dialog-button[data-button=cancel]:hover {
   background: #ff5555 !important;
   color: #000 !important;
   box-shadow: 0 0 10px #ff5555 !important;
 }
-
-.window-app.xp-dialog-window .dialog-buttons .dialog-button[data-button="commit"] {
+.window-app.xp-dialog-window .dialog-buttons .dialog-button[data-button=commit] {
   background: #002a00 !important;
   border-color: #39ff14 !important;
   color: #39ff14 !important;
 }
-
-.window-app.xp-dialog-window .dialog-buttons .dialog-button[data-button="commit"]:hover {
+.window-app.xp-dialog-window .dialog-buttons .dialog-button[data-button=commit]:hover {
   background: #39ff14 !important;
   color: #000 !important;
   box-shadow: 0 0 10px #39ff14 !important;
@@ -534,7 +525,6 @@ select option {
  */
 .sla-chat-card {
   font-family: var(--sla-font-mono);
-  font-size: 13px;
   font-size: 14px;
   color: #eee;
 }
