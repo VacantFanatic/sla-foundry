@@ -1863,6 +1863,39 @@ select option {
   min-height: 300px;
   background: #fff;
   color: #000;
+  /* Keep editor controls readable in the light threat notes panel. */
+}
+.threat-content-box.editor .editor-menu,
+.threat-content-box.editor .prosemirror-menu {
+  background: #f2f2f2 !important;
+  border-bottom: 1px solid #9a9a9a !important;
+  color: #111 !important;
+}
+.threat-content-box.editor .editor-menu button,
+.threat-content-box.editor .prosemirror-menu button {
+  color: #111 !important;
+}
+.threat-content-box.editor .editor-menu button i,
+.threat-content-box.editor .editor-menu button svg,
+.threat-content-box.editor .editor-menu button svg path,
+.threat-content-box.editor .prosemirror-menu button i,
+.threat-content-box.editor .prosemirror-menu button svg,
+.threat-content-box.editor .prosemirror-menu button svg path,
+.threat-content-box.editor .editor-menu .pm-dropdown,
+.threat-content-box.editor .editor-menu .pm-dropdown span,
+.threat-content-box.editor .prosemirror-menu .pm-dropdown,
+.threat-content-box.editor .prosemirror-menu .pm-dropdown span {
+  color: #111 !important;
+  fill: #111 !important;
+  opacity: 1 !important;
+}
+.threat-content-box.editor .editor-menu button:hover,
+.threat-content-box.editor .prosemirror-menu button:hover {
+  background: #dedede !important;
+  border-color: #888 !important;
+}
+.threat-content-box.editor .editor-content {
+  color: #111 !important;
 }
 .threat-content-box.editor .editor {
   min-height: 300px;

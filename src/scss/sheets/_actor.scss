@@ -995,6 +995,44 @@
     background: #fff;
     color: #000;
 
+    /* Keep editor controls readable in the light threat notes panel. */
+    .editor-menu,
+    .prosemirror-menu {
+        background: #f2f2f2 !important;
+        border-bottom: 1px solid #9a9a9a !important;
+        color: #111 !important;
+    }
+
+    .editor-menu button,
+    .prosemirror-menu button {
+        color: #111 !important;
+    }
+
+    .editor-menu button i,
+    .editor-menu button svg,
+    .editor-menu button svg path,
+    .prosemirror-menu button i,
+    .prosemirror-menu button svg,
+    .prosemirror-menu button svg path,
+    .editor-menu .pm-dropdown,
+    .editor-menu .pm-dropdown span,
+    .prosemirror-menu .pm-dropdown,
+    .prosemirror-menu .pm-dropdown span {
+        color: #111 !important;
+        fill: #111 !important;
+        opacity: 1 !important;
+    }
+
+    .editor-menu button:hover,
+    .prosemirror-menu button:hover {
+        background: #dedede !important;
+        border-color: #888 !important;
+    }
+
+    .editor-content {
+        color: #111 !important;
+    }
+
     .editor {
         min-height: 300px;
         height: 100%;

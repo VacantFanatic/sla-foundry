@@ -108,6 +108,8 @@ export class SlaNPCData extends foundry.abstract.TypeDataModel {
     static defineSchema() {
         const fields = foundry.data.fields;
         return {
+            biography: new fields.HTMLField(),
+            notes: new fields.HTMLField(),
             bio: new fields.SchemaField({
                 species: new fields.StringField(),
                 scl: new fields.StringField()
