@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.3] - 2026-03-30
+
+### Changed
+* Updated system version to `1.0.3`.
+
+### Fixed
+* Improved Threat sheet Notes editor toolbar contrast so controls are visible in the light Notes panel.
+* Fixed Threat sheet Notes persistence by binding the editor to `system.notes` and adding NPC HTML fields used by the editor.
+
 ## [1.0.2] - 2026-03-30
 
 ### Fixed
