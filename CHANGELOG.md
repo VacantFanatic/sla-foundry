@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] - 2026-03-30
+
+### Added
+* Operative (character) weapon attack rolls require the weapon to be equipped; attempting an attack while it is stowed shows a random in-character reminder instead of opening the attack dialog (issue 212). Threat (NPC) sheets are unchanged.
+
+### Changed
+* Updated system version to `1.1.0`.
+
 ## [1.0.4] - 2026-03-30
 
 ### Changed
@@ -273,6 +281,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
+[1.1.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.1.0
 [1.0.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.0.1
 [1.0.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.0.0
 [0.24.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.24.0
