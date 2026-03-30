@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.4] - 2026-03-30
+
+### Changed
+* Updated system version to `1.0.4`.
+
+### Fixed
+* Actor sheet portrait fills the center column again: scoped shared header image rules so they no longer shrink nested portraits to 100×100px (issue 214).
+
 ## [1.0.3] - 2026-03-30
 
 ### Changed

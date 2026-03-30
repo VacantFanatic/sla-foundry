@@ -18,7 +18,8 @@
     justify-content: flex-start;
     margin-bottom: $margin-md;
 
-    .profile-img {
+    /* Direct child only: actor sheets nest the portrait inside .portrait-container */
+    > .profile-img {
         flex: 0 0 100px;
         height: 100px;
         margin-right: $margin-md;
