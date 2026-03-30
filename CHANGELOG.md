@@ -1,241 +1,279 @@
-# CHANGELOG
+# Changelog
 
-# v0.24.0
+All notable changes to this project will be documented in this file.
 
-### Features
-*   **Optional Long Range Feature**: Added a system setting to toggle the long range penalty feature on/off. When disabled, ranged attacks will not apply the -1 Skill Die penalty for long range.
-*   **Optional Target-Required Features**: Added a system setting to toggle target requirement checks on/off. When disabled, attacks can be made without selecting a target and range calculations are skipped.
-*   **Optional Automatic Ammo Consumption**: Added a system setting to toggle automatic ammo reduction when firing ranged weapons. When disabled, ammo must be tracked manually.
-*   **Optional Low Ammo Validation**: Added a system setting to toggle low ammo validation and penalties. When disabled, players can fire modes without enough ammo and the -2 DMG low ammo penalty is not applied.
-*   **Optional Automatic Wound Penalties**: Added a system setting to toggle automatic wound penalties on dice rolls. When disabled, wound count does not reduce dice rolls.
-*   **Optional NPC Wound Tracking**: Added a system setting to toggle wound tracking for NPCs. When disabled, NPCs do not track wounds and the wounds section is hidden on NPC sheets.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-# v0.20.1
-
-### Fixes
-*   **Melee Weapon Rolls**: Fixed weapon roll calculations to use STR for melee weapons instead of always using DEX. This corrects the base modifier calculation (e.g., STR 3 + Melee 3 now correctly shows base 6).
-*   **Defense Modifiers**: Fixed double-application of Combat Defense and Acrobatic Defense penalties in melee attacks.
-    
-# v0.20.0
-
-### Features
-*   **Compendium Linking**: Made the headers for Species, Package, and Skills clickable on the actor sheet. Clicking them now directly opens the corresponding Compendium pack, improving navigation speed.
-
-### Fixes
-*   **Migration**: Synced migration version.
-
-# v0.19.2
-
-### Styling
-*   **Adjust Target Number**: Restyled the buttons to be more consistent and added a hover effect.
-
-
-
-### Features
-*   **Skill Difficulty Adjustment**: Added buttons to Skill Check chat cards (visible to GM) to adjust TN post-roll.
-*   **Ebb Formula Use Icon**: Added a quick-roll "bolt" icon to Ebb Formulas on the actor sheet.
+## [1.0.1] - 2026-01-16
 
 ### Changed
-*   **Global Target Number**: Changed default TN from **11** to **10**.
-*   **Roll UI Logic**: Restricted "Tactical Choice" and "Adjust Difficulty" buttons to appropriate roll types (Weapons TN 10, Ebb TN = Formula Rating).
-*   **Ebb Modifier**: Fixed string concatenation bug in Ebb rolls.
+* Updated system metadata for the `1.0.1` release in `system.json`, including the release download URL.
+* Refined dialog and chat styling in SCSS to improve UI consistency and readability.
+* Renamed project display metadata to align with SLA Industries naming.
 
-### Fixes
-*   **Ebb Nesting**: Fixed Ebb formula nesting under Disciplines.
-*   **Combat Defense**: Corrected application of defense modifiers in Melee Attack Dialog.
-*   **Migration**: Synced migration version.
+### Removed
+* Removed obsolete files as part of release cleanup.
 
-# v0.19.0
+## [1.0.0] - 2026-01-13
 
-### Features
-*   **Defense Modifiers (Melee)**: Added functional inputs for **Target Combat Defense**, **Acrobatic Defense**, and **Prone** status in the Melee Attack Dialog, allowing players to correctly apply these rule-based modifiers.
-*   **Post-Roll Difficulty Adjustment**: Added buttons to Weapon/Skill Chat Cards (visible to GM) to adjust the Target Number (TN 4, 7, 10, 13, 16) *after* the roll. This updates the success/failure status and margin of success effects dynamically.
+### Changed
+* Updated system version and release download URL in `system.json` for the `1.0.0` release.
 
-### Fixes
-*   **Target Number Correction**: Fixed a critical rules discrepancy where the default Target Number was 11. It is now correctly set to **10** across the system.
+### Removed
+* Removed the outdated `packages.db` file from the project.
 
-# v0.14.2
+## [0.24.0]
 
-### Features
-*   **Threat Damage Display**: Threat (NPC) sheets now display calculated damage values for weapons (e.g., "3") rather than raw formulas, matching the Character sheet behavior.
-*   **Automated Migration**: The Natural Weapons migration (Standardizing Punch/Kick and Species Weapons) is now integrated into the system startup. It will automatically detect and fix legacy items on world load.
+### Added
+* Optional long range feature setting to toggle long range penalties.
+* Optional target-required feature setting to allow attacks without selecting a target.
+* Optional automatic ammo consumption setting.
+* Optional low ammo validation setting.
+* Optional automatic wound penalties setting.
+* Optional NPC wound tracking setting, including NPC sheet visibility behavior.
 
-# v0.14.1
+## [0.20.1]
 
-### Features
-*   **Min Damage Application**: Weapon rolls now automatically respect the 'Min Damage' stat. If a damage roll is lower than the minimum, it is raised to that value.
-*   **Combat Loadout Display**: The combat tab now displays the *calculated* damage for weapons (e.g., "5") instead of the raw formula (e.g., "@str.value - 1"), improving readability.
-*   **Legacy Natural Weapons Migration**: Added a migration script to strictly update old "1d10" based natural weapons to the correct STR-based formulas.
+### Fixed
+* Melee weapon roll calculations now use STR instead of always using DEX.
+* Double-application of Combat Defense and Acrobatic Defense penalties in melee attacks.
 
-# v0.14.0
+## [0.20.0]
 
-### Features
-*   **Ebb Disciplines:** Corrected the list of Ebb Disciplines in the configuration to match the official list (Awareness, Blast, Communicate, Enhance, Heal, Protect, Reality Fold, Senses, Telekinesis, Thermal).
-*   **World Item Sync:** Implemented a robust sync mechanism to ensure World Items in the "SLA Species" folder are automatically updated with the correct skills and statistics.
-*   **Quick Start Gear:** Added a new Compendium Pack "Quick Start Gear" containing a selection of pre-statted weapons and armor for quick character creation.
-*   **Config Cleanup:** Removed legacy `speciesStats` and `species` helper lists from `config.mjs` as the system now relies entirely on Compendium Items for species data.
+### Added
+* Clickable Species, Package, and Skills headers on actor sheets for direct Compendium navigation.
 
-### Bug Fixes
-*   Fixed a syntax error in `config.mjs` that prevented character sheets from loading.
-*   Ensured the "Human" species item is correctly created if missing.
-*   Resolved a syntax error in `actor.mjs` caused by a missing brace during code cleanup.
-*   Updated `.gitignore` to properly ignore local LevelDB cache folders in `packs/` while preserving the source `.db` files.
+### Fixed
+* Migration version synchronization.
 
+## [0.19.2]
 
-# v0.13.2-alpha
-    
-## Fixes
-- **Critical Crash**: Fixed a crash that occurred when applying encumbrance penalties to actors (Threats) that lacked the necessary data structures.
-- **Threat Armor PV**: Fixed a bug where missing `ratings` data on Threats prevented ANY derived stats (including Armor PV) from being calculated.
-- **PV Display**: Updated the Threat Sheet to correctly display the calculated effective Armor PV.
+### Added
+* GM-visible Skill Check chat card buttons to adjust TN after rolls.
+* Quick-roll "bolt" icon for Ebb Formulas on actor sheets.
 
-# v0.13.1-alpha
+### Changed
+* Button styling and hover behavior for target number adjustment controls.
+* Default global target number changed from `11` to `10`.
+* Roll UI logic now restricts tactical/difficulty controls to appropriate roll types.
 
-## Fixes
-- **Weapon Firing Modes**: Fixed an issue where the "Enable" toggle for firing modes in the Item Sheet was unclickable.
-- **Threat Armor PV**: Threats (NPCs) now automatically derive their Protection Value (PV) from equipped armor, and respect armor degradation rules.
-- **Threat Movement**: Fixed an issue where Threat movement speeds would reset to 0 upon update.
+### Fixed
+* Ebb modifier string concatenation issue in Ebb rolls.
+* Ebb formula nesting under Disciplines.
+* Combat defense modifier application in the Melee Attack Dialog.
+* Migration version synchronization.
 
-# v0.13.0-alpha
+## [0.19.0]
 
-## Highlights
-- **User Interface Overhaul**: Major redesign of all Item Sheets with distinct "in-universe" themes (Catalogue, Textbook, Spectral, Dossier).
-- **Threat Sheets**: Dedicated visual identity for NPC/Threat sheets with a toxic green schema.
+### Added
+* Functional melee defense inputs for Target Combat Defense, Acrobatic Defense, and Prone status.
+* GM-visible post-roll Target Number adjustment buttons for Weapon/Skill chat cards.
 
-## What's new
-- **Item Sheet Themes**: 
-  - **Catalogue** (Weapons, Armor, Gear): Industrial aesthetics with clear grids.
-  - **Textbook** (Skills, Traits): "Academic Paper" style with white background and serif fonts details.
-  - **Spectral** (Ebb, Discipline): Dark, glowing purple aesthetic for Ebb-related items.
-  - **Dossier** (Species, Package): Secret classified folder look.
-- **Improved Layouts**: 
-  - **Single View**: streamlined layouts for singular items removing tabs in favor of a vertical flow (Attributes -> Drop Zone -> Description).
-  - **Custom Grids**: Specific 2-column layouts for Drugs and compact 2x2 grids for Ebb Formulas.
-  - **Paneling**: Moved "Powered Armor" and "Firing Modes" to dedicated bottom panels for better organization.
-- **Explosives**:
-  - **Refinement**: Added dual-template support (Kill Zone vs Max Blast) and auto-deletion on empty quantity.
+### Fixed
+* System-wide target number corrected from `11` to `10`.
 
-# v0.12.0-alpha
+## [0.14.2]
 
-## Highlights
-- **Explosives System**: Full implementation of Grenades and Explosives with automated rolling, deviation, and template placement.
+### Added
+* Calculated weapon damage display on Threat sheets, matching Character sheet behavior.
+* Automatic startup migration for legacy natural weapons.
 
-## What's new
-- **New Item Type: Explosive**: Created a dedicated item type for explosives with properties for Blast Radius (Inner/Outer), Damage, AD, and Cost.
-- **Automated Grenade Physics**:
-  - **Auto-Aim**: Players click on the canvas to select a target point.
-  - **Deviation**: Automatically calculates if the grenade lands on target, deviates 5m/10m, or fumbles (detonates on user).
-  - **Dual Templates**: Automatically places Measured Templates on the scene. Draws a darker "Kill Zone" inner circle and a lighter "Max Blast" outer circle.
-- **Inventory Management**:
-  - **Quantity Tracking**: Explosives show quantity (e.g., x3) in the Combat Tab.
-  - **Auto-Delete**: Items are automatically removed from inventory when quantity reaches 0.
+## [0.14.1]
 
-## Fixes
-- **Ray Deprecation**: Resolved `Ray` global deprecation warning for Foundry V13+.
-- **Token Range**: Fixed an issue where range calculations would fail if the actor's token wasn't correctly identified.
+### Added
+* Automatic minimum damage enforcement for weapon rolls.
+* Calculated combat loadout damage display instead of raw formulas.
+* Migration for legacy natural weapon formulas (`1d10` to STR-based formulas).
 
+## [0.14.0]
 
-# v0.10.3-alpha
+### Added
+* Quick Start Gear compendium pack.
+* World item sync mechanism for SLA Species folder data consistency.
 
-## What's new
-- **Armor Upgrade**: Added support for Powered Armor with toggleable modifiers for STR, DEX, and Movement.
-- **Dead Weight**: Implemented rule where Powered Armor becomes weight 6 if Resistance is destroyed.
-- **Dead Condition**: Automatically applies the "Dead" status overlay when HP reaches 0 and removes it when healed.
+### Changed
+* Ebb Disciplines configuration updated to match the official discipline list.
 
-## Fixes & Improvements
-- **Armor Damage (AD)**: Improved damage calculation logic. AD now reduces armor resistance *before* the PV is calculated for the hit, ensuring damaged armor provides less protection immediately.
-- **Migration**: Added a migration script to initialize new armor fields for existing items.
+### Removed
+* Legacy `speciesStats` and `species` helper lists from `config.mjs`.
 
-# v0.10.0-alpha
+### Fixed
+* Syntax error in `config.mjs` blocking character sheets.
+* Missing Human species item creation.
+* Syntax error in `actor.mjs` caused by a missing brace.
+* `.gitignore` handling for local LevelDB cache folders in `packs/`.
 
-## What's new
-- **Visual Overhaul**: Significant styling updates for Character and Threat sheets, ensuring high contrast and better visibility.
-- **Editor Improvements**: Fixed invisible editor buttons (ProseMirror) on dark backgrounds. Restored the minimum height for Threat sheet notes.
-- **Dossier Theme**: Added styling for Species and Package item sheets for a distinct "Dossier" look.
-- **Chat Styling**: Updated the Damage Result chat card to match the dark SLA Industries theme.
+## [0.13.2-alpha]
 
-## Fixes
-- Fixed item sheet template partials missing CSS classes.
+### Fixed
+* Crash when applying encumbrance penalties to Threat actors missing required data structures.
+* Threat derived-stat calculation failure when `ratings` data was missing.
+* Threat sheet Armor PV display to show calculated effective value.
 
-# v0.9.3-alpha
+## [0.13.1-alpha]
 
-## What's new
-- **New Actor Sheet**: Introduced `SlaActorSheet` for comprehensive character management, including better item organization, skill/attribute/combat rolls, and condition toggling.
-- **Wounds & Conditions**: Implemented actor wound tracking, condition management (e.g., Stunned, Immobile), and automatic application of derived stat penalties from wounds and encumbrance.
-- **Styling Overhaul**: Converted CSS to SCSS and implemented a new styling system.
+### Fixed
+* Unclickable firing mode "Enable" toggle in item sheets.
+* Threat PV derivation from equipped armor with degradation rules.
+* Threat movement speeds resetting to `0` on update.
 
-## Fixes & Improvements
-- Fixed deprecation warnings for `renderTemplate` and `Hooks.on("renderChatMessage")`.
-- Restored condition penalties functionality.
-- Initialized default stats to 1 instead of 10.
-- Fixed an issue where the damage button wouldn't work after using Luck.
-- formatting updates to `template.json`.
+## [0.13.0-alpha]
 
-# v0.8.3-alpha
+### Added
+* Major in-universe item sheet theming (Catalogue, Textbook, Spectral, Dossier).
+* Dedicated visual identity for Threat sheets.
+* Streamlined single-view layouts for singular items.
+* Specialized grid layouts for Drugs and Ebb Formulas.
+* Reorganized powered armor and firing modes into dedicated lower panels.
+* Explosive refinement with dual-template support (Kill Zone and Max Blast) and auto-delete on empty quantity.
 
-## What's new
-- **Luck System**: Added a new Luck Dialog for rerolling dice and applying modifiers.
-- **Initial Styling**: Added initial character sheet styling.
+## [0.12.0-alpha]
 
-# v0.7.3-alpha
+### Added
+* Full explosives system with grenade automation, deviation, and template placement.
+* Dedicated Explosive item type with blast radius, damage, AD, and cost fields.
+* Canvas target-point auto-aim for grenades.
+* Automatic deviation and fumble behavior for grenade throws.
+* Dual measured templates for kill and max blast zones.
+* Explosive quantity tracking in the Combat tab.
+* Auto-deletion of explosive items when quantity reaches zero.
 
-## What's new
-- **Roll Icons**: Added roll icons to Threat attributes and other areas.
+### Fixed
+* `Ray` global deprecation warning compatibility for Foundry V13+.
+* Range calculation failure when actor token resolution was incorrect.
 
-## Fixes
-- Fixed ammo bug.
-- Added weapon attack type and migration logic.
+## [0.10.3-alpha]
 
-# v0.4.4-alpha
+### Added
+* Powered armor support with STR/DEX/Movement modifiers.
+* Powered armor dead weight rule when resistance is destroyed.
+* Automatic "Dead" overlay application/removal based on HP.
 
-## What's new
-- **Reserved Dice**: Added reserved dice option to melee attack dialog.
-- **Drugs**: Added drug consumption feature and updated drug item fields.
+### Changed
+* Armor Damage handling now applies AD reduction before PV is calculated.
 
-# v0.4.2-alpha
+### Fixed
+* Migration added to initialize new armor fields for existing items.
 
-## What's new
-- **Weapons**: Added reload logic and ammo type selector.
-- **Threat Sheets**: Added threat sheet theme and improved NPC sheet layout.
+## [0.10.0-alpha]
 
-# v0.3.1-alpha
+### Added
+* Character and Threat sheet visual overhaul for improved contrast and readability.
+* Dossier theme styling for Species and Package item sheets.
+* Dark-theme chat styling for damage result cards.
 
-## What's new
-- **Ebb Disciplines**: Added Ebb discipline linking.
-- **Combat Loadout**: Refactored combat loadout to partial template.
-- **Dark Theme**: Updates to the dark theme.
+### Fixed
+* Invisible ProseMirror editor controls on dark backgrounds.
+* Threat sheet notes minimum height behavior.
+* Missing CSS classes in item sheet template partials.
 
-# v0.2.5-alpha
+## [0.9.3-alpha]
 
-## What's new
-- **Office Dossier**: Added Office Dossier theme for species and package items.
-- **Ebb Formulas**: Added combat fields to Ebb Formula item sheet.
+### Added
+* `SlaActorSheet` with expanded character management and roll tooling.
+* Wound and condition tracking with derived penalty automation.
+* SCSS-based styling system migration.
 
-# v0.2.3-alpha
+### Fixed
+* Deprecation warnings for `renderTemplate` and `Hooks.on("renderChatMessage")`.
+* Condition penalty behavior restoration.
+* Damage button failure after Luck usage.
 
-## Bugs
-- (#18)Fix Ratings Points
+### Changed
+* Default stats initialization changed from `10` to `1`.
+* Formatting updates to `template.json`.
 
-# v0.2.2-alpha
+## [0.8.3-alpha]
 
-## Bugs
-- (#13) Skill Drops not working
-- (#10) Fix roll diaglog options and readibility
-- (#8) Review and correct damage modifiers
+### Added
+* Luck dialog for rerolls and modifier application.
+* Initial character sheet styling.
 
-# v0.1.0-alpha
- 
-## What's new
-- Added droppable items for package and species
-  - These will set initial attributes
-  - Initial skills
-  - If a skill is granted by package and species it will increase the rank by 1
-- Hide cost from skills, and non-gear items
-- Added a skill max (rank 4)
-- Make the skills for species and package an area to drop skill items instead of a text field
+## [0.7.3-alpha]
 
-## Bugs
-- Ranged mods on a weapon attack are gone - repair
-- Fix status toggles stunned gets stuck
-- Apply damage is applying damage to target and selected token - add selector to confirmation dialog
-- Degree of success on weapon attacks is gone - restored
+### Added
+* Roll icons for Threat attributes and related roll entry points.
+* Weapon attack type support with migration logic.
+
+### Fixed
+* Ammo handling bug.
+
+## [0.4.4-alpha]
+
+### Added
+* Reserved dice option in melee attack dialog.
+* Drug consumption feature and corresponding drug item field updates.
+
+## [0.4.2-alpha]
+
+### Added
+* Weapon reload logic and ammo type selector.
+* Threat sheet theme and NPC sheet layout improvements.
+
+## [0.3.1-alpha]
+
+### Added
+* Ebb discipline linking.
+* Combat loadout refactor into partial templates.
+* Dark theme updates.
+
+## [0.2.5-alpha]
+
+### Added
+* Office Dossier theme for Species and Package items.
+* Combat fields for Ebb Formula item sheets.
+
+## [0.2.3-alpha]
+
+### Fixed
+* (#18) Ratings points issue.
+
+## [0.2.2-alpha]
+
+### Fixed
+* (#13) Skill drops not working.
+* (#10) Roll dialog options/readability issues.
+* (#8) Damage modifier review and corrections.
+
+## [0.1.0-alpha]
+
+### Added
+* Droppable Species and Package items for initial character setup.
+* Initial attributes and skills assignment from dropped setup items.
+* Skill rank increment when granted by both Species and Package.
+* Hidden cost display for skills and non-gear items.
+* Skill maximum cap (rank 4).
+* Skill-drop areas for Species and Package items instead of plain text fields.
+
+### Fixed
+* Ranged weapon attack modifier regression.
+* Stunned status toggle getting stuck.
+* Damage application targeting both selected token and target.
+* Degree of success display regression on weapon attacks.
+
+[1.0.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.0.1
+[1.0.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.0.0
+[0.24.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.24.0
+[0.20.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.20.1
+[0.20.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.20.0
+[0.19.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.19.2
+[0.19.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.19.0
+[0.14.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.14.2
+[0.14.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.14.1
+[0.14.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.14.0
+[0.13.2-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.13.2-alpha
+[0.13.1-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.13.1-alpha
+[0.13.0-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.13.0-alpha
+[0.12.0-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.12.0-alpha
+[0.10.3-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.10.3-alpha
+[0.10.0-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.10.0-alpha
+[0.9.3-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.9.3-alpha
+[0.8.3-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.8.3-alpha
+[0.7.3-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.7.3-alpha
+[0.4.4-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.4.4-alpha
+[0.4.2-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.4.2-alpha
+[0.3.1-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.3.1-alpha
+[0.2.5-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.2.5-alpha
+[0.2.3-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.2.3-alpha
+[0.2.2-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.2.2-alpha
+[0.1.0-alpha]: https://github.com/VacantFanatic/sla-foundry/releases/tag/0.1.0-alpha
