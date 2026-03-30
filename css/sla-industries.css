@@ -1882,6 +1882,14 @@ select option {
   color: #000;
 }
 
+/* Threat equipment: .sla-sheet number inputs use --sla-text-light on dark backgrounds; armor
+   resistance fields use a light panel via inline background, which made values illegible. */
+.sla-sheet.threat-sheet .threat-content-box input.inline-edit[type=number] {
+  color: #111 !important;
+  background: #fff !important;
+  border-color: #888 !important;
+}
+
 /* ==========================================
    14. STATS MATRIX (Body/Brains/Bravado)
    ========================================== */
