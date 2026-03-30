@@ -494,8 +494,31 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         }
     }
 
+    /**
+     * PC sheets track equipped gear; Threat sheets do not expose an equip toggle (drops default to equipped).
+     * @returns {boolean}
+     */
+    _requiresWeaponEquippedForAttack() {
+        return this.actor.type === "character";
+    }
+
+    /** @returns {void} */
+    _notifyUnequippedWeaponHumor() {
+        const lines = [
+            "That hardware is still stowed—you need it in hand, not in inventory. Equip it first, operative.",
+            "You can't mug a Carrien with pocket lint. Equip the weapon, then we'll talk dice.",
+            "Bane's watching, and even he expects the barrel to leave the holster before you roll. Equip it.",
+            "Nice commitment to the bit, but mime combat doesn't bypass armor. Toggle that weapon to equipped."
+        ];
+        ui.notifications.info(lines[Math.floor(Math.random() * lines.length)]);
+    }
+
     // --- DIALOG ---
     async _renderAttackDialog(item, isMelee) {
+        if (this._requiresWeaponEquippedForAttack() && !item.system.equipped) {
+            this._notifyUnequippedWeaponHumor();
+            return;
+        }
 
         // 1. Prepare Firing Modes (Ranged Only)
         let validModes = {};
@@ -673,6 +696,13 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
     async _processWeaponRoll(item, html, isMelee) {
         const form = html[0].querySelector("form");
         if (!form) return;
+
+        const weapon = this.actor.items.get(item.id) ?? item;
+        if (this._requiresWeaponEquippedForAttack() && !weapon.system.equipped) {
+            this._notifyUnequippedWeaponHumor();
+            return;
+        }
+        item = weapon;
 
         // 1. SETUP
         // FIX: Melee weapons use STR, ranged weapons use DEX
