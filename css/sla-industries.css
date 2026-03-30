@@ -757,8 +757,9 @@ select option {
   flex-wrap: wrap;
   justify-content: flex-start;
   margin-bottom: 10px;
+  /* Direct child only: actor sheets nest the portrait inside .portrait-container */
 }
-.sheet-header .profile-img {
+.sheet-header > .profile-img {
   flex: 0 0 100px;
   height: 100px;
   margin-right: 10px;
@@ -1018,9 +1019,12 @@ select option {
   justify-content: center;
 }
 
-.profile-img {
+.portrait-container .profile-img {
+  flex: none;
   width: 100%;
   height: 100%;
+  min-height: 0;
+  margin: 0;
   object-fit: cover;
   object-position: top center;
   border: none;
