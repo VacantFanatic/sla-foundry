@@ -107,4 +107,4 @@ The Actor Sheet automatically sorts items into the following categories based on
 
 * **"Skill Not Found" during Attack:** Ensure the Weapon has a skill linked in the "Required Skill" box, and that the Actor actually possesses that skill.
 * **Reload Button Missing:** The reload button only appears if the Weapon has a `Max Ammo` value greater than 0. Use the reload function once to initialize it, or manually set Max Ammo in the item sheet.
-* **Ebb Section Missing:** The "Combat" tab only shows Ebb powers if the Actor's **Species** item contains the word "Ebonite" (or "Necanthrop").
+* **Ebb Section Missing:** The "Combat" tab only shows Ebb powers if the Actor's **Species** item contains the word "Ebonite" (or "Necanthrope").

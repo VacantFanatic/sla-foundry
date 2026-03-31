@@ -6,7 +6,7 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
 
 // 1. Define the target version for THIS specific migration
 //    (Matches the version in your system.json)
-export const CURRENT_MIGRATION_VERSION = "0.23.0";
+export const CURRENT_MIGRATION_VERSION = "1.2.0";
 
 /**
  * Main Entry Point
@@ -102,6 +102,11 @@ export async function migrateWorld() {
                 }
             }
 
+            if (actor.type === "vehicle") {
+                const vehicleUpdate = getVehicleActorMigrationData(actor);
+                actorUpdate = foundry.utils.mergeObject(actorUpdate, vehicleUpdate);
+            }
+
             // Migrate Luck & Flux Max
             const luck = foundry.utils.getProperty(actor, "system.stats.luck");
             const flux = foundry.utils.getProperty(actor, "system.stats.flux");
@@ -189,6 +194,44 @@ export async function migrateWorld() {
     ui.notifications.info("SLA Industries System: Migration Complete!", { permanent: false });
 }
 
+function getVehicleActorMigrationData(actor) {
+    const system = actor.system || {};
+    const updateData = {};
+
+    if (system.notes === undefined) updateData["system.notes"] = "";
+    if (system.skill === undefined) updateData["system.skill"] = "";
+    if (!system.dimensions) updateData["system.dimensions"] = { length: "", width: "", height: "" };
+    else {
+        if (system.dimensions.length === undefined) updateData["system.dimensions.length"] = "";
+        if (system.dimensions.width === undefined) updateData["system.dimensions.width"] = "";
+        if (system.dimensions.height === undefined) updateData["system.dimensions.height"] = "";
+    }
+    if (system.capacity === undefined) updateData["system.capacity"] = "";
+    if (system.mountedWeaponsIgnoreSkillReq === undefined) updateData["system.mountedWeaponsIgnoreSkillReq"] = true;
+    if (system.providesCombatCover === undefined) updateData["system.providesCombatCover"] = true;
+
+    if (!system.hp) updateData["system.hp"] = { value: 10, max: 10 };
+    else {
+        if (system.hp.value === undefined) updateData["system.hp.value"] = 10;
+        if (system.hp.max === undefined) updateData["system.hp.max"] = 10;
+    }
+
+    if (!system.armor) updateData["system.armor"] = { pv: 0, resist: { value: 0, max: 0 } };
+    else {
+        if (system.armor.pv === undefined) updateData["system.armor.pv"] = 0;
+        if (!system.armor.resist) updateData["system.armor.resist"] = { value: 0, max: 0 };
+        else {
+            if (system.armor.resist.value === undefined) updateData["system.armor.resist.value"] = 0;
+            if (system.armor.resist.max === undefined) updateData["system.armor.resist.max"] = 0;
+        }
+    }
+
+    if (!system.move) updateData["system.move"] = { value: 0 };
+    else if (system.move.value === undefined) updateData["system.move.value"] = 0;
+
+    return updateData;
+}
+
 /**
  * Migration Logic for Armor
  */
@@ -223,6 +266,19 @@ async function getArmorMigrationData(item) {
         hasChanges = true;
     }
 
+    if (system.powersuit === undefined) {
+        updateData["system.powersuit"] = false;
+        hasChanges = true;
+    }
+    if (system.dexCap === undefined) {
+        updateData["system.dexCap"] = 0;
+        hasChanges = true;
+    }
+    if (system.initBonus === undefined) {
+        updateData["system.initBonus"] = 0;
+        hasChanges = true;
+    }
+
     return hasChanges ? updateData : null;
 }
 
@@ -236,6 +292,7 @@ async function migrateWeaponItem(item, meleeSkills) {
         await item.update(updateData);
     }
 }
+
 
 /**
  * Calculate the data delta
@@ -274,9 +331,22 @@ async function getWeaponMigrationData(item, meleeSkills) {
         updateData["system.firingModes"] = firingModes;
         hasChanges = true;
     }
+    if (system.powersuitAttack === undefined) {
+        updateData["system.powersuitAttack"] = false;
+        hasChanges = true;
+    }
+    if (system.attackPenalty === undefined) {
+        updateData["system.attackPenalty"] = 0;
+        hasChanges = true;
+    }
+    if (system.adFromStrMinus === undefined) {
+        updateData["system.adFromStrMinus"] = 0;
+        hasChanges = true;
+    }
 
     return hasChanges ? updateData : null;
 }
+
 
 /**
  * Migration Logic for Species

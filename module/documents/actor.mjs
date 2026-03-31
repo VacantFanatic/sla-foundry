@@ -88,14 +88,32 @@ export class BoilerplateActor extends Actor {
         // Initialize Move Bonus if not present
         if (!system.move) system.move = { closing: 0, rushing: 0 };
         system.move.armorBonus = { closing: 0, rushing: 0 };
+        if (system.stats.init) system.stats.init.armorBonus = 0;
+
+        // Choose one active powersuit (if any) for replacement/cap bonuses.
+        const activePowersuit = armors
+            .filter(a => a.system.powersuit)
+            .sort((a, b) => (Number(b.system.resistance?.value) || 0) - (Number(a.system.resistance?.value) || 0))[0];
 
         for (const armor of armors) {
             const mods = armor.system.mods;
             if (!mods) continue;
 
-            // Apply Stats (STR, DEX)
-            if (mods.str && system.stats.str) system.stats.str.total += mods.str;
-            if (mods.dex && system.stats.dex) system.stats.dex.total += mods.dex;
+            // Powersuits replace STR and cap DEX. Other powered armor remains additive.
+            if (armor === activePowersuit) {
+                if (system.stats.str) system.stats.str.total = Number(mods.str) || 0;
+                if (mods.dex && system.stats.dex) system.stats.dex.total += mods.dex;
+                const dexCap = Number(armor.system.dexCap) || 0;
+                if (dexCap > 0 && system.stats.dex) {
+                    system.stats.dex.total = Math.min(system.stats.dex.total, dexCap);
+                }
+                if (system.stats.init) {
+                    system.stats.init.armorBonus += Number(armor.system.initBonus) || 0;
+                }
+            } else {
+                if (mods.str && system.stats.str) system.stats.str.total += mods.str;
+                if (mods.dex && system.stats.dex) system.stats.dex.total += mods.dex;
+            }
 
             // Accumulate Move Bonuses (Applied in _calculateDerived)
             if (mods.move) {
@@ -315,7 +333,7 @@ export class BoilerplateActor extends Actor {
         // B. Initiative (Character Only)
         if (this.type === 'character') {
             if (system.stats.init) {
-                system.stats.init.value = (system.stats.dex?.total || 0) + (system.stats.conc?.total || 0);
+                system.stats.init.value = (system.stats.dex?.total || 0) + (system.stats.conc?.total || 0) + (system.stats.init.armorBonus || 0);
             }
         }
 

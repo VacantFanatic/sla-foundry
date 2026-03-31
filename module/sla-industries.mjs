@@ -3,12 +3,13 @@ import { BoilerplateActor } from "./documents/actor.mjs";
 import { BoilerplateItem } from "./documents/item.mjs";
 import { LuckDialog } from "./apps/luck-dialog.mjs";
 
-import { SlaCharacterData, SlaNPCData } from "./data/actor.mjs";
+import { SlaCharacterData, SlaNPCData, SlaVehicleData } from "./data/actor.mjs";
 import { SlaItemData, SlaSkillData, SlaTraitData, SlaWeaponData, SlaArmorData, SlaEbbFormulaData, SlaDisciplineData, SlaDrugData, SlaSpeciesData, SlaPackageData, SlaMagazineData, SlaExplosiveData } from "./data/item.mjs";
 
 // Import sheet classes.
 import { SlaActorSheet } from "./sheets/actor-sheet.mjs";
 import { SlaNPCSheet } from "./sheets/actor-npc-sheet.mjs";
+import { SlaVehicleSheet } from "./sheets/actor-vehicle-sheet.mjs";
 import { SlaItemSheet } from "./sheets/item-sheet.mjs";
 
 // Import ruler.
@@ -36,7 +37,8 @@ Hooks.once('init', async function () {
     // REGISTER DATA MODELS
     CONFIG.Actor.dataModels = {
         character: SlaCharacterData,
-        npc: SlaNPCData
+        npc: SlaNPCData,
+        vehicle: SlaVehicleData
     };
     CONFIG.Item.dataModels = {
         item: SlaItemData,
@@ -139,6 +141,7 @@ Hooks.once('init', async function () {
     foundry.documents.collections.Actors.unregisterSheet("core", foundry.appv1.sheets.ActorSheet);
     foundry.documents.collections.Actors.registerSheet("sla-industries", SlaActorSheet, { types: ["character"], makeDefault: true, label: "SLA Operative Sheet" });
     foundry.documents.collections.Actors.registerSheet("sla-industries", SlaNPCSheet, { types: ["npc"], makeDefault: true, label: "SLA Threat Sheet" });
+    foundry.documents.collections.Actors.registerSheet("sla-industries", SlaVehicleSheet, { types: ["vehicle"], makeDefault: true, label: "SLA Vehicle Sheet" });
 
     foundry.documents.collections.Items.unregisterSheet("core", foundry.appv1.sheets.ItemSheet);
     foundry.documents.collections.Items.registerSheet("sla-industries", SlaItemSheet, { makeDefault: true, label: "SLA Item Sheet" });

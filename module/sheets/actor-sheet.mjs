@@ -25,6 +25,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
     get template() {
         const path = "systems/sla-industries/templates/actor";
         if (this.actor.type === 'npc') return `${path}/actor-npc-sheet.hbs`;
+        if (this.actor.type === 'vehicle') return `${path}/actor-vehicle-sheet.hbs`;
         return `${path}/actor-sheet.hbs`;
     }
 
@@ -66,7 +67,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
         context.rollData = context.actor.getRollData();
 
-        if (this.actor.type == 'character' || this.actor.type == 'npc') {
+        if (this.actor.type == 'character' || this.actor.type == 'npc' || this.actor.type == 'vehicle') {
             this._prepareItems(context);
         }
 
@@ -286,6 +287,14 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             ev.preventDefault();
             await XPDialog.create(this.actor);
         });
+
+        if (this.actor.type === "vehicle") {
+            const vehicleWeaponDropZone = html.find(".vehicle-weapon-drop");
+            if (vehicleWeaponDropZone.length > 0) {
+                vehicleWeaponDropZone.on("dragover", event => event.preventDefault());
+                vehicleWeaponDropZone.on("drop", this._onDropVehicleWeapon.bind(this));
+            }
+        }
     }
 
     // --- RELOAD LOGIC (Match by Linked Weapon Name) ---
@@ -333,6 +342,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             default: "load"
         }, { classes: ["sla-dialog", "sla-sheet"] }).render(true);
     }
+
 
     async _performReload(weapon, magazine) {
         // 1. Determine Capacity from Magazine
@@ -828,6 +838,16 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             mods.allDice -= penalty;
         }
 
+        // Powersuit attacks apply their built-in attack penalty automatically.
+        if (item.system.powersuitAttack) {
+            const attackPenalty = Number(item.system.attackPenalty) || 0;
+            if (attackPenalty !== 0) {
+                mods.allDice += attackPenalty;
+                if (attackPenalty < 0) notes.push(`Powersuit Attack (${attackPenalty})`);
+                else notes.push(`Powersuit Attack (+${attackPenalty})`);
+            }
+        }
+
         // 4. ROLL
         // FIX: Base Modifier should NOT include Success Die specific modifiers (Aim, Prone Target)
         // Those are passed separately to calculateRollResult
@@ -1019,7 +1039,13 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         let showButton = isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
 
         // 1. CAPTURE AD VALUE (Ensure it's a number)
-        const adValue = Number(item.system.ad) || 0;
+        let adValue = Number(item.system.ad) || 0;
+        if (item.system.powersuitAttack) {
+            const adFromStrMinus = Number(item.system.adFromStrMinus) || 0;
+            if (adFromStrMinus > 0) {
+                adValue = Math.max(0, strValue - adFromStrMinus);
+            }
+        }
 
         // Render
         const templateData = {
@@ -1711,15 +1737,41 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             return;
         }
 
-        // 3. AUTO-EQUIP FOR NPCs (Armor/Weapons)
-        // NPCs lack an "Active" toggle on their sheet, so items must default to equipped.
-        if (this.actor.type === "npc" && ["weapon", "armor"].includes(itemData.type)) {
+        // 3. AUTO-EQUIP FOR NPCs/Vehicle Weapons
+        // NPCs and vehicles should get dropped weapons as equipped by default.
+        if ((this.actor.type === "npc" && ["weapon", "armor"].includes(itemData.type))
+            || (this.actor.type === "vehicle" && itemData.type === "weapon")) {
             foundry.utils.setProperty(itemData, "system.equipped", true);
             return this.actor.createEmbeddedDocuments("Item", [itemData]);
         }
 
         // Default Drop Handler
         return super._onDropItem(event, data);
+    }
+
+    async _onDropVehicleWeapon(event) {
+        event.preventDefault();
+        if (!this.actor.isOwner || this.actor.type !== "vehicle") return false;
+
+        let dropped;
+        try {
+            dropped = JSON.parse(event.originalEvent?.dataTransfer?.getData("text/plain") ?? event.dataTransfer?.getData("text/plain"));
+        } catch (_err) {
+            return false;
+        }
+        if (!dropped || dropped.type !== "Item") return false;
+
+        const item = await Item.implementation.fromDropData(dropped);
+        if (!item || item.type !== "weapon") {
+            ui.notifications.warn("Only weapon items can be dropped into vehicle weapons.");
+            return false;
+        }
+
+        const itemData = item.toObject();
+        foundry.utils.setProperty(itemData, "system.equipped", true);
+        await this.actor.createEmbeddedDocuments("Item", [itemData]);
+        ui.notifications.info(`Equipped ${itemData.name} on ${this.actor.name}.`);
+        return true;
     }
 
     async _onItemCreate(event) {
