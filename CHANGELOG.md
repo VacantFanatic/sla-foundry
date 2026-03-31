@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.1] - 2026-03-31
+
+### Changed
+* Updated system and package metadata version to `1.2.1`.
+* Refactored actor roll handling for readability and maintainability in `module/sheets/actor-sheet.mjs`:
+  * Weapon roll flow split into focused helpers for eligibility, setup, MOS, damage, ROF rerolls, and chat payload assembly.
+  * Explosive roll flow split into focused helpers for form parsing, context setup, deviation resolution, template placement, and chat payload assembly.
+  * Ebb roll flow split into focused helpers for discipline resolution, modifier/roll setup, outcome text, damage mapping, and chat payload assembly.
+* Introduced shared actor-sheet helper methods to reduce duplication:
+  * Shared skill-dice result shaping across weapon, explosive, and ebb rolls.
+  * Shared success-die outcome and success-through-experience evaluation.
+  * Shared `flags.sla` roll payload base builder.
+* Refactored item preparation for performance and clarity in `module/helpers/items.mjs`:
+  * Reworked `prepareItems` into focused internal helpers.
+  * Replaced discipline/formula nesting scans with map-based lookup.
+  * Reduced render-path allocations and avoided no-op sort work.
+  * Preserved template-facing output contracts.
+* Refactored chat damage application in `module/helpers/chat.mjs` to centralize duplicated victim/armor/HP/report logic while preserving behavior.
+* Refactored actor drop-item workflow into focused handlers for species/package/auto-equip flows while preserving existing side effects and notifications.
+
 ## [1.2.0] - 2026-03-31
 
 ### Added
@@ -306,6 +326,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Degree of success display regression on weapon attacks.
 
 [1.2.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.2.0
+[1.2.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.2.1
 [1.1.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.1.0
 [1.0.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.0.1
 [1.0.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.0.0

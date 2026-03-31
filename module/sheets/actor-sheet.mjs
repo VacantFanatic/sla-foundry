@@ -478,12 +478,12 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 speaker: ChatMessage.getSpeaker({ actor: this.actor }),
                 content: chatContent,
                 flags: {
-                    sla: {
+                    sla: this._buildSlaRollFlags({
                         baseModifier: finalMod,
                         itemName: `${statLabel} CHECK`,
-                        notes: "", // Store notes in flags for difficulty recalculation
-                        tn: 10 // Store TN for reference
-                    }
+                        notes: "",
+                        tn: 10
+                    })
                 }
             });
         }
@@ -697,14 +697,16 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: chatContent,
             flags: {
-                sla: {
+                sla: this._buildSlaRollFlags({
                     baseModifier: baseModifier,
                     itemName: item.name.toUpperCase(),
-                    rofRerollSD: false,
-                    rofRerollSkills: [],
-                    notes: "", // Store notes in flags for difficulty recalculation
-                    tn: 10 // Store TN for reference
-                }
+                    notes: "",
+                    tn: 10,
+                    extra: {
+                        rofRerollSD: false,
+                        rofRerollSkills: []
+                    }
+                })
             }
         });
     }
@@ -713,6 +715,16 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
     // Kept for legacy compatibility if other modules call it, but uses new helper internally
     _generateTooltip(roll, baseModifier, successDieMod) {
         return generateDiceTooltip(roll, baseModifier, 0, successDieMod);
+    }
+
+    _buildSlaRollFlags({ baseModifier, itemName, notes = "", tn = 10, extra = {} }) {
+        return {
+            baseModifier,
+            itemName,
+            notes,
+            tn,
+            ...extra
+        };
     }
 
     _resolveCombatSkillRank(skillInput) {
@@ -908,6 +920,67 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         return { rofRerollSD, rofRerollSkills };
     }
 
+    _buildSkillDiceResults({
+        roll,
+        baseModifier,
+        targetNumber,
+        autoSuccesses = 0,
+        rerollIndexes = [],
+        includeRerollFlag = false
+    }) {
+        const rerollIndexSet = new Set(rerollIndexes);
+        const skillDiceData = [];
+        let skillSuccessCount = 0;
+
+        if (roll.terms.length > 2) {
+            roll.terms[2].results.forEach((result, index) => {
+                const total = result.result + baseModifier;
+                const isHit = total >= targetNumber;
+                if (isHit) skillSuccessCount++;
+
+                const dieData = {
+                    raw: result.result,
+                    total: total,
+                    borderColor: isHit ? "#39ff14" : "#555",
+                    textColor: isHit ? "#39ff14" : "#ccc"
+                };
+                if (includeRerollFlag) {
+                    dieData.isReroll = rerollIndexSet.has(index);
+                }
+                skillDiceData.push(dieData);
+            });
+        }
+
+        skillSuccessCount += autoSuccesses;
+        for (let i = 0; i < autoSuccesses; i++) {
+            skillDiceData.push({ raw: "-", total: "Auto", borderColor: "#39ff14", textColor: "#39ff14" });
+        }
+
+        return { skillDiceData, skillSuccessCount };
+    }
+
+    _computeSuccessDieOutcome({ roll, baseModifier, successDieModifier = 0, targetNumber }) {
+        const sdRaw = roll.terms[0].results[0].result;
+        const sdTotal = sdRaw + baseModifier + successDieModifier;
+        const isBaseSuccess = sdTotal >= targetNumber;
+        return { sdRaw, sdTotal, isBaseSuccess };
+    }
+
+    _applySuccessThroughExperience({ isBaseSuccess, skillSuccessCount, threshold = 4, notes }) {
+        let isSuccess = isBaseSuccess;
+        let successThroughExperience = false;
+
+        if (!isBaseSuccess && skillSuccessCount >= threshold) {
+            isSuccess = true;
+            successThroughExperience = true;
+            if (notes) {
+                notes.push("<strong>Success Through Experience</strong> (4+ Skill Dice hit).");
+            }
+        }
+
+        return { isSuccess, successThroughExperience };
+    }
+
     async _processWeaponRoll(item, html, isMelee) {
         const form = html[0].querySelector("form");
         if (!form) return;
@@ -917,7 +990,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         item = weapon;
 
         // 1. SETUP
-        // FIX: Melee weapons use STR, ranged weapons use DEX
+        // Melee weapons use STR, ranged weapons use DEX.
         const statKey = isMelee ? "str" : "dex";
         const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
         const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0);
@@ -966,7 +1039,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             }
             // ---------------------------------
 
-            // --- NEW VALIDATION: CLAMP RESERVED DICE ---
+            // Clamp reserved dice to available rank.
             if (mods.reservedDice > rank) {
                 ui.notifications.warn(`Cannot reserve more dice (${mods.reservedDice}) than Skill Rank (${rank}). Reduced to ${rank}.`);
                 mods.reservedDice = rank;
@@ -1000,8 +1073,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         }
 
         // 4. ROLL
-        // FIX: Base Modifier should NOT include Success Die specific modifiers (Aim, Prone Target)
-        // Those are passed separately to calculateRollResult
+        // Base modifier excludes success-die-only modifiers (aim/target prone).
         const baseModifier = statValue + rank + mods.allDice;
 
         // 5. CALCULATE SUCCESS
@@ -1026,52 +1098,28 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             notes
         });
 
-        // 5. RESULTS
-        // 5. RESULTS
-        const sdRaw = roll.terms[0].results[0].result;
-        // FIX: Display total correctly
-        const sdTotal = sdRaw + baseModifier + mods.successDie;
+        const { sdTotal, isBaseSuccess } = this._computeSuccessDieOutcome({
+            roll,
+            baseModifier,
+            successDieModifier: mods.successDie,
+            targetNumber: TN
+        });
 
-        // Initial Success Check
-        let isSuccess = sdTotal >= TN;
-        // Logic will be cleaner if I calculate isSuccess first, then override.
+        const { skillDiceData, skillSuccessCount } = this._buildSkillDiceResults({
+            roll,
+            baseModifier,
+            targetNumber: TN,
+            autoSuccesses: mods.autoSkillSuccesses,
+            rerollIndexes: rofRerollSkills,
+            includeRerollFlag: true
+        });
 
-        // MOS Calculation
-        let skillDiceData = [];
-        let skillSuccessCount = 0;
-
-        if (roll.terms.length > 2) {
-            roll.terms[2].results.forEach((r, i) => { // Added index 'i'
-                let val = r.result + baseModifier;
-                let isHit = val >= TN;
-                if (isHit) skillSuccessCount++;
-
-                // Track if this specific die was rerolled
-                const isReroll = rofRerollSkills.includes(i);
-
-                skillDiceData.push({
-                    raw: r.result,
-                    total: val,
-                    borderColor: isHit ? "#39ff14" : "#555",
-                    textColor: isHit ? "#39ff14" : "#ccc",
-                    isReroll: isReroll // Pass flag
-                });
-            });
-        }
-        skillSuccessCount += mods.autoSkillSuccesses;
-        for (let i = 0; i < mods.autoSkillSuccesses; i++) {
-            skillDiceData.push({ raw: "-", total: "Auto", borderColor: "#39ff14", textColor: "#39ff14" });
-        }
-
-        // --- SUCCESS THROUGH EXPERIENCE ---
-        // Rule: If 4+ Skill Dice hit, it's a success even if SD failed.
-        // Treat as if only SD succeeded (MOS=0 / Standard Hit).
-        let successThroughExperience = false;
-        if (!isSuccess && skillSuccessCount >= 4) {
-            isSuccess = true;
-            successThroughExperience = true;
-            notes.push("<strong>Success Through Experience</strong> (4+ Skill Dice hit).");
-        }
+        const { isSuccess, successThroughExperience } = this._applySuccessThroughExperience({
+            isBaseSuccess,
+            skillSuccessCount,
+            threshold: 4,
+            notes
+        });
 
         // Update Result Color if it became a success
         const resultColor = isSuccess ? '#39ff14' : '#f55';
@@ -1131,23 +1179,23 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: chatContent,
             flags: {
-                sla: {
+                sla: this._buildSlaRollFlags({
                     baseModifier: baseModifier,
                     itemName: item.name.toUpperCase(),
-                    rofRerollSD: rofRerollSD,
-                    rofRerollSkills: rofRerollSkills,
-                    targets: Array.from(game.user.targets).map(t => t.document.uuid),
-                    // Damage Context for Luck Reroll
-                    damageBase: baseDmg,
-                    damageMod: mods.damage,
-                    adValue: adValue,
-                    autoSkillSuccesses: mods.autoSkillSuccesses,
-                    // NEW FLAGS for Recalculation
-                    successDieModifier: mods.successDie,
-                    isWeapon: true,
-                    notes: notesText, // Store notes in flags for difficulty recalculation
-                    tn: TN // Store TN for reference
-                }
+                    notes: notesText,
+                    tn: TN,
+                    extra: {
+                        rofRerollSD: rofRerollSD,
+                        rofRerollSkills: rofRerollSkills,
+                        targets: Array.from(game.user.targets).map(t => t.document.uuid),
+                        damageBase: baseDmg,
+                        damageMod: mods.damage,
+                        adValue: adValue,
+                        autoSkillSuccesses: mods.autoSkillSuccesses,
+                        successDieModifier: mods.successDie,
+                        isWeapon: true
+                    }
+                })
             }
         });
     }
@@ -1394,27 +1442,19 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         await roll.evaluate();
 
         const TN = 10;
-        const sdRaw = roll.terms[0].results[0].result;
-        const sdTotal = sdRaw + baseModifier + mods.successDie;
-        const isBaseSuccess = sdTotal >= TN;
+        const { sdTotal, isBaseSuccess } = this._computeSuccessDieOutcome({
+            roll,
+            baseModifier,
+            successDieModifier: mods.successDie,
+            targetNumber: TN
+        });
 
-        let skillSuccessCount = 0;
-        let skillDiceData = [];
-        if (roll.terms.length > 2) {
-            roll.terms[2].results.forEach(r => {
-                let val = r.result + baseModifier;
-                let isHit = val >= TN;
-                if (isHit) skillSuccessCount++;
-
-                skillDiceData.push({
-                    raw: r.result,
-                    total: val,
-                    borderColor: isHit ? "#39ff14" : "#555",
-                    textColor: isHit ? "#39ff14" : "#ccc"
-                });
-            });
-        }
-        skillSuccessCount += mods.autoSkillSuccesses;
+        const { skillDiceData, skillSuccessCount } = this._buildSkillDiceResults({
+            roll,
+            baseModifier,
+            targetNumber: TN,
+            autoSuccesses: mods.autoSkillSuccesses
+        });
 
         const { outcomeText, resultColor, isSuccess, finalX, finalY } = this._resolveExplosiveDeviation({
             isBaseSuccess,
@@ -1454,7 +1494,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             },
             canUseLuck: this.actor.system.stats.luck.value > 0,
             luckValue: this.actor.system.stats.luck.value,
-            isEbb: true // Legacy chat template flag for non-weapon attack card rendering.
+            isEbb: true // Legacy chat template flag for this non-weapon card path.
         };
 
         const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
@@ -1463,15 +1503,17 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: chatContent,
             flags: {
-                sla: {
+                sla: this._buildSlaRollFlags({
                     baseModifier: baseModifier,
                     itemName: item.name.toUpperCase(),
-                    targets: Array.from(game.user.targets).map(t => t.document.uuid),
-                    damageBase: baseDmg,
-                    adValue: adValue,
-                    notes: notesText, // Store notes in flags for difficulty recalculation
-                    tn: 10 // Store TN for reference (explosives use TN 10)
-                }
+                    notes: notesText,
+                    tn: 10,
+                    extra: {
+                        targets: Array.from(game.user.targets).map(t => t.document.uuid),
+                        damageBase: baseDmg,
+                        adValue: adValue
+                    }
+                })
             }
         });
     }
@@ -1530,25 +1572,12 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
     }
 
     _collectEbbSkillDiceData(roll, modifier, formulaRating) {
-        let skillDiceData = [];
-        let skillSuccesses = 0;
-
-        if (roll.terms.length > 2) {
-            roll.terms[2].results.forEach(r => {
-                let val = r.result + modifier;
-                let isHit = val >= formulaRating;
-                if (isHit) skillSuccesses++;
-
-                skillDiceData.push({
-                    raw: r.result,
-                    total: val,
-                    borderColor: isHit ? "#39ff14" : "#555",
-                    textColor: isHit ? "#39ff14" : "#ccc"
-                });
-            });
-        }
-
-        return { skillDiceData, skillSuccesses };
+        const { skillDiceData, skillSuccessCount } = this._buildSkillDiceResults({
+            roll,
+            baseModifier: modifier,
+            targetNumber: formulaRating
+        });
+        return { skillDiceData, skillSuccesses: skillSuccessCount };
     }
 
     _resolveEbbOutcomeText(isBaseSuccess, skillSuccesses) {
@@ -1641,9 +1670,12 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         const rank = Number(disciplineItem.system.rank) || 0;
         const modifier = this._calculateEbbModifier(rank);
         const roll = await this._createAndEvaluateEbbRoll(rank);
-        const successRaw = roll.terms[0].results[0].result;
-        const successTotal = successRaw + modifier;
-        const isBaseSuccess = successTotal >= formulaRating;
+        const { sdTotal: successTotal, isBaseSuccess } = this._computeSuccessDieOutcome({
+            roll,
+            baseModifier: modifier,
+            successDieModifier: 0,
+            targetNumber: formulaRating
+        });
         const resultColor = isBaseSuccess ? '#39ff14' : '#f55';
 
         const { skillDiceData, skillSuccesses } = this._collectEbbSkillDiceData(roll, modifier, formulaRating);
@@ -1672,14 +1704,16 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: chatContent,
             flags: {
-                sla: {
+                sla: this._buildSlaRollFlags({
                     baseModifier: modifier,
                     itemName: item.name.toUpperCase(),
-                    isWeapon: false,
-                    isEbb: true,
                     notes: notesText,
-                    tn: formulaRating
-                }
+                    tn: formulaRating,
+                    extra: {
+                        isWeapon: false,
+                        isEbb: true
+                    }
+                })
             }
         });
     }
