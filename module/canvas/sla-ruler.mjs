@@ -1,6 +1,7 @@
 /**
  * Custom TokenRuler for SLA Industries (V13).
- * Colors movement based on Closing (Green) vs Rushing (Yellow) vs Max (Red).
+ * Characters/NPCs: Closing (Green) vs Rushing (Yellow) vs Over (Red).
+ * Vehicles: Move (Green) vs Over (Red).
  */
 export class SLATokenRuler extends foundry.canvas.placeables.tokens.TokenRuler {
 
@@ -37,18 +38,26 @@ export class SLATokenRuler extends foundry.canvas.placeables.tokens.TokenRuler {
     const actor = this.token.actor;
     if (!actor) return style;
 
-    // 2. Get SLA Speeds
+    // 2. Get Distance
+    // In V13, 'cost' represents the cumulative distance traversed at this waypoint.
+    const distance = waypoint.measurement.cost;
+
+    // 3. Vehicle rule: green up to move.value, red after.
+    if (actor.type === "vehicle") {
+      const move = Number(actor.system.move?.value) || 0;
+      if (move <= 0) return style;
+      style.color = (distance <= move + 0.1) ? 0x39ff14 : 0xFF0000;
+      return style;
+    }
+
+    // 4. Character/NPC SLA speeds
     const closing = Number(actor.system.move?.closing) || 0;
     const rushing = Number(actor.system.move?.rushing) || 0;
     
     // If speeds are 0 (e.g. Immobile or not set), keep default color
     if (closing === 0 && rushing === 0) return style;
 
-    // 3. Get Distance
-    // In V13, 'cost' represents the cumulative distance traversed at this waypoint
-    const distance = waypoint.measurement.cost;
-
-    // 4. Apply Colors
+    // 5. Apply Colors
     // We add a tiny buffer (-0.1) to handle floating point inconsistencies (e.g. 1.9999 vs 2)
     if (distance <= closing + 0.1) {
         style.color = 0x39ff14; // SLA Neon Green (Closing)

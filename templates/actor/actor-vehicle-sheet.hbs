@@ -1,0 +1,111 @@
+<form class="{{cssClass}} sla-sheet threat-sheet" autocomplete="off">
+    <div class="threat-header">
+        <div style="display:flex; align-items:center; flex:1;">
+            <img class="threat-logo" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
+            <div class="header-name" style="flex:1;">
+                <input name="name" type="text" value="{{actor.name}}" placeholder="Vehicle Name" />
+            </div>
+        </div>
+    </div>
+
+    <div class="threat-body" style="padding: 5px;">
+        <div class="threat-derived">
+            <div class="threat-box">
+                <label>HP</label>
+                <div class="flexrow">
+                    <input type="number" name="system.hp.value" value="{{system.hp.value}}" />
+                    <span>/</span>
+                    <input type="number" name="system.hp.max" value="{{system.hp.max}}" />
+                </div>
+            </div>
+            <div class="threat-box">
+                <label>PV</label>
+                <input type="number" name="system.armor.pv" value="{{system.armor.pv}}" placeholder="0" />
+            </div>
+            <div class="threat-box">
+                <label>RESIST</label>
+                <div class="flexrow">
+                    <input type="number" name="system.armor.resist.value" value="{{system.armor.resist.value}}" />
+                    <span>/</span>
+                    <input type="number" name="system.armor.resist.max" value="{{system.armor.resist.max}}" />
+                </div>
+            </div>
+            <div class="threat-box">
+                <label>MOVE</label>
+                <input type="number" name="system.move.value" value="{{system.move.value}}" />
+            </div>
+            <div class="threat-box">
+                <label>DRIVE SKILL</label>
+                <input type="text" name="system.skill" value="{{system.skill}}" />
+            </div>
+        </div>
+
+        <div class="threat-section-bar">WEAPONS</div>
+        <div class="threat-content-box" style="min-height: 30px;">
+            <div class="vehicle-weapon-drop" style="border:1px dashed #666; border-radius:4px; padding:6px; margin-bottom:6px; text-align:center; color:#bbb;">
+                Drop Weapon Items Here to Equip
+            </div>
+            {{#unless weapons.length}}
+            <div style="text-align:center; color:#888; font-style:italic; padding:5px;">
+                Drop Weapons Here
+            </div>
+            {{/unless}}
+
+            {{#each weapons as |item|}}
+            <div class="item threat-item flexrow" data-item-id="{{item._id}}">
+                <span class="item-name rollable" data-roll-type="item" style="font-weight:bold; cursor:pointer;">
+                    {{item.name}}
+                </span>
+                <span style="color:#333; margin-left:5px; font-style:italic;" title="Damage: {{item.system.damage}}">
+                    (Dmg: {{item.resolvedDamage}})
+                </span>
+                <div class="item-controls" style="margin-left:auto; display:flex; gap:5px; align-items:center;">
+                    <a class="item-edit"><i class="fas fa-edit"></i></a>
+                    <a class="item-delete"><i class="fas fa-trash"></i></a>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+
+        <div class="threat-section-bar">DIMENSIONS</div>
+        <div class="threat-content-box" style="padding:8px;">
+            <div class="flexrow" style="gap:8px;">
+                <div style="flex:1;">
+                    <label>Length</label>
+                    <input type="text" name="system.dimensions.length" value="{{system.dimensions.length}}" />
+                </div>
+                <div style="flex:1;">
+                    <label>Width</label>
+                    <input type="text" name="system.dimensions.width" value="{{system.dimensions.width}}" />
+                </div>
+                <div style="flex:1;">
+                    <label>Height</label>
+                    <input type="text" name="system.dimensions.height" value="{{system.dimensions.height}}" />
+                </div>
+            </div>
+            <div style="margin-top:8px;">
+                <label>Capacity</label>
+                <textarea name="system.capacity" rows="3">{{system.capacity}}</textarea>
+            </div>
+        </div>
+
+        <div class="threat-section-bar">VEHICLE COMBAT RULES</div>
+        <div class="threat-content-box" style="padding:8px;">
+            <div class="flexrow" style="gap:10px;">
+                <label style="display:flex; align-items:center; gap:6px;">
+                    <input type="checkbox" name="system.providesCombatCover" {{checked system.providesCombatCover}} />
+                    Provides Cover
+                </label>
+                <label style="display:flex; align-items:center; gap:6px;">
+                    <input type="checkbox" name="system.mountedWeaponsIgnoreSkillReq" {{checked system.mountedWeaponsIgnoreSkillReq}} />
+                    Mounted Weapons Ignore Skill Requirement
+                </label>
+            </div>
+        </div>
+
+        <div class="threat-section-bar">NOTES</div>
+        <div class="threat-content-box editor">
+            {{editor system.notes target="system.notes" engine="prosemirror" button=true owner=owner editable=editable}}
+        </div>
+    </div>
+</form>

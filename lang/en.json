@@ -18,5 +18,6 @@
   "TYPES.Item.species": "Species",
   "TYPES.Item.magazine": "Magazine",
   "TYPES.Actor.character": "Operative",
-  "TYPES.Actor.npc": "Threat"
+  "TYPES.Actor.npc": "Threat",
+  "TYPES.Actor.vehicle": "Vehicle"
 }

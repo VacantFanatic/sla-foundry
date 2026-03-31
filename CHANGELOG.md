@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.0] - 2026-03-31
+
+### Added
+* Powersuit content pack entries: `Powersuit`, `Dustman Modular System, Sluggish`, `Kanner Valiant IV`, and `Mechanised Punch`.
+* New powersuit automation fields on items and item sheets:
+  * Armor: `Is Powersuit`, `DEX Cap`, `Init Bonus`.
+  * Weapon: `Powersuit Attack Rules`, `Attack Penalty`, and `AD = STR - X`.
+* New `Vehicle` actor type with dedicated schema, localization, registration, and actor sheet UI.
+* New Vehicles compendium entries for `Growler` and `Darknight Venture`.
+* Vehicle sheet weapons section with drag-and-drop weapon equipping.
+
+### Changed
+* Updated system and package metadata version to `1.2.0`.
+* Powersuit rules are now handled directly by derived/roll logic:
+  * Active powersuits replace STR with suit STR.
+  * Active powersuits enforce DEX caps and initiative bonuses.
+  * Mechanised Punch applies built-in attack penalty and dynamic AD from STR.
+* Powersuit entries and examples now explicitly use no required piloting skill.
+* Vehicles are implemented as actors (targetable with HP and movement) instead of item documents.
+* Vehicle movement ruler is now green up to vehicle move, then red beyond that.
+
+### Fixed
+* Vehicle sheet and token tracking expose HP, Armor/Resistance, and Move as first-class actor data.
+
 ## [1.1.0] - 2026-03-30
 
 ### Added
@@ -281,6 +305,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
+[1.2.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.2.0
 [1.1.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.1.0
 [1.0.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.0.1
 [1.0.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.0.0

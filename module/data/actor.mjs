@@ -168,3 +168,37 @@ export class SlaNPCData extends foundry.abstract.TypeDataModel {
         };
     }
 }
+
+export class SlaVehicleData extends foundry.abstract.TypeDataModel {
+    static defineSchema() {
+        const fields = foundry.data.fields;
+        return {
+            biography: new fields.HTMLField(),
+            appearance: new fields.HTMLField(),
+            notes: new fields.HTMLField(),
+            skill: new fields.StringField({ initial: "" }),
+            dimensions: new fields.SchemaField({
+                length: new fields.StringField({ initial: "" }),
+                width: new fields.StringField({ initial: "" }),
+                height: new fields.StringField({ initial: "" })
+            }),
+            capacity: new fields.StringField({ initial: "" }),
+            mountedWeaponsIgnoreSkillReq: new fields.BooleanField({ initial: true }),
+            providesCombatCover: new fields.BooleanField({ initial: true }),
+            hp: new fields.SchemaField({
+                value: new fields.NumberField({ initial: 10, integer: true }),
+                max: new fields.NumberField({ initial: 10, integer: true })
+            }),
+            armor: new fields.SchemaField({
+                pv: new fields.NumberField({ initial: 0 }),
+                resist: new fields.SchemaField({
+                    value: new fields.NumberField({ initial: 0, integer: true }),
+                    max: new fields.NumberField({ initial: 0, integer: true })
+                })
+            }),
+            move: new fields.SchemaField({
+                value: new fields.NumberField({ initial: 0, min: 0, integer: true })
+            })
+        };
+    }
+}

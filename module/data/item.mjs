@@ -109,6 +109,9 @@ export class SlaWeaponData extends foundry.abstract.TypeDataModel {
             weight: new fields.NumberField({ initial: 1, min: 0 }),
             price: new fields.NumberField({ initial: 100, min: 0 }),
             equipped: new fields.BooleanField({ initial: false }),
+            powersuitAttack: new fields.BooleanField({ initial: false }),
+            attackPenalty: new fields.NumberField({ initial: 0 }),
+            adFromStrMinus: new fields.NumberField({ initial: 0, min: 0 }),
             description: new fields.HTMLField(),
             ammoType: new fields.StringField()
         };
@@ -129,6 +132,9 @@ export class SlaArmorData extends foundry.abstract.TypeDataModel {
             equipped: new fields.BooleanField({ initial: false }),
             description: new fields.HTMLField(),
             powered: new fields.BooleanField({ initial: false }),
+            powersuit: new fields.BooleanField({ initial: false }),
+            dexCap: new fields.NumberField({ initial: 0, min: 0 }),
+            initBonus: new fields.NumberField({ initial: 0 }),
             mods: new fields.SchemaField({
                 str: new fields.NumberField({ initial: 0 }),
                 dex: new fields.NumberField({ initial: 0 }),
@@ -245,3 +251,4 @@ export class SlaPackageData extends foundry.abstract.TypeDataModel {
         };
     }
 }
+

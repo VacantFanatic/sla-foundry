@@ -146,6 +146,10 @@ SLA.trackableAttributes = {
   npc: {
     bar: ["hp", "armor.resist", "stats.luck", "stats.flux"],
     value: ["move.closing", "move.rushing"]
+  },
+  vehicle: {
+    bar: ["hp", "armor.resist"],
+    value: ["move.value"]
   }
 };
 

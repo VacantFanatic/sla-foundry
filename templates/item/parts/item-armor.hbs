@@ -24,6 +24,21 @@
     {{#if system.powered}}
     <div class="grid grid-2col" style="gap: 10px; padding: 5px;">
         <div class="form-group flexrow" style="align-items:center;">
+            <label style="flex:1;">Is Powersuit</label>
+            <input type="checkbox" name="system.powersuit" {{checked system.powersuit}} />
+        </div>
+        <div class="form-group flexrow" style="align-items:center;">
+            <label style="flex:1;">DEX Cap</label>
+            <input type="number" name="system.dexCap" value="{{system.dexCap}}" placeholder="0"
+                style="flex:0 0 50px; text-align:center; height:24px;" />
+        </div>
+        <div class="form-group flexrow" style="align-items:center;">
+            <label style="flex:1;">Init Bonus</label>
+            <input type="number" name="system.initBonus" value="{{system.initBonus}}" placeholder="0"
+                style="flex:0 0 50px; text-align:center; height:24px;" />
+        </div>
+        <div></div>
+        <div class="form-group flexrow" style="align-items:center;">
             <label style="flex:1;">STR Bonus</label>
             <input type="number" name="system.mods.str" value="{{system.mods.str}}" placeholder="0"
                 style="flex:0 0 50px; text-align:center; height:24px;" />
