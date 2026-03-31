@@ -49,9 +49,11 @@ export function applyMeleeModifiers(form, strValue, mods) {
  * @param {Object} mods - The modifiers object to update.
  * @param {Array} notes - Array to add modifier notes to.
  * @param {Object} flags - Flags object for special effects (ROF rerolls).
+ * @param {Object} options - Additional precomputed context options.
+ * @param {boolean} options.forceLongRange - Precomputed long-range status.
  * @returns {Promise<boolean>} Returns false if the attack should be cancelled.
  */
-export async function applyRangedModifiers(item, form, mods, notes, flags) {
+export async function applyRangedModifiers(item, form, mods, notes, flags, options = {}) {
     const modeSelect = $(form).find('#fire-mode').find(':selected');
     const modeKey = modeSelect.val() || "single";
 
@@ -127,7 +129,7 @@ export async function applyRangedModifiers(item, form, mods, notes, flags) {
     if (form.blind?.checked) mods.allDice -= 1;
     if (form.prone?.checked) mods.successDie += 1;
 
-    if (form.longRange?.checked && game.settings.get("sla-industries", "enableLongRangeFeature")) {
+    if (options.forceLongRange && game.settings.get("sla-industries", "enableLongRangeFeature")) {
         // Rulebook: "-1 Skill Die" (reducing rank by 1 reduces skill dice by 1)
         mods.rank -= 1;
         notes.push("Long Range (-1 Skill Die).");

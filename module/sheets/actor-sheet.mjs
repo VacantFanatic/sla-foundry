@@ -410,14 +410,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
                 // Determine boolean for your dialog function
                 const isMelee = (attackType === "melee");
-
-                // --- TARGET ENFORCEMENT ---
-                // User requirement: Must have a target if using a weapon (excluding explosives)
-                if (game.settings.get("sla-industries", "enableTargetRequiredFeatures") && game.user.targets.size === 0) {
-                    ui.notifications.warn("You must select a target to attack.");
-                    return;
-                }
-                // --------------------------
+                if (!this._canProceedWithWeaponAttack(item, { requireTarget: true })) return;
 
                 // Pass the flag to your existing dialog renderer
                 await this._renderAttackDialog(item, isMelee);
@@ -485,12 +478,12 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 speaker: ChatMessage.getSpeaker({ actor: this.actor }),
                 content: chatContent,
                 flags: {
-                    sla: {
+                    sla: this._buildSlaRollFlags({
                         baseModifier: finalMod,
                         itemName: `${statLabel} CHECK`,
-                        notes: "", // Store notes in flags for difficulty recalculation
-                        tn: 10 // Store TN for reference
-                    }
+                        notes: "",
+                        tn: 10
+                    })
                 }
             });
         }
@@ -523,12 +516,54 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         ui.notifications.info(lines[Math.floor(Math.random() * lines.length)]);
     }
 
-    // --- DIALOG ---
-    async _renderAttackDialog(item, isMelee) {
+    /**
+     * Centralized weapon attack gate checks used by dialog + roll execution.
+     * @param {Item} item
+     * @param {Object} options
+     * @param {boolean} options.requireTarget
+     * @returns {boolean}
+     */
+    _canProceedWithWeaponAttack(item, { requireTarget = false } = {}) {
         if (this._requiresWeaponEquippedForAttack() && !item.system.equipped) {
             this._notifyUnequippedWeaponHumor();
-            return;
+            return false;
         }
+
+        if (requireTarget
+            && game.settings.get("sla-industries", "enableTargetRequiredFeatures")
+            && game.user.targets.size === 0) {
+            ui.notifications.warn("You must select a target to attack.");
+            return false;
+        }
+
+        return true;
+    }
+
+    _getActorTokenForRangeCheck() {
+        return this.actor.token?.object || this.token || (this.actor.getActiveTokens().length > 0 ? this.actor.getActiveTokens()[0] : null);
+    }
+
+    _resolveRangedAttackContext(item, isMelee) {
+        const context = { isLongRange: false, rangePenaltyMsg: "" };
+        if (isMelee || !game.settings.get("sla-industries", "enableTargetRequiredFeatures") || game.user.targets.size === 0) {
+            return context;
+        }
+
+        const token = this._getActorTokenForRangeCheck();
+        if (!token) return context;
+
+        const target = game.user.targets.first();
+        const maxRange = parseInt(item.system.range || "10") || 10;
+        const rangeData = calculateRangePenalty(token, target, maxRange);
+
+        context.isLongRange = rangeData.isLongRange;
+        context.rangePenaltyMsg = rangeData.penaltyMsg;
+        return context;
+    }
+
+    // --- DIALOG ---
+    async _renderAttackDialog(item, isMelee) {
+        if (!this._canProceedWithWeaponAttack(item, { requireTarget: true })) return;
 
         // 1. Prepare Firing Modes (Ranged Only)
         let validModes = {};
@@ -553,27 +588,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         }
 
         // --- RANGE CALCULATION ---
-        let rangePenaltyMsg = "";
-        let isLongRange = false;
-
-        if (game.settings.get("sla-industries", "enableTargetRequiredFeatures") && !isMelee && game.user.targets.size > 0) {
-            // Robust Token Retrieval
-            const token = this.actor.token?.object || this.token || (this.actor.getActiveTokens().length > 0 ? this.actor.getActiveTokens()[0] : null);
-
-            if (!token) {
-                return ui.notifications.warn("Cannot perform ranged attack: No token found for this actor in the current scene.");
-            }
-
-            const target = game.user.targets.first();
-            // Get Weapon Range
-            const strRange = item.system.range || "10";
-            const maxRange = parseInt(strRange) || 10; // Simple integer parse
-
-            // Use helper function
-            const rangeData = calculateRangePenalty(token, target, maxRange);
-            isLongRange = rangeData.isLongRange;
-            rangePenaltyMsg = rangeData.penaltyMsg;
-        }
+        const { rangePenaltyMsg } = this._resolveRangedAttackContext(item, isMelee);
         // -------------------------
 
         // 2. Prepare Template Data
@@ -599,9 +614,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 return sItem ? (sItem.system.rank || 0) : 0;
             })()
         };
-        // NOTE: If we want to show the message, we need to edit the HBS.
-        // For now, we will perform the calculation silently in _processWeaponRoll OR add it as a Note.
-        // Let's pass it as 'rangeMsg' to see if we can easily slot it in, or just rely on the user knowing.
+
 
         const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/attack-dialog.hbs", templateData);
 
@@ -666,7 +679,6 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             tooltip: generateDiceTooltip(roll, baseModifier),
             skillDice: result.skillDiceData,
             notes: "",
-            notes: "",
             showDamageButton: false, // Ensure Hidden for Skills
             // Luck Data
             canUseLuck: this.actor.system.stats.luck.value > 0,
@@ -685,14 +697,16 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: chatContent,
             flags: {
-                sla: {
+                sla: this._buildSlaRollFlags({
                     baseModifier: baseModifier,
                     itemName: item.name.toUpperCase(),
-                    rofRerollSD: false,
-                    rofRerollSkills: [],
-                    notes: "", // Store notes in flags for difficulty recalculation
-                    tn: 10 // Store TN for reference
-                }
+                    notes: "",
+                    tn: 10,
+                    extra: {
+                        rofRerollSD: false,
+                        rofRerollSkills: []
+                    }
+                })
             }
         });
     }
@@ -703,57 +717,286 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         return generateDiceTooltip(roll, baseModifier, 0, successDieMod);
     }
 
+    _buildSlaRollFlags({ baseModifier, itemName, notes = "", tn = 10, extra = {} }) {
+        return {
+            baseModifier,
+            itemName,
+            notes,
+            tn,
+            ...extra
+        };
+    }
+
+    _resolveCombatSkillRank(skillInput) {
+        if (!skillInput) return 0;
+
+        const combatSkills = CONFIG.SLA?.combatSkills || {};
+        const resolvedSkillName = combatSkills[skillInput] || skillInput;
+        const skillItem = this.actor.items.find(i =>
+            i.type === "skill" && i.name.trim().toLowerCase() === resolvedSkillName.trim().toLowerCase()
+        );
+        return skillItem ? (Number(skillItem.system.rank) || 0) : 0;
+    }
+
+    _readWeaponRollFormState(form) {
+        return {
+            modifier: Number(form.modifier?.value) || 0,
+            aimSd: Number(form.aim_sd?.value) || 0,
+            aimAuto: Number(form.aim_auto?.value) || 0,
+            combatDef: Number(form.combatDef?.value) || 0,
+            acroDef: Number(form.acroDef?.value) || 0,
+            targetProne: form.prone?.checked || false
+        };
+    }
+
+    _buildWeaponRollMods(formState) {
+        return {
+            successDie: 0,
+            allDice: formState.modifier,
+            rank: 0,
+            damage: 0,
+            autoSkillSuccesses: 0,
+            reservedDice: 0,
+            aimSd: formState.aimSd,
+            aimAuto: formState.aimAuto,
+            combatDef: formState.combatDef,
+            acroDef: formState.acroDef,
+            targetProne: formState.targetProne
+        };
+    }
+
+    _resolveWeaponMosOutcome({ isSuccess, successThroughExperience, skillSuccessCount }) {
+        let mosDamageBonus = 0;
+        let mosEffectText = isSuccess ? "Standard Hit" : "Failed";
+        let mosChoiceData = { hasChoice: false, choiceType: "", choiceDmg: 0 };
+        let shouldApplyHeadWound = false;
+
+        if (isSuccess && !successThroughExperience) {
+            if (skillSuccessCount === 1) {
+                mosDamageBonus = 1;
+                mosEffectText = "+1 Damage";
+            }
+            else if (skillSuccessCount === 2) {
+                mosEffectText = "MOS 2: Choose Effect";
+                mosChoiceData = { hasChoice: true, choiceType: "arm", choiceDmg: 2 };
+            }
+            else if (skillSuccessCount === 3) {
+                mosEffectText = "MOS 3: Choose Effect";
+                mosChoiceData = { hasChoice: true, choiceType: "leg", choiceDmg: 4 };
+            }
+            else if (skillSuccessCount >= 4) {
+                mosDamageBonus = 6;
+                mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)";
+                shouldApplyHeadWound = true;
+            }
+        }
+
+        return { mosDamageBonus, mosEffectText, mosChoiceData, shouldApplyHeadWound };
+    }
+
+    async _applyHeadshotSideEffect(notes) {
+        if (game.user.targets.size === 0) return;
+
+        const target = game.user.targets.first();
+        const targetActor = target?.actor;
+        if (targetActor && !targetActor.system.wounds.head) {
+            await targetActor.update({ "system.wounds.head": true });
+            notes.push(`<span style="color:#ff5555">Head Wound Applied!</span>`);
+        }
+    }
+
+    _buildWeaponDamageFormula(baseDamage, totalModifier) {
+        let finalDamageFormula = baseDamage;
+        if (totalModifier !== 0) {
+            if (baseDamage === "0" || baseDamage === "") {
+                finalDamageFormula = String(totalModifier);
+            } else {
+                finalDamageFormula = `${baseDamage} ${totalModifier > 0 ? "+" : ""} ${totalModifier}`;
+            }
+        }
+        return finalDamageFormula;
+    }
+
+    _buildWeaponRollTemplateData({
+        item,
+        roll,
+        baseModifier,
+        notesText,
+        successDieModifier,
+        resultColor,
+        sdTotal,
+        skillDiceData,
+        showDamageButton,
+        finalDamageFormula,
+        adValue,
+        rofRerollSD,
+        isSuccess,
+        skillSuccessCount,
+        mosEffectText,
+        mosChoiceData
+    }) {
+        return {
+            actorUuid: this.actor.uuid,
+            borderColor: resultColor,
+            headerColor: resultColor,
+            resultColor: resultColor,
+            itemName: item.name.toUpperCase(),
+            successTotal: sdTotal,
+            tooltip: this._generateTooltip(roll, baseModifier, successDieModifier),
+            skillDice: skillDiceData,
+            notes: notesText,
+            showDamageButton: showDamageButton,
+            dmgFormula: finalDamageFormula,
+            minDamage: Number(item.system.minDamage) || 0,
+            adValue: adValue,
+            sdIsReroll: rofRerollSD,
+            mos: {
+                isSuccess: isSuccess,
+                hits: skillSuccessCount,
+                effect: mosEffectText,
+                ...mosChoiceData
+            },
+            canUseLuck: this.actor.system.stats.luck.value > 0,
+            luckValue: this.actor.system.stats.luck.value,
+            luckSpent: false,
+            isWeapon: true
+        };
+    }
+
+    async _rerollDieKeepHighest(currentResult) {
+        const newRoll = createSLARoll("1d10");
+        await newRoll.evaluate();
+        const newResult = newRoll.terms[0].results[0].result;
+        if (newResult > currentResult) {
+            return { result: newResult, rerolled: true };
+        }
+        return { result: currentResult, rerolled: false };
+    }
+
+    async _applyWeaponRofRerolls({ roll, flags, notes }) {
+        let rofRerollSD = false;
+        let rofRerollSkills = [];
+
+        if (flags.rerollSD || flags.rerollAll) {
+            const sdTerm = roll.terms[0];
+            const oldValue = sdTerm.results[0].result;
+            const outcome = await this._rerollDieKeepHighest(oldValue);
+
+            rofRerollSD = true;
+            if (outcome.rerolled) {
+                sdTerm.results[0].result = outcome.result;
+                notes.push(`<strong>ROF:</strong> Success Die Improved (${oldValue} ➔ ${outcome.result})`);
+            } else {
+                notes.push(`<strong>ROF:</strong> Success Die Kept (${oldValue})`);
+            }
+        }
+
+        if (flags.rerollAll && roll.terms.length > 2) {
+            const skillTerm = roll.terms[2];
+            let improvedCount = 0;
+
+            for (let i = 0; i < skillTerm.results.length; i++) {
+                const oldValue = skillTerm.results[i].result;
+                const outcome = await this._rerollDieKeepHighest(oldValue);
+                rofRerollSkills.push(i);
+
+                if (outcome.rerolled) {
+                    skillTerm.results[i].result = outcome.result;
+                    improvedCount++;
+                }
+            }
+
+            if (improvedCount > 0) {
+                notes.push(`<strong>ROF:</strong> ${improvedCount} Skill Dice Improved.`);
+            } else {
+                notes.push(`<strong>ROF:</strong> Skill Dice Kept.`);
+            }
+        }
+
+        if (rofRerollSD || rofRerollSkills.length > 0) {
+            roll._total = roll._evaluateTotal();
+        }
+
+        return { rofRerollSD, rofRerollSkills };
+    }
+
+    _buildSkillDiceResults({
+        roll,
+        baseModifier,
+        targetNumber,
+        autoSuccesses = 0,
+        rerollIndexes = [],
+        includeRerollFlag = false
+    }) {
+        const rerollIndexSet = new Set(rerollIndexes);
+        const skillDiceData = [];
+        let skillSuccessCount = 0;
+
+        if (roll.terms.length > 2) {
+            roll.terms[2].results.forEach((result, index) => {
+                const total = result.result + baseModifier;
+                const isHit = total >= targetNumber;
+                if (isHit) skillSuccessCount++;
+
+                const dieData = {
+                    raw: result.result,
+                    total: total,
+                    borderColor: isHit ? "#39ff14" : "#555",
+                    textColor: isHit ? "#39ff14" : "#ccc"
+                };
+                if (includeRerollFlag) {
+                    dieData.isReroll = rerollIndexSet.has(index);
+                }
+                skillDiceData.push(dieData);
+            });
+        }
+
+        skillSuccessCount += autoSuccesses;
+        for (let i = 0; i < autoSuccesses; i++) {
+            skillDiceData.push({ raw: "-", total: "Auto", borderColor: "#39ff14", textColor: "#39ff14" });
+        }
+
+        return { skillDiceData, skillSuccessCount };
+    }
+
+    _computeSuccessDieOutcome({ roll, baseModifier, successDieModifier = 0, targetNumber }) {
+        const sdRaw = roll.terms[0].results[0].result;
+        const sdTotal = sdRaw + baseModifier + successDieModifier;
+        const isBaseSuccess = sdTotal >= targetNumber;
+        return { sdRaw, sdTotal, isBaseSuccess };
+    }
+
+    _applySuccessThroughExperience({ isBaseSuccess, skillSuccessCount, threshold = 4, notes }) {
+        let isSuccess = isBaseSuccess;
+        let successThroughExperience = false;
+
+        if (!isBaseSuccess && skillSuccessCount >= threshold) {
+            isSuccess = true;
+            successThroughExperience = true;
+            if (notes) {
+                notes.push("<strong>Success Through Experience</strong> (4+ Skill Dice hit).");
+            }
+        }
+
+        return { isSuccess, successThroughExperience };
+    }
+
     async _processWeaponRoll(item, html, isMelee) {
         const form = html[0].querySelector("form");
         if (!form) return;
 
         const weapon = this.actor.items.get(item.id) ?? item;
-        if (this._requiresWeaponEquippedForAttack() && !weapon.system.equipped) {
-            this._notifyUnequippedWeaponHumor();
-            return;
-        }
+        if (!this._canProceedWithWeaponAttack(weapon, { requireTarget: true })) return;
         item = weapon;
 
         // 1. SETUP
-        // FIX: Melee weapons use STR, ranged weapons use DEX
+        // Melee weapons use STR, ranged weapons use DEX.
         const statKey = isMelee ? "str" : "dex";
         const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
         const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0);
-
-        // Skill Lookup
-        const skillInput = item.system.skill;
-        let rank = 0;
-        let targetSkillName = "";
-        const combatSkills = CONFIG.SLA?.combatSkills || {};
-
-        if (skillInput && combatSkills[skillInput]) targetSkillName = combatSkills[skillInput];
-        else if (skillInput) targetSkillName = skillInput;
-
-        if (targetSkillName) {
-            const skillItem = this.actor.items.find(i => i.type === 'skill' && i.name.trim().toLowerCase() === targetSkillName.trim().toLowerCase());
-            if (skillItem) rank = Number(skillItem.system.rank) || 0;
-        }
-
-        // Input Reading
-        let mods = {
-            successDie: 0,
-            allDice: Number(form.modifier?.value) || 0,
-            rank: 0,
-            damage: 0,
-            autoSkillSuccesses: 0,
-            allDice: Number(form.modifier?.value) || 0,
-            rank: 0,
-            damage: 0,
-            autoSkillSuccesses: 0,
-            reservedDice: 0,
-            // AIM INPUTS
-            aimSd: Number(form.aim_sd?.value) || 0,
-            aimAuto: Number(form.aim_auto?.value) || 0,
-            // DEFENSE INPUTS
-            combatDef: Number(form.combatDef?.value) || 0,
-            acroDef: Number(form.acroDef?.value) || 0,
-            targetProne: form.prone?.checked || false, // In Melee this is Target Prone (+2)
-        };
+        const rank = this._resolveCombatSkillRank(item.system.skill);
+        const formState = this._readWeaponRollFormState(form);
+        let mods = this._buildWeaponRollMods(formState);
 
         let notes = [];
         let flags = { rerollSD: false, rerollAll: false };
@@ -774,28 +1017,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         if (mods.aimAuto > 0) mods.autoSkillSuccesses += mods.aimAuto;
 
         // --- RANGE PENALTY LOGIC ---
-        if (game.settings.get("sla-industries", "enableTargetRequiredFeatures") && !isMelee && game.user.targets.size > 0) {
-            const target = game.user.targets.first();
-            // Get Weapon Range
-            const strRange = item.system.range || "10";
-            const maxRange = parseInt(strRange) || 10;
-
-            // Use token associated with actor, or default to checking canvas
-            let token = this.actor.token?.object || this.token;
-            if (!token) {
-                const tokens = this.actor.getActiveTokens();
-                if (tokens.length > 0) token = tokens[0];
-            }
-
-            if (token) {
-                const rangeData = calculateRangePenalty(token, target, maxRange);
-                if (game.settings.get("sla-industries", "enableLongRangeFeature") && rangeData.isLongRange) {
-                    // Rulebook: "-1 Skill Die" (not Success Die)
-                    mods.rank -= 1;
-                    notes.push("Long Range (-1 Skill Die)");
-                }
-            }
-        }
+        const rangedContext = this._resolveRangedAttackContext(item, isMelee);
         // ---------------------------
 
         // Apply Modifiers
@@ -817,7 +1039,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             }
             // ---------------------------------
 
-            // --- NEW VALIDATION: CLAMP RESERVED DICE ---
+            // Clamp reserved dice to available rank.
             if (mods.reservedDice > rank) {
                 ui.notifications.warn(`Cannot reserve more dice (${mods.reservedDice}) than Skill Rank (${rank}). Reduced to ${rank}.`);
                 mods.reservedDice = rank;
@@ -829,7 +1051,9 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
 
         } else {
             // Check for false return to stop execution
-            const canFire = await this._applyRangedModifiers(item, form, mods, notes, flags);
+            const canFire = await this._applyRangedModifiers(item, form, mods, notes, flags, {
+                forceLongRange: rangedContext.isLongRange
+            });
             if (canFire === false) return;
         }
 
@@ -849,8 +1073,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         }
 
         // 4. ROLL
-        // FIX: Base Modifier should NOT include Success Die specific modifiers (Aim, Prone Target)
-        // Those are passed separately to calculateRollResult
+        // Base modifier excludes success-die-only modifiers (aim/target prone).
         const baseModifier = statValue + rank + mods.allDice;
 
         // 5. CALCULATE SUCCESS
@@ -869,159 +1092,46 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             successDieModifier: mods.successDie // Pass explicit SD mod
         });
 
-        // --- ROF REROLL LOGIC (Burst / Auto) ---
-        // "May reroll...". We interpret this as "Keep Highest" for user convenience.
+        const { rofRerollSD, rofRerollSkills } = await this._applyWeaponRofRerolls({
+            roll,
+            flags,
+            notes
+        });
 
-        // We track which dice were rerolled to prevent Luck abuse.
-        let rofRerollSD = false;
-        let rofRerollSkills = [];
+        const { sdTotal, isBaseSuccess } = this._computeSuccessDieOutcome({
+            roll,
+            baseModifier,
+            successDieModifier: mods.successDie,
+            targetNumber: TN
+        });
 
-        // Helper: Reroll a single result and keep highest
-        const rerollDieKeepHighest = async (currentResult) => {
-            const newRoll = createSLARoll("1d10");
-            await newRoll.evaluate();
-            const newRes = newRoll.terms[0].results[0].result;
-            if (newRes > currentResult) {
-                return { result: newRes, rerolled: true };
-            }
-            return { result: currentResult, rerolled: false }; // Kept original
-        };
+        const { skillDiceData, skillSuccessCount } = this._buildSkillDiceResults({
+            roll,
+            baseModifier,
+            targetNumber: TN,
+            autoSuccesses: mods.autoSkillSuccesses,
+            rerollIndexes: rofRerollSkills,
+            includeRerollFlag: true
+        });
 
-        // 1. BURST (Reroll SD)
-        if (flags.rerollSD || flags.rerollAll) {
-            const sdTerm = roll.terms[0];
-            const oldVal = sdTerm.results[0].result;
-            const outcome = await rerollDieKeepHighest(oldVal);
-
-            // Mark as used regardless of outcome to prevent Luck abuse
-            rofRerollSD = true;
-
-            if (outcome.rerolled) {
-                sdTerm.results[0].result = outcome.result;
-                notes.push(`<strong>ROF:</strong> Success Die Improved (${oldVal} ➔ ${outcome.result})`);
-            } else {
-                notes.push(`<strong>ROF:</strong> Success Die Kept (${oldVal})`);
-            }
-        }
-
-        // 2. FULL AUTO / SUPPRESSIVE (Reroll All)
-        if (flags.rerollAll && roll.terms.length > 2) {
-            const skillTerm = roll.terms[2];
-            let improvedCount = 0;
-
-            for (let i = 0; i < skillTerm.results.length; i++) {
-                const oldVal = skillTerm.results[i].result;
-                const outcome = await rerollDieKeepHighest(oldVal);
-
-                // Track usage for every die
-                rofRerollSkills.push(i);
-
-                if (outcome.rerolled) {
-                    skillTerm.results[i].result = outcome.result;
-                    improvedCount++;
-                }
-            }
-
-            if (improvedCount > 0) {
-                notes.push(`<strong>ROF:</strong> ${improvedCount} Skill Dice Improved.`);
-            } else {
-                notes.push(`<strong>ROF:</strong> Skill Dice Kept.`);
-            }
-        }
-
-        // Re-evaluate total if changed
-        if (rofRerollSD || rofRerollSkills.length > 0) {
-            // Re-sum total manually as safe fallback or force re-eval
-            roll._total = roll._evaluateTotal();
-        }
-        // ---------------------------------------
-
-        // 5. RESULTS
-        // 5. RESULTS
-        const sdRaw = roll.terms[0].results[0].result;
-        // FIX: Display total correctly
-        const sdTotal = sdRaw + baseModifier + mods.successDie;
-
-        // Initial Success Check
-        let isSuccess = sdTotal >= TN;
-        // Logic will be cleaner if I calculate isSuccess first, then override.
-
-        // MOS Calculation
-        let skillDiceData = [];
-        let skillSuccessCount = 0;
-
-        if (roll.terms.length > 2) {
-            roll.terms[2].results.forEach((r, i) => { // Added index 'i'
-                let val = r.result + baseModifier;
-                let isHit = val >= TN;
-                if (isHit) skillSuccessCount++;
-
-                // Track if this specific die was rerolled
-                const isReroll = rofRerollSkills.includes(i);
-
-                skillDiceData.push({
-                    raw: r.result,
-                    total: val,
-                    borderColor: isHit ? "#39ff14" : "#555",
-                    textColor: isHit ? "#39ff14" : "#ccc",
-                    isReroll: isReroll // Pass flag
-                });
-            });
-        }
-        skillSuccessCount += mods.autoSkillSuccesses;
-        for (let i = 0; i < mods.autoSkillSuccesses; i++) {
-            skillDiceData.push({ raw: "-", total: "Auto", borderColor: "#39ff14", textColor: "#39ff14" });
-        }
-
-        // --- SUCCESS THROUGH EXPERIENCE ---
-        // Rule: If 4+ Skill Dice hit, it's a success even if SD failed.
-        // Treat as if only SD succeeded (MOS=0 / Standard Hit).
-        let successThroughExperience = false;
-        if (!isSuccess && skillSuccessCount >= 4) {
-            isSuccess = true;
-            successThroughExperience = true;
-            notes.push("<strong>Success Through Experience</strong> (4+ Skill Dice hit).");
-        }
+        const { isSuccess, successThroughExperience } = this._applySuccessThroughExperience({
+            isBaseSuccess,
+            skillSuccessCount,
+            threshold: 4,
+            notes
+        });
 
         // Update Result Color if it became a success
         const resultColor = isSuccess ? '#39ff14' : '#f55';
 
 
-        // --- NEW MOS LOGIC ---
-        let mosDamageBonus = 0;
-        let mosEffectText = isSuccess ? "Standard Hit" : "Failed";
-        let mosChoiceData = { hasChoice: false, choiceType: "", choiceDmg: 0 };
-
-        if (isSuccess && !successThroughExperience) {
-            // Normal MOS Logic
-            if (skillSuccessCount === 1) {
-                mosDamageBonus = 1;
-                mosEffectText = "+1 Damage";
-            }
-            else if (skillSuccessCount === 2) {
-                // CHOICE: Wound (Arm) OR +2 Dmg
-                mosEffectText = "MOS 2: Choose Effect";
-                mosChoiceData = { hasChoice: true, choiceType: "arm", choiceDmg: 2 };
-            }
-            else if (skillSuccessCount === 3) {
-                // CHOICE: Wound (Leg) OR +4 Dmg
-                mosEffectText = "MOS 3: Choose Effect";
-                mosChoiceData = { hasChoice: true, choiceType: "leg", choiceDmg: 4 };
-            }
-            else if (skillSuccessCount >= 4) {
-                mosDamageBonus = 6;
-                mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)";
-                
-                // AUTO-APPLY HEAD WOUND ON HEAD SHOT
-                if (game.user.targets.size > 0) {
-                    const target = game.user.targets.first();
-                    const targetActor = target?.actor;
-                    if (targetActor && !targetActor.system.wounds.head) {
-                        await targetActor.update({ "system.wounds.head": true });
-                        notes.push(`<span style="color:#ff5555">Head Wound Applied!</span>`);
-                    }
-                }
-            }
+        const { mosDamageBonus, mosEffectText, mosChoiceData, shouldApplyHeadWound } = this._resolveWeaponMosOutcome({
+            isSuccess,
+            successThroughExperience,
+            skillSuccessCount
+        });
+        if (shouldApplyHeadWound) {
+            await this._applyHeadshotSideEffect(notes);
         }
 
         // Damage Calculation
@@ -1030,11 +1140,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         let baseDmg = String(rawBase);
         let totalMod = mods.damage + mosDamageBonus;
 
-        let finalDmgFormula = baseDmg;
-        if (totalMod !== 0) {
-            if (baseDmg === "0" || baseDmg === "") finalDmgFormula = String(totalMod);
-            else finalDmgFormula = `${baseDmg} ${totalMod > 0 ? "+" : ""} ${totalMod}`;
-        }
+        const finalDmgFormula = this._buildWeaponDamageFormula(baseDmg, totalMod);
 
         let showButton = isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
 
@@ -1047,38 +1153,25 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             }
         }
 
-        // Render
-        const templateData = {
-            actorUuid: this.actor.uuid,
-            borderColor: resultColor,
-            headerColor: resultColor,
-            resultColor: resultColor,
-            itemName: item.name.toUpperCase(),
-            successTotal: sdTotal,
-            tooltip: this._generateTooltip(roll, baseModifier, mods.successDie),
-            skillDice: skillDiceData,
-            notes: notes.join(" "),
+        const notesText = notes.join(" ");
+        const templateData = this._buildWeaponRollTemplateData({
+            item,
+            roll,
+            baseModifier,
+            notesText,
+            successDieModifier: mods.successDie,
+            resultColor,
+            sdTotal,
+            skillDiceData,
             showDamageButton: showButton,
-            dmgFormula: finalDmgFormula,
-            minDamage: Number(item.system.minDamage) || 0,
-
-            adValue: adValue, // <--- CRITICAL FIX: Pass AD to template
-
-            // Pass ROF flags to template for styling
-            sdIsReroll: rofRerollSD,
-
-            mos: {
-                isSuccess: isSuccess,
-                hits: skillSuccessCount,
-                effect: mosEffectText,
-                ...mosChoiceData
-            },
-            // Luck Data
-            canUseLuck: this.actor.system.stats.luck.value > 0,
-            luckValue: this.actor.system.stats.luck.value,
-            luckSpent: false,
-            isWeapon: true // Pass isWeapon to template
-        };
+            finalDamageFormula: finalDmgFormula,
+            adValue,
+            rofRerollSD,
+            isSuccess,
+            skillSuccessCount,
+            mosEffectText,
+            mosChoiceData
+        });
 
         const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
 
@@ -1086,23 +1179,23 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: chatContent,
             flags: {
-                sla: {
+                sla: this._buildSlaRollFlags({
                     baseModifier: baseModifier,
                     itemName: item.name.toUpperCase(),
-                    rofRerollSD: rofRerollSD,
-                    rofRerollSkills: rofRerollSkills,
-                    targets: Array.from(game.user.targets).map(t => t.document.uuid),
-                    // Damage Context for Luck Reroll
-                    damageBase: baseDmg,
-                    damageMod: mods.damage,
-                    adValue: adValue,
-                    autoSkillSuccesses: mods.autoSkillSuccesses,
-                    // NEW FLAGS for Recalculation
-                    successDieModifier: mods.successDie,
-                    isWeapon: true,
-                    notes: notes.join(" "), // Store notes in flags for difficulty recalculation
-                    tn: TN // Store TN for reference
-                }
+                    notes: notesText,
+                    tn: TN,
+                    extra: {
+                        rofRerollSD: rofRerollSD,
+                        rofRerollSkills: rofRerollSkills,
+                        targets: Array.from(game.user.targets).map(t => t.document.uuid),
+                        damageBase: baseDmg,
+                        damageMod: mods.damage,
+                        adValue: adValue,
+                        autoSkillSuccesses: mods.autoSkillSuccesses,
+                        successDieModifier: mods.successDie,
+                        isWeapon: true
+                    }
+                })
             }
         });
     }
@@ -1135,41 +1228,169 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         }).render(true);
     }
 
-    async _processExplosiveRoll(item, html) {
-        const form = html[0].querySelector("form");
-        if (!form) return;
-
-        // 1. EXTRACT FORM DATA (Before closing dialog)
-        const rollData = {
+    _readExplosiveRollForm(form) {
+        return {
             mod: Number(form.modifier?.value) || 0,
             cover: Number(form.cover?.value) || 0,
             aiming: form.aiming?.value || "none",
             blind: form.blind?.checked || false
         };
+    }
 
-        // 2. DETERMINE BLAST RADIUS for Template
+    _resolveExplosiveBlastData(item) {
         const innerDist = item.system.blastRadiusInner || 0;
         let outerDist = item.system.blastRadiusOuter || 0;
-        if (outerDist === 0) outerDist = 5; // Default fallback
+        if (outerDist === 0) outerDist = 5;
+        return { innerDist, outerDist };
+    }
 
-        // 3. START AIMING WORKFLOW
-        // We hide the dialog but don't strictly close it? Actually, standard is to let the callback finish then close.
+    _resolveExplosiveSkillContext(item) {
+        const skillName = item.system.skill || "throw";
+        const combatSkills = CONFIG.SLA?.combatSkills || {};
+        const resolvedSkillName = combatSkills[skillName] || skillName;
 
-        // Notify
+        let rank = 0;
+        let skillItemForStat = null;
+        if (resolvedSkillName) {
+            const skillItem = this.actor.items.find(i =>
+                i.type === "skill" && i.name.trim().toLowerCase() === resolvedSkillName.trim().toLowerCase()
+            );
+            if (skillItem) {
+                rank = Number(skillItem.system.rank) || 0;
+                skillItemForStat = skillItem;
+            }
+        }
+
+        const statKey = skillItemForStat?.system?.stat || "dex";
+        const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
+        const strValue = this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0;
+        return { rank, statValue, strValue };
+    }
+
+    _buildExplosiveMods(rollData) {
+        return {
+            successDie: 0,
+            allDice: rollData.mod,
+            rank: 0,
+            damage: 0,
+            autoSkillSuccesses: 0
+        };
+    }
+
+    _applyExplosiveRollAdjustments(rollData, mods) {
+        if (this.actor.system.conditions?.prone) mods.allDice -= 1;
+        if (this.actor.system.conditions?.stunned) mods.allDice -= 1;
+        const penalty = this.actor.system.wounds.penalty || 0;
+        if (game.settings.get("sla-industries", "enableAutomaticWoundPenalties")) {
+            mods.allDice -= penalty;
+        }
+
+        mods.successDie += rollData.cover;
+        if (rollData.aiming === "sd") mods.successDie += 1;
+        if (rollData.aiming === "skill") mods.autoSkillSuccesses += 1;
+    }
+
+    _getActorTokenForExplosiveRange() {
+        return this.token?.object ?? this.actor.getActiveTokens()[0];
+    }
+
+    _appendExplosiveRangeNotes(notes, item, strValue, target, token) {
+        if (item.system.blastRadiusInner || item.system.blastRadiusOuter) {
+            const txt = item.system.blastRadiusInner > 0
+                ? `${item.system.blastRadiusInner}/${item.system.blastRadiusOuter}m`
+                : `${item.system.blastRadiusOuter}m`;
+            notes.push(`<strong>Blast:</strong> ${txt}`);
+        }
+
+        const effectiveRange = 15 + (Math.min(Math.max(0, strValue), 5) * 5);
+        notes.push(`<strong>Max Range:</strong> ${effectiveRange}m`);
+
+        if (!token) return;
+        const ray = new foundry.canvas.geometry.Ray(token.center, target);
+        const distMeters = (ray.distance / canvas.scene.grid.size) * canvas.scene.grid.distance;
+        if (distMeters > effectiveRange) {
+            notes.push(`<strong style='color:#ffa500'>OUT OF RANGE (${Math.round(distMeters)}m)</strong>`);
+        }
+    }
+
+    _resolveExplosiveDeviation({ isBaseSuccess, skillSuccessCount, target, token }) {
+        let outcomeText = "";
+        let resultColor = "#f55";
+        let isSuccess = false;
+        let finalX = target.x;
+        let finalY = target.y;
+
+        const allDiceFailed = (!isBaseSuccess) && (skillSuccessCount === 0);
+        if (allDiceFailed) {
+            outcomeText = "<strong style='color:#ff0000; font-size:1.1em;'>FUMBLE: Detonates on Thrower!</strong>";
+            resultColor = "#ff0000";
+            if (token) {
+                finalX = token.center.x;
+                finalY = token.center.y;
+            }
+            return { outcomeText, resultColor, isSuccess, finalX, finalY };
+        }
+
+        if (isBaseSuccess && skillSuccessCount > 0) {
+            outcomeText = "<strong style='color:#39ff14'>LANDS ON TARGET</strong>";
+            resultColor = "#39ff14";
+            isSuccess = true;
+            return { outcomeText, resultColor, isSuccess, finalX, finalY };
+        }
+
+        const devMeters = isBaseSuccess ? 5 : 10;
+        outcomeText = isBaseSuccess
+            ? "<strong style='color:#ffa500'>DEVIATION: 5m</strong>"
+            : "<strong style='color:#ff5555'>DEVIATION: 10m</strong>";
+        resultColor = isBaseSuccess ? "#ffa500" : "#ff5555";
+        const devPixels = (devMeters / canvas.scene.grid.distance) * canvas.scene.grid.size;
+        const angle = Math.random() * 2 * Math.PI;
+        finalX += Math.cos(angle) * devPixels;
+        finalY += Math.sin(angle) * devPixels;
+        return { outcomeText, resultColor, isSuccess, finalX, finalY };
+    }
+
+    async _placeExplosiveTemplates({ item, blastRadius, innerDist, finalX, finalY, isSuccess }) {
+        try {
+            const templates = [{
+                t: "circle",
+                user: game.user.id,
+                x: finalX,
+                y: finalY,
+                distance: blastRadius,
+                fillColor: game.user.color,
+                fillAlpha: 0.2,
+                flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "outer" } }
+            }];
+
+            if (innerDist > 0 && innerDist < blastRadius) {
+                templates.push({
+                    t: "circle",
+                    user: game.user.id,
+                    x: finalX,
+                    y: finalY,
+                    distance: innerDist,
+                    fillColor: game.user.color,
+                    fillAlpha: 0.6,
+                    flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "inner" } }
+                });
+            }
+
+            canvas.scene.createEmbeddedDocuments("MeasuredTemplate", templates);
+        } catch (err) {
+            console.error("SLA | Template Creation Failed:", err);
+        }
+    }
+
+    async _processExplosiveRoll(item, html) {
+        const form = html[0].querySelector("form");
+        if (!form) return;
+
+        const rollData = this._readExplosiveRollForm(form);
+        const { innerDist, outerDist } = this._resolveExplosiveBlastData(item);
         ui.notifications.info("Select target position...");
-
-        // Use a simple crosshair picker if we don't want to re-implement full Template Preview
-        // But the user asked for "blast radius template centered on where..."
-        // Ideally we show the template while aiming.
-
-        // We'll calculate the pixel distance for the radius, but purely for visualization if we implemented it.
-        // const pixelDist = (outerDist / canvas.scene.grid.distance) * canvas.scene.grid.size;
-
-        // Simple Handler
         const target = await this._waitForCanvasClick();
-        if (!target) return; // Cancelled
-
-        // 4. RESOLVE
+        if (!target) return;
         await this._resolveExplosiveRoll(item, rollData, target, outerDist, innerDist);
     }
 
@@ -1195,7 +1416,6 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
     }
 
     async _resolveExplosiveRoll(item, rollData, target, blastRadius, innerDist) {
-        // 1. CONSUME QUANTITY
         const currentQty = item.system.quantity || 0;
         if (currentQty <= 0) {
             return ui.notifications.warn(`You are out of ${item.name}s.`);
@@ -1208,209 +1428,51 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             await item.update({ "system.quantity": newQty });
         }
 
-        // 2. SETUP STATS
-        const skillName = item.system.skill || "throw";
-
-        // Basic lookup same as weapon
-        const combatSkills = CONFIG.SLA?.combatSkills || {};
-        let targetSkillName = skillName;
-        if (combatSkills[skillName]) targetSkillName = combatSkills[skillName];
-        else if (skillName) targetSkillName = skillName;
-
-        // Find skill rank
-        let rank = 0;
-        let skillItemForStat = null;
-
-        if (targetSkillName) {
-            const skillItem = this.actor.items.find(i => i.type === 'skill' && i.name.trim().toLowerCase() === targetSkillName.trim().toLowerCase());
-            if (skillItem) {
-                rank = Number(skillItem.system.rank) || 0;
-                skillItemForStat = skillItem;
-            }
-        }
-
-        const statKey = skillItemForStat?.system?.stat || "dex";
-        const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
-        const strValue = this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0;
-
-        // 3. READ MODIFIERS
-        let mods = {
-            successDie: 0,
-            allDice: rollData.mod,
-            rank: 0,
-            damage: 0,
-            autoSkillSuccesses: 0
-        };
+        const { rank, statValue, strValue } = this._resolveExplosiveSkillContext(item);
+        const mods = this._buildExplosiveMods(rollData);
         let notes = [];
-        if (item.system.blastRadiusInner || item.system.blastRadiusOuter) {
-            const txt = item.system.blastRadiusInner > 0
-                ? `${item.system.blastRadiusInner}/${item.system.blastRadiusOuter}m`
-                : `${item.system.blastRadiusOuter}m`;
-            notes.push(`<strong>Blast:</strong> ${txt}`);
-        }
+        const token = this._getActorTokenForExplosiveRange();
+        this._appendExplosiveRangeNotes(notes, item, strValue, target, token);
+        this._applyExplosiveRollAdjustments(rollData, mods);
 
-        // RANGE CALCULATION & VALIDATION
-        const effectiveRange = 15 + (Math.min(Math.max(0, strValue), 5) * 5);
-        notes.push(`<strong>Max Range:</strong> ${effectiveRange}m`);
-
-        // Check Distance to Target from Token
-        // Fix: this.token is a Document, not a Placeable. Use canvas token.
-        const token = this.token?.object ?? this.actor.getActiveTokens()[0];
-
-        if (token) {
-            const ray = new foundry.canvas.geometry.Ray(token.center, target);
-            const distMeters = (ray.distance / canvas.scene.grid.size) * canvas.scene.grid.distance;
-
-            if (distMeters > effectiveRange) {
-                notes.push(`<strong style='color:#ffa500'>OUT OF RANGE (${Math.round(distMeters)}m)</strong>`);
-                // Apply Range Penalty? Rules say "Normal modifiers for long range are applied"
-                // For now just warn
-            }
-        }
-
-        // Global Conditions
-        if (this.actor.system.conditions?.prone) mods.allDice -= 1;
-        if (this.actor.system.conditions?.stunned) mods.allDice -= 1;
-        const penalty = this.actor.system.wounds.penalty || 0;
-        if (game.settings.get("sla-industries", "enableAutomaticWoundPenalties")) {
-            mods.allDice -= penalty;
-        }
-
-        // Form Inputs
-        mods.successDie += rollData.cover;
-
-        if (rollData.aiming === "sd") mods.successDie += 1;
-        if (rollData.aiming === "skill") mods.autoSkillSuccesses += 1;
-
-        // 4. ROLL
         const baseModifier = statValue + rank + mods.allDice;
         const skillDiceCount = Math.max(0, rank + 1 + mods.rank);
-
         const rollFormula = `1d10 + ${skillDiceCount}d10`;
         let roll = createSLARoll(rollFormula);
         await roll.evaluate();
 
-        // 5. RESULTS AND DEVIATION
-        const TN = 10; // All ranged attacks (including thrown explosives) use TN 10
-        const sdRaw = roll.terms[0].results[0].result;
-        const sdTotal = sdRaw + baseModifier + mods.successDie;
-        let isBaseSuccess = sdTotal >= TN;
+        const TN = 10;
+        const { sdTotal, isBaseSuccess } = this._computeSuccessDieOutcome({
+            roll,
+            baseModifier,
+            successDieModifier: mods.successDie,
+            targetNumber: TN
+        });
 
-        // Count Skill Dice Hits
-        let skillSuccessCount = 0;
-        let skillDiceData = [];
+        const { skillDiceData, skillSuccessCount } = this._buildSkillDiceResults({
+            roll,
+            baseModifier,
+            targetNumber: TN,
+            autoSuccesses: mods.autoSkillSuccesses
+        });
 
-        if (roll.terms.length > 2) {
-            roll.terms[2].results.forEach(r => {
-                let val = r.result + baseModifier;
-                let isHit = val >= TN;
-                if (isHit) skillSuccessCount++;
+        const { outcomeText, resultColor, isSuccess, finalX, finalY } = this._resolveExplosiveDeviation({
+            isBaseSuccess,
+            skillSuccessCount,
+            target,
+            token
+        });
 
-                skillDiceData.push({
-                    raw: r.result,
-                    total: val,
-                    borderColor: isHit ? "#39ff14" : "#555",
-                    textColor: isHit ? "#39ff14" : "#ccc"
-                });
-            });
-        }
-        skillSuccessCount += mods.autoSkillSuccesses;
-
-        // --- DEVIATION LOGIC ---
-        let outcomeText = "";
-        let resultColor = "#f55";
-        let isSuccess = false;
-
-        let finalX = target.x;
-        let finalY = target.y;
-
-        const allDiceFailed = (!isBaseSuccess) && (skillSuccessCount === 0);
-
-        if (allDiceFailed) {
-            // FUMBLE: Detonates on location!
-            outcomeText = "<strong style='color:#ff0000; font-size:1.1em;'>FUMBLE: Detonates on Thrower!</strong>";
-            resultColor = "#ff0000";
-
-            if (token) {
-                finalX = token.center.x;
-                finalY = token.center.y;
-            }
-        }
-        else if (isBaseSuccess && skillSuccessCount > 0) {
-            // HIT
-            outcomeText = "<strong style='color:#39ff14'>LANDS ON TARGET</strong>";
-            resultColor = "#39ff14";
-            isSuccess = true;
-        }
-        else if (isBaseSuccess && skillSuccessCount === 0) {
-            // DEVIATION 5m
-            outcomeText = "<strong style='color:#ffa500'>DEVIATION: 5m</strong>";
-            resultColor = "#ffa500";
-
-            const devPixels = (5 / canvas.scene.grid.distance) * canvas.scene.grid.size;
-            const angle = Math.random() * 2 * Math.PI;
-            finalX += Math.cos(angle) * devPixels;
-            finalY += Math.sin(angle) * devPixels;
-        }
-        else {
-            // DEVIATION 10m
-            outcomeText = "<strong style='color:#ff5555'>DEVIATION: 10m</strong>";
-            resultColor = "#ff5555";
-
-            const devPixels = (10 / canvas.scene.grid.distance) * canvas.scene.grid.size;
-            const angle = Math.random() * 2 * Math.PI;
-            finalX += Math.cos(angle) * devPixels;
-            finalY += Math.sin(angle) * devPixels;
-        }
-
-        // Add note about kill-zone
         if (innerDist > 0) {
             notes.push(`<br/><strong>Kill Zone (< ${innerDist}m):</strong> +2 Damage`);
         }
 
-        // 6. PLACE TEMPLATE(S)
-        try {
-            const templates = [];
+        await this._placeExplosiveTemplates({ item, blastRadius, innerDist, finalX, finalY, isSuccess });
 
-            // 1. Outer Template (Lighter)
-            templates.push({
-                t: "circle",
-                user: game.user.id,
-                x: finalX,
-                y: finalY,
-                distance: blastRadius, // Outer
-                fillColor: game.user.color,
-                // Make it lighter/transparent
-                fillAlpha: 0.2,
-                flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "outer" } }
-            });
-
-            // 2. Inner Template (Darker / Kill Zone)
-            if (innerDist > 0 && innerDist < blastRadius) {
-                templates.push({
-                    t: "circle",
-                    user: game.user.id,
-                    x: finalX,
-                    y: finalY,
-                    distance: innerDist, // Inner
-                    fillColor: game.user.color, // Same color, just more opaque
-                    fillAlpha: 0.6,
-                    flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "inner" } }
-                });
-            }
-
-            // Create the template(s)
-            canvas.scene.createEmbeddedDocuments("MeasuredTemplate", templates);
-
-        } catch (err) {
-            console.error("SLA | Template Creation Failed:", err);
-        }
-
-        // Damage
         let baseDmg = item.system.damage || "0";
         const adValue = Number(item.system.ad) || 0;
 
-        // Render Template Data
+        const notesText = notes.join(" ");
         const templateData = {
             actorUuid: this.actor.uuid,
             borderColor: resultColor,
@@ -1420,7 +1482,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             successTotal: sdTotal,
             tooltip: this._generateTooltip(roll, baseModifier, mods.successDie),
             skillDice: skillDiceData,
-            notes: notes.join(" "),
+            notes: notesText,
             showDamageButton: true,
             dmgFormula: baseDmg,
             minDamage: Number(item.system.minDamage) || 0,
@@ -1432,7 +1494,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             },
             canUseLuck: this.actor.system.stats.luck.value > 0,
             luckValue: this.actor.system.stats.luck.value,
-            isEbb: true // Pass isEbb to template for conditional logic
+            isEbb: true // Legacy chat template flag for this non-weapon card path.
         };
 
         const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
@@ -1441,131 +1503,106 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: chatContent,
             flags: {
-                sla: {
+                sla: this._buildSlaRollFlags({
                     baseModifier: baseModifier,
                     itemName: item.name.toUpperCase(),
-                    targets: Array.from(game.user.targets).map(t => t.document.uuid),
-                    damageBase: baseDmg,
-                    adValue: adValue,
-                    notes: notes.join(" "), // Store notes in flags for difficulty recalculation
-                    tn: 10 // Store TN for reference (explosives use TN 10)
-                }
+                    notes: notesText,
+                    tn: 10,
+                    extra: {
+                        targets: Array.from(game.user.targets).map(t => t.document.uuid),
+                        damageBase: baseDmg,
+                        adValue: adValue
+                    }
+                })
             }
         });
     }
 
-    async _executeEbbRoll(item) {
-        const formulaRating = item.system.formulaRating || 7;
-        const currentFlux = this.actor.system.stats.flux?.value || 0;
-        const fluxCost = 1; // Most formulas cost 1 Flux
-
-        // 1. Check & Consume Flux
-        if (currentFlux < fluxCost) {
-            ui.notifications.error("Insufficient FLUX.");
-            return;
-        }
-        await this.actor.update({ "system.stats.flux.value": Math.max(0, currentFlux - fluxCost) });
-
-        // 2. Resolve Discipline Rank
-        // We need to find the parent Discipline to get the Rank
-        const disciplineName = item.system.discipline;
-        const statKey = "conc"; // Ebb is usually Concentration based
-        const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
-
-        let targetName = disciplineName;
-        // Handle short names vs full names if you have a config map
+    _resolveEbbDisciplineName(disciplineName) {
+        let resolvedName = disciplineName;
         const ebbDisciplines = CONFIG.SLA?.ebbDisciplines || {};
         for (const [key, label] of Object.entries(ebbDisciplines)) {
-            if (key === disciplineName || label === disciplineName) { targetName = label; break; }
+            if (key === disciplineName || label === disciplineName) {
+                resolvedName = label;
+                break;
+            }
         }
+        return resolvedName;
+    }
 
-        const disciplineItem = this.actor.items.find(i => i.type === 'discipline' && i.name.toLowerCase() === targetName.toLowerCase());
-        if (!disciplineItem) {
-            ui.notifications.warn(`Missing Discipline Item: ${targetName}`);
-            return;
-        }
+    _resolveEbbContext(item) {
+        const formulaRating = item.system.formulaRating || 7;
+        const currentFlux = this.actor.system.stats.flux?.value || 0;
+        const fluxCost = 1;
+        const disciplineName = item.system.discipline;
+        const resolvedDisciplineName = this._resolveEbbDisciplineName(disciplineName);
+        const disciplineItem = this.actor.items.find(i =>
+            i.type === "discipline" && i.name.toLowerCase() === resolvedDisciplineName.toLowerCase()
+        );
 
-        const rank = Number(disciplineItem.system.rank) || 0;
+        return { formulaRating, currentFlux, fluxCost, resolvedDisciplineName, disciplineItem };
+    }
 
-        // 3. Modifiers
+    _calculateEbbModifier(rank) {
+        const statKey = "conc";
+        const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
         let globalMod = 0;
         if (this.actor.system.conditions?.prone) globalMod -= 1;
         if (this.actor.system.conditions?.stunned) globalMod -= 1;
         const penalty = this.actor.system.wounds.penalty || 0;
+        const woundPenalty = game.settings.get("sla-industries", "enableAutomaticWoundPenalties") ? penalty : 0;
+        return statValue + rank - woundPenalty + globalMod;
+    }
 
-        const modifier = statValue + rank - (game.settings.get("sla-industries", "enableAutomaticWoundPenalties") ? penalty : 0) + globalMod;
-
-        // 4. Roll Formula: 1d10 + (Rank + 1)d10
+    async _createAndEvaluateEbbRoll(rank) {
         const skillDiceCount = rank + 1;
         const rollFormula = `1d10 + ${skillDiceCount}d10`;
-
         let roll = new Roll(rollFormula);
-        // --- DICE SO NICE: FORCE BLACK SUCCESS DIE ---
-        // Target the first term (1d10)
+
         if (roll.terms.length > 0 && roll.terms[0].constructor.name === "Die") {
             roll.terms[0].options.appearance = {
-                foreground: "#FFFFFF", // White Text
-                background: "#000000", // Black Body
-                edge: "#333333"        // Dark Grey Outline
+                foreground: "#FFFFFF",
+                background: "#000000",
+                edge: "#333333"
             };
         }
-        // ---------------------------------------------
+
         await roll.evaluate();
+        return roll;
+    }
 
-        // 5. Calculate Success (Target Number is the Formula Rating)
-        const successRaw = roll.terms[0].results[0].result;
-        const successTotal = successRaw + modifier;
-        const isBaseSuccess = successTotal >= formulaRating;
-        const resultColor = isBaseSuccess ? '#39ff14' : '#f55';
+    _collectEbbSkillDiceData(roll, modifier, formulaRating) {
+        const { skillDiceData, skillSuccessCount } = this._buildSkillDiceResults({
+            roll,
+            baseModifier: modifier,
+            targetNumber: formulaRating
+        });
+        return { skillDiceData, skillSuccesses: skillSuccessCount };
+    }
 
-        // 6. Process Skill/Flux Dice
-        let skillDiceData = [];
-        let skillSuccesses = 0;
+    _resolveEbbOutcomeText(isBaseSuccess, skillSuccesses) {
+        const allDiceFailed = (!isBaseSuccess) && (skillSuccesses === 0);
+        const isSuccessful = isBaseSuccess || (skillSuccesses >= 1);
 
-        if (roll.terms.length > 2) {
-            roll.terms[2].results.forEach(r => {
-                let val = r.result + modifier;
-                // For Ebb, the TN for skill dice is ALSO the Formula Rating
-                let isHit = val >= formulaRating;
-                if (isHit) skillSuccesses++;
-
-                skillDiceData.push({
-                    raw: r.result,
-                    total: val,
-                    borderColor: isHit ? "#39ff14" : "#555",
-                    textColor: isHit ? "#39ff14" : "#ccc"
-                });
-            });
-        }
-
-        // 7. Determine MOS Effects (Specific to Ebb)
         let mosEffectText = "Standard Success";
         let failureConsequence = "Failed";
-
-        const allDiceFailed = (!isBaseSuccess) && (skillSuccesses === 0);
-        const isSuccessful = isBaseSuccess || (skillSuccesses >= 1); // Ebb succeeds if EITHER success die OR skill dice hit
 
         if (isSuccessful) {
             if (skillSuccesses === 2) mosEffectText = "+1 Damage / Effect";
             else if (skillSuccesses === 3) mosEffectText = "+2 Damage / Repeat Ability";
             else if (skillSuccesses >= 4) mosEffectText = "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX";
-        } else {
-            if (allDiceFailed) {
-                failureConsequence = "<strong style='color:#ff5555'>SEVERE FAILURE:</strong> -3 HP & -1 Extra FLUX";
-                // Auto-apply punishment? Or just warn?
-                // await this.actor.update({ 
-                //    "system.hp.value": Math.max(0, this.actor.system.hp.value - 3),
-                //    "system.stats.flux.value": Math.max(0, this.actor.system.stats.flux.value - 1)
-                // });
-            }
+        } else if (allDiceFailed) {
+            failureConsequence = "<strong style='color:#ff5555'>SEVERE FAILURE:</strong> -3 HP & -1 Extra FLUX";
         }
 
-        // 8. Damage Calculation (For Offensive Formulas)
+        return { isSuccessful, mosEffectText, failureConsequence };
+    }
+
+    _buildEbbDamageFormula(item, isSuccessful, skillSuccesses) {
         let rawBase = item.system.dmg || item.system.damage || "0";
         let baseDmg = String(rawBase);
         let mosDamageBonus = 0;
 
-        // Map MOS to damage if applicable
         if (isSuccessful) {
             if (skillSuccesses === 2) mosDamageBonus = 1;
             if (skillSuccesses === 3) mosDamageBonus = 2;
@@ -1573,16 +1610,29 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         }
 
         let finalDmgFormula = baseDmg;
-        if (baseDmg !== "0" && baseDmg !== "") {
-            let sign = mosDamageBonus > 0 ? "+" : "";
-            if (mosDamageBonus > 0) finalDmgFormula = `${baseDmg} ${sign} ${mosDamageBonus}`;
+        if (baseDmg !== "0" && baseDmg !== "" && mosDamageBonus > 0) {
+            finalDmgFormula = `${baseDmg} + ${mosDamageBonus}`;
         }
 
-        // Show damage button if formula exists AND not "0"
-        let showButton = isSuccessful && (finalDmgFormula && finalDmgFormula !== "0");
+        return { finalDmgFormula, showDamageButton: isSuccessful && (finalDmgFormula && finalDmgFormula !== "0") };
+    }
 
-        // 9. Render Template
-        const templateData = {
+    _buildEbbTemplateData({
+        item,
+        roll,
+        modifier,
+        resultColor,
+        successTotal,
+        skillDiceData,
+        formulaRating,
+        showDamageButton,
+        finalDmgFormula,
+        isSuccessful,
+        skillSuccesses,
+        mosEffectText,
+        failureConsequence
+    }) {
+        return {
             borderColor: resultColor,
             headerColor: resultColor,
             resultColor: resultColor,
@@ -1592,7 +1642,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             tooltip: this._generateTooltip(roll, modifier, 0),
             skillDice: skillDiceData,
             notes: `<strong>Formula Rating:</strong> ${formulaRating}`,
-            showDamageButton: showButton,
+            showDamageButton: showDamageButton,
             dmgFormula: finalDmgFormula,
             adValue: item.system.ad || 0,
             mos: {
@@ -1600,8 +1650,53 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
                 hits: skillSuccesses,
                 effect: isSuccessful ? mosEffectText : failureConsequence
             },
-            isEbb: true // Pass isEbb
+            isEbb: true
         };
+    }
+
+    async _executeEbbRoll(item) {
+        const { formulaRating, currentFlux, fluxCost, resolvedDisciplineName, disciplineItem } = this._resolveEbbContext(item);
+        if (currentFlux < fluxCost) {
+            ui.notifications.error("Insufficient FLUX.");
+            return;
+        }
+        await this.actor.update({ "system.stats.flux.value": Math.max(0, currentFlux - fluxCost) });
+
+        if (!disciplineItem) {
+            ui.notifications.warn(`Missing Discipline Item: ${resolvedDisciplineName}`);
+            return;
+        }
+
+        const rank = Number(disciplineItem.system.rank) || 0;
+        const modifier = this._calculateEbbModifier(rank);
+        const roll = await this._createAndEvaluateEbbRoll(rank);
+        const { sdTotal: successTotal, isBaseSuccess } = this._computeSuccessDieOutcome({
+            roll,
+            baseModifier: modifier,
+            successDieModifier: 0,
+            targetNumber: formulaRating
+        });
+        const resultColor = isBaseSuccess ? '#39ff14' : '#f55';
+
+        const { skillDiceData, skillSuccesses } = this._collectEbbSkillDiceData(roll, modifier, formulaRating);
+        const { isSuccessful, mosEffectText, failureConsequence } = this._resolveEbbOutcomeText(isBaseSuccess, skillSuccesses);
+        const { finalDmgFormula, showDamageButton } = this._buildEbbDamageFormula(item, isSuccessful, skillSuccesses);
+        const notesText = `<strong>Formula Rating:</strong> ${formulaRating}`;
+        const templateData = this._buildEbbTemplateData({
+            item,
+            roll,
+            modifier,
+            resultColor,
+            successTotal,
+            skillDiceData,
+            formulaRating,
+            showDamageButton,
+            finalDmgFormula,
+            isSuccessful,
+            skillSuccesses,
+            mosEffectText,
+            failureConsequence
+        });
 
         const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
 
@@ -1609,143 +1704,146 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: chatContent,
             flags: {
-                sla: {
+                sla: this._buildSlaRollFlags({
                     baseModifier: modifier,
                     itemName: item.name.toUpperCase(),
-                    isWeapon: false,
-                    isEbb: true, // Flag as Ebb
-                    notes: `<strong>Formula Rating:</strong> ${formulaRating}`, // Store notes in flags for difficulty recalculation
-                    tn: formulaRating // Store TN (Formula Rating) for reference
-                }
+                    notes: notesText,
+                    tn: formulaRating,
+                    extra: {
+                        isWeapon: false,
+                        isEbb: true
+                    }
+                })
             }
         });
     }
 
     // --- DROP ITEM HANDLER ---
+    async _processDroppedSkills(skillsArray, sourceFlag) {
+        if (!skillsArray || !Array.isArray(skillsArray) || skillsArray.length === 0) return;
+
+        const toCreate = [];
+        const toUpdate = [];
+
+        for (const skillData of skillsArray) {
+            if (!skillData || !skillData.name) continue;
+
+            const existingSkill = this.actor.items.find(i =>
+                i.type === "skill" && i.name.toLowerCase() === skillData.name.toLowerCase()
+            );
+
+            if (existingSkill) {
+                const currentRank = existingSkill.system?.rank || 0;
+                toUpdate.push({ _id: existingSkill.id, "system.rank": currentRank + 1 });
+                ui.notifications.info(`Upgraded ${existingSkill.name} to Rank ${currentRank + 1}`);
+                continue;
+            }
+
+            toCreate.push({
+                name: skillData.name,
+                type: "skill",
+                img: skillData.img || "icons/svg/book.svg",
+                system: {
+                    rank: 1,
+                    stat: CONFIG.SLA?.skillStats?.[skillData.name.toLowerCase()]
+                        || skillData.stat
+                        || skillData.system?.stat
+                        || "dex",
+                    description: skillData.system?.description || ""
+                },
+                flags: {
+                    "sla-industries": {
+                        [sourceFlag]: true
+                    }
+                }
+            });
+        }
+
+        if (toCreate.length > 0) {
+            await this.actor.createEmbeddedDocuments("Item", toCreate);
+        }
+        if (toUpdate.length > 0) {
+            await this.actor.updateEmbeddedDocuments("Item", toUpdate);
+        }
+    }
+
+    async _replaceSingletonItemAndLinkedSkills(itemType, linkedSkillFlag) {
+        const existing = this.actor.items.find(i => i.type === itemType);
+        if (!existing) return;
+
+        const linkedSkills = this.actor.items.filter(i => i.getFlag("sla-industries", linkedSkillFlag));
+        const idsToDelete = [existing.id, ...linkedSkills.map(i => i.id)];
+        await this.actor.deleteEmbeddedDocuments("Item", idsToDelete);
+    }
+
+    _validatePackageRequirements(packageData) {
+        const requirements = packageData.system.requirements || {};
+        for (const [key, minVal] of Object.entries(requirements)) {
+            const actorStat = this.actor.system.stats[key]?.value || 0;
+            if (actorStat < minVal) {
+                ui.notifications.error(`Requirement not met: ${key.toUpperCase()} must be ${minVal}+`);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    async _handleSpeciesDrop(itemData) {
+        await this._replaceSingletonItemAndLinkedSkills("species", "fromSpecies");
+        await this.actor.createEmbeddedDocuments("Item", [itemData]);
+        await this.actor.update({ "system.bio.species": itemData.name });
+
+        if (itemData.system.stats) {
+            const updates = {};
+            for (const [key, val] of Object.entries(itemData.system.stats)) {
+                const valueToSet = (typeof val === "object" && val.min !== undefined) ? val.min : val;
+                updates[`system.stats.${key}.value`] = valueToSet;
+            }
+            await this.actor.update(updates);
+        }
+
+        await this._processDroppedSkills(itemData.system.skills, "fromSpecies");
+    }
+
+    async _handlePackageDrop(itemData) {
+        if (!this._validatePackageRequirements(itemData)) return;
+
+        await this._replaceSingletonItemAndLinkedSkills("package", "fromPackage");
+        await this.actor.createEmbeddedDocuments("Item", [itemData]);
+        await this.actor.update({ "system.bio.package": itemData.name });
+        await this._processDroppedSkills(itemData.system.skills, "fromPackage");
+    }
+
+    _shouldAutoEquipDroppedItem(itemData) {
+        return (this.actor.type === "npc" && ["weapon", "armor"].includes(itemData.type))
+            || (this.actor.type === "vehicle" && itemData.type === "weapon");
+    }
+
+    async _createEquippedItem(itemData) {
+        foundry.utils.setProperty(itemData, "system.equipped", true);
+        return this.actor.createEmbeddedDocuments("Item", [itemData]);
+    }
+
     async _onDropItem(event, data) {
         if (!this.actor.isOwner) return false;
         const item = await Item.implementation.fromDropData(data);
+        if (!item) return false;
         const itemData = item.toObject();
 
-        // Helper: Handle Skill Array
-        const processSkills = async (skillsArray, sourceFlag) => {
-            if (!skillsArray || !Array.isArray(skillsArray) || skillsArray.length === 0) return;
-
-            const toCreate = [];
-            const toUpdate = [];
-
-            for (const skillData of skillsArray) {
-                // 1. Safety check: skip if data is missing
-                if (!skillData || !skillData.name) continue;
-
-                const existing = this.actor.items.find(i => i.name.toLowerCase() === skillData.name.toLowerCase() && i.type === "skill");
-
-                if (existing) {
-                    // Update Existing Skill Rank
-                    const currentRank = existing.system?.rank || 0;
-                    toUpdate.push({ _id: existing.id, "system.rank": currentRank + 1 });
-                    ui.notifications.info(`Upgraded ${existing.name} to Rank ${currentRank + 1}`);
-                } else {
-                    // 2. Prepare New Skill Object
-                    // We create a FRESH object to guarantee structure, rather than just cloning
-                    const newSkill = {
-                        name: skillData.name,
-                        type: "skill", // <--- CRITICAL FIX: Explicitly set the type
-                        img: skillData.img || "icons/svg/book.svg",
-                        system: {
-                            rank: 1, // Default to rank 1
-                            // FIX: Lookup stat from config first (to override legacy "dex" in compendium items)
-                            stat: CONFIG.SLA?.skillStats?.[skillData.name.toLowerCase()]
-                                || skillData.stat
-                                || skillData.system?.stat
-                                || "dex",
-                            description: skillData.system?.description || ""
-                        },
-                        flags: {
-                            "sla-industries": {
-                                [sourceFlag]: true
-                            }
-                        }
-                    };
-
-                    toCreate.push(newSkill);
-                }
-            }
-
-            if (toCreate.length > 0) {
-                await this.actor.createEmbeddedDocuments("Item", toCreate);
-            }
-            if (toUpdate.length > 0) {
-                await this.actor.updateEmbeddedDocuments("Item", toUpdate);
-            }
-        };
-
-        // 1. DROP SPECIES
         if (itemData.type === "species") {
-            const existing = this.actor.items.find(i => i.type === "species");
-            if (existing) {
-                // CLEANUP: Delete old skills associated with the previous species
-                const oldSkills = this.actor.items.filter(i => i.getFlag("sla-industries", "fromSpecies"));
-                const idsToDelete = [existing.id, ...oldSkills.map(i => i.id)];
-
-                await this.actor.deleteEmbeddedDocuments("Item", idsToDelete);
-            }
-
-            await this.actor.createEmbeddedDocuments("Item", [itemData]);
-            await this.actor.update({ "system.bio.species": itemData.name });
-
-            // Update Stats
-            if (itemData.system.stats) {
-                const updates = {};
-                for (const [key, val] of Object.entries(itemData.system.stats)) {
-                    const valueToSet = (typeof val === 'object' && val.min !== undefined) ? val.min : val;
-                    updates[`system.stats.${key}.value`] = valueToSet;
-                }
-                await this.actor.update(updates);
-            }
-
-            // Process Skills
-            await processSkills(itemData.system.skills, "fromSpecies");
+            await this._handleSpeciesDrop(itemData);
             return;
         }
 
-        // 2. DROP PACKAGE
         if (itemData.type === "package") {
-            const reqs = itemData.system.requirements || {};
-            // Validate Requirements
-            for (const [key, minVal] of Object.entries(reqs)) {
-                const actorStat = this.actor.system.stats[key]?.value || 0;
-                if (actorStat < minVal) {
-                    ui.notifications.error(`Requirement not met: ${key.toUpperCase()} must be ${minVal}+`);
-                    return;
-                }
-            }
-
-            const existing = this.actor.items.find(i => i.type === "package");
-            if (existing) {
-                // CLEANUP: Delete old skills associated with the previous package
-                const oldSkills = this.actor.items.filter(i => i.getFlag("sla-industries", "fromPackage"));
-                const idsToDelete = [existing.id, ...oldSkills.map(i => i.id)];
-
-                await this.actor.deleteEmbeddedDocuments("Item", idsToDelete);
-            }
-
-            await this.actor.createEmbeddedDocuments("Item", [itemData]);
-            await this.actor.update({ "system.bio.package": itemData.name });
-
-            await processSkills(itemData.system.skills, "fromPackage");
+            await this._handlePackageDrop(itemData);
             return;
         }
 
-        // 3. AUTO-EQUIP FOR NPCs/Vehicle Weapons
-        // NPCs and vehicles should get dropped weapons as equipped by default.
-        if ((this.actor.type === "npc" && ["weapon", "armor"].includes(itemData.type))
-            || (this.actor.type === "vehicle" && itemData.type === "weapon")) {
-            foundry.utils.setProperty(itemData, "system.equipped", true);
-            return this.actor.createEmbeddedDocuments("Item", [itemData]);
+        if (this._shouldAutoEquipDroppedItem(itemData)) {
+            return this._createEquippedItem(itemData);
         }
 
-        // Default Drop Handler
         return super._onDropItem(event, data);
     }
 
@@ -1768,8 +1866,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         }
 
         const itemData = item.toObject();
-        foundry.utils.setProperty(itemData, "system.equipped", true);
-        await this.actor.createEmbeddedDocuments("Item", [itemData]);
+        await this._createEquippedItem(itemData);
         ui.notifications.info(`Equipped ${itemData.name} on ${this.actor.name}.`);
         return true;
     }
@@ -1789,33 +1886,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
     }
 
     // --- HELPER: RANGED LOGIC ---
-    async _applyRangedModifiers(item, form, mods, notes, flags) {
-        return await applyRangedModifiers(item, form, mods, notes, flags);
-    }
-
-    // --- HELPERS: HTML GENERATION ---
-    _generateTooltip(roll, baseModifier, successDieMod) {
-        let html = `<div class="dice-tooltip" style="display:none; margin-top:10px; padding-top:5px; border-top:1px solid #444; font-size:0.8em; color:#ccc;">`;
-
-        // Safety check for terms
-        if (!roll.terms || roll.terms.length === 0) return "";
-
-        const sdRaw = roll.terms[0].results[0]?.result || 0;
-        const sdTotal = sdRaw + baseModifier + successDieMod;
-
-        html += `<div><strong>Success Die:</strong> Raw ${sdRaw} + Base ${baseModifier} + SD Mod ${successDieMod} = <strong>${sdTotal}</strong></div>`;
-
-        if (roll.terms.length > 2) {
-            html += `<div style="border-top:1px dashed #444; margin-top:2px;"><strong>Skill Dice (Base ${baseModifier}):</strong></div>`;
-            html += `<div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:2px;">`;
-
-            // Iterate over Skill Dice results
-            roll.terms[2].results.forEach(r => {
-                html += `<span style="background:#222; border:1px solid #555; padding:1px 4px;">${r.result} + ${baseModifier} = <strong>${r.result + baseModifier}</strong></span>`;
-            });
-            html += `</div>`;
-        }
-        html += `</div>`;
-        return html;
+    async _applyRangedModifiers(item, form, mods, notes, flags, options = {}) {
+        return await applyRangedModifiers(item, form, mods, notes, flags, options);
     }
 }
