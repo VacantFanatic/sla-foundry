@@ -194,53 +194,56 @@ export class SLAChat {
     /**
      * Helper: Apply damage directly to a target (used for auto-apply on wound choices)
      */
-    static async _applyDamageToTarget(rawDamage, ad, targetUuid) {
-        // Find the target token/actor
+    static async _resolveActorFromUuid(targetUuid) {
         const token = await fromUuid(targetUuid);
-        const victim = token?.actor;
-        
-        if (!victim) {
-            console.warn("SLA | Auto-apply: Target not found", targetUuid);
-            return;
+        return token?.actor ?? null;
+    }
+
+    static async _resolveVictimForApplyDamage({ targetUuid, type }) {
+        if (targetUuid) {
+            return await this._resolveActorFromUuid(targetUuid);
         }
 
-        // 3. ARMOR LOGIC (Find Equipped Armor)
+        if (type === "selected") {
+            const selectedActor = canvas.tokens.controlled[0]?.actor;
+            if (!selectedActor) {
+                ui.notifications.warn("No token selected.");
+                return null;
+            }
+            return selectedActor;
+        }
+
+        const targetActor = game.user.targets.first()?.actor;
+        if (!targetActor) {
+            ui.notifications.warn("No target designated.");
+            return null;
+        }
+        return targetActor;
+    }
+
+    static async _computeArmorMitigation(victim, ad) {
         const armorItem = victim.items.find(i => i.type === "armor" && i.system.equipped);
 
         let targetPV = 0;
         let armorData = null;
 
-        // A. Determine PV (Protection Value)
         if (armorItem) {
             targetPV = armorItem.system.pv || 0;
         } else if (victim.system.armor?.pv) {
-            // Natural Armor Fallback (NPCs)
             targetPV = victim.system.armor.pv || 0;
         }
 
-        // B. Apply AD (Armor Degradation) Logic
         let effectivePV = targetPV;
-
         if (armorItem && ad > 0) {
             const currentRes = armorItem.system.resistance?.value || 0;
             const maxRes = armorItem.system.resistance?.max || 10;
-
-            // 1. Reduce Resistance
             const newRes = Math.max(0, currentRes - ad);
-
-            // 2. Update the Item
             await armorItem.update({ "system.resistance.value": newRes });
 
-            // 3. Calculate Effective PV based on NEW Resistance state
-            if (newRes <= 0) {
-                effectivePV = 0; // Armor Destroyed
-            } else if (newRes < (maxRes / 2)) {
-                effectivePV = Math.floor(targetPV / 2); // Armor Compromised
-            } else {
-                effectivePV = targetPV; // Armor Intact
-            }
+            if (newRes <= 0) effectivePV = 0;
+            else if (newRes < (maxRes / 2)) effectivePV = Math.floor(targetPV / 2);
+            else effectivePV = targetPV;
 
-            // Prepare Data for Template
             armorData = {
                 current: currentRes,
                 new: newRes,
@@ -249,33 +252,62 @@ export class SLAChat {
             };
         }
 
-        // 4. DAMAGE CALCULATION (Dmg - Effective PV)
-        let finalDamage = Math.max(0, rawDamage - effectivePV);
+        return { targetPV, effectivePV, armorData };
+    }
 
-        // 5. APPLY TO HP
-        let currentHP = victim.system.hp.value;
-        let newHP = currentHP - finalDamage;
-
+    static async _applyHpDamage(victim, rawDamage, effectivePV) {
+        const finalDamage = Math.max(0, rawDamage - effectivePV);
+        const currentHP = victim.system.hp.value;
+        const newHP = currentHP - finalDamage;
         await victim.update({ "system.hp.value": newHP });
 
-        // 6. CHAT REPORT
+        return {
+            finalDamage,
+            hpData: {
+                old: currentHP,
+                new: newHP
+            }
+        };
+    }
+
+    static async _postDamageResultChat({ victim, rawDamage, targetPV, finalDamage, hpData, armorData }) {
         const templateData = {
             victimName: victim.name,
             rawDamage: rawDamage,
             targetPV: targetPV,
             finalDamage: finalDamage,
-            hpData: {
-                old: currentHP,
-                new: newHP
-            },
+            hpData: hpData,
             armorData: armorData
         };
 
-        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-damage-result.hbs", templateData);
+        const content = await foundry.applications.handlebars.renderTemplate(
+            "systems/sla-industries/templates/chat/chat-damage-result.hbs",
+            templateData
+        );
 
-        ChatMessage.create({
-            content: content
+        ChatMessage.create({ content });
+    }
+
+    static async _applyDamageToVictim(victim, rawDamage, ad) {
+        const { targetPV, effectivePV, armorData } = await this._computeArmorMitigation(victim, ad);
+        const { finalDamage, hpData } = await this._applyHpDamage(victim, rawDamage, effectivePV);
+        await this._postDamageResultChat({
+            victim,
+            rawDamage,
+            targetPV,
+            finalDamage,
+            hpData,
+            armorData
         });
+    }
+
+    static async _applyDamageToTarget(rawDamage, ad, targetUuid) {
+        const victim = await this._resolveActorFromUuid(targetUuid);
+        if (!victim) {
+            console.warn("SLA | Auto-apply: Target not found", targetUuid);
+            return;
+        }
+        await this._applyDamageToVictim(victim, rawDamage, ad);
     }
 
     /**
@@ -286,103 +318,13 @@ export class SLAChat {
         const btn = $(ev.currentTarget);
 
         try {
-            // 1. Get Data from Button
             const rawDamage = Number(btn.data("dmg"));
             const ad = Number(btn.data("ad"));
             const type = btn.data("target");
             const targetUuid = btn.data("target-uuid");
-
-            // 2. Find Victim
-            let victim = null;
-
-            // A. Specific Target (from GM button)
-            if (targetUuid) {
-                const token = await fromUuid(targetUuid);
-                victim = token?.actor;
-            }
-        // B. Selected Token (Apply to Selected)
-        else if (type === "selected") {
-            victim = canvas.tokens.controlled[0]?.actor;
-            if (!victim) return ui.notifications.warn("No token selected.");
-        }
-        // C. GM's Current Target (Fallback)
-        else {
-            victim = game.user.targets.first()?.actor;
-            if (!victim) return ui.notifications.warn("No target designated.");
-        }
-
-        // 3. ARMOR LOGIC (Find Equipped Armor)
-        const armorItem = victim.items.find(i => i.type === "armor" && i.system.equipped);
-
-        let targetPV = 0;
-        let armorData = null; // Replaces 'armorUpdateMsg' string
-
-        // A. Determine PV (Protection Value)
-        if (armorItem) {
-            targetPV = armorItem.system.pv || 0;
-        } else if (victim.system.armor?.pv) {
-            // Natural Armor Fallback (NPCs)
-            targetPV = victim.system.armor.pv || 0;
-        }
-
-        // B. Apply AD (Armor Degradation) Logic
-        let effectivePV = targetPV;
-
-        if (armorItem && ad > 0) {
-            const currentRes = armorItem.system.resistance?.value || 0;
-            const maxRes = armorItem.system.resistance?.max || 10;
-
-            // 1. Reduce Resistance
-            const newRes = Math.max(0, currentRes - ad);
-
-            // 2. Update the Item
-            await armorItem.update({ "system.resistance.value": newRes });
-
-            // 3. Calculate Effective PV based on NEW Resistance state
-            if (newRes <= 0) {
-                effectivePV = 0; // Armor Destroyed
-            } else if (newRes < (maxRes / 2)) {
-                effectivePV = Math.floor(targetPV / 2); // Armor Compromised
-            } else {
-                effectivePV = targetPV; // Armor Intact
-            }
-
-            // Prepare Data for Template
-            armorData = {
-                current: currentRes,
-                new: newRes,
-                ad: ad,
-                effectivePV: effectivePV
-            };
-        }
-
-        // 4. DAMAGE CALCULATION (Dmg - Effective PV)
-        let finalDamage = Math.max(0, rawDamage - effectivePV);
-
-        // 5. APPLY TO HP
-        let currentHP = victim.system.hp.value;
-        let newHP = currentHP - finalDamage;
-
-        await victim.update({ "system.hp.value": newHP });
-
-        // 6. CHAT REPORT (Moved to Partial)
-        const templateData = {
-            victimName: victim.name,
-            rawDamage: rawDamage,
-            targetPV: targetPV,
-            finalDamage: finalDamage,
-            hpData: {
-                old: currentHP,
-                new: newHP
-            },
-            armorData: armorData
-        };
-
-        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-damage-result.hbs", templateData);
-
-        ChatMessage.create({
-            content: content
-        });
+            const victim = await this._resolveVictimForApplyDamage({ targetUuid, type });
+            if (!victim) return;
+            await this._applyDamageToVictim(victim, rawDamage, ad);
         } catch (err) {
             console.error("SLA | Error in _onApplyDamage:", err);
             ui.notifications.error("SLA | Failed to apply damage. See console for details.");
@@ -437,9 +379,72 @@ export class SLAChat {
         // 5. Open Dialog
         LuckDialog.create(actor, roll, messageId);
     }
-    // ... (Luck Method above) ...
 
-    // ... (Luck Method above) ...
+    static async _applyHeadshotForDifficultyRecalc(flags) {
+        const targets = flags.targets || [];
+        if (targets.length === 0) return;
+
+        const targetToken = await fromUuid(targets[0]);
+        const targetActor = targetToken?.actor;
+        if (targetActor && !targetActor.system.wounds.head) {
+            await targetActor.update({ "system.wounds.head": true });
+        }
+    }
+
+    static async _resolveDifficultyRecalcMos(flags, result, isSuccess, skillSuccessCount) {
+        let mosDamageBonus = 0;
+        let mosEffectText = isSuccess ? "Standard Hit" : "Failed";
+        let mosChoiceData = { hasChoice: false, choiceType: "", choiceDmg: 0 };
+
+        if (flags.isEbb) {
+            if (isSuccess) {
+                if (skillSuccessCount === 2) { mosDamageBonus = 1; mosEffectText = "+1 Damage / Effect"; }
+                else if (skillSuccessCount === 3) { mosDamageBonus = 2; mosEffectText = "+2 Damage / Repeat Ability"; }
+                else if (skillSuccessCount >= 4) { mosDamageBonus = 4; mosEffectText = "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX"; }
+            }
+            return { mosDamageBonus, mosEffectText, mosChoiceData };
+        }
+
+        if (flags.isWeapon) {
+            if (isSuccess && !result.successThroughExperience) {
+                if (skillSuccessCount === 1) { mosDamageBonus = 1; mosEffectText = "+1 Damage"; }
+                else if (skillSuccessCount === 2) { mosEffectText = "MOS 2: Choose Effect"; mosChoiceData = { hasChoice: true, choiceType: "arm", choiceDmg: 2 }; }
+                else if (skillSuccessCount === 3) { mosEffectText = "MOS 3: Choose Effect"; mosChoiceData = { hasChoice: true, choiceType: "leg", choiceDmg: 4 }; }
+                else if (skillSuccessCount >= 4) {
+                    mosDamageBonus = 6;
+                    mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)";
+                    await this._applyHeadshotForDifficultyRecalc(flags);
+                }
+            } else if (result.successThroughExperience) {
+                mosEffectText = "Success Through Experience";
+            }
+            return { mosDamageBonus, mosEffectText, mosChoiceData };
+        }
+
+        if (isSuccess) mosEffectText = `Margin of Success: ${skillSuccessCount}`;
+        return { mosDamageBonus, mosEffectText, mosChoiceData };
+    }
+
+    static _rebuildDifficultyDamageFormula(flags, mosDamageBonus) {
+        const baseDmg = flags.damageBase || "0";
+        const damageMod = flags.damageMod || 0;
+        const totalMod = damageMod + mosDamageBonus;
+
+        let finalDmgFormula = baseDmg;
+        if (totalMod !== 0) {
+            if (baseDmg === "0" || baseDmg === "") finalDmgFormula = String(totalMod);
+            else finalDmgFormula = `${baseDmg} ${totalMod > 0 ? "+" : ""} ${totalMod}`;
+        }
+        return finalDmgFormula;
+    }
+
+    static _buildDifficultyNotes(flags, newTN) {
+        const originalTN = flags.tn || 10;
+        let baseNotes = flags.notes || "";
+        baseNotes = baseNotes.replace(/\s*\(TN\s+\d+(?:\s*→\s*\d+)?\)/g, "").trim();
+        const tnNote = (newTN !== originalTN) ? ` (TN ${originalTN} → ${newTN})` : ` (TN ${newTN})`;
+        return baseNotes + tnNote;
+    }
 
     /**
      * PART 5: CHANGE DIFFICULTY (TN)
@@ -462,97 +467,23 @@ export class SLAChat {
             const roll = message.rolls[0];
             if (!roll) return;
 
-        // Preserve Min Damage from existing card if possible
         const minDamage = Number(card.find(".damage-roll").data("min")) || 0;
-
-        // Re-Calculate Result
         const result = calculateRollResult(roll, flags.baseModifier, newTN, {
             autoSkillSuccesses: flags.autoSkillSuccesses || 0
         });
-
-        // Re-Generate Display Data (Minimal reconstruction)
-        // Note: This logic duplicates some of actor-sheet.mjs. 
-        // Ideally should be shared, but inline here for now.
-
         const isSuccess = result.isSuccess;
         const skillSuccessCount = result.skillHits + (flags.autoSkillSuccesses || 0);
-
-        // MOS Logic
-        let mosDamageBonus = 0;
-        let mosEffectText = isSuccess ? "Standard Hit" : "Failed";
-        let mosChoiceData = { hasChoice: false, choiceType: "", choiceDmg: 0 };
-
-        // Match Ebb Flags
-        if (flags.isEbb) {
-            // Ebb uses 'skillSuccessCount' (which is skillHits + auto)
-            // But Ebb logic in sheet was: skillSuccesses = hits.
-            // And Base Success = isSuccess.
-
-            // Recalculation Effect Text
-            if (isSuccess) {
-                if (skillSuccessCount === 2) { mosDamageBonus = 1; mosEffectText = "+1 Damage / Effect"; }
-                else if (skillSuccessCount === 3) { mosDamageBonus = 2; mosEffectText = "+2 Damage / Repeat Ability"; }
-                else if (skillSuccessCount >= 4) { mosDamageBonus = 4; mosEffectText = "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX"; }
-            }
-        }
-
-        // --- WEAPON MOS LOGIC (Original) ---
-        else if (flags.isWeapon) {
-            if (isSuccess && !result.successThroughExperience) {
-                if (skillSuccessCount === 1) { mosDamageBonus = 1; mosEffectText = "+1 Damage"; }
-                else if (skillSuccessCount === 2) { mosEffectText = "MOS 2: Choose Effect"; mosChoiceData = { hasChoice: true, choiceType: "arm", choiceDmg: 2 }; }
-                else if (skillSuccessCount === 3) { mosEffectText = "MOS 3: Choose Effect"; mosChoiceData = { hasChoice: true, choiceType: "leg", choiceDmg: 4 }; }
-                else if (skillSuccessCount >= 4) { 
-                    mosDamageBonus = 6; 
-                    mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)";
-                    
-                    // AUTO-APPLY HEAD WOUND ON HEAD SHOT (when recalculated)
-                    const targets = flags.targets || [];
-                    if (targets.length > 0) {
-                        const targetToken = await fromUuid(targets[0]);
-                        const targetActor = targetToken?.actor;
-                        if (targetActor && !targetActor.system.wounds.head) {
-                            await targetActor.update({ "system.wounds.head": true });
-                        }
-                    }
-                }
-            } else if (result.successThroughExperience) {
-                mosEffectText = "Success Through Experience";
-            }
-        }
-
-        // --- SKILL / OTHER ---
-        else {
-            if (isSuccess) mosEffectText = `Margin of Success: ${skillSuccessCount}`;
-        }
-
-        // Damage Formula Reconstruction
-        let baseDmg = flags.damageBase || "0";
-        let damageMod = flags.damageMod || 0;
-        let totalMod = damageMod + mosDamageBonus;
-
-        // If damageBase is 0 and we have mod, use mod. If base > 0, append.
-        let finalDmgFormula = baseDmg;
-        if (totalMod !== 0) {
-            if (baseDmg === "0" || baseDmg === "") finalDmgFormula = String(totalMod);
-            else finalDmgFormula = `${baseDmg} ${totalMod > 0 ? "+" : ""} ${totalMod}`;
-        }
+        const { mosDamageBonus, mosEffectText, mosChoiceData } = await this._resolveDifficultyRecalcMos(
+            flags,
+            result,
+            isSuccess,
+            skillSuccessCount
+        );
+        const finalDmgFormula = this._rebuildDifficultyDamageFormula(flags, mosDamageBonus);
 
         let showButton = isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
         const resultColor = isSuccess ? '#39ff14' : '#f55';
-
-        // Render Method
-        // We reuse the existing flags for adValue, itemName, etc.
-        // Get original TN from flags or default to 10
-        const originalTN = flags.tn || 10;
-        let baseNotes = flags.notes || "";
-        // Strip any existing TN notes from baseNotes to prevent accumulation
-        // Pattern matches: " (TN X)" or " (TN X → Y)" (matches anywhere, but typically at end)
-        baseNotes = baseNotes.replace(/\s*\(TN\s+\d+(?:\s*→\s*\d+)?\)/g, "").trim();
-        // Append TN change note if TN changed
-        const tnNote = (newTN !== originalTN) ? ` (TN ${originalTN} → ${newTN})` : ` (TN ${newTN})`;
-        // tnNote already starts with a space, so append it to baseNotes
-        const finalNotes = baseNotes + tnNote;
+        const finalNotes = this._buildDifficultyNotes(flags, newTN);
         
         const templateData = {
             actorUuid: card.data("actor-uuid"),

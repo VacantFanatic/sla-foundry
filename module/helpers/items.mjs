@@ -2,6 +2,8 @@
  * Helper functions for preparing item data for actor sheets.
  */
 
+const NON_RELOADABLE_SKILLS = new Set(["melee", "unarmed"]);
+
 /**
  * Prepares and organizes items for display in the actor sheet.
  * @param {Array} items - The actor's items collection.
@@ -9,132 +11,138 @@
  * @returns {Object} Organized item data structure.
  */
 export function prepareItems(items, rollData) {
-    // 1. Initialize Containers
-    const inventory = {
-        weapon: { label: "Weapons", items: [] },
-        armor: { label: "Armor", items: [] },
-        explosive: { label: "Explosives", items: [] },
-        magazine: { label: "Ammunition", items: [] },
-        drug: { label: "Drugs", items: [] },
-        item: { label: "Gear", items: [] }
+    const buckets = initPrepareItemBuckets();
+    classifyItems(items, rollData, buckets);
+    sortPreparedBuckets(buckets);
+    const nestedDisciplines = buildNestedDisciplines(buckets.disciplines, buckets.ebbFormulas);
+
+    return {
+        inventory: buckets.inventory,
+        traits: buckets.traits,
+        disciplines: nestedDisciplines,
+        skillsByStat: buckets.skillsByStat,
+        weapons: buckets.combatAttackItems,
+        armors: buckets.armors,
+        skills: buckets.skills
     };
+}
 
-    const traits = [];
-    const ebbFormulas = [];
-    const disciplines = [];
-    const skills = [];
-
-    // Skill Buckets
-    const skillsByStat = {
-        "str": { label: "STR", items: [] },
-        "dex": { label: "DEX", items: [] },
-        "know": { label: "KNOW", items: [] },
-        "conc": { label: "CONC", items: [] },
-        "cha": { label: "CHA", items: [] },
-        "cool": { label: "COOL", items: [] },
-        "other": { label: "OTHER", items: [] }
+function initPrepareItemBuckets() {
+    return {
+        inventory: {
+            weapon: { label: "Weapons", items: [] },
+            armor: { label: "Armor", items: [] },
+            explosive: { label: "Explosives", items: [] },
+            magazine: { label: "Ammunition", items: [] },
+            drug: { label: "Drugs", items: [] },
+            item: { label: "Gear", items: [] }
+        },
+        traits: [],
+        ebbFormulas: [],
+        disciplines: [],
+        skills: [],
+        skillsByStat: {
+            str: { label: "STR", items: [] },
+            dex: { label: "DEX", items: [] },
+            know: { label: "KNOW", items: [] },
+            conc: { label: "CONC", items: [] },
+            cha: { label: "CHA", items: [] },
+            cool: { label: "COOL", items: [] },
+            other: { label: "OTHER", items: [] }
+        },
+        // Includes weapon and explosive attackables; exposed as "weapons" for template compatibility.
+        combatAttackItems: [],
+        armors: []
     };
+}
 
-    // Separate Arrays for Combat Tab
-    const weapons = [];
-    const armors = [];
+function classifyItems(items, rollData, buckets) {
+    for (const item of items) {
+        item.img = item.img || "icons/svg/item-bag.svg";
 
-    // 2. Sort Items into Containers
-    for (let i of items) {
-        i.img = i.img || "icons/svg/item-bag.svg";
-
-        // INVENTORY GROUPS
-        if (inventory[i.type]) {
-            inventory[i.type].items.push(i);
+        if (buckets.inventory[item.type]) {
+            buckets.inventory[item.type].items.push(item);
         }
 
-        // COMBAT TAB SPECIFIC
-        if (i.type === 'weapon') {
-            // Hide reload button if skill is melee or unarmed
-            const skillKey = (i.system.skill || "").toLowerCase();
-            i.isReloadable = !["melee", "unarmed"].includes(skillKey);
-
-            weapons.push(i);
-
-            // Resolve Display Damage
-            i.resolvedDamage = resolveDamage(i.system.damage, i.system.minDamage, rollData);
-        }
-
-        if (i.type === 'explosive') {
-            weapons.push(i); // Add to combat tab
-            i.resolvedDamage = i.system.damage;
-        }
-
-        if (i.type === 'armor') armors.push(i);
-
-        // OTHER ITEMS
-        if (i.type === 'trait') traits.push(i);
-        else if (i.type === 'ebbFormula') ebbFormulas.push(i);
-        else if (i.type === 'discipline') disciplines.push(i);
-        else if (i.type === 'skill') {
-            const stat = (i.system.stat || "dex").toLowerCase();
-            if (skillsByStat[stat]) skillsByStat[stat].items.push(i);
-            else skillsByStat["other"].items.push(i);
-            skills.push(i);
+        switch (item.type) {
+            case "weapon": {
+                const skillKey = (item.system.skill || "").toLowerCase();
+                item.isReloadable = !NON_RELOADABLE_SKILLS.has(skillKey);
+                item.resolvedDamage = resolveDamage(item.system.damage, item.system.minDamage, rollData);
+                buckets.combatAttackItems.push(item);
+                break;
+            }
+            case "explosive":
+                item.resolvedDamage = item.system.damage;
+                buckets.combatAttackItems.push(item);
+                break;
+            case "armor":
+                buckets.armors.push(item);
+                break;
+            case "trait":
+                buckets.traits.push(item);
+                break;
+            case "ebbFormula":
+                buckets.ebbFormulas.push(item);
+                break;
+            case "discipline":
+                buckets.disciplines.push(item);
+                break;
+            case "skill": {
+                const stat = (item.system.stat || "dex").toLowerCase();
+                (buckets.skillsByStat[stat] || buckets.skillsByStat.other).items.push(item);
+                buckets.skills.push(item);
+                break;
+            }
         }
     }
+}
 
-    // 3. Sorting Function (Alphabetical)
+function sortPreparedBuckets(buckets) {
     const sortFn = (a, b) => a.name.localeCompare(b.name);
+    const sortIfNeeded = (list) => {
+        if (list.length > 1) list.sort(sortFn);
+    };
 
-    // Sort every list
-    Object.values(inventory).forEach(cat => cat.items.sort(sortFn));
-    traits.sort(sortFn);
-    ebbFormulas.sort(sortFn);
-    disciplines.sort(sortFn);
-    weapons.sort(sortFn);
-    armors.sort(sortFn);
-    skills.sort(sortFn);
-
-    for (const key in skillsByStat) {
-        skillsByStat[key].items.sort(sortFn);
+    for (const category of Object.values(buckets.inventory)) {
+        sortIfNeeded(category.items);
     }
+    sortIfNeeded(buckets.traits);
+    sortIfNeeded(buckets.ebbFormulas);
+    sortIfNeeded(buckets.disciplines);
+    sortIfNeeded(buckets.combatAttackItems);
+    sortIfNeeded(buckets.armors);
+    sortIfNeeded(buckets.skills);
+    for (const bucket of Object.values(buckets.skillsByStat)) {
+        sortIfNeeded(bucket.items);
+    }
+}
 
-    // 4. Ebb Nesting Logic
+function buildNestedDisciplines(disciplines, ebbFormulas) {
     const configDis = CONFIG.SLA?.disciplineSkills || {};
     const nestedDisciplines = [];
-    const rawFormulas = [...ebbFormulas];
+    const disciplineByName = new Map();
 
-    disciplines.forEach(d => {
-        d.formulas = [];
-        nestedDisciplines.push(d);
-    });
+    for (const discipline of disciplines) {
+        discipline.formulas = [];
+        nestedDisciplines.push(discipline);
 
-    rawFormulas.forEach(f => {
-        const rawKey = f.system.discipline || "";
+        const nameKey = (discipline.name || "").toLowerCase();
+        if (nameKey && !disciplineByName.has(nameKey)) {
+            disciplineByName.set(nameKey, discipline);
+        }
+    }
+
+    for (const formula of ebbFormulas) {
+        const rawKey = formula.system.discipline || "";
         const key = rawKey.toLowerCase();
+        const label = configDis[rawKey] || configDis[key];
+        const labelKey = (label || "").toLowerCase();
+        const parent = disciplineByName.get(key) || disciplineByName.get(labelKey);
+        if (parent) parent.formulas.push(formula);
+    }
 
-        // Find parent where Name matches Key OR Name matches Config Label
-        const parent = nestedDisciplines.find(d => {
-            const dName = d.name.toLowerCase();
-            // Check 1: Direct Match (case-insensitive)
-            if (dName === key) return true;
-
-            // Check 2: Config Match
-            const label = configDis[rawKey] || configDis[key];
-            if (label && dName === label.toLowerCase()) return true;
-
-            return false;
-        });
-
-        if (parent) parent.formulas.push(f);
-    });
-
-    // 5. Return Organized Data
-    return {
-        inventory,
-        traits,
-        disciplines: nestedDisciplines,
-        skillsByStat,
-        weapons,
-        armors,
-        skills
-    };
+    return nestedDisciplines;
 }
 
 /**
