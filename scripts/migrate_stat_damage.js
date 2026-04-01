@@ -56,12 +56,20 @@ export async function migrateNaturalWeapons(silent = false) {
 
         // 4. ENSURE PUNCH/KICK EXISTS (Handles both missing AND deleted-legacy cases)
         if (actor.type === 'character' || actor.type === 'npc') {
-            const hasPunch = actor.items.some(i => i.name === "Punch/Kick");
-            if (!hasPunch) {
+            const punchKickItems = actor.items.filter(i => i.type === "weapon" && i.name === NATURAL_WEAPONS.punchKick.name);
+            if (punchKickItems.length === 0) {
                 console.log(`SLA | Adding Punch/Kick to ${actor.name}`);
                 const punchData = foundry.utils.deepClone(NATURAL_WEAPONS.punchKick);
                 await actor.createEmbeddedDocuments("Item", [punchData]);
                 createdCount++;
+            } else if (punchKickItems.length > 1) {
+                // Keep the first instance and remove duplicate Punch/Kick entries.
+                const duplicateIds = punchKickItems.slice(1).map(i => i.id);
+                if (duplicateIds.length > 0) {
+                    console.log(`SLA | Removing duplicate Punch/Kick (${duplicateIds.length}) from ${actor.name}`);
+                    await actor.deleteEmbeddedDocuments("Item", duplicateIds);
+                    updateCount += duplicateIds.length;
+                }
             }
         }
     }

@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.3.1] - 2026-04-01
+
+### Changed
+* Updated system and package metadata version to `1.3.1`.
+
+### Fixed
+* Prevented duplicate `Punch/Kick` natural weapons when character or threat actors are imported from or exported to compendiums by enforcing a single-instance guard during actor pre-create (issue 210).
+* Updated natural weapon migration cleanup to remove duplicate `Punch/Kick` entries on existing character and threat actors while still ensuring one valid instance remains.
+
 ## [1.3.0] - 2026-04-01
 
 ### Added
@@ -335,6 +344,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
+[1.3.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.1
 [1.3.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.0
 [1.2.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.2.0
 [1.2.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.2.1
