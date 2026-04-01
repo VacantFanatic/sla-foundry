@@ -1313,12 +1313,57 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         }
     }
 
+    _resolveDeviationWallCollision(start, end, epsilon = 2) {
+        const fallback = { x: end.x, y: end.y, blocked: false };
+        if (!canvas?.walls) return fallback;
+
+        const ray = new foundry.canvas.geometry.Ray(start, end);
+        const resolveImpact = (collision) => {
+            if (!collision) return null;
+            if (Array.isArray(collision)) return resolveImpact(collision[0]);
+
+            const impact = collision.intersection || collision.point || collision;
+            if (impact?.x == null || impact?.y == null) return null;
+
+            // Pull back slightly so the template center never crosses the wall boundary.
+            const t = Math.max(0, Math.min(1, (ray.distance - epsilon) / (ray.distance || 1)));
+            if (ray.distance <= epsilon) return { x: start.x, y: start.y, blocked: true };
+            return {
+                x: start.x + ((impact.x - start.x) * t),
+                y: start.y + ((impact.y - start.y) * t),
+                blocked: true
+            };
+        };
+
+        try {
+            const closest = canvas.walls.checkCollision(ray, { type: "move", mode: "closest" });
+            const resolvedClosest = resolveImpact(closest);
+            if (resolvedClosest) return resolvedClosest;
+        } catch (_err) {
+            // Keep fallback path active for API/version differences.
+        }
+
+        try {
+            const any = canvas.walls.checkCollision(ray, { type: "move", mode: "any" });
+            if (any === true) {
+                const collisions = canvas.walls.checkCollision(ray, { type: "move", mode: "all" });
+                const resolvedAll = resolveImpact(collisions);
+                if (resolvedAll) return resolvedAll;
+            }
+        } catch (_err) {
+            // Keep fallback path active for API/version differences.
+        }
+
+        return fallback;
+    }
+
     _resolveExplosiveDeviation({ isBaseSuccess, skillSuccessCount, target, token }) {
         let outcomeText = "";
         let resultColor = "#f55";
         let isSuccess = false;
         let finalX = target.x;
         let finalY = target.y;
+        let wallBlocked = false;
 
         const allDiceFailed = (!isBaseSuccess) && (skillSuccessCount === 0);
         if (allDiceFailed) {
@@ -1347,7 +1392,13 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         const angle = Math.random() * 2 * Math.PI;
         finalX += Math.cos(angle) * devPixels;
         finalY += Math.sin(angle) * devPixels;
-        return { outcomeText, resultColor, isSuccess, finalX, finalY };
+
+        const wallCollision = this._resolveDeviationWallCollision(target, { x: finalX, y: finalY });
+        finalX = wallCollision.x;
+        finalY = wallCollision.y;
+        wallBlocked = wallCollision.blocked;
+
+        return { outcomeText, resultColor, isSuccess, finalX, finalY, wallBlocked };
     }
 
     async _placeExplosiveTemplates({ item, blastRadius, innerDist, finalX, finalY, isSuccess }) {
@@ -1432,7 +1483,17 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         const mods = this._buildExplosiveMods(rollData);
         let notes = [];
         const token = this._getActorTokenForExplosiveRange();
-        this._appendExplosiveRangeNotes(notes, item, strValue, target, token);
+        let resolvedTarget = target;
+        if (token) {
+            const throwCollision = this._resolveDeviationWallCollision(token.center, target);
+            if (throwCollision.blocked) {
+                resolvedTarget = { x: throwCollision.x, y: throwCollision.y };
+                notes.push("<strong>Throw:</strong> Stopped by wall.");
+                ui.notifications.info(`${item.name} hit a wall before reaching the target point.`);
+            }
+        }
+
+        this._appendExplosiveRangeNotes(notes, item, strValue, resolvedTarget, token);
         this._applyExplosiveRollAdjustments(rollData, mods);
 
         const baseModifier = statValue + rank + mods.allDice;
@@ -1456,12 +1517,18 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             autoSuccesses: mods.autoSkillSuccesses
         });
 
-        const { outcomeText, resultColor, isSuccess, finalX, finalY } = this._resolveExplosiveDeviation({
+        const deviationData = this._resolveExplosiveDeviation({
             isBaseSuccess,
             skillSuccessCount,
-            target,
+            target: resolvedTarget,
             token
         });
+        const { outcomeText, resultColor, isSuccess, finalX, finalY, wallBlocked } = deviationData;
+
+        if (wallBlocked) {
+            notes.push("<strong>Deviation:</strong> Stopped by wall.");
+            ui.notifications.info(`${item.name} deviation hit a wall.`);
+        }
 
         if (innerDist > 0) {
             notes.push(`<br/><strong>Kill Zone (< ${innerDist}m):</strong> +2 Damage`);

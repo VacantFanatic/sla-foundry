@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.3.0] - 2026-04-01
+
+### Added
+* Explosive throws now respect wall collisions on the initial throw path; when blocked, the impact point is clamped to the first wall hit.
+* Explosive deviation now respects wall collisions and cannot cross blocking walls when determining detonation position.
+* Added user notifications when a projectile path is interrupted by a wall during the throw or deviation step.
+
+### Changed
+* Updated system and package metadata version to `1.3.0`.
+
 ## [1.2.1] - 2026-03-31
 
 ### Changed
@@ -325,6 +335,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
+[1.3.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.0
 [1.2.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.2.0
 [1.2.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.2.1
 [1.1.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.1.0
