@@ -166,10 +166,6 @@ Handlebars.registerHelper('and', function (a, b) { return a && b; });
 /* Global Listeners (Rolling & Applying Damage) */
 /* -------------------------------------------- */
 Hooks.once("ready", async function () {
-    // #region agent log
-    fetch('http://127.0.0.1:7615/ingest/de955d2c-bc06-4687-a772-d379725d6521',{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'application/json','X-Debug-Session-Id':'521851'},body:JSON.stringify({sessionId:'521851',runId:'pre-fix',hypothesisId:'H5',location:'module/sla-industries.mjs:ready',message:'System ready hook reached',data:{worldId:game.world?.id,userId:game.user?.id},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
-
     // 1. Check current schema version
     const currentVersion = game.settings.get("sla-industries", "systemMigrationVersion");
 
