@@ -1,3 +1,10 @@
+/* Numeric readouts (ammo, quantity): UI font + tabular figures (replaces Courier in templates) */
+.sla-stat-readout {
+    font-family: var(--sla-font-mono);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
 /* ==========================================
    3. HEADER LAYOUT
    ========================================== */
@@ -84,11 +91,49 @@
     color: #e0e0e0;
     font-family: var(--sla-font-header);
     font-weight: 700;
+}
 
-    input {
-        width: 50px !important;
-        text-align: center;
-    }
+.scl-wrapper input[type="text"] {
+    width: 50px !important;
+    text-align: center;
+}
+
+/* Operative name: no field chrome until editing (plain title look) */
+.sla-sheet .header-left h1.charname input[type="text"] {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none;
+    color: #fff;
+}
+
+.sla-sheet .header-left h1.charname input[type="text"]:focus {
+    background: #0a0a0a !important;
+    border: 1px solid var(--sla-border) !important;
+    border-radius: var(--sla-radius);
+    box-shadow: 0 0 0 1px var(--sla-accent);
+}
+
+/* Checkboxes: clear bounding box when unchecked (native control fades on dark UI) */
+.sla-sheet input[type="checkbox"],
+.sla-item-root input[type="checkbox"],
+.sla-dialog-window.dialog input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
+    cursor: pointer;
+    accent-color: var(--sla-accent);
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+.sla-sheet input[type="checkbox"]:not(:checked),
+.sla-item-root input[type="checkbox"]:not(:checked),
+.sla-dialog-window.dialog input[type="checkbox"]:not(:checked) {
+    outline: 2px solid rgba(255, 255, 255, 0.55);
+    outline-offset: 1px;
+    border-radius: 2px;
 }
 
 /* COLUMN 2: PORTRAIT (Center) */
@@ -113,6 +158,11 @@
     object-position: top center;
     border: none;
     display: block;
+}
+
+.portrait-container .profile-img[data-edit="img"],
+.threat-logo[data-edit="img"] {
+    cursor: pointer;
 }
 
 /* COLUMN 3: FINANCE (Right) */
@@ -423,6 +473,13 @@
     border-bottom: 1px solid var(--sla-border);
 }
 
+/* Match SKILLS / TRAITS row titles: vertical center when using .flexrow + compendium span */
+.sla-header-bar.flexrow {
+    display: flex;
+    align-items: center;
+    min-height: 28px;
+}
+
 .sla-header-bar-small {
     background-color: rgba(208, 94, 26, 0.2);
     color: #ddd;
@@ -478,6 +535,32 @@
     color: #e0e0e0;
     height: 100%;
     min-height: 200px;
+}
+
+/* Application V2: <prose-mirror> replaces {{editor}} (Foundry #12989) */
+.sla-editor-container prose-mirror.editor,
+.threat-content-box.threat-notes-editor prose-mirror.editor {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 200px;
+    min-width: 0;
+    width: 100%;
+    background: #000;
+    color: #e0e0e0;
+}
+
+.threat-content-box.threat-notes-editor prose-mirror.editor {
+    background: #fff;
+    color: #000;
+}
+
+/* Core / sheet flex rules can force editor toggles to full width (#12197); keep control compact */
+.sla-industries.sheet prose-mirror.editor .editor-edit {
+    width: auto !important;
+    min-width: 2rem;
+    flex: 0 0 auto;
+    align-self: flex-start;
 }
 
 /* Toggle Button (The magic wand/edit button) */
@@ -855,7 +938,7 @@
 .sla-industries.sheet.actor .threat-sheet {
     background: #fdfbf7 !important;
     color: #111 !important;
-    font-family: "Georgia", serif !important;
+    font-family: var(--sla-font-mono) !important;
     border: 2px solid #333 !important;
     padding: 0 !important;
 }
@@ -863,7 +946,7 @@
 .threat-header {
     background: #800000 !important;
     color: #fff !important;
-    font-family: "Georgia", serif !important;
+    font-family: var(--sla-font-header) !important;
     border-bottom: 2px solid #000 !important;
     padding: 5px;
     display: flex;
@@ -875,7 +958,7 @@
         color: #fff;
         font-size: 1.4em;
         font-weight: bold;
-        font-family: "Georgia", serif;
+        font-family: var(--sla-font-header);
     }
 }
 
@@ -901,7 +984,7 @@
 .threat-section-bar {
     background: #800000;
     color: #fff;
-    font-family: "Georgia", serif;
+    font-family: var(--sla-font-header);
     font-weight: bold;
     padding: 2px 5px;
     border-top: 2px solid #000;
@@ -924,7 +1007,7 @@
     padding: 2px;
     font-size: 0.9em;
     font-weight: bold;
-    font-family: "Georgia", serif;
+    font-family: var(--sla-font-header);
     text-transform: uppercase;
 }
 
@@ -992,8 +1075,8 @@
     padding: 2px;
 }
 
-/* Threat Editor Specifics */
-.threat-content-box.editor {
+/* Threat / vehicle notes editor panel (class was .editor on wrapper; inner host is prose-mirror.editor) */
+.threat-content-box.threat-notes-editor {
     min-height: 300px;
     background: #fff;
     color: #000;

@@ -7,6 +7,12 @@
     border: 4px solid var(--sla-border);
     font-family: var(--sla-font-mono);
     color: var(--sla-text-light);
+    /* V2 + flex column: bounded height so .sheet-body.single-view can overflow-y:auto (species / package / magazine) */
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .item .sheet-header {
@@ -16,6 +22,7 @@
     padding: 10px;
     display: flex;
     align-items: center;
+    flex: 0 0 auto;
 
     img.profile-img {
         flex: 0 0 64px;
@@ -26,6 +33,53 @@
         margin-right: 10px;
         background: #000;
     }
+
+    img.profile-img[data-edit="img"] {
+        cursor: pointer;
+    }
+}
+
+/* Item sheet V2 (`tag: "form"`): native checkboxes stay visible on dark themes; beats `input { … !important }` on item types */
+form.application.sla-industries.sheet.item input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+    margin: 0;
+    cursor: pointer !important;
+    accent-color: var(--sla-accent) !important;
+    vertical-align: middle;
+    flex-shrink: 0;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+form.application.sla-industries.sheet.item input[type="checkbox"]:not(:checked) {
+    outline: 2px solid rgba(255, 255, 255, 0.55) !important;
+    outline-offset: 1px;
+    border-radius: 2px;
+}
+
+/* Tabbed item sheets (V2): tabs/header fixed, body scrolls */
+.sla-item-root .sheet-tabs {
+    flex: 0 0 auto;
+}
+
+/* Root is .sla-item-root (not .sla-sheet) — actor tab visibility rules do not apply here */
+.sla-item-root .sheet-body .tab {
+    display: none;
+    min-height: 0;
+
+    &.active {
+        display: block;
+    }
+}
+
+/* Scroll + height: see global/_base.scss `.sla-industries.sheet.item .sla-item-root .sheet-body` */
+.sla-item-root .sheet-body:not(.single-view) .tab.active {
+    height: auto !important;
 }
 
 /* Academic Theme (Skills/Traits) */
@@ -44,8 +98,8 @@
     color: var(--sla-text-light) !important;
 }
 
-.item.skill input,
-.item.trait input {
+.item.skill input:not([type="checkbox"]),
+.item.trait input:not([type="checkbox"]) {
     background: rgba(0, 0, 0, 0.3) !important;
     border: 1px solid var(--sla-border) !important;
     border-bottom: 1px dotted var(--sla-border) !important;
@@ -68,8 +122,8 @@
     border-bottom: 1px solid #8a2be2;
 }
 
-.item.ebbFormula input,
-.item.discipline input {
+.item.ebbFormula input:not([type="checkbox"]),
+.item.discipline input:not([type="checkbox"]) {
     background: rgba(0, 0, 0, 0.5) !important;
     border: 1px solid #8a2be2 !important;
     color: #fff !important;
@@ -307,7 +361,7 @@
     color: #555;
 }
 
-.item-catalogue input {
+.item-catalogue input:not([type="checkbox"]) {
     background: transparent;
     border: none;
     font-weight: bold;
@@ -342,7 +396,7 @@
     color: var(--sla-text-light);
 }
 
-.academic-paper input,
+.academic-paper input:not([type="checkbox"]),
 .academic-paper select {
     flex: 1;
     background: rgba(0, 0, 0, 0.3) !important;
@@ -449,6 +503,19 @@
     gap: 15px;
 }
 
+/* Single-view: scroll lives on .sheet-body (global/_base); stack dossier + description as content height */
+.sla-item-root .sheet-body.single-view {
+    flex: 1;
+    min-height: 0;
+    height: auto !important;
+    overflow-y: auto !important;
+}
+
+.sla-item-root .sheet-body.single-view .sheet-description {
+    flex: 0 0 auto;
+    min-height: 140px;
+}
+
 .sheet-body.single-view .sheet-attributes {
     flex: 0 0 auto;
     /* Takes only as much space as needed */
@@ -466,6 +533,19 @@
 
 .sheet-body.single-view .sheet-description .editor {
     flex: 1;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.sheet-body.single-view .sheet-description prose-mirror.editor,
+.sheet-body .tab.description prose-mirror.editor {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     border: 1px solid #333;
     border-radius: 4px;
     background: rgba(0, 0, 0, 0.2);
@@ -537,13 +617,26 @@
 
 /* Inputs within rows */
 .firing-mode-row input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
     margin: 0;
-    cursor: pointer;
+    cursor: pointer !important;
+    accent-color: var(--sla-accent) !important;
     position: relative;
     z-index: 100;
     pointer-events: auto;
+    flex-shrink: 0;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.firing-mode-row input[type="checkbox"]:not(:checked) {
+    outline: 2px solid rgba(255, 255, 255, 0.55) !important;
+    outline-offset: 1px;
+    border-radius: 2px;
 }
 
 .firing-mode-row input[type="number"] {

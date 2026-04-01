@@ -1,0 +1,35 @@
+<div class="{{cssClass}} sla-sheet standard-form" autocomplete="off">
+
+    {{> "systems/sla-industries/templates/actor/parts/header-card.hbs"}}
+
+    <div class="stats-strip-container">
+        {{> "systems/sla-industries/templates/actor/parts/stats.hbs"}}
+    </div>
+
+    <nav class="sheet-tabs tabs" data-group="primary">
+        <a class="item {{tabs.main.cssClass}}" href="#" data-group="primary" data-tab="main">Main</a>
+        <a class="item {{tabs.ebb.cssClass}}" href="#" data-group="primary" data-tab="ebb">Combat</a>
+        <a class="item {{tabs.inventory.cssClass}}" href="#" data-group="primary" data-tab="inventory">Inventory</a>
+        <a class="item {{tabs.biography.cssClass}}" href="#" data-group="primary" data-tab="biography">Bio & Traits</a>
+    </nav>
+
+    <section class="sheet-body">
+
+        <div class="tab {{tabs.main.cssClass}}" data-group="primary" data-tab="main">
+            {{> "systems/sla-industries/templates/actor/parts/main-tab.hbs"}}
+        </div>
+
+        <div class="tab {{tabs.ebb.cssClass}}" data-group="primary" data-tab="ebb">
+            {{> "systems/sla-industries/templates/actor/parts/combat-tab.hbs"}}
+        </div>
+
+        <div class="tab {{tabs.inventory.cssClass}}" data-group="primary" data-tab="inventory">
+            {{> "systems/sla-industries/templates/actor/parts/inventory-tab.hbs"}}
+        </div>
+
+        <div class="tab {{tabs.biography.cssClass}}" data-group="primary" data-tab="biography">
+            {{> "systems/sla-industries/templates/actor/parts/bio-traits-tab.hbs"}}
+        </div>
+
+    </section>
+</div>

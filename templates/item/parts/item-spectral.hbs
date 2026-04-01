@@ -33,7 +33,7 @@
             {{!-- Display Linked Item --}}
             <img src="{{linkedDisciplineImg}}" />
             <span class="linked-name">{{system.discipline}}</span>
-            <a class="remove-discipline" title="Remove Link"><i class="fas fa-times"></i></a>
+            <a class="remove-discipline" data-action="removeDisciplineLink" title="Remove Link" href="#"><i class="fas fa-times"></i></a>
             {{else}}
             {{!-- Placeholder Text --}}
             <span class="placeholder">Drop Discipline Here</span>

@@ -1,15 +1,124 @@
 import { calculateRollResult, getMOS, generateDiceTooltip } from "../helpers/dice.mjs";
 
-/**
- * Dialog for spending Luck points.
- */
-export class LuckDialog extends Dialog {
+const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
-    constructor(actor, roll, messageId, data, options) {
-        super(data, options);
+/**
+ * Dialog for spending Luck points (Application V2).
+ */
+export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
+
+    /** @override */
+    static PARTS = {
+        body: {
+            template: "systems/sla-industries/templates/dialogs/luck-dialog.hbs"
+        }
+    };
+
+    static async rerollSd() {
+        await this._applyRerollSD();
+        this.close();
+    }
+
+    static async addMod() {
+        const input = this.element.querySelector("input[name='modAmount']");
+        const amount = Number(input?.value);
+        await this._applyModifier(amount);
+        this.close();
+    }
+
+    static async rerollSkill() {
+        const checked = this.element.querySelectorAll("input[name='rerollSelect']:checked");
+        const indices = Array.from(checked).map(el => Number(el.value));
+        if (indices.length === 0) {
+            ui.notifications.warn("Select at least one die to reroll.");
+            return;
+        }
+        await this._applyRerollSkill(indices);
+        this.close();
+    }
+
+    /** @override */
+    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+        tag: "div",
+        position: { width: 400 },
+        window: { title: "Use Luck" },
+        classes: [],
+        actions: {
+            rerollSd: LuckDialog.rerollSd,
+            addMod: LuckDialog.addMod,
+            rerollSkill: LuckDialog.rerollSkill
+        }
+    }, { inplace: false });
+
+    /**
+     * @param {Actor} actor
+     * @param {Roll} roll
+     * @param {string} messageId
+     * @param {object} luckContext — from {@link LuckDialog.prepareContext}
+     * @param {object} [appOptions]
+     */
+    constructor(actor, roll, messageId, luckContext, appOptions = {}) {
+        super(appOptions);
         this.actor = actor;
         this.roll = roll;
         this.messageId = messageId;
+        this._luckContext = luckContext;
+    }
+
+    /** @override */
+    async _prepareContext() {
+        const context = await super._prepareContext();
+        return foundry.utils.mergeObject(context, this._luckContext);
+    }
+
+    /**
+     * Build context for the luck template; used by {@link LuckDialog.create}.
+     */
+    static async prepareContext(actor, roll, messageId) {
+        let skillDice = [];
+        if (roll.terms.length > 2 && roll.terms[2].results) {
+            skillDice = roll.terms[2].results.map(r => ({
+                result: r.result,
+                total: r.result,
+                borderColor: r.success ? "#39ff14" : "#555"
+            }));
+        }
+
+        const message = game.messages.get(messageId);
+        const flags = message.flags.sla || {};
+        if (flags.luckSpent) {
+            ui.notifications.warn("SLA | Luck has already been spent on this roll. Only one option may be applied per roll.");
+            return null;
+        }
+
+        const rofRerollSD = flags.rofRerollSD || false;
+        const rofRerollSkills = flags.rofRerollSkills || [];
+
+        skillDice.forEach((d, i) => {
+            if (rofRerollSkills.includes(i)) {
+                d.disabled = true;
+                d.borderColor = "#555";
+                d.tooltip = "Already rerolled via ROF";
+            }
+        });
+
+        return {
+            luck: actor.system.stats.luck,
+            skillDice: skillDice,
+            rofRerollSD: rofRerollSD
+        };
+    }
+
+    /**
+     * Factory method to create and render the dialog.
+     */
+    static async create(actor, roll, messageId) {
+        const luckContext = await LuckDialog.prepareContext(actor, roll, messageId);
+        if (!luckContext) return;
+
+        const dlg = new LuckDialog(actor, roll, messageId, luckContext, {});
+        await dlg.render(true);
+        return dlg;
     }
 
     _resolveDamageDisplay(formula) {
@@ -25,100 +134,6 @@ export class LuckDialog extends Dialog {
         }
     }
 
-    /**
-     * Factory method to create and render the dialog.
-     */
-    static async create(actor, roll, messageId) {
-        // Extract Skill Dice from the roll
-        // Assumption: Term 0 is Success Die (1d10), Term 1 is Operator, Term 2 is Skill Dice (Nd10)
-        // Adjust this index based on your actual roll structure!
-        let skillDice = [];
-        if (roll.terms.length > 2 && roll.terms[2].results) {
-            const baseMod = (roll.total - roll.result); // Rough approximation, better to pass explicit mod if possible
-            // Actually, let's grab the stored dice from the chat message logic if we can,
-            // but here we only have the Roll object. 
-            // We will trust the visual values from the terms.
-
-            // To be precise we need the base modifier to show the 'Total' (Die + Mod). 
-            // Looking at actor-sheet.mjs:
-            // sdTotal = sdRaw + baseModifier
-            // So Total - Sum(Dice) = BaseModifier? Not quite if dice are separate.
-            // Let's rely on the raw results for identification, validity is verified by the roll.
-
-            skillDice = roll.terms[2].results.map(r => ({
-                result: r.result,
-                total: r.result, // We might not know the mod here easily without recalculating
-                borderColor: r.success ? "#39ff14" : "#555" // We don't have success state here without TN
-            }));
-        }
-
-
-
-        // --- CHECK LUCK ALREADY SPENT ---
-        const message = game.messages.get(messageId);
-        const flags = message.flags.sla || {};
-        if (flags.luckSpent) {
-            ui.notifications.warn("SLA | Luck has already been spent on this roll. Only one option may be applied per roll.");
-            return; // Don't open the dialog
-        }
-
-        // --- CHECK ROF RESTRICTIONS ---
-        const rofRerollSD = flags.rofRerollSD || false;
-        const rofRerollSkills = flags.rofRerollSkills || [];
-
-        // Update Skill Dice with disabled state if rerolled by ROF
-        skillDice.forEach((d, i) => {
-            if (rofRerollSkills.includes(i)) {
-                d.disabled = true;
-                d.borderColor = "#555";
-                d.tooltip = "Already rerolled via ROF"; // Add tooltip
-            }
-        });
-
-        const templateData = {
-            luck: actor.system.stats.luck,
-            skillDice: skillDice,
-            rofRerollSD: rofRerollSD // Passed to template to conditionally hide/disable SD reroll
-        };
-
-        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/luck-dialog.hbs", templateData);
-
-        return new LuckDialog(actor, roll, messageId, {
-            title: "Use Luck",
-            content: content,
-            buttons: {} // No default buttons
-        }, { width: 400 }).render(true);
-    }
-
-    /** @override */
-    activateListeners(html) {
-        super.activateListeners(html);
-
-        html.find("button[data-action]").click(this._onAction.bind(this));
-    }
-
-    async _onAction(event) {
-        event.preventDefault();
-        const action = event.currentTarget.dataset.action;
-        const html = this.element;
-
-        if (action === "reroll-sd") {
-            await this._applyRerollSD();
-        } else if (action === "add-mod") {
-            const amount = Number(html.find("input[name='modAmount']").val());
-            await this._applyModifier(amount);
-        } else if (action === "reroll-skill") {
-            const checkboxes = html.find("input[name='rerollSelect']:checked");
-            const indices = [];
-            checkboxes.each((i, el) => indices.push(Number(el.value)));
-
-            if (indices.length === 0) return ui.notifications.warn("Select at least one die to reroll.");
-            await this._applyRerollSkill(indices);
-        }
-
-        this.close();
-    }
-
     async _deductLuck(cost) {
         const current = this.actor.system.stats.luck.value;
         if (current < cost) {
@@ -132,38 +147,26 @@ export class LuckDialog extends Dialog {
     async _applyRerollSD() {
         if (!(await this._deductLuck(1))) return;
 
-        // 1. Reroll the first term (Success Die)
         const roll = this.roll;
-
-        // Use Foundry's DiceTerm.reroll method or manually replace
-        // Since we want to reroll a specific term:
         const successDie = roll.terms[0];
-        // Reroll logic: create a new roll for 1d10 and replace result
         const newRoll = new Roll("1d10");
         await newRoll.evaluate();
 
-        // --- DICE SO NICE: FORCE BLACK SUCCCESS DIE ---
         if (newRoll.terms[0]) {
             newRoll.terms[0].options.appearance = {
-                foreground: "#FFFFFF", // White Text
-                background: "#000000", // Black Body
-                edge: "#333333"        // Dark Grey Outline
+                foreground: "#FFFFFF",
+                background: "#000000",
+                edge: "#333333"
             };
         }
 
-        // --- DICE SO NICE ---
         if (game.dice3d) {
             await game.dice3d.showForRoll(newRoll, game.user, true);
         }
         const newResult = newRoll.terms[0].results[0];
 
-        // Replace in original roll
         successDie.results[0] = newResult;
 
-        // Re-evaluate total
-        // We need to re-sum everything. 
-        // Helper: roll._total = ... but that's private.
-        // Better to recreate the roll structure if possible, but mutating works if we are careful.
         this._updateRollTotal(roll);
 
         await this._updateMessage(roll, "Rerolled Success Die (Luck)");
@@ -186,19 +189,14 @@ export class LuckDialog extends Dialog {
 
         const roll = this.roll;
 
-        // Term 2 is Skill Dice usually: 1d10 + Nd10
-        // Term 0 = 1d10
-        // Term 1 = +
-        // Term 2 = Nd10
         const skillDieTerm = roll.terms[2];
-        if (!skillDieTerm) return; // Should not happen
+        if (!skillDieTerm) return;
 
         for (const index of indices) {
             if (skillDieTerm.results[index]) {
                 const subRoll = new Roll("1d10");
                 await subRoll.evaluate();
 
-                // --- DICE SO NICE ---
                 if (game.dice3d) {
                     await game.dice3d.showForRoll(subRoll, game.user, true);
                 }
@@ -212,31 +210,16 @@ export class LuckDialog extends Dialog {
     }
 
     _updateRollTotal(roll) {
-        // Re-evaluate total safely
-        const total = roll.terms.reduce((acc, t) => {
-            if (t.total !== undefined && t.total !== null) return acc + t.total;
-            // Fallback for simple terms
-            // Operator
-            if (t instanceof foundry.dice.terms.NumericTerm) return acc + t.number;
-            // Note: Operator term arithmetic is complex to redo manually nicely.
-            // Easier trick:
-            return acc;
-        }, 0);
-
-        // Actually, Roll.evaluate() is effectively done. We just mutated results.
-        // We can force re-eval logic:
         roll._total = roll._evaluateTotal();
     }
 
     async _updateMessage(roll, flavorUpdate) {
         const message = game.messages.get(this.messageId);
 
-        // 1. Reconstruct Data
         const flags = message.flags.sla || {};
         const baseModifier = flags.baseModifier || 0;
         const autoSkillSuccesses = flags.autoSkillSuccesses || 0;
 
-        // Find Luck Bonus already in the roll terms
         let luckBonus = 0;
         if (roll.terms.length > 3) {
             for (let i = 3; i < roll.terms.length; i++) {
@@ -246,13 +229,11 @@ export class LuckDialog extends Dialog {
             }
         }
 
-        // 2. Use Helper for Calculation
         const result = calculateRollResult(roll, baseModifier, 11, {
             luckBonus: luckBonus,
             autoSkillSuccesses: autoSkillSuccesses
         });
 
-        // 3. MOS & Effect Calculation
         const mos = getMOS(result);
 
         if (result.successThroughExperience) {
@@ -260,7 +241,6 @@ export class LuckDialog extends Dialog {
             else flavorUpdate = "Success Through Experience";
         }
 
-        // 4. Damage Formula Logic
         const baseDmg = flags.damageBase || "0";
         const damageMod = flags.damageMod || 0;
         const totalMod = damageMod + mos.damageBonus;
@@ -273,7 +253,6 @@ export class LuckDialog extends Dialog {
 
         const showButton = result.isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
 
-        // 5. Render Template
         const templateData = {
             borderColor: result.isSuccess ? '#39ff14' : '#f55',
             headerColor: result.isSuccess ? '#39ff14' : '#f55',
@@ -306,7 +285,7 @@ export class LuckDialog extends Dialog {
         await message.update({
             content: chatContent,
             rolls: [JSON.stringify(roll)],
-            "flags.sla.luckSpent": true // Persist used state
+            "flags.sla.luckSpent": true
         });
     }
 }

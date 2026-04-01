@@ -5,8 +5,12 @@
 
 @import '../utils/variables';
 
-.window-app {
-    font-family: $font-primary;
+/* Scope SLA typography to system UI; avoid changing unrelated Foundry windows */
+.sla-industries.sheet,
+.sla-sheet.standard-form,
+.sla-item-root.standard-form,
+.sla-dialog-window.dialog {
+    font-family: var(--sla-font-mono);
 }
 
 .rollable {

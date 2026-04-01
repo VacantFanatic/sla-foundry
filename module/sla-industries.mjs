@@ -21,6 +21,7 @@ import { SLAChat } from "./helpers/chat.mjs";
 import { SLA } from "./config.mjs";
 
 import { migrateWorld, CURRENT_MIGRATION_VERSION } from "./migration.mjs";
+import { rollOwnedItem, addActorItemToHotbar, registerSlaHotbar } from "./helpers/sla-hotbar.mjs";
 
 /* -------------------------------------------- */
 /* Init Hook                                   */
@@ -52,7 +53,9 @@ Hooks.once('init', async function () {
         drug: SlaDrugData,
         species: SlaSpeciesData,
         package: SlaPackageData,
-        magazine: SlaMagazineData
+        magazine: SlaMagazineData,
+        // Legacy/orphan: vehicles are Actors in SLA; Item type "vehicle" should not be created but old worlds may contain it
+        vehicle: SlaItemData
     };
 
     // REGISTER CUSTOM TOKEN RULER
@@ -146,6 +149,8 @@ Hooks.once('init', async function () {
     foundry.documents.collections.Items.unregisterSheet("core", foundry.appv1.sheets.ItemSheet);
     foundry.documents.collections.Items.registerSheet("sla-industries", SlaItemSheet, { makeDefault: true, label: "SLA Item Sheet" });
 
+    game.sla = foundry.utils.mergeObject(game.sla ?? {}, { rollOwnedItem, addActorItemToHotbar });
+
     return preloadHandlebarsTemplates();
 });
 
@@ -177,4 +182,32 @@ Hooks.once("ready", async function () {
     // 3. Initialize Global Chat Listeners
     SLAChat.init();
     Hooks.on("renderChatMessageHTML", SLAChat.onRenderChatMessage);
+
+    registerSlaHotbar();
+
+    // Stunned: act at the lowest initiative in the encounter — clamp to current minimum when initiative updates
+    Hooks.on("updateCombatant", async (combatant, changed, options) => {
+        if (options?.slaStunnedInitiative) return;
+        if (!game.user?.isActiveGM) return;
+        if (!foundry.utils.hasProperty(changed, "initiative")) return;
+        const combat = combatant.combat;
+        if (!combat) return;
+
+        const all = combat.combatants.contents;
+        const numeric = all.map(c => c.initiative).filter(v => typeof v === "number" && !Number.isNaN(v));
+        if (!numeric.length) return;
+        const minInit = Math.min(...numeric);
+
+        const updates = [];
+        for (const c of all) {
+            if (!c.actor?.effects?.some(e => e.statuses.has("stunned"))) continue;
+            if (typeof c.initiative !== "number" || Number.isNaN(c.initiative)) continue;
+            if (c.initiative > minInit) {
+                updates.push({ _id: c.id, initiative: minInit });
+            }
+        }
+        if (updates.length) {
+            await combat.updateEmbeddedDocuments("Combatant", updates, { slaStunnedInitiative: true });
+        }
+    });
 });

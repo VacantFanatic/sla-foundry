@@ -17,6 +17,7 @@
   "TYPES.Item.package": "Training Package",
   "TYPES.Item.species": "Species",
   "TYPES.Item.magazine": "Magazine",
+  "TYPES.Item.vehicle": "Vehicle (invalid item — use Actor vehicle)",
   "TYPES.Actor.character": "Operative",
   "TYPES.Actor.npc": "Threat",
   "TYPES.Actor.vehicle": "Vehicle"
