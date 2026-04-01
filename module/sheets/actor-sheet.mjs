@@ -817,6 +817,22 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         return finalDamageFormula;
     }
 
+    _resolveDamageDisplay(formula) {
+        const formulaStr = String(formula ?? "0").trim();
+        if (!formulaStr || formulaStr === "0") return "0";
+        if (formulaStr.includes("d")) return formulaStr;
+
+        try {
+            const replaced = Roll.replaceFormulaData(formulaStr, this.actor.getRollData());
+            const resolved = Math.round(Number(Function('"use strict";return (' + replaced + ')')()));
+            const clamped = Number.isFinite(resolved) ? Math.max(0, resolved) : null;
+            const display = clamped !== null ? String(clamped) : formulaStr;
+            return display;
+        } catch (_err) {
+            return formulaStr;
+        }
+    }
+
     _buildWeaponRollTemplateData({
         item,
         roll,
@@ -847,6 +863,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             notes: notesText,
             showDamageButton: showDamageButton,
             dmgFormula: finalDamageFormula,
+            dmgDisplay: this._resolveDamageDisplay(finalDamageFormula),
             minDamage: Number(item.system.minDamage) || 0,
             adValue: adValue,
             sdIsReroll: rofRerollSD,
@@ -1141,6 +1158,13 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
         let totalMod = mods.damage + mosDamageBonus;
 
         const finalDmgFormula = this._buildWeaponDamageFormula(baseDmg, totalMod);
+        let resolvedPreview = null;
+        try {
+            const replaced = Roll.replaceFormulaData(finalDmgFormula, this.actor.getRollData());
+            resolvedPreview = Math.round(Number(Function('"use strict";return (' + replaced + ')')()));
+        } catch (_err) {
+            resolvedPreview = null;
+        }
 
         let showButton = isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
 
@@ -1552,6 +1576,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             notes: notesText,
             showDamageButton: true,
             dmgFormula: baseDmg,
+            dmgDisplay: this._resolveDamageDisplay(baseDmg),
             minDamage: Number(item.system.minDamage) || 0,
             adValue: adValue,
             mos: {
@@ -1711,6 +1736,7 @@ export class SlaActorSheet extends foundry.appv1.sheets.ActorSheet {
             notes: `<strong>Formula Rating:</strong> ${formulaRating}`,
             showDamageButton: showDamageButton,
             dmgFormula: finalDmgFormula,
+            dmgDisplay: this._resolveDamageDisplay(finalDmgFormula),
             adValue: item.system.ad || 0,
             mos: {
                 isSuccess: isSuccessful,

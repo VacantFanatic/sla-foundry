@@ -390,10 +390,6 @@ export class BoilerplateActor extends Actor {
         await super._preCreate(data, options, user);
         this.updateSource({ "prototypeToken.actorLink": true, "prototypeToken.disposition": 1 });
 
-        // #region agent log
-        fetch('http://127.0.0.1:7615/ingest/de955d2c-bc06-4687-a772-d379725d6521',{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'application/json','X-Debug-Session-Id':'521851'},body:JSON.stringify({sessionId:'521851',runId:'pre-fix',hypothesisId:'H1',location:'module/documents/actor.mjs:_preCreate:entry',message:'Actor preCreate payload snapshot',data:{actorType:this.type,sourceItemsCount:Array.isArray(data?.items)?data.items.length:0,punchKickInSource:Array.isArray(data?.items)?data.items.filter(i=>i?.name==="Punch/Kick").length:0,fromCompendium:!!options?.fromCompendium},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
-
         // Add Punch/Kick
         if (this.type === 'character' || this.type === 'npc') {
             const sourceItems = Array.isArray(data?.items)
@@ -403,10 +399,6 @@ export class BoilerplateActor extends Actor {
                 .map((item, index) => ({ item, index }))
                 .filter(({ item }) => item?.type === "weapon" && item?.name === NATURAL_WEAPONS.punchKick.name)
                 .map(({ index }) => index);
-
-            // #region agent log
-            fetch('http://127.0.0.1:7615/ingest/de955d2c-bc06-4687-a772-d379725d6521',{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'application/json','X-Debug-Session-Id':'521851'},body:JSON.stringify({sessionId:'521851',runId:'post-fix',hypothesisId:'H4',location:'module/documents/actor.mjs:_preCreate:dedupe-check',message:'Punch/Kick dedupe decision in preCreate',data:{actorType:this.type,sourceItemsCount:sourceItems.length,punchKickCountInSource:punchKickIndices.length},timestamp:Date.now()})}).catch(()=>{});
-            // #endregion
 
             // Ensure exactly one Punch/Kick in the source payload:
             // - none -> add default
@@ -432,10 +424,6 @@ export class BoilerplateActor extends Actor {
 
         // Only handle Items on this Actor
         if (collection !== "items") return;
-
-        // #region agent log
-        fetch('http://127.0.0.1:7615/ingest/de955d2c-bc06-4687-a772-d379725d6521',{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'application/json','X-Debug-Session-Id':'521851'},body:JSON.stringify({sessionId:'521851',runId:'pre-fix',hypothesisId:'H3',location:'module/documents/actor.mjs:_onCreateDescendantDocuments:items',message:'Items created for actor',data:{actorName:this.name,createdItemNames:documents.map(d=>d?.name),totalPunchKickNow:this.items.filter(i=>i?.name==="Punch/Kick").length,fromCompendium:!!options?.fromCompendium},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
 
         // Ensure we only run this once per creation batch (usually singular)
         if (game.user.id !== userId) return;

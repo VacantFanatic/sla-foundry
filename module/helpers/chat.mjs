@@ -2,6 +2,20 @@ import { LuckDialog } from "../apps/luck-dialog.mjs";
 import { calculateRollResult } from "./dice.mjs";
 
 export class SLAChat {
+    static _resolveDamageDisplay(formula, actor = null) {
+        const formulaStr = String(formula ?? "0").trim();
+        if (!formulaStr || formulaStr === "0") return "0";
+        if (formulaStr.includes("d")) return formulaStr;
+
+        try {
+            const rollData = actor?.getRollData?.() ?? {};
+            const replaced = Roll.replaceFormulaData(formulaStr, rollData);
+            const resolved = Math.round(Number(Function('"use strict";return (' + replaced + ')')()));
+            return Number.isFinite(resolved) ? String(Math.max(0, resolved)) : formulaStr;
+        } catch (_err) {
+            return formulaStr;
+        }
+    }
 
     static init() {
         // FIX: Remove existing listeners before adding new ones
@@ -485,6 +499,7 @@ export class SLAChat {
         const resultColor = isSuccess ? '#39ff14' : '#f55';
         const finalNotes = this._buildDifficultyNotes(flags, newTN);
         
+        const actor = await fromUuid(card.data("actor-uuid"));
         const templateData = {
             actorUuid: card.data("actor-uuid"),
             borderColor: resultColor,
@@ -498,6 +513,7 @@ export class SLAChat {
 
             showDamageButton: showButton,
             dmgFormula: finalDmgFormula,
+            dmgDisplay: this._resolveDamageDisplay(finalDmgFormula, actor ?? null),
             minDamage: minDamage,
             adValue: flags.adValue || 0,
             sdIsReroll: flags.rofRerollSD,
@@ -516,7 +532,6 @@ export class SLAChat {
         };
 
         // Refetch actor for Luck Value and canUseLuck
-        const actor = await fromUuid(templateData.actorUuid);
         if (actor) {
             templateData.luckValue = actor.system.stats.luck.value;
             templateData.canUseLuck = actor.system.stats.luck.value > 0;

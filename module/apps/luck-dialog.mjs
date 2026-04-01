@@ -12,6 +12,19 @@ export class LuckDialog extends Dialog {
         this.messageId = messageId;
     }
 
+    _resolveDamageDisplay(formula) {
+        const formulaStr = String(formula ?? "0").trim();
+        if (!formulaStr || formulaStr === "0") return "0";
+        if (formulaStr.includes("d")) return formulaStr;
+        try {
+            const replaced = Roll.replaceFormulaData(formulaStr, this.actor.getRollData());
+            const resolved = Math.round(Number(Function('"use strict";return (' + replaced + ')')()));
+            return Number.isFinite(resolved) ? String(Math.max(0, resolved)) : formulaStr;
+        } catch (_err) {
+            return formulaStr;
+        }
+    }
+
     /**
      * Factory method to create and render the dialog.
      */
@@ -272,6 +285,7 @@ export class LuckDialog extends Dialog {
             notes: flavorUpdate,
             showDamageButton: showButton,
             dmgFormula: finalDmgFormula,
+            dmgDisplay: this._resolveDamageDisplay(finalDmgFormula),
             adValue: flags.adValue || 0,
             mos: {
                 isSuccess: result.isSuccess,
