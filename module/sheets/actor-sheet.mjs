@@ -579,6 +579,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             await this._executeEbbRoll(item);
         } else if (item.type === "drug") {
             await this._useDrugItem(item);
+        } else if (item.type === "skill") {
+            await this._executeSkillRollFromItem(item);
         } else {
             item.sheet?.render(true);
         }
@@ -804,10 +806,14 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     async _executeSkillRoll(element) {
-        // 1. GET ITEM & DATA
         const itemId = element.closest(".item")?.dataset.itemId;
-        const item = this.actor.items.get(itemId);
+        const item = itemId ? this.actor.items.get(itemId) : null;
         if (!item) return;
+        await this._executeSkillRollFromItem(item);
+    }
+
+    async _executeSkillRollFromItem(item) {
+        if (!item || item.type !== "skill") return;
 
         const statKey = item.system.stat || "dex";
         const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
