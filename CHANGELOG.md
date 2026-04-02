@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-04-02
+
+### Changed
+* Updated system and package metadata version to `2.0.1`.
+
+### Fixed
+* **Item sheet remove chips:** Species **granted skills**, weapon and explosive **required skill**, Ebb formula **discipline** link, and magazine **linked weapon** unlink controls now use **`<button type="button">`** instead of **`<a href="#">`**, with matching SCSS/CSS resets. Clicks on the × icon (including on the Font Awesome glyph) no longer trigger unwanted browser navigation (e.g. join page or a new tab).
+
 ## [2.0.0] - 2026-04-01
 
 ### Added
@@ -392,6 +400,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
+[2.0.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.0.1
 [2.0.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.0.0
 [1.3.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.2
 [1.3.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.1

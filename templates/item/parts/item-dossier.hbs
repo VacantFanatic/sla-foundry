@@ -61,7 +61,7 @@
                 <span class="skill-name">{{skill.name}} ({{skill.rank}})</span>
 
                 {{!-- Delete Button --}}
-                <a class="delete-grant" data-action="deleteSkillGrant" data-index="{{idx}}" href="#"><i class="fas fa-times"></i></a>
+                <button type="button" class="delete-grant" data-action="deleteSkillGrant" data-index="{{idx}}" title="Remove granted skill"><i class="fas fa-times"></i></button>
             </div>
             {{else}}
             <div class="empty-dossier-text">Drag Skill Items Here</div>

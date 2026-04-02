@@ -22,7 +22,7 @@
     <div class="drop-zone weapon-link {{#if system.linkedWeapon}}filled{{/if}}">
         {{#if system.linkedWeapon}}
         <b>{{system.linkedWeapon}}</b>
-        <a class="remove-link" data-action="removeWeaponLink" href="#"><i class="fas fa-times"></i></a>
+        <button type="button" class="remove-link" data-action="removeWeaponLink" title="Unlink weapon"><i class="fas fa-times"></i></button>
         {{else}}
         <span class="placeholder">Drop Weapon Here</span>
         {{/if}}

@@ -1361,6 +1361,14 @@
     transition: opacity 0.2s;
 }
 
+.granted-skill-chip button.delete-grant {
+    background: transparent;
+    border: none;
+    margin: 0;
+    font: inherit;
+    line-height: 1;
+}
+
 .granted-skill-chip .delete-grant:hover {
     opacity: 1;
     text-shadow: 0 0 5px red;
