@@ -2028,16 +2028,27 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             ? "<strong style='color:#ffa500'>DEVIATION: 5m</strong>"
             : "<strong style='color:#ff5555'>DEVIATION: 10m</strong>";
         resultColor = isBaseSuccess ? "#ffa500" : "#ff5555";
-        const devPixels = (devMeters / canvas.scene.grid.distance) * canvas.scene.grid.size;
-        const angle = Math.random() * 2 * Math.PI;
-        const originX = noCanvasTarget ? (token?.center.x ?? 0) : target.x;
-        const originY = noCanvasTarget ? (token?.center.y ?? 0) : target.y;
-        finalX = originX + Math.cos(angle) * devPixels;
-        finalY = originY + Math.sin(angle) * devPixels;
 
         if (noCanvasTarget) {
+            const originX = token?.center?.x ?? 0;
+            const originY = token?.center?.y ?? 0;
+            const grid = canvas?.scene?.grid;
+            if (grid?.distance && grid?.size) {
+                const devPixels = (devMeters / grid.distance) * grid.size;
+                const angle = Math.random() * 2 * Math.PI;
+                finalX = originX + Math.cos(angle) * devPixels;
+                finalY = originY + Math.sin(angle) * devPixels;
+            } else {
+                finalX = originX;
+                finalY = originY;
+            }
             return { outcomeText, resultColor, isSuccess, finalX, finalY, wallBlocked: false };
         }
+
+        const devPixels = (devMeters / canvas.scene.grid.distance) * canvas.scene.grid.size;
+        const angle = Math.random() * 2 * Math.PI;
+        finalX = target.x + Math.cos(angle) * devPixels;
+        finalY = target.y + Math.sin(angle) * devPixels;
 
         const wallCollision = this._resolveDeviationWallCollision(target, { x: finalX, y: finalY });
         finalX = wallCollision.x;
