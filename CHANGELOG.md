@@ -40,9 +40,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * **Hotbar macro delegate:** Sheet classes are loaded with **dynamic `import()`** to avoid a circular dependency (`actor-sheet` → `sla-hotbar` → `actor-npc-sheet` → `actor-sheet`). The off-screen delegate uses **`Object.defineProperties`** for **`actor`** and **`document`** because **`ActorSheetV2`** defines those as read-only getters on the prototype.
 * **Context menu teardown:** Actor-sheet close now disposes the item context menu with animation disabled and awaited cleanup, preventing `getBoundingClientRect` errors when a menu target is detached during window close.
 * **Context menu text:** Hotbar menu entry key and displayed label now both read **`add to hotbar`** to avoid inconsistent UI text on Foundry v13 menu paths.
+* **Actor-sheet header controls:** `_getHeaderControls()` now filters by action/context (`configureToken` and `showTokenArtwork` only with token context) and deduplicates by `action + label`, removing duplicate menu entries and preventing null-sheet token configuration errors.
+* **Legacy confirm dialogs:** Species/package removal and item delete confirmations on actor sheets now use `SlaSimpleContentDialog` instead of `Dialog.confirm`, removing remaining V1 application warnings from those actions.
 
 ### Notes
-* Core **unregister** for default sheets still references `foundry.appv1.sheets.ActorSheet` / `ItemSheet` because core defaults remain V1. A few confirmations still use **`Dialog.confirm`**.
+* Core **unregister** for default sheets still references `foundry.appv1.sheets.ActorSheet` / `ItemSheet` because core defaults remain V1.
 
 ## [1.3.2] - 2026-04-01
 
