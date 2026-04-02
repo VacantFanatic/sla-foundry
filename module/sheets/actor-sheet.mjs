@@ -221,8 +221,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // v13: pass jQuery:false so callbacks receive HTMLElement; core still reads `callback`, not `onClick`.
         this.#sheetItemContextMenu = new ContextMenuCls(root, ".item[data-item-id]", [
             {
-                name: "sla-add-hotbar",
-                label: "Add to hotbar",
+                name: "add to hotbar",
+                label: "add to hotbar",
                 icon: '<i class="fas fa-th-large"></i>',
                 callback: (target) => {
                     const el = target instanceof HTMLElement ? target : target?.[0];
