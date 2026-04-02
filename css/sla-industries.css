@@ -2260,6 +2260,14 @@ select option {
   transition: opacity 0.2s;
 }
 
+.granted-skill-chip button.delete-grant {
+  background: transparent;
+  border: none;
+  margin: 0;
+  font: inherit;
+  line-height: 1;
+}
+
 .granted-skill-chip .delete-grant:hover {
   opacity: 1;
   text-shadow: 0 0 5px red;
@@ -2521,6 +2529,14 @@ form.application.sla-industries.sheet.item input[type=checkbox]:not(:checked) {
   cursor: pointer;
 }
 
+.linked-item button.remove-discipline {
+  background: transparent;
+  border: none;
+  margin: 0;
+  font: inherit;
+  line-height: 1;
+}
+
 /* ==========================================
    20. DOSSIER THEME (Species & Package)
    ========================================== */
@@ -2671,6 +2687,14 @@ form.application.sla-industries.sheet.item input[type=checkbox]:not(:checked) {
   cursor: pointer;
 }
 
+.granted-skill-chip button.delete-grant {
+  background: transparent;
+  border: none;
+  margin: 0;
+  font: inherit;
+  line-height: 1;
+}
+
 .granted-skill-chip .delete-grant:hover {
   color: #f88;
 }
@@ -2804,6 +2828,16 @@ form.application.sla-industries.sheet.item input[type=checkbox]:not(:checked) {
 .drop-zone.filled {
   border: 2px solid #555;
   background: transparent;
+}
+
+.drop-zone button.remove-skill-link,
+.weapon-link button.remove-link {
+  background: transparent;
+  border: none;
+  margin: 0;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
 }
 
 /* Specific overrides for themes */
