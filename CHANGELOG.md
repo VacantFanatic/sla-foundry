@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * **Hotbar macros for embedded actor items:** Drag an item from a character, threat, or vehicle sheet onto the macro bar (embedded UUID `Actor.*.Item.*`), or **right-click** any item row with **`data-item-id`** (inventory, combat loadout, ebb list, etc.) and choose **Add to hotbar** to use the first empty slot. The script macro calls **`game.sla.rollOwnedItem`** and matches sheet behavior: weapons and explosives open attack/throw dialogs, ebb formulas roll and spend flux, drugs consume a dose, other items open the item sheet.
 * **`game.sla` API** for macros and scripting: **`rollOwnedItem(itemUuid)`** and **`addActorItemToHotbar(item)`**.
 * **`SlaActorSheet.triggerItemRoll`** (and **`_useDrugItem`**) centralize item actions shared by the sheet and hotbar helpers.
+* **Skill hotbar behavior:** Macros created from actor-owned **Skill** items now execute the same skill roll flow as clicking the skill’s roll control on the sheet, instead of opening the item sheet.
 * **World migration `2.0.0`:** **`migrateTo200`** runs when **`systemMigrationVersion`** is older than the bundled version — sets missing HTML fields to empty strings on actors (**biography**, **appearance**, **notes** where applicable) and on items (**system.description**) so ProseMirror-backed Application V2 sheets bind and save reliably.
 * **Portrait / header image picker:** Clicking **`data-edit="img"`** on operative portrait, threat logo, vehicle portrait, or item header art opens Foundry’s **FilePicker**; pointer cursor on those elements in CSS.
 
@@ -37,6 +38,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * **Movement:** **Stunned** characters cap **rushing** to **closing**, same as **critical**, per the movement restriction for stunned operatives.
 * **Hotbar context menu (v13):** Item row menu uses **`ContextMenu`** with **`jQuery: false`** and a **`callback`** menu entry (not `onClick` alone) so core does not throw when activating **Add to hotbar**.
 * **Hotbar macro delegate:** Sheet classes are loaded with **dynamic `import()`** to avoid a circular dependency (`actor-sheet` → `sla-hotbar` → `actor-npc-sheet` → `actor-sheet`). The off-screen delegate uses **`Object.defineProperties`** for **`actor`** and **`document`** because **`ActorSheetV2`** defines those as read-only getters on the prototype.
+* **Context menu teardown:** Actor-sheet close now disposes the item context menu with animation disabled and awaited cleanup, preventing `getBoundingClientRect` errors when a menu target is detached during window close.
+* **Context menu text:** Hotbar menu entry key and displayed label now both read **`add to hotbar`** to avoid inconsistent UI text on Foundry v13 menu paths.
 
 ### Notes
 * Core **unregister** for default sheets still references `foundry.appv1.sheets.ActorSheet` / `ItemSheet` because core defaults remain V1. A few confirmations still use **`Dialog.confirm`**.

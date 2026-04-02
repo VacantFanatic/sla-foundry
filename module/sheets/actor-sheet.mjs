@@ -62,6 +62,30 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     /** @type {InstanceType<typeof foundry.applications.ux.ContextMenu> | null} */
     #sheetItemContextMenu = null;
 
+    /** @override */
+    _getHeaderControls() {
+        const controls = super._getHeaderControls();
+        // Some v13 flows can produce duplicate or invalid token/artwork controls.
+        // Keep instance-token controls only when this sheet has a token context.
+        const hasTokenContext = !!this.token;
+        const filtered = controls.filter((c) => {
+            const action = String(c?.action ?? "");
+            if (action === "configureToken" || action === "showTokenArtwork") {
+                return hasTokenContext;
+            }
+            return true;
+        });
+
+        // Deduplicate by action+label (not just label) to avoid keeping a wrong variant.
+        const seen = new Set();
+        return filtered.filter((c) => {
+            const key = `${String(c?.action ?? "")}|${String(c?.label ?? "")}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    }
+
     /* -------------------------------------------- */
     /* DATA PREPARATION                            */
     /* -------------------------------------------- */
@@ -150,6 +174,24 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             }
         });
         await fp.render(true);
+    }
+
+    /**
+     * App V2 replacement for Dialog.confirm.
+     * @param {string} title
+     * @param {string} contentHtml
+     * @param {() => Promise<void> | void} onConfirm
+     * @param {string} [actionLabel]
+     */
+    async #confirmAction(title, contentHtml, onConfirm, actionLabel = "Confirm") {
+        await new SlaSimpleContentDialog({
+            title,
+            contentHtml,
+            width: 420,
+            classes: ["sla-dialog", "sla-sheet"],
+            actionLabel,
+            onConfirm: async () => { await onConfirm(); }
+        }).render(true);
     }
 
     /**
@@ -306,10 +348,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             event.stopPropagation();
             const speciesItem = this.actor.items.find(i => i.type === "species");
             if (!speciesItem) return;
-            Dialog.confirm({
-                title: "Remove Species?",
-                content: `<p>Remove <strong>${speciesItem.name}</strong>?</p>`,
-                yes: async () => {
+            await this.#confirmAction(
+                "Remove Species?",
+                `<p>Remove <strong>${speciesItem.name}</strong>?</p>`,
+                async () => {
                     const skillsToDelete = this.actor.items
                         .filter(i => i.getFlag("sla-industries", "fromSpecies"))
                         .map(i => i.id);
@@ -317,8 +359,9 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                     const resets = { "system.bio.species": "" };
                     ["str", "dex", "know", "conc", "cha", "cool"].forEach(k => resets[`system.stats.${k}.value`] = 1);
                     await this.actor.update(resets);
-                }
-            });
+                },
+                "Remove"
+            );
             return;
         }
 
@@ -328,17 +371,18 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             event.stopPropagation();
             const packageItem = this.actor.items.find(i => i.type === "package");
             if (!packageItem) return;
-            Dialog.confirm({
-                title: "Remove Package?",
-                content: `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
-                yes: async () => {
+            await this.#confirmAction(
+                "Remove Package?",
+                `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
+                async () => {
                     const skillsToDelete = this.actor.items
                         .filter(i => i.getFlag("sla-industries", "fromPackage"))
                         .map(i => i.id);
                     await this.actor.deleteEmbeddedDocuments("Item", [packageItem.id, ...skillsToDelete], { render: false });
                     await this.actor.update({ "system.bio.package": "" });
-                }
-            });
+                },
+                "Remove"
+            );
             return;
         }
 
@@ -357,14 +401,15 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             const li = itemDelete.closest(".item");
             const item = li?.dataset.itemId ? this.actor.items.get(li.dataset.itemId) : null;
             if (item) {
-                Dialog.confirm({
-                    title: "Delete Item?",
-                    content: "<p>Are you sure?</p>",
-                    yes: async () => {
+                await this.#confirmAction(
+                    "Delete Item?",
+                    "<p>Are you sure?</p>",
+                    async () => {
                         await item.delete();
                         this.render(false);
-                    }
-                });
+                    },
+                    "Delete"
+                );
             }
             return;
         }
