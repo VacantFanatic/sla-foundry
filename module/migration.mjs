@@ -7,13 +7,76 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
  */
 
 /** Matches `version` in system.json when migration logic is updated for that release. */
-export const CURRENT_MIGRATION_VERSION = "2.0.0";
+export const CURRENT_MIGRATION_VERSION = "2.1.0";
+
+/**
+ * Client-side world snapshot for disaster recovery before migration runs.
+ * Omits ChatMessage and FogExploration (often very large). Only the active GM triggers the download.
+ * @see https://foundryvtt.com/api/v14/functions/foundry.utils.saveDataToFile.html
+ */
+async function downloadMigrationWorldBackup() {
+    if (!game?.user?.isActiveGM) return;
+    if (game.settings.get("sla-industries", "enableMigrationWorldBackup") === false) return;
+
+    const docClasses = [
+        foundry.documents.Actor,
+        foundry.documents.Item,
+        foundry.documents.Scene,
+        foundry.documents.JournalEntry,
+        foundry.documents.Macro,
+        foundry.documents.Playlist,
+        foundry.documents.RollTable,
+        foundry.documents.Combat,
+        foundry.documents.Folder,
+        foundry.documents.User,
+        foundry.documents.Cards
+    ];
+    if (foundry.documents.Setting) docClasses.push(foundry.documents.Setting);
+
+    try {
+        ui.notifications.info("SLA Industries: Preparing migration backup download…", { permanent: false });
+
+        const collections = {};
+        for (const DocClass of docClasses) {
+            const col = DocClass.collection;
+            if (!col?.documentName) continue;
+            const docs = Array.isArray(col.contents) ? col.contents : Array.from(col);
+            collections[col.documentName] = docs.map((d) => d.toObject());
+        }
+
+        const payload = {
+            format: "sla-industries-migration-backup",
+            formatVersion: 1,
+            exportedAt: new Date().toISOString(),
+            world: { id: game.world?.id ?? null, title: game.world?.title ?? null },
+            systemMigrationVersionBefore: game.settings.get("sla-industries", "systemMigrationVersion"),
+            systemMigrationVersionTarget: CURRENT_MIGRATION_VERSION,
+            foundryVersion: game.version,
+            systemId: game.system?.id ?? null,
+            systemVersion: game.system?.version ?? null,
+            collections
+        };
+
+        const json = JSON.stringify(payload);
+        const safeWorld = String(game.world?.id ?? "world").replace(/[^a-z0-9._-]/gi, "_");
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+        const filename = `sla-migration-backup_${safeWorld}_${stamp}.json`;
+        foundry.utils.saveDataToFile(json, "application/json", filename);
+
+        ui.notifications.info(`SLA Industries: Migration backup downloaded (${filename}).`, { permanent: false });
+    } catch (err) {
+        console.error("SLA | Migration backup failed:", err);
+        ui.notifications.error("SLA Industries: Migration backup failed; continuing migration. See the console (F12).", { permanent: true });
+    }
+}
 
 /**
  * Main Entry Point
  */
 export async function migrateWorld() {
     ui.notifications.info(`SLA Industries System: Applying Migration to version ${CURRENT_MIGRATION_VERSION}. Please wait...`, { permanent: true });
+
+    await downloadMigrationWorldBackup();
 
     // Run version-specific migrations (before per-document loops below)
     await migrateTo200();

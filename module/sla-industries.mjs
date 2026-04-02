@@ -71,6 +71,15 @@ Hooks.once('init', async function () {
         default: "0.0.0"
     });
 
+    game.settings.register("sla-industries", "enableMigrationWorldBackup", {
+        name: "Download JSON Backup Before Migration",
+        hint: "When the SLA system migrates this world, the active GM’s browser downloads a JSON snapshot of primary world documents (actors, items, scenes, journal, etc.). Chat messages and fog exploration are omitted to keep the file smaller. Turn off if you do not want that download.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
     game.settings.register("sla-industries", "enableLongRangeFeature", {
         name: "Enable Long Range Feature",
         hint: "When enabled, ranged attacks beyond half the weapon's maximum range apply a -1 Skill Die penalty.",
@@ -101,6 +110,15 @@ Hooks.once('init', async function () {
     game.settings.register("sla-industries", "enableLowAmmoValidation", {
         name: "Enable Low Ammo Validation",
         hint: "When enabled, prevents firing high-cost modes without enough ammo and applies -2 DMG penalty for low ammo. When disabled, these restrictions are removed.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
+    game.settings.register("sla-industries", "enableExplosiveThrowAutomation", {
+        name: "Enable Explosive Throw Automation",
+        hint: "When enabled, throws prompt for a canvas aim point, apply wall checks on the throw and deviation paths, random deviation by distance, and place blast Region templates. When disabled, the throw still rolls and consumes the item, but you resolve placement on the map yourself.",
         scope: "world",
         config: true,
         type: Boolean,

@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-04-02
+
+### Changed
+* Updated system and package metadata version to `2.1.0`.
+* Declared **Foundry VTT v14** support in `system.json` (`compatibility.minimum` **14**, `verified` **14.359**).
+* Explosive blast **Region** documents set **`levels`** to the active scene level when present so templates appear on the correct map level in v14 ([RegionData `levels`](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.RegionData.html)).
+
+### Added
+* **World setting** **`Enable Explosive Throw Automation`** (`enableExplosiveThrowAutomation`, default on): when off, explosive throws no longer prompt for a canvas aim point, skip throw and deviation wall checks, and do not place blast **Region** templates; the roll, quantity consumption, and chat card still run so groups can resolve blasts manually.
+* **Migration backup:** Before running a world migration, the **active GM** can receive a browser download of a JSON snapshot of primary world documents (actors, items, scenes, journal, macros, playlists, roll tables, combats, folders, users, card stacks, and settings where available). **Chat messages** and **fog exploration** are omitted to limit file size. Controlled by the world setting **Download JSON Backup Before Migration** (`enableMigrationWorldBackup`, default on).
+
 ## [2.0.0] - 2026-04-01
 
 ### Added
@@ -392,6 +403,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
+[2.1.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.1.0
 [2.0.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.0.0
 [1.3.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.2
 [1.3.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.1
