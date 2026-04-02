@@ -1,6 +1,5 @@
 import { NATURAL_WEAPONS } from "./data/natural-weapons.mjs";
 import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
-import { consolidateStackableItemsOnActor } from "./helpers/inventory-stack.mjs";
 
 /** * module/migration.mjs
  * World migration version is stored in game.settings ("sla-industries", "systemMigrationVersion").
@@ -8,7 +7,68 @@ import { consolidateStackableItemsOnActor } from "./helpers/inventory-stack.mjs"
  */
 
 /** Matches `version` in system.json when migration logic is updated for that release. */
-export const CURRENT_MIGRATION_VERSION = "2.3.0";
+export const CURRENT_MIGRATION_VERSION = "2.1.0";
+
+/**
+ * Client-side world snapshot for disaster recovery before migration runs.
+ * Omits ChatMessage and FogExploration (often very large). Only the active GM triggers the download.
+ * @see https://foundryvtt.com/api/v14/functions/foundry.utils.saveDataToFile.html
+ */
+async function downloadMigrationWorldBackup() {
+    if (!game?.user?.isActiveGM) return;
+    if (game.settings.get("sla-industries", "enableMigrationWorldBackup") === false) return;
+
+    const docClasses = [
+        foundry.documents.Actor,
+        foundry.documents.Item,
+        foundry.documents.Scene,
+        foundry.documents.JournalEntry,
+        foundry.documents.Macro,
+        foundry.documents.Playlist,
+        foundry.documents.RollTable,
+        foundry.documents.Combat,
+        foundry.documents.Folder,
+        foundry.documents.User,
+        foundry.documents.Cards
+    ];
+    if (foundry.documents.Setting) docClasses.push(foundry.documents.Setting);
+
+    try {
+        ui.notifications.info("SLA Industries: Preparing migration backup download…", { permanent: false });
+
+        const collections = {};
+        for (const DocClass of docClasses) {
+            const col = DocClass.collection;
+            if (!col?.documentName) continue;
+            const docs = Array.isArray(col.contents) ? col.contents : Array.from(col);
+            collections[col.documentName] = docs.map((d) => d.toObject());
+        }
+
+        const payload = {
+            format: "sla-industries-migration-backup",
+            formatVersion: 1,
+            exportedAt: new Date().toISOString(),
+            world: { id: game.world?.id ?? null, title: game.world?.title ?? null },
+            systemMigrationVersionBefore: game.settings.get("sla-industries", "systemMigrationVersion"),
+            systemMigrationVersionTarget: CURRENT_MIGRATION_VERSION,
+            foundryVersion: game.version,
+            systemId: game.system?.id ?? null,
+            systemVersion: game.system?.version ?? null,
+            collections
+        };
+
+        const json = JSON.stringify(payload);
+        const safeWorld = String(game.world?.id ?? "world").replace(/[^a-z0-9._-]/gi, "_");
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+        const filename = `sla-migration-backup_${safeWorld}_${stamp}.json`;
+        foundry.utils.saveDataToFile(json, "application/json", filename);
+
+        ui.notifications.info(`SLA Industries: Migration backup downloaded (${filename}).`, { permanent: false });
+    } catch (err) {
+        console.error("SLA | Migration backup failed:", err);
+        ui.notifications.error("SLA Industries: Migration backup failed; continuing migration. See the console (F12).", { permanent: true });
+    }
+}
 
 /**
  * Main Entry Point
@@ -16,10 +76,10 @@ export const CURRENT_MIGRATION_VERSION = "2.3.0";
 export async function migrateWorld() {
     ui.notifications.info(`SLA Industries System: Applying Migration to version ${CURRENT_MIGRATION_VERSION}. Please wait...`, { permanent: true });
 
+    await downloadMigrationWorldBackup();
+
     // Run version-specific migrations (before per-document loops below)
     await migrateTo200();
-    await migrateTo210();
-    await migrateTo230();
 
     const meleeSkills = ["melee", "unarmed", "thrown"];
 
@@ -514,75 +574,5 @@ async function migrateTo200() {
             await actor.updateEmbeddedDocuments("Item", embedded);
             console.log(`SLA | 2.0.0: Initialized system.description on ${embedded.length} item(s) on "${actor.name}"`);
         }
-    }
-}
-
-/**
- * 2.1.0: Drug items no longer use `system.mods` or `system.damageReduction` (use embedded Active Effects).
- * Drop those keys from persisted data so it matches the current drug item schema.
- */
-async function migrateTo210() {
-    console.log("SLA Industries | Migration 2.1.0: Remove legacy drug mod/damageReduction fields");
-
-    /**
-     * @param {Item} item
-     * @returns {Record<string, unknown>|null}
-     */
-    const drugLegacyDelta = (item) => {
-        if (item.type !== "drug") return null;
-        const src = item._source;
-        if (!src) return null;
-        const delta = { _id: item.id };
-        let has = false;
-        if (foundry.utils.hasProperty(src, "system.mods")) {
-            delta["system.-=mods"] = null;
-            has = true;
-        }
-        if (foundry.utils.hasProperty(src, "system.damageReduction")) {
-            delta["system.-=damageReduction"] = null;
-            has = true;
-        }
-        return has ? delta : null;
-    };
-
-    for (const item of game.items.contents) {
-        const d = drugLegacyDelta(item);
-        if (d) {
-            await item.update(d);
-            console.log(`SLA | 2.1.0: Stripped legacy drug fields from world item "${item.name}"`);
-        }
-    }
-
-    for (const actor of game.actors) {
-        const embedded = [];
-        for (const item of actor.items.contents) {
-            const d = drugLegacyDelta(item);
-            if (d) embedded.push(d);
-        }
-        if (embedded.length) {
-            await actor.updateEmbeddedDocuments("Item", embedded);
-            console.log(`SLA | 2.1.0: Stripped legacy drug fields on ${embedded.length} item(s) on "${actor.name}"`);
-        }
-    }
-}
-
-/**
- * 2.3.0: Merge duplicate stackable inventory rows (item / explosive / magazine / drug) per actor;
- * quantity is summed. Groups where any row has embedded ActiveEffects are skipped (logged).
- */
-async function migrateTo230() {
-    console.log("SLA Industries | Migration 2.3.0: Consolidate stackable inventory duplicates");
-
-    let totalMerged = 0;
-    let totalSkipped = 0;
-
-    for (const actor of game.actors) {
-        const { merged, skipped } = await consolidateStackableItemsOnActor(actor);
-        totalMerged += merged;
-        totalSkipped += skipped;
-    }
-
-    if (totalMerged || totalSkipped) {
-        console.log(`SLA | 2.3.0: Removed ${totalMerged} duplicate item row(s); skipped ${totalSkipped} group(s) with effects`);
     }
 }

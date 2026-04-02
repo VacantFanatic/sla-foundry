@@ -4,8 +4,7 @@ import { BoilerplateItem } from "./documents/item.mjs";
 import { LuckDialog } from "./apps/luck-dialog.mjs";
 
 import { SlaCharacterData, SlaNPCData, SlaVehicleData } from "./data/actor.mjs";
-import { SlaItemData, SlaSkillData, SlaTraitData, SlaWeaponData, SlaArmorData, SlaEbbFormulaData, SlaDisciplineData, SlaDrugData, SlaToxicantData, SlaSpeciesData, SlaPackageData, SlaMagazineData, SlaExplosiveData } from "./data/item.mjs";
-import { registerToxicantImmunityHooks } from "./helpers/toxicant-scope.mjs";
+import { SlaItemData, SlaSkillData, SlaTraitData, SlaWeaponData, SlaArmorData, SlaEbbFormulaData, SlaDisciplineData, SlaDrugData, SlaSpeciesData, SlaPackageData, SlaMagazineData, SlaExplosiveData } from "./data/item.mjs";
 
 // Import sheet classes.
 import { SlaActorSheet } from "./sheets/actor-sheet.mjs";
@@ -52,7 +51,6 @@ Hooks.once('init', async function () {
         ebbFormula: SlaEbbFormulaData,
         discipline: SlaDisciplineData,
         drug: SlaDrugData,
-        toxicant: SlaToxicantData,
         species: SlaSpeciesData,
         package: SlaPackageData,
         magazine: SlaMagazineData,
@@ -71,6 +69,15 @@ Hooks.once('init', async function () {
         config: false,  // Hide from UI
         type: String,
         default: "0.0.0"
+    });
+
+    game.settings.register("sla-industries", "enableMigrationWorldBackup", {
+        name: "Download JSON Backup Before Migration",
+        hint: "When the SLA system migrates this world, the active GM’s browser downloads a JSON snapshot of primary world documents (actors, items, scenes, journal, etc.). Chat messages and fog exploration are omitted to keep the file smaller. Turn off if you do not want that download.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
     });
 
     game.settings.register("sla-industries", "enableLongRangeFeature", {
@@ -109,6 +116,15 @@ Hooks.once('init', async function () {
         default: true
     });
 
+    game.settings.register("sla-industries", "enableExplosiveThrowAutomation", {
+        name: "Enable Explosive Throw Automation",
+        hint: "When enabled, throws prompt for a canvas aim point, apply wall checks on the throw and deviation paths, random deviation by distance, and place blast Region templates. When disabled, the throw still rolls and consumes the item, but you resolve placement on the map yourself.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
     game.settings.register("sla-industries", "enableAutomaticWoundPenalties", {
         name: "Enable Automatic Wound Penalties",
         hint: "When enabled, wound count automatically reduces all dice rolls. When disabled, wound penalties are not applied.",
@@ -129,8 +145,6 @@ Hooks.once('init', async function () {
 
     CONFIG.statusEffects = SLA.statusEffects;
     CONFIG.Actor.trackableAttributes = SLA.trackableAttributes;
-
-    registerToxicantImmunityHooks();
 
 
 

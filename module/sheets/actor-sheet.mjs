@@ -1938,7 +1938,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const effectiveRange = 15 + (Math.min(Math.max(0, strValue), 5) * 5);
         notes.push(`<strong>Max Range:</strong> ${effectiveRange}m`);
 
-        if (!token) return;
+        if (!token || target == null) return;
         const ray = new foundry.canvas.geometry.Ray(token.center, target);
         const distMeters = (ray.distance / canvas.scene.grid.size) * canvas.scene.grid.distance;
         if (distMeters > effectiveRange) {
@@ -1991,11 +1991,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     _resolveExplosiveDeviation({ isBaseSuccess, skillSuccessCount, target, token }) {
+        const noCanvasTarget = target == null;
         let outcomeText = "";
         let resultColor = "#f55";
         let isSuccess = false;
-        let finalX = target.x;
-        let finalY = target.y;
+        let finalX = noCanvasTarget ? 0 : target.x;
+        let finalY = noCanvasTarget ? 0 : target.y;
         let wallBlocked = false;
 
         const allDiceFailed = (!isBaseSuccess) && (skillSuccessCount === 0);
@@ -2006,14 +2007,20 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 finalX = token.center.x;
                 finalY = token.center.y;
             }
-            return { outcomeText, resultColor, isSuccess, finalX, finalY };
+            return { outcomeText, resultColor, isSuccess, finalX, finalY, wallBlocked };
         }
 
         if (isBaseSuccess && skillSuccessCount > 0) {
-            outcomeText = "<strong style='color:#39ff14'>LANDS ON TARGET</strong>";
+            outcomeText = noCanvasTarget
+                ? "<strong style='color:#39ff14'>SUCCESS</strong>"
+                : "<strong style='color:#39ff14'>LANDS ON TARGET</strong>";
             resultColor = "#39ff14";
             isSuccess = true;
-            return { outcomeText, resultColor, isSuccess, finalX, finalY };
+            if (noCanvasTarget) {
+                finalX = 0;
+                finalY = 0;
+            }
+            return { outcomeText, resultColor, isSuccess, finalX, finalY, wallBlocked };
         }
 
         const devMeters = isBaseSuccess ? 5 : 10;
@@ -2023,8 +2030,14 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         resultColor = isBaseSuccess ? "#ffa500" : "#ff5555";
         const devPixels = (devMeters / canvas.scene.grid.distance) * canvas.scene.grid.size;
         const angle = Math.random() * 2 * Math.PI;
-        finalX += Math.cos(angle) * devPixels;
-        finalY += Math.sin(angle) * devPixels;
+        const originX = noCanvasTarget ? (token?.center.x ?? 0) : target.x;
+        const originY = noCanvasTarget ? (token?.center.y ?? 0) : target.y;
+        finalX = originX + Math.cos(angle) * devPixels;
+        finalY = originY + Math.sin(angle) * devPixels;
+
+        if (noCanvasTarget) {
+            return { outcomeText, resultColor, isSuccess, finalX, finalY, wallBlocked: false };
+        }
 
         const wallCollision = this._resolveDeviationWallCollision(target, { x: finalX, y: finalY });
         finalX = wallCollision.x;
@@ -2036,31 +2049,43 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     async _placeExplosiveTemplates({ item, blastRadius, innerDist, finalX, finalY, isSuccess }) {
         try {
-            const templates = [{
-                t: "circle",
-                user: game.user.id,
-                x: finalX,
-                y: finalY,
-                distance: blastRadius,
-                fillColor: game.user.color,
-                fillAlpha: 0.2,
-                flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "outer" } }
+            const distancePixels = canvas?.dimensions?.distancePixels ?? (canvas.scene.grid.size / canvas.scene.grid.distance);
+            const baseRegionData = {
+                color: game.user.color,
+                displayMeasurements: true,
+                visibility: CONST.REGION_VISIBILITY.OBSERVER,
+                ownership: { [game.user.id]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER },
+                ...(canvas.level?.id ? { levels: [canvas.level.id] } : {})
+            };
+            const regions = [{
+                ...baseRegionData,
+                name: `${item.name} (Outer)`,
+                flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "outer" } },
+                shapes: [{
+                    type: "circle",
+                    x: finalX,
+                    y: finalY,
+                    radius: blastRadius * distancePixels,
+                    gridBased: true
+                }]
             }];
 
             if (innerDist > 0 && innerDist < blastRadius) {
-                templates.push({
-                    t: "circle",
-                    user: game.user.id,
-                    x: finalX,
-                    y: finalY,
-                    distance: innerDist,
-                    fillColor: game.user.color,
-                    fillAlpha: 0.6,
-                    flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "inner" } }
+                regions.push({
+                    ...baseRegionData,
+                    name: `${item.name} (Inner)`,
+                    flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "inner" } },
+                    shapes: [{
+                        type: "circle",
+                        x: finalX,
+                        y: finalY,
+                        radius: innerDist * distancePixels,
+                        gridBased: true
+                    }]
                 });
             }
 
-            canvas.scene.createEmbeddedDocuments("MeasuredTemplate", templates);
+            await canvas.scene.createEmbeddedDocuments("Region", regions);
         } catch (err) {
             console.error("SLA | Template Creation Failed:", err);
         }
@@ -2073,9 +2098,13 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         const rollData = this._readExplosiveRollForm(form);
         const { innerDist, outerDist } = this._resolveExplosiveBlastData(item);
-        ui.notifications.info("Select target position...");
-        const target = await this._waitForCanvasClick();
-        if (!target) return;
+        const automateThrow = game.settings.get("sla-industries", "enableExplosiveThrowAutomation");
+        let target = null;
+        if (automateThrow) {
+            ui.notifications.info("Select target position...");
+            target = await this._waitForCanvasClick();
+            if (!target) return;
+        }
         await this._resolveExplosiveRoll(item, rollData, target, outerDist, innerDist);
     }
 
@@ -2118,7 +2147,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         let notes = [];
         const token = this._getActorTokenForExplosiveRange();
         let resolvedTarget = target;
-        if (token) {
+        if (target != null && token) {
             const throwCollision = this._resolveDeviationWallCollision(token.center, target);
             if (throwCollision.blocked) {
                 resolvedTarget = { x: throwCollision.x, y: throwCollision.y };
@@ -2168,7 +2197,9 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             notes.push(`<br/><strong>Kill Zone (< ${innerDist}m):</strong> +2 Damage`);
         }
 
-        await this._placeExplosiveTemplates({ item, blastRadius, innerDist, finalX, finalY, isSuccess });
+        if (game.settings.get("sla-industries", "enableExplosiveThrowAutomation") && target != null) {
+            await this._placeExplosiveTemplates({ item, blastRadius, innerDist, finalX, finalY, isSuccess });
+        }
 
         let baseDmg = item.system.damage || "0";
         const adValue = Number(item.system.ad) || 0;

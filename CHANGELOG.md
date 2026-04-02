@@ -6,63 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-## [2.4.2] - 2026-04-05
+## [2.1.0] - 2026-04-02
 
 ### Changed
-* Updated system `version` and release `download` URL in `system.json` to `2.4.2`.
-
-## [2.4.0] - 2026-04-05
+* Updated system and package metadata version to `2.1.0`.
+* Declared **Foundry VTT v14** support in `system.json` (`compatibility.minimum` **14**, `verified` **14.359**).
+* Explosive blast **Region** documents set **`levels`** to the active scene level when present so templates appear on the correct map level in v14 ([RegionData `levels`](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.RegionData.html)).
 
 ### Added
-* **Item sheet — header toggle menu:** **View Item Artwork** opens the item image in Foundry’s **Image Popout**; the popout’s own toggle menu includes **Show Players** (core `shareImage`) so GMs can share the artwork with connected players.
-
-## [2.3.0] - 2026-04-04
-
-### Added
-* **Stackable inventory drops:** Dragging **gear** (`item`), **explosives**, **magazines**, or **drugs** onto an actor sheet **merges** into an existing row when the system considers it the same item: **`_stats.compendiumSource`** or **`flags.core.sourceId`** when present, otherwise same **type** + **name** (case-insensitive), and for **magazines** also the same **`ammoType`** and **`ammoCapacity`**. The first row gets an explicit **quantity** (default **1**); further drops **add** the incoming quantity (invalid or missing quantity on the payload is treated as **1**). **Weapons**, **armor**, and other types are unchanged (including NPC auto-equip and vehicle weapon drops).
-
-### Changed
-* **World migration version** is **`2.3.0`**. **`migrateTo230`** runs after earlier steps: on each actor it **consolidates** duplicate stackable rows using the same identity rules, **summing** quantities (each row contributes **`max(1, floor(quantity))`** or **1** if missing/invalid). Rows are **not** merged if **any** duplicate in the group has **embedded Active Effects** on the Item (a warning is logged so worlds can be cleaned manually).
-
-## [2.2.1] - 2026-04-04
-
-### Changed
-* **World migration version** is **`2.2.1`**. Worlds older than that still run the usual migration pass (including **2.0.0** HTML defaults and **2.1.0** drug field cleanup when needed); this release adds no new document transforms.
-
-### Fixed
-* **Item sheet — Description tab (weapon, armor, explosive):** The rich text editor (`<prose-mirror>`) could appear missing because the active tab used `display: block` while the editor is laid out as a flex item; the description tab is now a **flex column** with a **minimum height** so the editor stays visible and usable.
-
-## [2.2.0] - 2026-04-04
-
-### Added
-* **Combat loadout — roll damage:** On the **Combat** tab, each weapon and explosive row has a **blood drop** control to roll **weapon damage** without using the attack chat card first. The result uses the same damage chat card as the attack flow (minimum damage, AD, apply to target/selected). The formula includes **melee STR damage steps**, **loaded magazine ammo modifiers** (when applicable), and **powersuit AD** rules where relevant; current **targeted tokens** are passed for the apply buttons.
-* **Combat loadout — column headers:** **Weapons** lists **Item**, **Damage**, and **Ammo / Qty** above the stat columns; **Armor** lists **Item**, **PV**, and **Resistance**.
-
-### Changed
-* **Combat loadout layout:** **Weapons** and **armor** rows use a shared **CSS grid** so **damage** aligns with **PV**, and **ammo / quantity** aligns with **resistance**. Action icons use a **fixed four-slot** strip so **attack**, **damage roll**, **reload** (when shown), and **equip** line up across rows.
-* **Combat loadout — reload:** **Load / reload** is shown only for **ranged** weapons (`attackType === "ranged"`), never for melee or unarmed-style entries, even if the skill field would otherwise mark the item reloadable.
-* **Damage rolls:** Chat and sheet both use **`SLAChat.executeStandardDamageRoll`**, which evaluates rolls with **`actor` / item roll data** so `@`-style formula data resolves consistently.
-* **World migration version** is **`2.2.0`**. Worlds older than that still run the usual migration pass (including **2.0.0** HTML defaults and **2.1.0** drug field cleanup when needed); this release adds no new document transforms.
-
-## [2.1.0] - 2026-04-03
-
-### Added
-* **Toxicant** item type: **infection rating**, **vector**, **progression**, **treatment**, **treatment rating**, and description. Characters track toxicants under **Bio & Traits → Infections** with an **infection test** action (Success Die + STR vs infection rating, chat card via `toxicant-infection` template). On success, the actor is **immune for the current encounter scope** (active **combat** id when a fight is running, otherwise the **current scene**); on failure, **embedded Active Effects** on the toxicant transfer to the actor.
-* **Effects** tab on **operative and threat** actor sheets to manage **Active Effects** during play.
-* **Drug** and **toxicant** item sheets use a **Details** + **Effects** tab layout so **embedded Active Effects** can be authored on the item (for syringe / toggle-active drugs and for infection outcomes).
-* **Hotbar / `rollOwnedItem`:** Actor-owned **toxicant** items run the **infection test** the same way as the sheet control.
-
-### Changed
-* **Combat drugs:** Removed built-in Mod 1 / Mod 2 (**`system.mods`**) and **damage reduction while active** (**`system.damageReduction`**) from the drug schema and UI. Stat changes and DR must be modeled with **embedded Active Effects**; **toggle active** and syringe use still apply or remove those effects on the actor.
-* **World migration `2.1.0`:** When `systemMigrationVersion` is older than the bundled version, **`migrateTo210`** strips `system.mods` and `system.damageReduction` from existing **drug** items (world items and actor-embedded items) using persisted `_source` so legacy keys are cleared after the schema change.
-
-## [2.0.1] - 2026-04-02
-
-### Changed
-* Updated system and package metadata version to `2.0.1`.
-
-### Fixed
-* **Item sheet remove chips:** Species **granted skills**, weapon and explosive **required skill**, Ebb formula **discipline** link, and magazine **linked weapon** unlink controls now use **`<button type="button">`** instead of **`<a href="#">`**, with matching SCSS/CSS resets. Clicks on the × icon (including on the Font Awesome glyph) no longer trigger unwanted browser navigation (e.g. join page or a new tab).
+* **World setting** **`Enable Explosive Throw Automation`** (`enableExplosiveThrowAutomation`, default on): when off, explosive throws no longer prompt for a canvas aim point, skip throw and deviation wall checks, and do not place blast **Region** templates; the roll, quantity consumption, and chat card still run so groups can resolve blasts manually.
+* **Migration backup:** Before running a world migration, the **active GM** can receive a browser download of a JSON snapshot of primary world documents (actors, items, scenes, journal, macros, playlists, roll tables, combats, folders, users, card stacks, and settings where available). **Chat messages** and **fog exploration** are omitted to limit file size. Controlled by the world setting **Download JSON Backup Before Migration** (`enableMigrationWorldBackup`, default on).
 
 ## [2.0.0] - 2026-04-01
 
@@ -450,14 +403,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.2...HEAD
-[2.4.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.2
-[2.4.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.0
-[2.3.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.3.0
-[2.2.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.2.1
-[2.2.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.2.0
 [2.1.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.1.0
-[2.0.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.0.1
 [2.0.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.0.0
 [1.3.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.2
 [1.3.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.1
