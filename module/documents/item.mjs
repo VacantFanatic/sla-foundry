@@ -1,3 +1,5 @@
+import { SlaSimpleContentDialog } from "../apps/sla-simple-dialog.mjs";
+
 /**
  * Extend the basic Item with some very simple modifications.
  * @extends {Item}
@@ -70,40 +72,33 @@ export class BoilerplateItem extends Item {
     });
 
     return new Promise(resolve => {
-      new Dialog({
+      const dlg = new SlaSimpleContentDialog({
         title: `${item.name}: Attack Roll`,
-        content: content,
-        buttons: {
-          roll: {
-            label: "Roll",
-            callback: html => {
-              // 5. Execute the Roll logic
-              // Example Formula: (AD)d10 + Skill
-              // You will need to adjust this formula to match your exact rules
-              const rollFormula = `${finalAD}d10 + @skills.guns.value`;
-
-              const roll = new Roll(rollFormula, actor.getRollData());
-
-              roll.toMessage({
-                speaker: ChatMessage.getSpeaker({ actor: actor }),
-                flavor: `
+        contentHtml: content,
+        width: 400,
+        classes: ["sla-dialog", "sla-sheet"],
+        actionLabel: "Roll",
+        onConfirm: () => {
+          const rollFormula = `${finalAD}d10 + @skills.guns.value`;
+          const roll = new Roll(rollFormula, actor.getRollData());
+          roll.toMessage({
+            speaker: ChatMessage.getSpeaker({ actor: actor }),
+            flavor: `
                   <h3>${item.name} Attack</h3>
                   <p><strong>Ammo:</strong> ${modifiers.name}</p>
                   <p><strong>Damage:</strong> ${finalDamage} (PV ${modifiers.pv})</p>
                 `,
-                flags: {
-                  sla: {
-                    isAP: modifiers.pv < 0 ? true : false,
-                    pvMod: modifiers.pv
-                  }
-                }
-              });
-              resolve(roll);
+            flags: {
+              sla: {
+                isAP: modifiers.pv < 0 ? true : false,
+                pvMod: modifiers.pv
+              }
             }
-          }
-        },
-        default: "roll"
-      }).render(true);
+          });
+          resolve(roll);
+        }
+      });
+      void dlg.render(true);
     });
   }
 

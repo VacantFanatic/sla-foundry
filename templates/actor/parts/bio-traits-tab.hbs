@@ -2,8 +2,8 @@
     {{!-- Traits --}}
     <div class="sla-panel" style="flex: 0 0 200px; margin-bottom: 5px;">
         <div class="sla-header-bar flexrow">
-            <span style="flex:1">TRAITS</span>
-    
+            <span style="flex:1; cursor: pointer;" class="open-compendium" data-compendium="sla-industries.traits"
+                title="Open Compendium">TRAITS</span>
         </div>
         <div class="scroll-list">
             <table class="sla-table">
@@ -39,7 +39,12 @@
         <div class="sla-header-bar">NOTES</div>
         {{!-- Added class 'sla-editor-container' and forced height --}}
         <div class="sla-editor-container" style="flex: 1; height: 100%; border: none; padding: 5px; background: #000;">
-            {{editor enrichedNotes target="system.notes" engine="prosemirror" button=true owner=owner editable=editable}}
+            {{!-- {{editor}} is non-functional on Application V2 — use HTMLProseMirrorElement (Foundry #12989) --}}
+            {{#if editable}}
+            <prose-mirror class="editor" name="system.notes" toggled value="{{system.notes}}">{{{enrichedNotes}}}</prose-mirror>
+            {{else}}
+            <div class="editor notes-readonly">{{{enrichedNotes}}}</div>
+            {{/if}}
         </div>
     </div>
 </div>

@@ -1,4 +1,4 @@
-<form class="xp-dialog sla-dialog" style="color:#eee;">
+<div class="xp-dialog sla-dialog standard-form" style="color:#eee;">
     {{#if isGM}}
     {{!-- GM MODE: Simple XP Add/Remove --}}
     <div class="sla-panel sla-dialog-panel" style="margin-bottom: 8px;">
@@ -222,5 +222,10 @@
         </div>
     </div>
     {{/if}}
-</form>
+
+    <div class="xp-dialog-actions flexrow" style="justify-content:flex-end; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid #444;">
+        <button type="button" class="secondary" data-action="xpCancel"><i class="fas fa-times"></i> Cancel</button>
+        <button type="button" data-action="xpCommit" class="commit-xp-btn"><i class="fas fa-check"></i> {{#if isGM}}Update XP{{else}}Commit Upgrades{{/if}}</button>
+    </div>
+</div>
 

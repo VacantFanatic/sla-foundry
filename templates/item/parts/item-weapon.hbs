@@ -50,7 +50,7 @@
     <div class="drop-zone skill-link-box {{#if system.skill}}filled{{/if}}">
         {{#if system.skill}}
         <span class="skill-name">{{system.skill}}</span>
-        <a class="remove-skill-link" title="Unlink Skill"><i class="fas fa-times"></i></a>
+        <a class="remove-skill-link" data-action="removeSkillLink" title="Unlink Skill" href="#"><i class="fas fa-times"></i></a>
         {{else}}
         <span class="placeholder">Drop Skill Item Here</span>
         {{/if}}

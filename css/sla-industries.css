@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /* ==========================================
    SLA Industries 2E - Main SCSS
    ========================================== */
@@ -57,16 +58,57 @@
   padding: 0;
   overflow: hidden;
   border: 2px solid var(--sla-border);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
-/* FORM LAYOUT */
+/* Root layout: Application V2 templates use div.sla-sheet / .sla-item-root, not form */
+.sla-sheet.standard-form,
 form.sla-sheet {
+  flex: 1;
+  min-height: 0;
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: transparent;
   padding: 5px;
+}
+
+.sla-industries.sheet.item .sla-item-root.standard-form {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: transparent;
+  padding: 5px;
+}
+
+/* V2 `tag: "form"`: sheet root is often <form.application…>; must flex like .window-content or inner layout never gets a max height */
+.application.sla-industries.sheet.item,
+form.application.sla-industries.sheet.item {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Item V2: same scroll contract as .sla-sheet .sheet-body (actors); forms.scss height:100% breaks flex overflow */
+.sla-industries.sheet.item .sla-item-root .sheet-body {
+  flex: 1;
+  min-height: 0;
+  height: auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+}
+.sla-industries.sheet.item .sla-item-root .sheet-body .tab {
+  height: auto !important;
 }
 
 /* UTILITIES */
@@ -163,8 +205,12 @@ select option {
  * Consolidated Variables
  * Single source of truth for all SCSS variables
  */
-.window-app {
-  font-family: "Josefin Sans", sans-serif;
+/* Scope SLA typography to system UI; avoid changing unrelated Foundry windows */
+.sla-industries.sheet,
+.sla-sheet.standard-form,
+.sla-item-root.standard-form,
+.sla-dialog-window.dialog {
+  font-family: var(--sla-font-mono);
 }
 
 .rollable:hover, .rollable:focus {
@@ -399,7 +445,7 @@ select option {
   background: var(--sla-bg-dark);
   color: var(--sla-text-light);
   padding: 10px;
-  font-family: var(--sla-font-header);
+  font-family: var(--sla-font-mono);
 }
 .sla-dialog-window.dialog select,
 .sla-dialog-window.dialog input {
@@ -916,6 +962,13 @@ select option {
   font-weight: bold;
 }
 
+/* Numeric readouts (ammo, quantity): UI font + tabular figures (replaces Courier in templates) */
+.sla-stat-readout {
+  font-family: var(--sla-font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ==========================================
    3. HEADER LAYOUT
    ========================================== */
@@ -1001,10 +1054,48 @@ select option {
   font-family: var(--sla-font-header);
   font-weight: 700;
 }
-.lad-wrapper input,
-.scl-wrapper input {
+
+.scl-wrapper input[type=text] {
   width: 50px !important;
   text-align: center;
+}
+
+/* Operative name: no field chrome until editing (plain title look) */
+.sla-sheet .header-left h1.charname input[type=text] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
+  color: #fff;
+}
+
+.sla-sheet .header-left h1.charname input[type=text]:focus {
+  background: #0a0a0a !important;
+  border: 1px solid var(--sla-border) !important;
+  border-radius: var(--sla-radius);
+  box-shadow: 0 0 0 1px var(--sla-accent);
+}
+
+/* Checkboxes: clear bounding box when unchecked (native control fades on dark UI) */
+.sla-sheet input[type=checkbox],
+.sla-item-root input[type=checkbox],
+.sla-dialog-window.dialog input[type=checkbox] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  cursor: pointer;
+  accent-color: var(--sla-accent);
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.sla-sheet input[type=checkbox]:not(:checked),
+.sla-item-root input[type=checkbox]:not(:checked),
+.sla-dialog-window.dialog input[type=checkbox]:not(:checked) {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 1px;
+  border-radius: 2px;
 }
 
 /* COLUMN 2: PORTRAIT (Center) */
@@ -1029,6 +1120,11 @@ select option {
   object-position: top center;
   border: none;
   display: block;
+}
+
+.portrait-container .profile-img[data-edit=img],
+.threat-logo[data-edit=img] {
+  cursor: pointer;
 }
 
 /* COLUMN 3: FINANCE (Right) */
@@ -1322,6 +1418,13 @@ select option {
   border-bottom: 1px solid var(--sla-border);
 }
 
+/* Match SKILLS / TRAITS row titles: vertical center when using .flexrow + compendium span */
+.sla-header-bar.flexrow {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+}
+
 .sla-header-bar-small {
   background-color: rgba(208, 94, 26, 0.2);
   color: #ddd;
@@ -1374,6 +1477,32 @@ select option {
   color: #e0e0e0;
   height: 100%;
   min-height: 200px;
+}
+
+/* Application V2: <prose-mirror> replaces {{editor}} (Foundry #12989) */
+.sla-editor-container prose-mirror.editor,
+.threat-content-box.threat-notes-editor prose-mirror.editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 200px;
+  min-width: 0;
+  width: 100%;
+  background: #000;
+  color: #e0e0e0;
+}
+
+.threat-content-box.threat-notes-editor prose-mirror.editor {
+  background: #fff;
+  color: #000;
+}
+
+/* Core / sheet flex rules can force editor toggles to full width (#12197); keep control compact */
+.sla-industries.sheet prose-mirror.editor .editor-edit {
+  width: auto !important;
+  min-width: 2rem;
+  flex: 0 0 auto;
+  align-self: flex-start;
 }
 
 /* Toggle Button (The magic wand/edit button) */
@@ -1732,7 +1861,7 @@ select option {
 .sla-industries.sheet.actor .threat-sheet {
   background: #fdfbf7 !important;
   color: #111 !important;
-  font-family: "Georgia", serif !important;
+  font-family: var(--sla-font-mono) !important;
   border: 2px solid #333 !important;
   padding: 0 !important;
 }
@@ -1740,7 +1869,7 @@ select option {
 .threat-header {
   background: #800000 !important;
   color: #fff !important;
-  font-family: "Georgia", serif !important;
+  font-family: var(--sla-font-header) !important;
   border-bottom: 2px solid #000 !important;
   padding: 5px;
   display: flex;
@@ -1752,7 +1881,7 @@ select option {
   color: #fff;
   font-size: 1.4em;
   font-weight: bold;
-  font-family: "Georgia", serif;
+  font-family: var(--sla-font-header);
 }
 
 .threat-body {
@@ -1777,7 +1906,7 @@ select option {
 .threat-section-bar {
   background: #800000;
   color: #fff;
-  font-family: "Georgia", serif;
+  font-family: var(--sla-font-header);
   font-weight: bold;
   padding: 2px 5px;
   border-top: 2px solid #000;
@@ -1800,7 +1929,7 @@ select option {
   padding: 2px;
   font-size: 0.9em;
   font-weight: bold;
-  font-family: "Georgia", serif;
+  font-family: var(--sla-font-header);
   text-transform: uppercase;
 }
 
@@ -1862,46 +1991,46 @@ select option {
   padding: 2px;
 }
 
-/* Threat Editor Specifics */
-.threat-content-box.editor {
+/* Threat / vehicle notes editor panel (class was .editor on wrapper; inner host is prose-mirror.editor) */
+.threat-content-box.threat-notes-editor {
   min-height: 300px;
   background: #fff;
   color: #000;
   /* Keep editor controls readable in the light threat notes panel. */
 }
-.threat-content-box.editor .editor-menu,
-.threat-content-box.editor .prosemirror-menu {
+.threat-content-box.threat-notes-editor .editor-menu,
+.threat-content-box.threat-notes-editor .prosemirror-menu {
   background: #f2f2f2 !important;
   border-bottom: 1px solid #9a9a9a !important;
   color: #111 !important;
 }
-.threat-content-box.editor .editor-menu button,
-.threat-content-box.editor .prosemirror-menu button {
+.threat-content-box.threat-notes-editor .editor-menu button,
+.threat-content-box.threat-notes-editor .prosemirror-menu button {
   color: #111 !important;
 }
-.threat-content-box.editor .editor-menu button i,
-.threat-content-box.editor .editor-menu button svg,
-.threat-content-box.editor .editor-menu button svg path,
-.threat-content-box.editor .prosemirror-menu button i,
-.threat-content-box.editor .prosemirror-menu button svg,
-.threat-content-box.editor .prosemirror-menu button svg path,
-.threat-content-box.editor .editor-menu .pm-dropdown,
-.threat-content-box.editor .editor-menu .pm-dropdown span,
-.threat-content-box.editor .prosemirror-menu .pm-dropdown,
-.threat-content-box.editor .prosemirror-menu .pm-dropdown span {
+.threat-content-box.threat-notes-editor .editor-menu button i,
+.threat-content-box.threat-notes-editor .editor-menu button svg,
+.threat-content-box.threat-notes-editor .editor-menu button svg path,
+.threat-content-box.threat-notes-editor .prosemirror-menu button i,
+.threat-content-box.threat-notes-editor .prosemirror-menu button svg,
+.threat-content-box.threat-notes-editor .prosemirror-menu button svg path,
+.threat-content-box.threat-notes-editor .editor-menu .pm-dropdown,
+.threat-content-box.threat-notes-editor .editor-menu .pm-dropdown span,
+.threat-content-box.threat-notes-editor .prosemirror-menu .pm-dropdown,
+.threat-content-box.threat-notes-editor .prosemirror-menu .pm-dropdown span {
   color: #111 !important;
   fill: #111 !important;
   opacity: 1 !important;
 }
-.threat-content-box.editor .editor-menu button:hover,
-.threat-content-box.editor .prosemirror-menu button:hover {
+.threat-content-box.threat-notes-editor .editor-menu button:hover,
+.threat-content-box.threat-notes-editor .prosemirror-menu button:hover {
   background: #dedede !important;
   border-color: #888 !important;
 }
-.threat-content-box.editor .editor-content {
+.threat-content-box.threat-notes-editor .editor-content {
   color: #111 !important;
 }
-.threat-content-box.editor .editor {
+.threat-content-box.threat-notes-editor .editor {
   min-height: 300px;
   height: 100%;
   color: #000;
@@ -2221,6 +2350,12 @@ select option {
   border: 4px solid var(--sla-border);
   font-family: var(--sla-font-mono);
   color: var(--sla-text-light);
+  /* V2 + flex column: bounded height so .sheet-body.single-view can overflow-y:auto (species / package / magazine) */
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .item .sheet-header {
@@ -2230,6 +2365,7 @@ select option {
   padding: 10px;
   display: flex;
   align-items: center;
+  flex: 0 0 auto;
 }
 .item .sheet-header img.profile-img {
   flex: 0 0 64px;
@@ -2239,6 +2375,51 @@ select option {
   border: 1px solid #000;
   margin-right: 10px;
   background: #000;
+}
+.item .sheet-header img.profile-img[data-edit=img] {
+  cursor: pointer;
+}
+
+/* Item sheet V2 (`tag: "form"`): native checkboxes stay visible on dark themes; beats `input { … !important }` on item types */
+form.application.sla-industries.sheet.item input[type=checkbox] {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  margin: 0;
+  cursor: pointer !important;
+  accent-color: var(--sla-accent) !important;
+  vertical-align: middle;
+  flex-shrink: 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+form.application.sla-industries.sheet.item input[type=checkbox]:not(:checked) {
+  outline: 2px solid rgba(255, 255, 255, 0.55) !important;
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+/* Tabbed item sheets (V2): tabs/header fixed, body scrolls */
+.sla-item-root .sheet-tabs {
+  flex: 0 0 auto;
+}
+
+/* Root is .sla-item-root (not .sla-sheet) — actor tab visibility rules do not apply here */
+.sla-item-root .sheet-body .tab {
+  display: none;
+  min-height: 0;
+}
+.sla-item-root .sheet-body .tab.active {
+  display: block;
+}
+
+/* Scroll + height: see global/_base.scss `.sla-industries.sheet.item .sla-item-root .sheet-body` */
+.sla-item-root .sheet-body:not(.single-view) .tab.active {
+  height: auto !important;
 }
 
 /* Academic Theme (Skills/Traits) */
@@ -2257,8 +2438,8 @@ select option {
   color: var(--sla-text-light) !important;
 }
 
-.item.skill input,
-.item.trait input {
+.item.skill input:not([type=checkbox]),
+.item.trait input:not([type=checkbox]) {
   background: rgba(0, 0, 0, 0.3) !important;
   border: 1px solid var(--sla-border) !important;
   border-bottom: 1px dotted var(--sla-border) !important;
@@ -2281,8 +2462,8 @@ select option {
   border-bottom: 1px solid #8a2be2;
 }
 
-.item.ebbFormula input,
-.item.discipline input {
+.item.ebbFormula input:not([type=checkbox]),
+.item.discipline input:not([type=checkbox]) {
   background: rgba(0, 0, 0, 0.5) !important;
   border: 1px solid #8a2be2 !important;
   color: #fff !important;
@@ -2519,7 +2700,7 @@ select option {
   color: #555;
 }
 
-.item-catalogue input {
+.item-catalogue input:not([type=checkbox]) {
   background: transparent;
   border: none;
   font-weight: bold;
@@ -2554,7 +2735,7 @@ select option {
   color: var(--sla-text-light);
 }
 
-.academic-paper input,
+.academic-paper input:not([type=checkbox]),
 .academic-paper select {
   flex: 1;
   background: rgba(0, 0, 0, 0.3) !important;
@@ -2658,6 +2839,19 @@ select option {
   gap: 15px;
 }
 
+/* Single-view: scroll lives on .sheet-body (global/_base); stack dossier + description as content height */
+.sla-item-root .sheet-body.single-view {
+  flex: 1;
+  min-height: 0;
+  height: auto !important;
+  overflow-y: auto !important;
+}
+
+.sla-item-root .sheet-body.single-view .sheet-description {
+  flex: 0 0 auto;
+  min-height: 140px;
+}
+
 .sheet-body.single-view .sheet-attributes {
   flex: 0 0 auto;
   /* Takes only as much space as needed */
@@ -2675,6 +2869,19 @@ select option {
 
 .sheet-body.single-view .sheet-description .editor {
   flex: 1;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sheet-body.single-view .sheet-description prose-mirror.editor,
+.sheet-body .tab.description prose-mirror.editor {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   border: 1px solid #333;
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.2);
@@ -2746,13 +2953,26 @@ select option {
 
 /* Inputs within rows */
 .firing-mode-row input[type=checkbox] {
-  width: 16px;
-  height: 16px;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
   margin: 0;
-  cursor: pointer;
+  cursor: pointer !important;
+  accent-color: var(--sla-accent) !important;
   position: relative;
   z-index: 100;
   pointer-events: auto;
+  flex-shrink: 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.firing-mode-row input[type=checkbox]:not(:checked) {
+  outline: 2px solid rgba(255, 255, 255, 0.55) !important;
+  outline-offset: 1px;
+  border-radius: 2px;
 }
 
 .firing-mode-row input[type=number] {

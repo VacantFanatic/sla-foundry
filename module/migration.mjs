@@ -1,12 +1,13 @@
 import { NATURAL_WEAPONS } from "./data/natural-weapons.mjs";
 import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
 
-/** * module/migration.mjs 
+/** * module/migration.mjs
+ * World migration version is stored in game.settings ("sla-industries", "systemMigrationVersion").
+ * Bump CURRENT_MIGRATION_VERSION when this file’s behavior changes so older worlds re-run migration.
  */
 
-// 1. Define the target version for THIS specific migration
-//    (Matches the version in your system.json)
-export const CURRENT_MIGRATION_VERSION = "1.3.2";
+/** Matches `version` in system.json when migration logic is updated for that release. */
+export const CURRENT_MIGRATION_VERSION = "2.0.0";
 
 /**
  * Main Entry Point
@@ -14,14 +15,20 @@ export const CURRENT_MIGRATION_VERSION = "1.3.2";
 export async function migrateWorld() {
     ui.notifications.info(`SLA Industries System: Applying Migration to version ${CURRENT_MIGRATION_VERSION}. Please wait...`, { permanent: true });
 
-    // Run version-specific migrations
-    await migrateTo0210();
+    // Run version-specific migrations (before per-document loops below)
+    await migrateTo200();
 
     const meleeSkills = ["melee", "unarmed", "thrown"];
 
     // 1. Migrate World Items
     const worldItems = game.items.contents;
     for (const item of worldItems) {
+        // Vehicles are Actors in SLA; Item type "vehicle" breaks validation (e.g. after bad import/drag)
+        if (item.type === "vehicle") {
+            console.log(`SLA | Migrating world Item "${item.name}" from type vehicle → item`);
+            await item.update({ type: "item" });
+            continue;
+        }
         if (item.type === "weapon") await migrateWeaponItem(item, meleeSkills);
         if (item.type === "armor") await migrateArmorItem(item);
         if (item.type === "species") await migrateSpeciesItem(item);
@@ -166,6 +173,11 @@ export async function migrateWorld() {
         const updates = [];
         const actorItems = actor.items.contents;
         for (const item of actorItems) {
+            if (item.type === "vehicle") {
+                console.log(`SLA | Migrating embedded Item "${item.name}" on ${actor.name} from type vehicle → item`);
+                updates.push({ _id: item.id, type: "item" });
+                continue;
+            }
             let updateData = null;
             if (item.type === "weapon") updateData = await getWeaponMigrationData(item, meleeSkills);
             if (item.type === "armor") updateData = await getArmorMigrationData(item);
@@ -452,17 +464,52 @@ async function getSpeciesMigrationData(item) {
     return hasChanges ? updateData : null;
 }
 
+/** HTML paths to persist as empty strings when missing (ProseMirror / Application V2 sheets). */
+const MIGRATION_200_ACTOR_HTML_FIELDS = {
+    character: ["system.biography", "system.appearance", "system.notes"],
+    npc: ["system.biography", "system.notes"],
+    vehicle: ["system.biography", "system.appearance", "system.notes"]
+};
+
 /**
- * Migration for version 0.21.0
- * Handles any data structure changes introduced in this version
+ * 2.0.0: Application V2 sheets use `<prose-mirror>` for these fields; undefined/null in the database
+ * can prevent clean binding. Normalize once so migrated worlds have explicit empty HTML strings.
  */
-async function migrateTo0210() {
-    // Version 0.21.0: Code refactoring and CSS optimization
-    // No data structure changes required
-    // This migration function is a placeholder for future migrations
-    
-    // If any data migrations are needed in the future, add them here
-    // For now, this version only includes code refactoring improvements
-    
-    console.log("SLA Industries | Migration 0.21.0: Code refactoring (no data changes required)");
+async function migrateTo200() {
+    console.log("SLA Industries | Migration 2.0.0: HTML field normalization for V2 sheets");
+
+    for (const actor of game.actors) {
+        const paths = MIGRATION_200_ACTOR_HTML_FIELDS[actor.type];
+        if (!paths?.length) continue;
+
+        const updates = {};
+        for (const path of paths) {
+            const v = foundry.utils.getProperty(actor, path);
+            if (v === undefined || v === null) updates[path] = "";
+        }
+        if (!foundry.utils.isEmpty(updates)) {
+            await actor.update(updates);
+            console.log(`SLA | 2.0.0: Default HTML fields on actor "${actor.name}" (${actor.type})`);
+        }
+    }
+
+    for (const item of game.items.contents) {
+        const desc = foundry.utils.getProperty(item, "system.description");
+        if (desc === undefined || desc === null) {
+            await item.update({ "system.description": "" });
+            console.log(`SLA | 2.0.0: Initialized system.description on world item "${item.name}"`);
+        }
+    }
+
+    for (const actor of game.actors) {
+        const embedded = [];
+        for (const item of actor.items.contents) {
+            const desc = foundry.utils.getProperty(item, "system.description");
+            if (desc === undefined || desc === null) embedded.push({ _id: item.id, "system.description": "" });
+        }
+        if (embedded.length) {
+            await actor.updateEmbeddedDocuments("Item", embedded);
+            console.log(`SLA | 2.0.0: Initialized system.description on ${embedded.length} item(s) on "${actor.name}"`);
+        }
+    }
 }

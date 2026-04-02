@@ -4,6 +4,48 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+## [2.0.0] - 2026-04-01
+
+### Added
+* Combat hook: combatants with the **Stunned** status effect have initiative clamped to the current lowest value in the encounter after initiative updates (active GM only), supporting the “lowest initiative” stunned rule.
+* **Hotbar macros for embedded actor items:** Drag an item from a character, threat, or vehicle sheet onto the macro bar (embedded UUID `Actor.*.Item.*`), or **right-click** any item row with **`data-item-id`** (inventory, combat loadout, ebb list, etc.) and choose **Add to hotbar** to use the first empty slot. The script macro calls **`game.sla.rollOwnedItem`** and matches sheet behavior: weapons and explosives open attack/throw dialogs, ebb formulas roll and spend flux, drugs consume a dose, other items open the item sheet.
+* **`game.sla` API** for macros and scripting: **`rollOwnedItem(itemUuid)`** and **`addActorItemToHotbar(item)`**.
+* **`SlaActorSheet.triggerItemRoll`** (and **`_useDrugItem`**) centralize item actions shared by the sheet and hotbar helpers.
+* **Skill hotbar behavior:** Macros created from actor-owned **Skill** items now execute the same skill roll flow as clicking the skill’s roll control on the sheet, instead of opening the item sheet.
+* **World migration `2.0.0`:** **`migrateTo200`** runs when **`systemMigrationVersion`** is older than the bundled version — sets missing HTML fields to empty strings on actors (**biography**, **appearance**, **notes** where applicable) and on items (**system.description**) so ProseMirror-backed Application V2 sheets bind and save reliably.
+* **Portrait / header image picker:** Clicking **`data-edit="img"`** on operative portrait, threat logo, vehicle portrait, or item header art opens Foundry’s **FilePicker**; pointer cursor on those elements in CSS.
+
+### Changed
+* Migrated document sheets and custom windows to **Foundry Application V2** (`ApplicationV2` + `HandlebarsApplicationMixin`) for Foundry v13 compatibility and alignment with the current application API.
+* **Actor sheets** (operative, threat/NPC, vehicle): `ActorSheetV2` with `static PARTS`, `static TABS`, `DEFAULT_OPTIONS`, async `_prepareContext`, and `_onRender` using native DOM and delegated events instead of `activateListeners` and jQuery. New templates `actor-sheet-v2.hbs`, `actor-npc-sheet-v2.hbs`, and `actor-vehicle-sheet-v2.hbs` (root `div` inside the sheet form; tab nav uses `_prepareTabs` / `data-group` / `data-tab`).
+* **Item sheet**: `ItemSheetV2` with `PARTS`, `_prepareContext`, `actions` for unlink/remove controls, drop zones bound in `_onRender` with `AbortController`, and `item-sheet-v2.hbs`. Item partials updated with `data-action` on link controls. Drop helpers use a unified `DataTransfer` resolver for native and legacy events.
+* **Luck dialog**: `ApplicationV2` + mixin; template actions `rerollSd`, `addMod`, `rerollSkill`; outer markup adjusted for V2.
+* **XP dialog**: `ApplicationV2` + mixin; context from `_prepareContext`; footer buttons `xpCommit` / `xpCancel`; player/GM interactions wired in `_onRender` without jQuery; `xp-dialog.hbs` outer wrapper changed from `form` to `div`.
+* **Inline modals** (magazine reload picker, weapon attack, explosive throw, and item `roll()`): `SlaSimpleContentDialog` (`simple-content-dialog.hbs`) replaces `new Dialog(...)`.
+* Template preload list extended for the new sheet and dialog templates.
+
+### Fixed
+* **Application V2 rich text:** Replaced legacy `{{editor}}` blocks with Foundry’s **`<prose-mirror>`** custom element on operative **Notes** (Bio & Traits), threat/vehicle **Notes**, and item **Description** tabs — the V2 sheet framework does not wire the old editor toggle ([Foundry #12989](https://github.com/foundryvtt/foundryvtt/issues/12989)). Added layout/CSS so the edit control stays compact instead of stretching full width.
+* **ProseMirror saves:** Actor and item V2 sheets now use **`tag: "form"`** with **`form.submitOnChange: true`** so `<prose-mirror>` values are included in document updates; without a top-level form, edits could stay in the UI but not persist, so the collapsed notes view showed stale `enriched` HTML.
+* **Item sheet:** The main template part sets **`root: true`** so the item body renders as children of that top-level `<form>`; without it, description `<prose-mirror>` could sit outside the form and never submit to the Item document.
+* **Item description:** `SlaItemSheet` persists `<prose-mirror name="system.description">` on **`save` / `close` / `change`**, reads **`this.form`** when present (vs only `this.element`), defers binding with **`queueMicrotask`**, and on **`_preClose`** calls **`save()`** when **`isDirty()`** so closing the window still flushes text Item V2 form handling often misses.
+* **Actor sheet (V2):** Delegated `change` handler now resolves **wound checkboxes** and **inline quantity edits** via `event.target.closest(...)` instead of `event.currentTarget` (the sheet root), so wound ticks persist, trigger bleeding/stun/immobile logic, and no longer appear to clear when toggling status icons after a re-render.
+* **Wounds / death:** Six marked wounds force **Hit Points to 0** and ensure the **dead** status when needed; **dead** from HP updates now also applies when wound count is 6 even if HP is above zero.
+* **Bleeding:** Matches wound rules — re-applies after manual condition toggles; **Frother** species suppresses automatic **Bleeding** only while exactly **one** wound is marked (two or more behave normally).
+* **Critical** condition in derived data now uses **half of projected max HP** (species base + current STR total), matching the critical Active Effect threshold, instead of a flat HP &lt; 6 check.
+* **Movement:** **Stunned** characters cap **rushing** to **closing**, same as **critical**, per the movement restriction for stunned operatives.
+* **Hotbar context menu (v13):** Item row menu uses **`ContextMenu`** with **`jQuery: false`** and a **`callback`** menu entry (not `onClick` alone) so core does not throw when activating **Add to hotbar**.
+* **Hotbar macro delegate:** Sheet classes are loaded with **dynamic `import()`** to avoid a circular dependency (`actor-sheet` → `sla-hotbar` → `actor-npc-sheet` → `actor-sheet`). The off-screen delegate uses **`Object.defineProperties`** for **`actor`** and **`document`** because **`ActorSheetV2`** defines those as read-only getters on the prototype.
+* **Context menu teardown:** Actor-sheet close now disposes the item context menu with animation disabled and awaited cleanup, preventing `getBoundingClientRect` errors when a menu target is detached during window close.
+* **Context menu text:** Hotbar menu entry key and displayed label now both read **`add to hotbar`** to avoid inconsistent UI text on Foundry v13 menu paths.
+* **Actor-sheet header controls:** `_getHeaderControls()` now filters by action/context (`configureToken` and `showTokenArtwork` only with token context) and deduplicates by `action + label`, removing duplicate menu entries and preventing null-sheet token configuration errors.
+* **Legacy confirm dialogs:** Species/package removal and item delete confirmations on actor sheets now use `SlaSimpleContentDialog` instead of `Dialog.confirm`, removing remaining V1 application warnings from those actions.
+
+### Notes
+* Core **unregister** for default sheets still references `foundry.appv1.sheets.ActorSheet` / `ItemSheet` because core defaults remain V1.
+
 ## [1.3.2] - 2026-04-01
 
 ### Changed
@@ -350,6 +392,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
+[2.0.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.0.0
 [1.3.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.2
 [1.3.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.1
 [1.3.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.0

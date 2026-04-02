@@ -176,7 +176,13 @@ export class BoilerplateActor extends Actor {
         const isDead = system.hp.value === 0 || woundCount >= 6;
         system.conditions.dead = isDead;
 
-        const isCritical = system.hp.value < 6 && !isDead;
+        // Critical: major damage / close to death — align with Active Effect (≤ half max HP, not dead)
+        let hpBase = 10;
+        const speciesItem = this.items.find(i => i.type === "species");
+        if (speciesItem && speciesItem.system.hp) hpBase = Number(speciesItem.system.hp) || 10;
+        const projectedHpMax = Math.max(1, hpBase + (system.stats.str?.total || 0));
+        const hpVal = Number(system.hp?.value) ?? 0;
+        const isCritical = !isDead && hpVal > 0 && hpVal <= Math.floor(projectedHpMax / 2);
         system.conditions.critical = isCritical;
 
         // Wounds forcing conditions (only set if wound exists)
@@ -365,8 +371,8 @@ export class BoilerplateActor extends Actor {
                 rushing += system.move.armorBonus.rushing;
             }
 
-            // 1. Critical Cap (Rushing cannot exceed Closing)
-            if (system.conditions.critical) {
+            // 1. Critical / Stunned: may not move faster than Closing (rushing capped to closing)
+            if (system.conditions.critical || system.conditions.stunned) {
                 if (rushing > closing) rushing = closing;
             }
 
@@ -761,6 +767,8 @@ export class BoilerplateActor extends Actor {
             for (const [key, value] of Object.entries(conditionChanges)) {
                 await syncStatus(key, value);
             }
+            // Bleeding is mandatory while wounded (Frother exception: exactly one wound); undo manual toggles
+            await this._syncBleedingToWounds();
         }
 
         // B. Handle Wound Logic (Head -> Stunned, Legs -> Immobile, Any -> Bleeding)
@@ -793,6 +801,34 @@ export class BoilerplateActor extends Actor {
         // 2. SEPARATE LOGIC: Handle HP Auto-Wounding
         if (foundry.utils.hasProperty(changed, "system.hp.value")) {
             await this._handleWoundThresholds();
+        }
+    }
+
+    /** @returns {number} Count of marked wound locations (0–6). */
+    _getWoundCount(w = this.system.wounds) {
+        if (!w) return 0;
+        return (w.head ? 1 : 0) + (w.torso ? 1 : 0) + (w.lArm ? 1 : 0) + (w.rArm ? 1 : 0) + (w.lLeg ? 1 : 0) + (w.rLeg ? 1 : 0);
+    }
+
+    /** Frother Feel No Pain: suppress Bleeding only while exactly one wound is marked. */
+    _frotherSuppressesBleeding(woundCount) {
+        if (woundCount !== 1) return false;
+        const species = this.items.find(i => i.type === "species");
+        const name = (species?.name ?? "").toLowerCase();
+        return name.includes("frother");
+    }
+
+    /**
+     * Apply/remove Bleeding from wound count and Frother exception (sheet toggles re-synced in _onUpdate).
+     */
+    async _syncBleedingToWounds() {
+        const woundCount = this._getWoundCount();
+        const hasBleeding = this.effects.some(e => e.statuses.has("bleeding"));
+        const shouldBleed = woundCount > 0 && !this._frotherSuppressesBleeding(woundCount);
+        if (shouldBleed && !hasBleeding) {
+            await this.toggleStatusEffect("bleeding", { active: true });
+        } else if (!shouldBleed && hasBleeding) {
+            await this.toggleStatusEffect("bleeding", { active: false });
         }
     }
 
@@ -849,24 +885,23 @@ export class BoilerplateActor extends Actor {
             }
         }
 
-        // 3. ANY WOUND -> BLEEDING
-        const woundCount = (w.head === true ? 1 : 0) + (w.torso === true ? 1 : 0) + 
-                          (w.lArm === true ? 1 : 0) + (w.rArm === true ? 1 : 0) + 
-                          (w.lLeg === true ? 1 : 0) + (w.rLeg === true ? 1 : 0);
-
-        if (woundCount > 0 && !hasEffect("bleeding")) {
-            effectsToToggle.push({ id: "bleeding", active: true });
-        }
-        else if (woundCount === 0 && hasEffect("bleeding")) {
-            effectsToToggle.push({ id: "bleeding", active: false });
-        }
-
         // EXECUTE UPDATES
         // processing sequentially to avoid race conditions
         for (const change of effectsToToggle) {
             await this.toggleStatusEffect(change.id, { active: change.active });
         }
-        
+
+        await this._syncBleedingToWounds();
+
+        const woundCount = this._getWoundCount(w);
+        if (woundCount >= 6) {
+            if (this.system.hp.value > 0) {
+                await this.update({ "system.hp.value": 0 });
+            } else if (!this.effects.some(e => e.statuses.has("dead"))) {
+                await this.toggleStatusEffect("dead", { active: true, overlay: true });
+            }
+        }
+
         // Force sheet to re-render if it's open to update the condition icons
         if (this.sheet?.rendered) {
             await this.sheet.render(false);
@@ -880,22 +915,23 @@ export class BoilerplateActor extends Actor {
         // Calculate your thresholds
         const hp = this.system.hp.value;
         const max = this.system.hp.max;
+        const woundCount = this._getWoundCount();
 
         // Helper to check if effect exists
         const hasEffect = (id) => this.effects.some(e => e.statuses.has(id));
 
-        // 1. DEAD (HP <= 0)
+        // 1. DEAD (HP <= 0 or six wounds — instant death regardless of HP)
         // We apply as overlay for visual emphasis
-        const isDead = hp <= 0;
+        const isDead = hp <= 0 || woundCount >= 6;
         if (isDead && !hasEffect("dead")) {
             await this.toggleStatusEffect("dead", { active: true, overlay: true });
         } else if (!isDead && hasEffect("dead")) {
             await this.toggleStatusEffect("dead", { active: false });
         }
 
-        // 2. CRITICAL (HP <= Max/2 AND Not Dead)
+        // 2. CRITICAL (HP <= floor(Max/2) AND Not Dead)
         // Note: We use the Effect ID (e.g., 'critical') not the boolean
-        const isCritical = hp <= (max / 2) && hp > 0;
+        const isCritical = hp > 0 && hp <= Math.floor(max / 2);
 
         if (isCritical && !hasEffect("critical")) {
             await this.toggleStatusEffect("critical", { active: true });

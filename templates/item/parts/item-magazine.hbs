@@ -8,8 +8,11 @@
 <div class="form-group" style="grid-column: 1 / -1;">
     <label>Ammo Type</label>
     <select name="system.ammoType">
-        <option value="">- Select Type -</option>
+        {{#if system.ammoType}}
         {{selectOptions @root.config.ammoTypes selected=system.ammoType localize=false}}
+        {{else}}
+        {{selectOptions @root.config.ammoTypes selected="std" localize=false}}
+        {{/if}}
     </select>
 </div>
 
@@ -19,7 +22,7 @@
     <div class="drop-zone weapon-link {{#if system.linkedWeapon}}filled{{/if}}">
         {{#if system.linkedWeapon}}
         <b>{{system.linkedWeapon}}</b>
-        <a class="remove-link"><i class="fas fa-times"></i></a>
+        <a class="remove-link" data-action="removeWeaponLink" href="#"><i class="fas fa-times"></i></a>
         {{else}}
         <span class="placeholder">Drop Weapon Here</span>
         {{/if}}

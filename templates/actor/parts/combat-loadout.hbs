@@ -26,16 +26,16 @@
                     {{!-- FIX: Only show Ammo if the weapon is Ranged --}}
                     {{#if (eq item.system.attackType "ranged")}}
                     {{#if item.system.maxAmmo}}
-                    <span
-                        style="font-family:'Courier New', monospace; font-weight:bold; {{#if (eq item.system.ammo 0)}}color:#ff5555;{{else}}color:#888;{{/if}}">
+                    <span class="sla-stat-readout"
+                        style="{{#if (eq item.system.ammo 0)}}color:#ff5555;{{else}}color:#888;{{/if}}">
                         [{{item.system.ammo}}/{{item.system.maxAmmo}}]
                     </span>
                     {{/if}}
                     {{/if}}
 
                     {{#if (eq item.type "explosive")}}
-                    <span
-                        style="font-family:'Courier New', monospace; font-weight:bold; {{#if (eq item.system.quantity 0)}}color:#ff5555;{{else}}color:#888;{{/if}}">
+                    <span class="sla-stat-readout"
+                        style="{{#if (eq item.system.quantity 0)}}color:#ff5555;{{else}}color:#888;{{/if}}">
                         x{{item.system.quantity}}
                     </span>
                     {{/if}}

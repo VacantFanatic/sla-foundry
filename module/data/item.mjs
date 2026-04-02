@@ -39,7 +39,8 @@ export class SlaMagazineData extends foundry.abstract.TypeDataModel {
             quantity: new fields.NumberField({ initial: 1, min: 0, integer: true }),
             ammoType: new fields.StringField({ initial: "std" }),
             ammoCapacity: new fields.NumberField({ initial: 30, integer: true }),
-            linkedWeapon: new fields.StringField()
+            linkedWeapon: new fields.StringField(),
+            description: new fields.HTMLField()
         };
     }
 }

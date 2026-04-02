@@ -9,7 +9,7 @@
 /* ==========================================
    0. FONTS
    ========================================== */
-@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&display=swap");
 
 /* ==========================================
    1. WINDOW STYLES
@@ -24,15 +24,56 @@
     padding: 0;
     overflow: hidden;
     border: $border-width-thick solid var(--sla-border);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
-/* FORM LAYOUT */
+/* Root layout: Application V2 templates use div.sla-sheet / .sla-item-root, not form */
+.sla-sheet.standard-form,
 form.sla-sheet {
+    flex: 1;
+    min-height: 0;
     height: 100%;
     @include flex-column;
     overflow: hidden;
     background: transparent;
     padding: $padding-sm;
+}
+
+.sla-industries.sheet.item .sla-item-root.standard-form {
+    flex: 1;
+    min-height: 0;
+    @include flex-column;
+    overflow: hidden;
+    background: transparent;
+    padding: $padding-sm;
+}
+
+/* V2 `tag: "form"`: sheet root is often <form.application…>; must flex like .window-content or inner layout never gets a max height */
+.application.sla-industries.sheet.item,
+form.application.sla-industries.sheet.item {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Item V2: same scroll contract as .sla-sheet .sheet-body (actors); forms.scss height:100% breaks flex overflow */
+.sla-industries.sheet.item .sla-item-root .sheet-body {
+    flex: 1;
+    min-height: 0;
+    height: auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+
+    .tab {
+        height: auto !important;
+    }
 }
 
 /* UTILITIES */

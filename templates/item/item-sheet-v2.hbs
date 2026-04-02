@@ -1,4 +1,4 @@
-<form class="{{cssClass}} sla-sheet sheet item {{item.type}}-theme" autocomplete="off">
+<div class="sla-item-root sheet item {{item.type}}-theme standard-form" autocomplete="off">
 
     {{!-- HEADER --}}
     <header class="sheet-header">
@@ -6,69 +6,65 @@
         <div class="header-details">
             <h1 class="charname"><input name="name" type="text" value="{{item.name}}" placeholder="Item Name" /></h1>
             <div class="item-subtitle">
-                {{!-- FIX: Removed 'capitalize' and changed prefix to match en.json --}}
                 <span class="type-label">{{localize (concat "TYPES.Item." item.type)}}</span>
             </div>
         </div>
     </header>
 
-    {{!-- LOGIC: Group A (Tabs) vs Group B (Single View) --}}
-    {{#if (or (eq item.type "weapon") (or (eq item.type "armor") (eq item.type "explosive")))}}
+    {{#if useItemTabs}}
 
-    {{!-- === GROUP A: PRESERVE TABS === --}}
     <nav class="sheet-tabs tabs" data-group="primary">
-        <a class="item" data-tab="attributes">Details</a>
-        <a class="item" data-tab="description">Description</a>
+        <a class="item {{tabs.attributes.cssClass}}" data-group="primary" data-tab="attributes">Details</a>
+        <a class="item {{tabs.description.cssClass}}" data-group="primary" data-tab="description">Description</a>
     </nav>
 
     <section class="sheet-body">
-        <div class="tab attributes" data-group="primary" data-tab="attributes">
+        <div class="tab attributes {{tabs.attributes.cssClass}}" data-group="primary" data-tab="attributes">
             {{> "systems/sla-industries/templates/item/parts/item-catalogue.hbs"}}
         </div>
 
-        <div class="tab description" data-group="primary" data-tab="description">
-            {{editor enrichedDescription target="system.description" engine="prosemirror" button=true owner=owner
-            editable=editable}}
+        <div class="tab description {{tabs.description.cssClass}}" data-group="primary" data-tab="description">
+            {{#if editable}}
+            <prose-mirror class="editor" name="system.description" toggled value="{{system.description}}">{{{enrichedDescription}}}</prose-mirror>
+            {{else}}
+            <div class="editor">{{{enrichedDescription}}}</div>
+            {{/if}}
         </div>
     </section>
 
     {{else}}
 
-    {{!-- === GROUP B: SINGLE VIEW (Attributes -> Drop Zone -> Description) === --}}
     <section class="sheet-body single-view">
 
-        {{!-- ROW 1 & 2: ATTRIBUTES & DROP ZONES (Handled by Partials) --}}
         <div class="sheet-attributes">
 
-            {{!-- Magazine / Drug / Generic Item (From Catalogue) --}}
-            {{#if (or (eq item.type "magazine") (or (eq item.type "drug") (eq item.type "item")))}}
+            {{#if (or (eq item.type "vehicle") (or (eq item.type "magazine") (or (eq item.type "drug") (eq item.type "item"))))}}
             {{> "systems/sla-industries/templates/item/parts/item-catalogue.hbs"}}
             {{/if}}
 
-            {{!-- Academic (Skill / Trait) --}}
             {{#if (or (eq item.type "skill") (eq item.type "trait"))}}
             {{> "systems/sla-industries/templates/item/parts/item-academic.hbs"}}
             {{/if}}
 
-            {{!-- Spectral (Ebb / Discipline) --}}
             {{#if (or (eq item.type "ebbFormula") (eq item.type "discipline"))}}
             {{> "systems/sla-industries/templates/item/parts/item-spectral.hbs"}}
             {{/if}}
 
-            {{!-- Dossier (Species / Package) --}}
             {{#if (or (eq item.type "species") (eq item.type "package"))}}
             {{> "systems/sla-industries/templates/item/parts/item-dossier.hbs"}}
             {{/if}}
         </div>
 
-        {{!-- ROW 3: DESCRIPTION (Always at bottom) --}}
         <div class="sheet-description">
             <div class="sla-header-bar-small">Description</div>
-            {{editor enrichedDescription target="system.description" engine="prosemirror" button=true owner=owner
-            editable=editable}}
+            {{#if editable}}
+            <prose-mirror class="editor" name="system.description" toggled value="{{system.description}}">{{{enrichedDescription}}}</prose-mirror>
+            {{else}}
+            <div class="editor">{{{enrichedDescription}}}</div>
+            {{/if}}
         </div>
 
     </section>
 
     {{/if}}
-</form>
+</div>

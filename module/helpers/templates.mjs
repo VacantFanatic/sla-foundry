@@ -5,13 +5,11 @@ export const preloadHandlebarsTemplates = async function () {
 
   // Define template paths as an array of strings
   const templatePaths = [
-    "systems/sla-industries/templates/actor/parts/header.hbs",
     "systems/sla-industries/templates/actor/parts/stats.hbs",
     "systems/sla-industries/templates/actor/parts/skills.hbs",
     "systems/sla-industries/templates/actor/parts/traits.hbs",
     "systems/sla-industries/templates/actor/parts/secondary.hbs",
     "systems/sla-industries/templates/actor/parts/wounds.hbs",
-    "systems/sla-industries/templates/actor/parts/inventory.hbs",
     "systems/sla-industries/templates/actor/parts/ebb.hbs",
     "systems/sla-industries/templates/actor/parts/disciplines.hbs",
     "systems/sla-industries/templates/chat/chat-weapon-rolls.hbs",
@@ -33,7 +31,13 @@ export const preloadHandlebarsTemplates = async function () {
     "systems/sla-industries/templates/chat/chat-damage-result.hbs",
     "systems/sla-industries/templates/actor/parts/combat-loadout.hbs",
     "systems/sla-industries/templates/item/parts/item-explosive.hbs",
-    "systems/sla-industries/templates/chat/reload.hbs"
+    "systems/sla-industries/templates/item/item-sheet-v2.hbs",
+    "systems/sla-industries/templates/actor/actor-sheet-v2.hbs",
+    "systems/sla-industries/templates/actor/actor-npc-sheet-v2.hbs",
+    "systems/sla-industries/templates/actor/actor-vehicle-sheet-v2.hbs",
+    "systems/sla-industries/templates/chat/reload.hbs",
+    "systems/sla-industries/templates/dialogs/simple-content-dialog.hbs",
+    "systems/sla-industries/templates/dialogs/xp-dialog.hbs"
   ];
 
   // Load the template parts

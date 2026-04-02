@@ -3,14 +3,22 @@
  */
 
 /**
+ * @param {Event} event
+ * @returns {DataTransfer|null}
+ */
+function getDataTransfer(event) {
+    return event.dataTransfer ?? event.originalEvent?.dataTransfer ?? null;
+}
+
+/**
  * Parses drop data from an event.
  * @param {Event} event - The drop event.
- * @param {boolean} useOriginalEvent - Whether to use originalEvent (for jQuery events).
  * @returns {Object|null} Parsed drop data or null if invalid.
  */
-async function parseDropData(event, useOriginalEvent = false) {
+async function parseDropData(event) {
     try {
-        const dataTransfer = useOriginalEvent ? event.originalEvent.dataTransfer : event.dataTransfer;
+        const dataTransfer = getDataTransfer(event);
+        if (!dataTransfer) return null;
         const data = JSON.parse(dataTransfer.getData('text/plain'));
         
         if (data.type !== "Item") return null;
@@ -51,7 +59,7 @@ export async function handleWeaponDrop(event, targetItem) {
 export async function handleWeaponSkillDrop(event, targetItem) {
     event.preventDefault();
     
-    const item = await parseDropData(event, true);
+    const item = await parseDropData(event);
     if (!item || item.type !== "skill") {
         ui.notifications.warn("Only 'Skill' items can be linked.");
         return false;
@@ -115,7 +123,7 @@ function normalizeSkills(skills) {
 export async function handleSkillDrop(event, targetItem) {
     event.preventDefault();
     
-    const item = await parseDropData(event, true);
+    const item = await parseDropData(event);
     if (!item || item.type !== "skill") {
         ui.notifications.warn("Only Skills can be added to this list.");
         return false;

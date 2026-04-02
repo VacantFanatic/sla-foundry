@@ -1,4 +1,4 @@
-<form class="{{cssClass}} sla-sheet threat-sheet" autocomplete="off">
+<div class="{{cssClass}} sla-sheet threat-sheet standard-form" autocomplete="off">
     <div class="threat-header">
         <div style="display:flex; align-items:center; flex:1;">
             <img class="threat-logo" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
@@ -85,7 +85,7 @@
             </div>
             <div style="margin-top:8px;">
                 <label>Capacity</label>
-                <textarea name="system.capacity" rows="3">{{system.capacity}}</textarea>
+                <input type="text" name="system.capacity" value="{{system.capacity}}" placeholder="e.g. 1 driver, 1 passenger" />
             </div>
         </div>
 
@@ -104,8 +104,12 @@
         </div>
 
         <div class="threat-section-bar">NOTES</div>
-        <div class="threat-content-box editor">
-            {{editor system.notes target="system.notes" engine="prosemirror" button=true owner=owner editable=editable}}
+        <div class="threat-content-box threat-notes-editor">
+            {{#if editable}}
+            <prose-mirror class="editor" name="system.notes" toggled value="{{system.notes}}">{{{enrichedNotes}}}</prose-mirror>
+            {{else}}
+            <div class="editor">{{{enrichedNotes}}}</div>
+            {{/if}}
         </div>
     </div>
-</form>
+</div>
