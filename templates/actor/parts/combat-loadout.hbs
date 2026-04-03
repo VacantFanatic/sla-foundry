@@ -1,69 +1,73 @@
-<div class="sla-panel" style="margin-top: 5px;">
+<div class="sla-panel sla-combat-loadout">
     <div class="sla-header-bar">COMBAT LOADOUT</div>
     <div class="scroll-list">
 
         {{!-- 1. WEAPONS GROUP --}}
         {{#if weapons.length}}
-        <div class="group-header"
-            style="background:#111; color:#D05E1A; font-size:0.85em; padding:2px 8px; font-weight:bold; border-bottom:1px solid #444; letter-spacing:1px;">
+        <div class="group-header sla-combat-group-header">
             WEAPONS
         </div>
         <div class="combat-list">
+            <div class="sla-combat-colhead" role="presentation">
+                <div class="sla-combat-colhead-name">Item</div>
+                <div class="sla-combat-colhead-dmg">Damage</div>
+                <div class="sla-combat-colhead-extra">Ammo / Qty</div>
+                <div class="sla-combat-colhead-actions"></div>
+            </div>
             {{#each weapons as |item|}}
-            <div class="item" data-item-id="{{item._id}}"
-                style="display:flex; align-items:center; padding:4px 8px; border-bottom:1px solid #333;">
+            <div class="item sla-combat-row" data-item-id="{{item._id}}">
 
-                {{!-- Name --}}
-                <div class="item-name" style="flex:2; font-weight:bold; color:#e0e0e0;">
+                <div class="sla-combat-name item-name">
                     <a class="item-edit">{{item.name}}</a>
                 </div>
 
-                {{!-- Stats & Ammo --}}
-                <div class="item-detail"
-                    style="flex:1.5; text-align:center; font-size:0.9em; color:#aaa; display:flex; justify-content:center; gap:10px;">
-                    <span style="color:#fff;" title="Damage: {{item.system.damage}}">{{item.resolvedDamage}}</span>
+                <div class="sla-combat-stat-dmg" title="Damage: {{item.system.damage}}">
+                    <span>{{item.resolvedDamage}}</span>
+                </div>
 
-                    {{!-- FIX: Only show Ammo if the weapon is Ranged --}}
+                <div class="sla-combat-stat-extra">
                     {{#if (eq item.system.attackType "ranged")}}
                     {{#if item.system.maxAmmo}}
-                    <span class="sla-stat-readout"
-                        style="{{#if (eq item.system.ammo 0)}}color:#ff5555;{{else}}color:#888;{{/if}}">
+                    <span class="sla-stat-readout sla-combat-ammo {{#if (eq item.system.ammo 0)}}is-empty{{/if}}">
                         [{{item.system.ammo}}/{{item.system.maxAmmo}}]
                     </span>
                     {{/if}}
                     {{/if}}
 
                     {{#if (eq item.type "explosive")}}
-                    <span class="sla-stat-readout"
-                        style="{{#if (eq item.system.quantity 0)}}color:#ff5555;{{else}}color:#888;{{/if}}">
+                    <span class="sla-stat-readout sla-combat-qty {{#if (eq item.system.quantity 0)}}is-empty{{/if}}">
                         x{{item.system.quantity}}
                     </span>
                     {{/if}}
                 </div>
 
-                {{!-- Controls --}}
-                <div class="item-controls"
-                    style="flex:0 0 90px; text-align:right; display:flex; justify-content:flex-end; gap:8px;">
-                    <a class="rollable" data-roll-type="item" title="Attack">
-                        <i class="fas fa-crosshairs" style="color:#D05E1A"></i>
+                <div class="item-controls sla-combat-actions">
+                    <a class="rollable sla-combat-action" data-roll-type="item" title="Attack">
+                        <i class="fas fa-crosshairs"></i>
                     </a>
 
-                    {{!-- RELOAD: Only show if NOT Melee/Unarmed --}}
-                    {{#if item.isReloadable}}
-                    <a class="item-reload" title="{{#if (lte item.system.ammo 0)}}Load{{else}}Reload{{/if}}">
+                    <a class="item-roll-damage sla-combat-action" title="Roll damage">
+                        <i class="fas fa-droplet"></i>
+                    </a>
+
+                    {{!-- Ranged only: melee / unarmed never show load or reload --}}
+                    {{#if (and item.isReloadable (eq item.system.attackType "ranged"))}}
+                    <a class="item-reload sla-combat-action" title="{{#if (lte item.system.ammo 0)}}Load{{else}}Reload{{/if}}">
                         {{#if (lte item.system.ammo 0)}}
-                        <i class="fas fa-dot-circle" style="color:#d05e1a;"></i>
+                        <i class="fas fa-dot-circle sla-combat-reload-empty"></i>
                         {{else}}
-                        <i class="fas fa-sync-alt" style="color:#aaa;"></i>
+                        <i class="fas fa-sync-alt sla-combat-reload-ready"></i>
                         {{/if}}
                     </a>
+                    {{else}}
+                    <span class="sla-combat-action-spacer" aria-hidden="true"></span>
                     {{/if}}
 
-                    <a class="item-toggle" title="Equip/Holster">
+                    <a class="item-toggle sla-combat-action" title="Equip/Holster">
                         {{#if item.system.equipped}}
-                        <i class="fas fa-check-circle" style="color:#39ff14;"></i>
+                        <i class="fas fa-check-circle sla-combat-equipped"></i>
                         {{else}}
-                        <i class="fas fa-circle" style="color:#444;"></i>
+                        <i class="fas fa-circle sla-combat-unequipped"></i>
                         {{/if}}
                     </a>
                 </div>
@@ -74,37 +78,45 @@
 
         {{!-- 2. ARMOR GROUP --}}
         {{#if armors.length}}
-        <div class="group-header"
-            style="background:#111; color:#D05E1A; font-size:0.85em; padding:2px 8px; font-weight:bold; border-bottom:1px solid #444; margin-top:5px; letter-spacing:1px;">
+        <div class="group-header sla-combat-group-header sla-combat-group-header--armor">
             ARMOR
         </div>
         <div class="combat-list">
+            <div class="sla-combat-colhead" role="presentation">
+                <div class="sla-combat-colhead-name">Item</div>
+                <div class="sla-combat-colhead-dmg">PV</div>
+                <div class="sla-combat-colhead-extra">Resistance</div>
+                <div class="sla-combat-colhead-actions"></div>
+            </div>
             {{#each armors as |item|}}
-            <div class="item" data-item-id="{{item._id}}"
-                style="display:flex; align-items:center; padding:4px 8px; border-bottom:1px solid #333;">
+            <div class="item sla-combat-row" data-item-id="{{item._id}}">
 
-                <div class="item-name" style="flex:2; font-weight:bold; color:#e0e0e0;">
+                <div class="sla-combat-name item-name">
                     <a class="item-edit">{{item.name}}</a>
                 </div>
 
-                <div class="item-detail"
-                    style="flex:1.5; display:flex; align-items:center; justify-content:center; gap:10px; font-size:0.9em; color:#aaa;">
+                <div class="sla-combat-stat-dmg">
                     <span>PV: {{item.system.pv}}</span>
-                    <div style="display:flex; align-items:center; gap:3px;">
-                        <i class="fas fa-shield-alt" style="color:#8a2be2; font-size:0.8em;"></i>
-                        <input type="number" class="inline-edit" data-field="system.resistance.value"
-                            data-item-id="{{item._id}}" value="{{item.system.resistance.value}}"
-                            style="width:30px; height:20px; text-align:center; background:#222; border:1px solid #555; color:#fff;" />
-                        <span>/ {{item.system.resistance.max}}</span>
+                </div>
+
+                <div class="sla-combat-stat-extra">
+                    <div class="sla-combat-resistance">
+                        <i class="fas fa-shield-alt sla-combat-resistance-icon"></i>
+                        <input type="number" class="inline-edit sla-combat-resistance-input" data-field="system.resistance.value"
+                            data-item-id="{{item._id}}" value="{{item.system.resistance.value}}" />
+                        <span class="sla-combat-resistance-max">/ {{item.system.resistance.max}}</span>
                     </div>
                 </div>
 
-                <div class="item-controls" style="flex:0 0 40px; text-align:right;">
-                    <a class="item-toggle" title="Wear/Remove">
+                <div class="item-controls sla-combat-actions">
+                    <span class="sla-combat-action-spacer" aria-hidden="true"></span>
+                    <span class="sla-combat-action-spacer" aria-hidden="true"></span>
+                    <span class="sla-combat-action-spacer" aria-hidden="true"></span>
+                    <a class="item-toggle sla-combat-action" title="Wear/Remove">
                         {{#if item.system.equipped}}
-                        <i class="fas fa-check-circle" style="color:#39ff14;"></i>
+                        <i class="fas fa-check-circle sla-combat-equipped"></i>
                         {{else}}
-                        <i class="fas fa-circle" style="color:#444;"></i>
+                        <i class="fas fa-circle sla-combat-unequipped"></i>
                         {{/if}}
                     </a>
                 </div>
