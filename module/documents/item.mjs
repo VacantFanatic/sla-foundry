@@ -205,7 +205,7 @@ export class BoilerplateItem extends Item {
         }
 
         const ir = Number(this.system.infectionRating) || 10;
-        const strVal = Number(actor.system.stats?.str?.value) || 0;
+        const strVal = Number(actor.system.stats?.str?.total ?? actor.system.stats?.str?.value ?? 0);
         const roll = createSLARoll("1d10");
         await roll.evaluate();
 
