@@ -8,6 +8,7 @@ import { calculateRollResult, generateDiceTooltip, createSLARoll } from "../help
 import { prepareItems } from "../helpers/items.mjs";
 import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from "../helpers/modifiers.mjs";
 import { addActorItemToHotbar } from "../helpers/sla-hotbar.mjs";
+import { SLAChat } from "../helpers/chat.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -545,6 +546,13 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             return;
         }
 
+        const damageRoll = t.closest(".item-roll-damage");
+        if (damageRoll) {
+            event.preventDefault();
+            await this._onCombatLoadoutDamageRoll(damageRoll);
+            return;
+        }
+
         const rollable = t.closest(".item-rollable") || t.closest(".rollable");
         if (rollable) {
             event.preventDefault();
@@ -1053,6 +1061,95 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
 
         return true;
+    }
+
+    /**
+     * Magazine ammo type damage modifier (matches attack / item roll preview).
+     * @param {Item} item
+     * @returns {number}
+     */
+    _getAmmoDamageModifierForWeapon(item) {
+        if (!item?.system?.magazineId || !this.actor) return 0;
+        const magazine = this.actor.items.get(item.system.magazineId);
+        if (!magazine) return 0;
+        const ammoType = magazine.system.ammoType || "standard";
+        const configMods = CONFIG.SLA?.ammoModifiers?.[ammoType];
+        return configMods ? Number(configMods.damage) || 0 : 0;
+    }
+
+    /**
+     * AD for damage application (powersuit weapons derive AD from STR).
+     * @param {Item} item
+     * @returns {number}
+     */
+    _resolveWeaponAdForDamageRoll(item) {
+        let adValue = Number(item.system.ad) || 0;
+        if (item.system.powersuitAttack) {
+            const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0);
+            const adFromStrMinus = Number(item.system.adFromStrMinus) || 0;
+            if (adFromStrMinus > 0) {
+                adValue = Math.max(0, strValue - adFromStrMinus);
+            }
+        }
+        return adValue;
+    }
+
+    /**
+     * Roll weapon / explosive damage from Combat loadout (same chat card as attack damage button).
+     * @param {HTMLElement} anchor  `.item-roll-damage` inside a `.item[data-item-id]` row
+     */
+    async _onCombatLoadoutDamageRoll(anchor) {
+        const row = anchor.closest(".item");
+        const itemId = row?.dataset?.itemId;
+        const item = itemId ? this.actor.items.get(itemId) : null;
+        if (!item || (item.type !== "weapon" && item.type !== "explosive")) return;
+        if (!this.actor.isOwner) {
+            ui.notifications.warn("You do not own this actor.");
+            return;
+        }
+        if (!this._canProceedWithWeaponAttack(item, { requireTarget: false })) return;
+
+        const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0);
+        let damageMod = 0;
+
+        if (item.type === "weapon") {
+            const isMelee = (item.system.attackType || "melee") === "melee";
+            if (isMelee) {
+                if (strValue >= 7) damageMod += 4;
+                else if (strValue === 6) damageMod += 2;
+                else if (strValue === 5) damageMod += 1;
+            }
+            damageMod += this._getAmmoDamageModifierForWeapon(item);
+        }
+
+        const rawBase = item.system.damage || item.system.dmg || "0";
+        const rollFormula = this._buildWeaponDamageFormula(String(rawBase), damageMod);
+        const minDamage = Number(item.system.minDamage) || 0;
+        const adValue = item.type === "explosive"
+            ? (Number(item.system.ad) || 0)
+            : this._resolveWeaponAdForDamageRoll(item);
+
+        const flavorText = item.type === "explosive"
+            ? `<span style="color:#D05E1A">${item.name}</span> — Explosive damage`
+            : `<span style="color:#D05E1A">${item.name}</span> — Standard Damage Roll`;
+
+        const parentTargets = Array.from(game.user.targets).map(t => t.document.uuid);
+        const rollData = typeof item.getRollData === "function" ? item.getRollData() : this.actor.getRollData();
+
+        try {
+            await SLAChat.executeStandardDamageRoll({
+                actor: this.actor,
+                rollData: rollData ?? this.actor.getRollData(),
+                rollFormula,
+                adValue,
+                minDamage,
+                flavorText,
+                parentTargets
+            });
+        } catch (err) {
+            console.error("SLA | Combat loadout damage roll failed:", err);
+            ui.notifications.error("SLA | Failed to roll damage. See console for details.");
+        }
     }
 
     _getActorTokenForRangeCheck() {

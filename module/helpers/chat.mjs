@@ -34,6 +34,92 @@ export class SLAChat {
     }
 
     /**
+     * Evaluate damage, post the damage chat card, and optionally auto-apply (MOS wound path).
+     * Used by chat-card buttons and actor sheet combat loadout.
+     *
+     * @param {object} options
+     * @param {Actor} options.actor
+     * @param {string} options.rollFormula
+     * @param {object} [options.rollData]  Data for Roll formula resolution (@stats, @item, etc.)
+     * @param {number} [options.adValue=0]
+     * @param {number} [options.minDamage=0]
+     * @param {string} [options.flavorText="Standard Damage Roll"]
+     * @param {string[]} [options.parentTargets=[]]  Token UUIDs for apply-damage buttons
+     * @param {boolean} [options.autoApplyWound=false]
+     */
+    static async executeStandardDamageRoll({
+        actor,
+        rollFormula,
+        rollData = null,
+        adValue = 0,
+        minDamage = 0,
+        flavorText = "Standard Damage Roll",
+        parentTargets = [],
+        autoApplyWound = false
+    }) {
+        if (!actor) {
+            ui.notifications.error("SLA | Actor not found.");
+            return;
+        }
+        if (!actor.isOwner) {
+            ui.notifications.warn("You do not own this actor.");
+            return;
+        }
+
+        const formula = String(rollFormula ?? "0").trim();
+        if (!formula || formula === "0") {
+            ui.notifications.warn("No damage formula to roll.");
+            return;
+        }
+
+        const data = rollData ?? actor.getRollData?.() ?? {};
+        let roll = new Roll(formula, data);
+        await roll.evaluate();
+
+        const minDmg = Math.max(0, Number(minDamage) || 0);
+        let finalTotal = Math.max(0, roll.total);
+        let flavor = flavorText;
+
+        if (finalTotal < minDmg) {
+            finalTotal = minDmg;
+            if (minDmg > 0) {
+                flavor += `<br/><span style="color:orange; font-size:0.9em;">(Raised to Min Damage ${minDmg})</span>`;
+            }
+            if (roll._total !== undefined) roll._total = minDmg;
+        }
+
+        const templateData = {
+            damageTotal: finalTotal,
+            adValue,
+            flavor
+        };
+
+        const content = await foundry.applications.handlebars.renderTemplate(
+            "systems/sla-industries/templates/chat/chat-damage.hbs",
+            templateData
+        );
+
+        await roll.toMessage({
+            speaker: ChatMessage.getSpeaker({ actor }),
+            content,
+            flags: {
+                sla: {
+                    targets: parentTargets,
+                    autoApply: autoApplyWound
+                }
+            }
+        });
+
+        if (autoApplyWound && parentTargets.length > 0) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            const targetUuid = parentTargets[0];
+            if (targetUuid) {
+                await this._applyDamageToTarget(finalTotal, adValue, targetUuid);
+            }
+        }
+    }
+
+    /**
      * PART 1: ROLL DAMAGE (Standard Button & Tactical Choices)
      */
     static async _onRollDamage(ev) {
@@ -131,73 +217,23 @@ export class SLAChat {
             flavorText = "Standard Damage Roll";
         }
 
-        // 3. EXECUTE ROLL & RENDER CARD
-        console.log("SLA | Rolling Damage:", rollFormula);
-        let roll = new Roll(rollFormula);
-        await roll.evaluate();
-
-        // CHECK MIN DAMAGE AND PREVENT NEGATIVE DAMAGE
-        // If min damage is not populated, assume it's 0
-        // Handle both string and number formats - use attr() for reliable reading
         const minDmgRaw = btn.attr("data-min") || btn.data("min") || "0";
         const minDmg = Math.max(0, Number(minDmgRaw) || 0);
-        let finalTotal = Math.max(0, roll.total); // Never allow negative damage
 
-        console.log(`SLA | Damage Roll - Raw: ${roll.total}, Min Damage (raw: "${minDmgRaw}", parsed: ${minDmg}), Final Before Check: ${finalTotal}`);
-
-        // Always enforce minimum damage (even if it's 0)
-        if (finalTotal < minDmg) {
-            console.log(`SLA | Min Damage Triggered: ${finalTotal} -> ${minDmg}`);
-            finalTotal = minDmg;
-            if (minDmg > 0) {
-                flavorText += `<br/><span style="color:orange; font-size:0.9em;">(Raised to Min Damage ${minDmg})</span>`;
-            }
-
-            // Critical: Force the text property of the roll instance
-            // The Roll instance is immutable-ish, but for display and apply buttons data, we need this.
-            if (roll._total !== undefined) roll._total = minDmg;
-        } else {
-            console.log(`SLA | Min Damage Check: ${finalTotal} >= ${minDmg} (No Change)`);
-        }
-        
-        console.log(`SLA | Final Damage Total: ${finalTotal}`);
-
-        const templateData = {
-            damageTotal: finalTotal,
-            adValue: adValue,
-            flavor: flavorText
-        };
-
-        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-damage.hbs", templateData);
-
-        // Get targets from parent message flags
         const messageId = card.closest(".message").data("messageId");
         const parentMessage = game.messages.get(messageId);
         const parentTargets = parentMessage?.flags?.sla?.targets || [];
 
-        const damageMessage = await roll.toMessage({
-            speaker: ChatMessage.getSpeaker({ actor: actor }),
-            content: content,
-            flags: {
-                sla: {
-                    targets: parentTargets,
-                    autoApply: action === "wound" // Flag for auto-apply
-                }
-            }
+        await this.executeStandardDamageRoll({
+            actor,
+            rollData: actor.getRollData?.(),
+            rollFormula,
+            adValue,
+            minDamage: minDmg,
+            flavorText,
+            parentTargets,
+            autoApplyWound: action === "wound"
         });
-
-        // AUTO-APPLY DAMAGE FOR WOUND CHOICES
-        if (action === "wound" && parentTargets.length > 0) {
-            // Wait a moment for the message to render
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            // Get the first target (primary target)
-            const targetUuid = parentTargets[0];
-            if (targetUuid) {
-                // Automatically apply damage to the target
-                await this._applyDamageToTarget(finalTotal, adValue, targetUuid);
-            }
-        }
         } catch (err) {
             console.error("SLA | Error in _onRollDamage:", err);
             ui.notifications.error("SLA | Failed to roll damage. See console for details.");

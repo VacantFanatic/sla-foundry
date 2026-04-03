@@ -1742,6 +1742,174 @@ form.application.sla-industries.item,
   padding: 0;
 }
 
+/* ---- Combat loadout: grid columns (damage/PV, ammo/resistance, aligned actions) ---- */
+.sla-sheet .sla-combat-loadout {
+  margin-top: 5px;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-group-header {
+  background: #111;
+  color: #d05e1a;
+  font-size: 0.85em;
+  padding: 2px 8px;
+  font-weight: bold;
+  border-bottom: 1px solid #444;
+  letter-spacing: 1px;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-group-header--armor {
+  margin-top: 5px;
+}
+
+.sla-sheet .sla-combat-loadout .combat-list .sla-combat-row,
+.sla-sheet .sla-combat-loadout .combat-list .sla-combat-colhead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5.25rem 8.5rem var(--sla-combat-actions-w, 118px);
+  align-items: center;
+  column-gap: 10px;
+  padding: 4px 8px;
+  border-bottom: 1px solid #333;
+}
+
+.sla-sheet .sla-combat-loadout .combat-list .sla-combat-colhead {
+  background: #161616;
+  font-size: 0.7em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #888;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-colhead-name {
+  min-width: 0;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-colhead-dmg {
+  text-align: right;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-colhead-extra {
+  text-align: center;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-colhead-actions {
+  min-width: 0;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-name {
+  font-weight: bold;
+  color: #e0e0e0;
+  min-width: 0;
+}
+.sla-sheet .sla-combat-loadout .sla-combat-name a.item-edit {
+  color: inherit;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-stat-dmg {
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-stat-extra {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 22px;
+  font-size: 0.9em;
+  color: #888;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-ammo.is-empty,
+.sla-sheet .sla-combat-loadout .sla-combat-qty.is-empty {
+  color: #ff5555;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-resistance {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-resistance-icon {
+  color: #8a2be2;
+  font-size: 0.8em;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-resistance-input {
+  width: 30px;
+  height: 20px;
+  text-align: center;
+  background: #222;
+  border: 1px solid #555;
+  color: #fff;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-resistance-max {
+  color: #aaa;
+  white-space: nowrap;
+}
+
+/* Override .sla-sheet .item-controls (flex) so attack/damage/reload/equip columns align */
+.sla-sheet .sla-combat-loadout .item-controls.sla-combat-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 22px);
+  gap: 8px;
+  justify-content: end;
+  justify-items: center;
+  align-items: center;
+  min-width: 0;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-actions .sla-combat-action,
+.sla-sheet .sla-combat-loadout .sla-combat-actions > a {
+  width: 22px;
+  text-align: center;
+  cursor: pointer;
+  color: #aaa;
+}
+.sla-sheet .sla-combat-loadout .sla-combat-actions .sla-combat-action:hover,
+.sla-sheet .sla-combat-loadout .sla-combat-actions > a:hover {
+  color: #fff;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-action .fa-crosshairs {
+  color: #d05e1a;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-action .fa-droplet {
+  color: #ff4444;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-reload-empty {
+  color: #d05e1a;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-reload-ready {
+  color: #aaa;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-equipped {
+  color: #39ff14;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-unequipped {
+  color: #444;
+}
+
+.sla-sheet .sla-combat-loadout .sla-combat-action-spacer {
+  width: 22px;
+  height: 1px;
+  pointer-events: none;
+}
+
 /* ==========================================
    6. TABS & EDITOR
    ========================================== */

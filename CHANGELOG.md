@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-04-04
+
+### Added
+* **Combat loadout — roll damage:** On the **Combat** tab, each weapon and explosive row has a **blood drop** control to roll **weapon damage** without using the attack chat card first. The result uses the same damage chat card as the attack flow (minimum damage, AD, apply to target/selected). The formula includes **melee STR damage steps**, **loaded magazine ammo modifiers** (when applicable), and **powersuit AD** rules where relevant; current **targeted tokens** are passed for the apply buttons.
+* **Combat loadout — column headers:** **Weapons** lists **Item**, **Damage**, and **Ammo / Qty** above the stat columns; **Armor** lists **Item**, **PV**, and **Resistance**.
+
+### Changed
+* **Combat loadout layout:** **Weapons** and **armor** rows use a shared **CSS grid** so **damage** aligns with **PV**, and **ammo / quantity** aligns with **resistance**. Action icons use a **fixed four-slot** strip so **attack**, **damage roll**, **reload** (when shown), and **equip** line up across rows.
+* **Combat loadout — reload:** **Load / reload** is shown only for **ranged** weapons (`attackType === "ranged"`), never for melee or unarmed-style entries, even if the skill field would otherwise mark the item reloadable.
+* **Damage rolls:** Chat and sheet both use **`SLAChat.executeStandardDamageRoll`**, which evaluates rolls with **`actor` / item roll data** so `@`-style formula data resolves consistently.
+* **World migration version** is **`2.2.0`**. Worlds older than that still run the usual migration pass (including **2.0.0** HTML defaults and **2.1.0** drug field cleanup when needed); this release adds no new document transforms.
+
 ## [2.1.0] - 2026-04-03
 
 ### Added
@@ -412,7 +424,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.1.0...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.2.0...HEAD
+[2.2.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.2.0
 [2.1.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.1.0
 [2.0.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.0.1
 [2.0.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.0.0
