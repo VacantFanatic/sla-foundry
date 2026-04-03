@@ -6,6 +6,38 @@ import { NATURAL_WEAPONS } from "../data/natural-weapons.mjs";
  */
 export class BoilerplateActor extends Actor {
 
+    /**
+     * Active effect change rows (Foundry 14 may store under effect.system.changes).
+     * @param {ActiveEffect} effect
+     * @returns {EffectChangeData[]}
+     */
+    static _effectChangeRows(effect) {
+        const root = effect?.changes;
+        if (Array.isArray(root) && root.length) return root;
+        const nested = effect?.system?.changes;
+        return Array.isArray(nested) ? nested : [];
+    }
+
+    /**
+     * Sum ADD modifiers from enabled effects on system.stats.<key>.bonus or legacy .value.
+     * Core does not reliably merge nested TypeDataModel paths, so we apply this explicitly.
+     * @param {string} statKey  str, dex, know, conc, cha, cool
+     */
+    _sumActiveEffectAddsForCoreStat(statKey) {
+        const addMode = globalThis.CONST?.ACTIVE_EFFECT_MODES?.ADD ?? 2;
+        const kb = `system.stats.${statKey}.bonus`;
+        const kv = `system.stats.${statKey}.value`;
+        let sum = 0;
+        for (const effect of this.effects ?? []) {
+            if (effect.disabled) continue;
+            for (const ch of BoilerplateActor._effectChangeRows(effect)) {
+                if (ch.mode !== addMode) continue;
+                if (ch.key === kb || ch.key === kv) sum += Number(ch.value) || 0;
+            }
+        }
+        return sum;
+    }
+
     /** @override */
     prepareDerivedData() {
         super.prepareDerivedData();
@@ -19,14 +51,25 @@ export class BoilerplateActor extends Actor {
         // Only calculate for Characters and NPCs
         if (actorData.type === 'character' || actorData.type === 'npc') {
 
-            // 1. RESET TOTALS TO BASE VALUES
-            // We must start fresh every update cycle
+            // 1. Core stat totals: _source base + stored bonus + explicit sum of active effect ADD rows
+            const statsWithBonus = new Set(["str", "dex", "know", "conc", "cha", "cool"]);
+            const srcStats = foundry.utils.getProperty(this._source, "system.stats") || {};
+            for (const key of statsWithBonus) {
+                const stat = system.stats[key];
+                if (!stat || typeof stat !== "object") continue;
+                const src = srcStats[key] || {};
+                const base = Number(src.value) || 0;
+                const srcBonus = Number(src.bonus) || 0;
+                const fromEffects = this._sumActiveEffectAddsForCoreStat(key);
+                stat.total = base + srcBonus + fromEffects;
+            }
             for (const [key, stat] of Object.entries(system.stats)) {
+                if (!stat || typeof stat !== "object") continue;
+                if (statsWithBonus.has(key)) continue;
                 stat.total = Number(stat.value) || 0;
             }
 
-            // 2. APPLY DRUG MODIFIERS
-            this._applyDrugModifiers(system);
+            // 2. Drug mechanics use Active Effects (item embedded effects); do not stack here.
 
             // 2B. APPLY ARMOR MODIFIERS
             this._applyArmorModifiers(system);
@@ -43,32 +86,6 @@ export class BoilerplateActor extends Actor {
             // 6. CALCULATE DERIVED (HP, Init, Move) - Requires Final Stats
             this._calculateDerived(system);
         }
-    }
-
-    /* -------------------------------------------- */
-    /* 1. Drugs                                     */
-    /* -------------------------------------------- */
-    _applyDrugModifiers(system) {
-        let damageReduction = 0;
-
-        // Use 'this.items' to ensure we get the collection
-        const drugs = this.items.filter(i => i.type === 'drug' && i.system.active);
-
-        for (const drug of drugs) {
-            const m1 = drug.system.mods.first;
-            const m2 = drug.system.mods.second;
-            const apply = (mod) => {
-                if (mod.stat && system.stats[mod.stat]) {
-                    system.stats[mod.stat].total += (mod.value || 0);
-                }
-            };
-
-            if (m1 && m1.value !== 0) apply(m1);
-            if (m2 && m2.value !== 0) apply(m2);
-
-            damageReduction += (drug.system.damageReduction || 0);
-        }
-        system.wounds.damageReduction = damageReduction;
     }
 
     /* -------------------------------------------- */

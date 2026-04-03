@@ -1,0 +1,34 @@
+<div class="sla-panel sla-item-effects">
+    <div class="sla-header-bar flexrow" style="justify-content: space-between; align-items: center;">
+        <span>ITEM EFFECTS</span>
+        {{#if editable}}
+        <a class="sla-item-effect-create" title="Add effect"><i class="fas fa-plus"></i></a>
+        {{/if}}
+    </div>
+    <p class="sla-item-effects-hint" style="font-size:0.8em; color:#888; margin:6px 0;">Effects are usually set to transfer to the actor when applied (e.g. dose or failed infection test).</p>
+
+    <div class="sla-effects-toolbar">
+        <input type="search" class="sla-item-effect-search" placeholder="Search effects" autocomplete="off" />
+    </div>
+
+    <ol class="items-list sla-item-effects-list">
+        {{#each itemEffects as |eff|}}
+        <li class="item flexrow sla-item-effect-row" data-effect-id="{{eff.id}}" data-effect-name="{{eff.name}}">
+            <div class="item-image flex0" style="flex:0 0 32px;">
+                <img src="{{eff.img}}" width="28" height="28" alt="" />
+            </div>
+            <div class="item-name flex2" style="flex:2; min-width:0;">
+                <h4 style="margin:0;">{{eff.name}}</h4>
+            </div>
+            {{#if ../editable}}
+            <div class="item-controls flex0" style="flex:0 0 72px; text-align:right;">
+                <a class="sla-item-effect-edit" data-effect-id="{{eff.id}}" title="Edit"><i class="fas fa-edit"></i></a>
+                <a class="sla-item-effect-delete" data-effect-id="{{eff.id}}" title="Delete"><i class="fas fa-trash"></i></a>
+            </div>
+            {{/if}}
+        </li>
+        {{else}}
+        <li class="sla-effects-empty" style="padding:16px; text-align:center; color:#666; font-style:italic;">No effects. Add one to define mechanical changes (Details, Duration, Changes).</li>
+        {{/each}}
+    </ol>
+</div>

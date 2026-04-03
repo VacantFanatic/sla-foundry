@@ -4,7 +4,7 @@ export const NATURAL_WEAPONS = {
         type: "weapon",
         img: "icons/svg/paw.svg",
         system: {
-            damage: "@stats.str.value - 2",
+            damage: "@stats.str.total - 2",
             minDamage: "0",
             ad: 0,
             attackType: "melee",
@@ -24,7 +24,7 @@ export const NATURAL_WEAPONS = {
         type: "weapon",
         img: "icons/svg/paw.svg",
         system: {
-            damage: "@stats.str.value - 1",
+            damage: "@stats.str.total - 1",
             minDamage: "2",
             ad: 1,
             attackType: "melee",
@@ -44,7 +44,7 @@ export const NATURAL_WEAPONS = {
         type: "weapon",
         img: "icons/svg/paw.svg",
         system: {
-            damage: "@stats.str.value - 1",
+            damage: "@stats.str.total - 1",
             minDamage: "2",
             ad: 0,
             attackType: "melee",

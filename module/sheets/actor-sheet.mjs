@@ -26,10 +26,11 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     static TABS = {
         primary: {
             tabs: [
-                { id: "main", label: "Main" },
-                { id: "ebb", label: "Combat" },
-                { id: "inventory", label: "Inventory" },
-                { id: "biography", label: "Bio & Traits" }
+                { id: "main", label: "Main", icon: "fa-id-card" },
+                { id: "ebb", label: "Combat", icon: "fa-crosshairs" },
+                { id: "inventory", label: "Inventory", icon: "fa-box-open" },
+                { id: "biography", label: "Bio & Traits", icon: "fa-book" },
+                { id: "effects", label: "Effects", icon: "fa-bolt" }
             ],
             initial: "main"
         }
@@ -61,6 +62,184 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     /** @type {InstanceType<typeof foundry.applications.ux.ContextMenu> | null} */
     #sheetItemContextMenu = null;
+
+    /**
+     * Edit/Play stat display toggle lives in the window header (outside the form).
+     * @param {AbortSignal} signal
+     */
+    #injectStatSheetHeaderToggle(signal) {
+        if (this.actor.type !== "character") return;
+        const form = this.element instanceof HTMLElement ? this.element : null;
+        const win = form?.closest(".window-app") ?? form?.closest(".application");
+        const header = win?.querySelector(".window-header");
+        if (!header) return;
+
+        header.querySelector(".sla-stat-sheet-header-mode")?.remove();
+
+        const mode = this.actor.getFlag("sla-industries", "statSheetMode") ?? "play";
+        const wrap = document.createElement("div");
+        wrap.className = "sla-stat-sheet-header-mode";
+        wrap.setAttribute("role", "group");
+        wrap.setAttribute("aria-label", game.i18n.localize("SLA.StatSheetMode.GroupLabel"));
+
+        const isPlay = mode === "play";
+        if (!this.actor.isOwner) {
+            wrap.appendChild(this.#createHeaderStatModeSwitch(isPlay, false));
+        } else {
+            const sw = this.#createHeaderStatModeSwitch(isPlay, true);
+            wrap.appendChild(sw);
+            sw.addEventListener("click", this.#onHeaderStatSwitchClick, { signal });
+        }
+
+        // Place left of the header "toggle controls" button (App V2 `window.controls`), not only `.window-controls`
+        // (DOM order can put that button before the controls container, which left the pill on the wrong side).
+        const toggleControls = this.window?.controls;
+        if (toggleControls instanceof HTMLElement && toggleControls.parentNode instanceof HTMLElement) {
+            toggleControls.parentNode.insertBefore(wrap, toggleControls);
+        } else {
+            const controls = header.querySelector(".window-controls");
+            if (controls instanceof HTMLElement) header.insertBefore(wrap, controls);
+            else header.appendChild(wrap);
+        }
+    }
+
+    /**
+     * Core window-header CSS forces square icon buttons and can flatten children to inline; inline layout wins.
+     * @param {HTMLElement} track
+     * @param {HTMLElement} thumb
+     * @param {HTMLElement} labL
+     * @param {HTMLElement} labR
+     * @param {boolean} isPlay
+     */
+    #applyHeaderStatSwitchInlineLayout(track, thumb, labL, labR, isPlay) {
+        const accent = getComputedStyle(document.documentElement).getPropertyValue("--sla-accent").trim() || "#d05e1a";
+        track.style.setProperty("display", "grid");
+        track.style.setProperty("grid-template-columns", "1fr 1fr");
+        track.style.setProperty("align-items", "stretch");
+        track.style.setProperty("position", "relative");
+        track.style.setProperty("box-sizing", "border-box");
+        track.style.setProperty("width", "3.75rem");
+        track.style.setProperty("min-width", "3.75rem");
+        track.style.setProperty("height", "1.25rem");
+        track.style.setProperty("min-height", "1.25rem");
+        track.style.setProperty("background", "#3a3a48");
+        track.style.setProperty("border", "1px solid rgba(208, 94, 26, 0.55)");
+        track.style.setProperty("border-radius", "999px");
+        track.style.setProperty("overflow", "hidden");
+        track.style.setProperty("box-shadow", "inset 0 1px 3px rgba(0, 0, 0, 0.45)");
+
+        for (const lab of [labL, labR]) {
+            lab.style.setProperty("display", "flex");
+            lab.style.setProperty("align-items", "center");
+            lab.style.setProperty("justify-content", "center");
+            lab.style.setProperty("position", "relative");
+            lab.style.setProperty("z-index", "2");
+            lab.style.setProperty("min-width", "0");
+            lab.style.setProperty("font-family", "monospace");
+            lab.style.setProperty("font-size", "0.62rem");
+            lab.style.setProperty("font-weight", "800");
+            lab.style.setProperty("pointer-events", "none");
+            lab.style.setProperty("user-select", "none");
+        }
+        if (isPlay) {
+            labL.style.setProperty("color", "rgba(255, 255, 255, 0.45)");
+            labR.style.setProperty("color", "#0a0a0a");
+        } else {
+            labL.style.setProperty("color", "#0a0a0a");
+            labR.style.setProperty("color", "rgba(255, 255, 255, 0.45)");
+        }
+
+        thumb.style.setProperty("position", "absolute");
+        thumb.style.setProperty("top", "2px");
+        thumb.style.setProperty("bottom", "2px");
+        thumb.style.setProperty("left", isPlay ? "calc(50% + 1px)" : "2px");
+        thumb.style.setProperty("width", "calc(50% - 3px)");
+        thumb.style.setProperty("border-radius", "999px");
+        thumb.style.setProperty("background", accent);
+        thumb.style.setProperty("box-shadow", "0 1px 4px rgba(0, 0, 0, 0.55)");
+        thumb.style.setProperty("z-index", "1");
+        thumb.style.setProperty("transition", "left 0.22s ease");
+        thumb.style.setProperty("pointer-events", "none");
+    }
+
+    /** @param {HTMLElement} el */
+    #applyHeaderStatSwitchHostInlineLayout(el) {
+        el.style.setProperty("display", "inline-flex");
+        el.style.setProperty("align-items", "center");
+        el.style.setProperty("justify-content", "center");
+        el.style.setProperty("width", "auto");
+        el.style.setProperty("min-width", "3.75rem");
+        el.style.setProperty("max-width", "none");
+        el.style.setProperty("height", "auto");
+        el.style.setProperty("min-height", "1.25rem");
+        el.style.setProperty("max-height", "none");
+        el.style.setProperty("padding", "0");
+        el.style.setProperty("margin", "0");
+        el.style.setProperty("border", "none");
+        el.style.setProperty("background", "transparent");
+        el.style.setProperty("overflow", "visible");
+        el.style.setProperty("line-height", "1");
+        el.style.setProperty("flex", "0 0 auto");
+        el.style.setProperty("box-shadow", "none");
+    }
+
+    /**
+     * Sliding E | P switch for the window header (left = Edit, right = Play).
+     * @param {boolean} isPlay
+     * @param {boolean} interactive
+     * @returns {HTMLElement}
+     */
+    #createHeaderStatModeSwitch(isPlay, interactive) {
+        const track = document.createElement("span");
+        track.className = "sla-header-stat-switch-track";
+
+        const labL = document.createElement("span");
+        labL.className = "sla-header-stat-switch-label sla-header-stat-switch-label--left";
+        labL.textContent = game.i18n.localize("SLA.StatSheetMode.EditShort");
+
+        const labR = document.createElement("span");
+        labR.className = "sla-header-stat-switch-label sla-header-stat-switch-label--right";
+        labR.textContent = game.i18n.localize("SLA.StatSheetMode.PlayShort");
+
+        const thumb = document.createElement("span");
+        thumb.className = "sla-header-stat-switch-thumb";
+        thumb.setAttribute("aria-hidden", "true");
+
+        track.append(labL, labR, thumb);
+        this.#applyHeaderStatSwitchInlineLayout(track, thumb, labL, labR, isPlay);
+
+        const cls = `sla-header-stat-switch ${isPlay ? "is-play" : "is-edit"}${interactive ? "" : " sla-header-stat-switch--static"}`;
+        if (interactive) {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = cls;
+            b.setAttribute("role", "switch");
+            b.setAttribute("aria-checked", isPlay ? "true" : "false");
+            b.title = game.i18n.localize("SLA.StatSheetMode.SwitchTitle");
+            this.#applyHeaderStatSwitchHostInlineLayout(b);
+            b.appendChild(track);
+            return b;
+        }
+        const d = document.createElement("div");
+        d.className = cls;
+        d.title = game.i18n.localize(isPlay ? "SLA.StatSheetMode.PlayTitle" : "SLA.StatSheetMode.EditTitle");
+        this.#applyHeaderStatSwitchHostInlineLayout(d);
+        d.appendChild(track);
+        return d;
+    }
+
+    /** @param {MouseEvent} event */
+    #onHeaderStatSwitchClick = async (event) => {
+        if (!this.actor.isOwner) return;
+        const t = event.currentTarget;
+        if (!(t instanceof HTMLButtonElement) || !t.classList.contains("sla-header-stat-switch")) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const cur = this.actor.getFlag("sla-industries", "statSheetMode") ?? "play";
+        const next = cur === "play" ? "edit" : "play";
+        await this.actor.setFlag("sla-industries", "statSheetMode", next);
+        this.render(false);
+    };
 
     /** @override */
     _getHeaderControls() {
@@ -95,7 +274,18 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const context = await super._prepareContext(options);
         context.actor = this.actor;
         if (this.actor.type === "character") {
+            context.statSheetMode = this.actor.getFlag("sla-industries", "statSheetMode") ?? "play";
             context.tabs = this._prepareTabs("primary");
+            for (const t of SlaActorSheet.TABS.primary.tabs) {
+                const tab = context.tabs[t.id];
+                if (tab) {
+                    tab.icon = t.icon;
+                    const lk = `SLA.SheetTab.${t.id}`;
+                    const loc = game.i18n.localize(lk);
+                    tab.label = loc !== lk ? loc : t.label;
+                }
+            }
+            context.effectsList = this._prepareEffectsList();
         }
         context.owner = this.actor.isOwner;
         context.editable = this.isEditable;
@@ -103,6 +293,15 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // context.data (from super.getData) only contains the database properties in some versions.
         context.system = this.actor.system;
         context.flags = this.actor.flags;
+
+        // Base stat scores from document source (ignore active-effect overlays on .value so inputs stay true base)
+        if (this.actor.type === "character" || this.actor.type === "npc") {
+            const core = ["str", "dex", "know", "conc", "cha", "cool"];
+            const srcStats = foundry.utils.getProperty(this.actor._source, "system.stats") || {};
+            context.statInputs = Object.fromEntries(
+                core.map((k) => [k, Number(foundry.utils.getProperty(srcStats[k], "value")) || 0])
+            );
+        }
 
         // ... (Keep your existing stats/ratings/wounds initialization) ...
         context.system.stats = context.system.stats || {};
@@ -157,6 +356,29 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const items = Array.from(this.actor.items);
         const itemData = prepareItems(items, context.rollData);
         Object.assign(context, itemData);
+    }
+
+    /**
+     * @returns {Array<{ id: string, name: string, img: string, disabled: boolean, sourceName: string, durationLabel: string }>}
+     */
+    _prepareEffectsList() {
+        return Array.from(this.actor.effects).map((e) => {
+            let durationLabel = "";
+            try {
+                const d = e.updateDuration?.() ?? e.duration;
+                durationLabel = d?.label || "";
+            } catch {
+                durationLabel = "";
+            }
+            return {
+                id: e.id,
+                name: e.name,
+                img: e.img,
+                disabled: e.disabled,
+                sourceName: e.sourceName,
+                durationLabel
+            };
+        });
     }
 
     /** App V2 does not attach FormApplication `[data-edit]` listeners; open image FilePicker for actor portrait. */
@@ -228,6 +450,11 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // Also register even when !isEditable so observers can switch tabs.
         if (this.actor.type === "character") {
             root.addEventListener("click", this.#onTabNavClick, { signal, capture: true });
+            const fxSearch = root.querySelector(".sla-effect-search");
+            if (fxSearch instanceof HTMLInputElement) {
+                fxSearch.addEventListener("input", this.#onActorEffectSearchInput, { signal });
+            }
+            this.#injectStatSheetHeaderToggle(signal);
         }
 
         // Clicks: rolls / compendium / conditions must work even when the sheet is not editable (v13 often uses !isEditable for "play" sheets).
@@ -276,6 +503,20 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             }
         ], { fixed: true, relative: "cursor", jQuery: false });
     }
+
+    /** @param {Event} event */
+    #onActorEffectSearchInput = (event) => {
+        const el = event.currentTarget;
+        if (!(el instanceof HTMLInputElement)) return;
+        const root = this.element;
+        if (!(root instanceof HTMLElement)) return;
+        const q = el.value.toLowerCase().trim();
+        for (const row of root.querySelectorAll(".sla-effect-row")) {
+            if (!(row instanceof HTMLElement)) continue;
+            const n = (row.dataset.effectName || "").toLowerCase();
+            row.classList.toggle("sla-effect-filtered", Boolean(q) && !n.includes(q));
+        }
+    };
 
     /**
      * Delegates primary tab clicks to ApplicationV2#changeTab (see _onRender).
@@ -339,6 +580,55 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             const item = itemId ? this.actor.items.get(itemId) : null;
             if (!item || item.type !== "drug") return;
             await this._useDrugItem(item);
+            return;
+        }
+
+        const toxicantBtn = t.closest(".item-use-toxicant");
+        if (toxicantBtn) {
+            event.preventDefault();
+            const li = toxicantBtn.closest(".item");
+            const itemId = li?.dataset.itemId;
+            const item = itemId ? this.actor.items.get(itemId) : null;
+            if (!item || item.type !== "toxicant") return;
+            await item.rollInfectionTest();
+            return;
+        }
+
+        const effToggle = t.closest(".sla-effect-toggle");
+        if (effToggle && this.actor.isOwner) {
+            event.preventDefault();
+            const id = effToggle.dataset.effectId;
+            const effect = id ? this.actor.effects.get(id) : null;
+            if (effect) await effect.update({ disabled: !effect.disabled });
+            this.render(false);
+            return;
+        }
+        const effEdit = t.closest(".sla-effect-edit");
+        if (effEdit && this.actor.isOwner) {
+            event.preventDefault();
+            const id = effEdit.dataset.effectId;
+            const effect = id ? this.actor.effects.get(id) : null;
+            effect?.sheet?.render(true);
+            return;
+        }
+        const effDel = t.closest(".sla-effect-delete");
+        if (effDel && this.actor.isOwner) {
+            event.preventDefault();
+            const id = effDel.dataset.effectId;
+            const effect = id ? this.actor.effects.get(id) : null;
+            if (effect) await effect.delete();
+            this.render(false);
+            return;
+        }
+        const effAdd = t.closest(".sla-effect-create");
+        if (effAdd && this.actor.isOwner && this.isEditable) {
+            event.preventDefault();
+            await this.actor.createEmbeddedDocuments("ActiveEffect", [{
+                name: game.i18n.localize("DOCUMENT.ActiveEffect"),
+                img: "icons/svg/aura.svg",
+                disabled: false
+            }]);
+            this.render(false);
             return;
         }
 
@@ -597,6 +887,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: content
         });
+        await item.applyItemEffectsToActor(this.actor);
+
         if (newQty <= 0) {
             await item.delete();
             ui.notifications.info(`Used the last dose of ${item.name}.`);
@@ -622,8 +914,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             await this._renderExplosiveDialog(item);
         } else if (item.type === "ebbFormula") {
             await this._executeEbbRoll(item);
-        } else if (item.type === "drug") {
+        } else         if (item.type === "drug") {
             await this._useDrugItem(item);
+        } else if (item.type === "toxicant") {
+            await item.rollInfectionTest();
         } else if (item.type === "skill") {
             await this._executeSkillRollFromItem(item);
         } else {

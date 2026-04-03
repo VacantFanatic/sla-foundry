@@ -24,6 +24,11 @@
     </div>
 </div>
 
+{{else if (eq item.type "toxicant")}}
+<div class="catalogue-grid" style="grid-template-columns: 1fr;">
+    {{> "systems/sla-industries/templates/item/parts/item-toxicant.hbs"}}
+</div>
+
 {{else}}
 {{!-- STANDARD CATALOGUE LAYOUT --}}
 <div class="catalogue-grid">

@@ -9,6 +9,7 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
 
 const ITEM_TAB_TYPES = new Set(["weapon", "armor", "explosive"]);
+const CONSUMABLE_TAB_TYPES = new Set(["drug", "toxicant"]);
 
 export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
@@ -27,7 +28,8 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         primary: {
             tabs: [
                 { id: "attributes", label: "Details" },
-                { id: "description", label: "Description" }
+                { id: "description", label: "Description" },
+                { id: "effects", label: "Effects" }
             ],
             initial: "attributes"
         }
@@ -123,9 +125,17 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         context.owner = item.isOwner;
         context.editable = this.isEditable;
 
+        context.useConsumableTabs = CONSUMABLE_TAB_TYPES.has(item.type);
         context.useItemTabs = ITEM_TAB_TYPES.has(item.type);
-        if (context.useItemTabs) {
+        if (context.useConsumableTabs || context.useItemTabs) {
             context.tabs = this._prepareTabs("primary");
+        }
+        if (context.useConsumableTabs) {
+            context.itemEffects = Array.from(item.effects).map((e) => ({
+                id: e.id,
+                name: e.name,
+                img: e.img
+            }));
         }
 
         context.enrichedDescription = await enrichItemDescription(item);
@@ -239,7 +249,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
             if (!Number.isFinite(maxH) || maxH > 2400 || maxH < 40) {
                 if (Number.isFinite(ph) && ph > 100) {
                     let chrome = 48;
-                    for (const sel of [".sheet-header", ".sheet-tabs"]) {
+                    for (const sel of [".sheet-header", ".sheet-tabs", ".sla-item-tab-nav"]) {
                         const e = root.querySelector(sel);
                         if (e instanceof HTMLElement) chrome += e.getBoundingClientRect().height;
                     }
@@ -331,16 +341,93 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         await this.#persistItemDescriptionFromElement(event.currentTarget, event);
     };
 
+    /**
+     * App V2 tab binding targets `.content`; this sheet uses `.sheet-body` (same as actor sheet).
+     * @param {PointerEvent} event
+     */
+    #onItemTabNavClick = (event) => {
+        const raw = event.target;
+        const el = raw instanceof Element ? raw : raw?.parentElement;
+        const tabNavLink = el?.closest?.("nav.sheet-tabs.tabs [data-tab]");
+        if (!tabNavLink?.dataset?.tab || !tabNavLink.dataset?.group) return;
+        event.preventDefault();
+        event.stopPropagation();
+        this.changeTab(tabNavLink.dataset.tab, tabNavLink.dataset.group, { event, navElement: tabNavLink });
+    };
+
+    /** @param {PointerEvent} event */
+    #onItemEffectUiClick = async (event) => {
+        const t = event.target;
+        if (!(t instanceof Element)) return;
+        if (t.closest(".sla-item-effect-create")) {
+            event.preventDefault();
+            if (!this.isEditable) return;
+            await this.item.createEmbeddedDocuments("ActiveEffect", [{
+                name: game.i18n.localize("DOCUMENT.ActiveEffect"),
+                img: this.item.img || "icons/svg/aura.svg",
+                disabled: false,
+                transfer: true
+            }]);
+            this.render(false);
+            return;
+        }
+        const editBtn = t.closest(".sla-item-effect-edit");
+        if (editBtn) {
+            event.preventDefault();
+            const id = editBtn.dataset.effectId;
+            const effect = id ? this.item.effects.get(id) : null;
+            effect?.sheet?.render(true);
+            return;
+        }
+        const delBtn = t.closest(".sla-item-effect-delete");
+        if (delBtn) {
+            event.preventDefault();
+            if (!this.isEditable) return;
+            const id = delBtn.dataset.effectId;
+            const effect = id ? this.item.effects.get(id) : null;
+            if (effect) await effect.delete();
+            this.render(false);
+        }
+    };
+
+    /** @param {Event} event */
+    #onItemEffectSearchInput = (event) => {
+        const el = event.currentTarget;
+        if (!(el instanceof HTMLInputElement)) return;
+        const root = this.#formFieldRoot();
+        const q = el.value.toLowerCase().trim();
+        for (const row of root.querySelectorAll(".sla-item-effect-row")) {
+            if (!(row instanceof HTMLElement)) continue;
+            const n = (row.dataset.effectName || "").toLowerCase();
+            row.classList.toggle("sla-effect-filtered", Boolean(q) && !n.includes(q));
+        }
+    };
+
     /** @override */
     async _onRender(context, options) {
         await super._onRender(context, options);
+        if (CONSUMABLE_TAB_TYPES.has(this.item.type) && this.tabGroups?.primary === "description") {
+            this.changeTab("attributes", "primary", { force: true });
+        }
         this.#bindItemSheetScrollLayout();
         this.#dropListenersAbort?.abort();
-        if (!this.isEditable) return;
 
         this.#dropListenersAbort = new AbortController();
         const { signal } = this.#dropListenersAbort;
         const root = this.#formFieldRoot();
+
+        if (root.querySelector?.('nav.sheet-tabs.tabs[data-group="primary"]')) {
+            root.addEventListener("click", this.#onItemTabNavClick, { signal, capture: true });
+        }
+
+        root.addEventListener("click", this.#onItemEffectUiClick, { signal });
+
+        const itemFxSearch = root.querySelector(".sla-item-effect-search");
+        if (itemFxSearch instanceof HTMLInputElement) {
+            itemFxSearch.addEventListener("input", this.#onItemEffectSearchInput, { signal });
+        }
+
+        if (!this.isEditable) return;
 
         const portrait = root.querySelector('.profile-img[data-edit="img"]');
         if (portrait instanceof HTMLElement) {

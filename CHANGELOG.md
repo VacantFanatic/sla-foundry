@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-04-03
+
+### Added
+* **Toxicant** item type: **infection rating**, **vector**, **progression**, **treatment**, **treatment rating**, and description. Characters track toxicants under **Bio & Traits → Infections** with an **infection test** action (Success Die + STR vs infection rating, chat card via `toxicant-infection` template). On success, the actor is **immune for the current encounter scope** (active **combat** id when a fight is running, otherwise the **current scene**); on failure, **embedded Active Effects** on the toxicant transfer to the actor.
+* **Effects** tab on **operative and threat** actor sheets to manage **Active Effects** during play.
+* **Drug** and **toxicant** item sheets use a **Details** + **Effects** tab layout so **embedded Active Effects** can be authored on the item (for syringe / toggle-active drugs and for infection outcomes).
+* **Hotbar / `rollOwnedItem`:** Actor-owned **toxicant** items run the **infection test** the same way as the sheet control.
+
+### Changed
+* **Combat drugs:** Removed built-in Mod 1 / Mod 2 (**`system.mods`**) and **damage reduction while active** (**`system.damageReduction`**) from the drug schema and UI. Stat changes and DR must be modeled with **embedded Active Effects**; **toggle active** and syringe use still apply or remove those effects on the actor.
+* **World migration `2.1.0`:** When `systemMigrationVersion` is older than the bundled version, **`migrateTo210`** strips `system.mods` and `system.damageReduction` from existing **drug** items (world items and actor-embedded items) using persisted `_source` so legacy keys are cleared after the schema change.
+
 ## [2.0.1] - 2026-04-02
 
 ### Changed
@@ -400,6 +412,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.1.0...HEAD
+[2.1.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.1.0
 [2.0.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.0.1
 [2.0.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.0.0
 [1.3.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/1.3.2

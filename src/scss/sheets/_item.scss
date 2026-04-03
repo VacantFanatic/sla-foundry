@@ -15,7 +15,8 @@
     overflow: hidden;
 }
 
-.item .sheet-header {
+.item .sheet-header,
+form.application.sla-industries.item .sheet-header {
     background: #222 !important;
     color: #fff !important;
     border-bottom: 4px solid #f90;
@@ -23,6 +24,47 @@
     display: flex;
     align-items: center;
     flex: 0 0 auto;
+    flex-wrap: nowrap;
+
+    .header-details {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+    }
+
+    h1.charname {
+        height: auto;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        line-height: 1.2;
+        border-bottom: 0;
+
+        input {
+            width: 100%;
+            height: auto !important;
+            min-height: 0;
+            margin: 0;
+            padding: 0;
+            line-height: 1.2;
+            font-size: 1rem;
+            letter-spacing: 0.35px;
+            text-shadow: none;
+        }
+    }
+
+    .item-subtitle {
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .type-label {
+        font-size: 0.75rem;
+        opacity: 0.95;
+    }
 
     img.profile-img {
         flex: 0 0 64px;
@@ -32,6 +74,7 @@
         border: 1px solid #000;
         margin-right: 10px;
         background: #000;
+        align-self: center;
     }
 
     img.profile-img[data-edit="img"] {
@@ -39,8 +82,256 @@
     }
 }
 
+/* Item sheet V2: Josefin + plain fields until focus.
+   v14 Application root is often `form.application.sla-industries.item` — `.sheet` may not be on the same node, so duplicate chains. */
+.sla-industries.sheet.item .sla-item-root,
+form.application.sla-industries.item .sla-item-root,
+.application.sla-industries.item .sla-item-root {
+    font-family: var(--sla-font-mono);
+}
+
+.sla-industries.sheet.item .sla-item-root .item-subtitle,
+.sla-industries.sheet.item .sla-item-root .type-label,
+form.application.sla-industries.item .sla-item-root .item-subtitle,
+form.application.sla-industries.item .sla-item-root .type-label,
+.application.sla-industries.item .sla-item-root .item-subtitle,
+.application.sla-industries.item .sla-item-root .type-label {
+    font-family: var(--sla-font-mono);
+}
+
+.sla-industries.sheet.item .sla-item-root .sheet-header h1.charname,
+form.application.sla-industries.item .sla-item-root .sheet-header h1.charname,
+.application.sla-industries.item .sla-item-root .sheet-header h1.charname {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none;
+    height: auto;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.sla-industries.sheet.item .sla-item-root input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]),
+.sla-industries.sheet.item .sla-item-root select,
+form.application.sla-industries.item .sla-item-root input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]),
+form.application.sla-industries.item .sla-item-root select,
+.application.sla-industries.item .sla-item-root input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]),
+.application.sla-industries.item .sla-item-root select {
+    font-family: var(--sla-font-mono) !important;
+    color: var(--sla-text-light);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none;
+}
+
+.sla-industries.sheet.item .sla-item-root input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]):focus,
+.sla-industries.sheet.item .sla-item-root select:focus,
+form.application.sla-industries.item .sla-item-root input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]):focus,
+form.application.sla-industries.item .sla-item-root select:focus,
+.application.sla-industries.item .sla-item-root input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]):focus,
+.application.sla-industries.item .sla-item-root select:focus {
+    background: #0a0a0a !important;
+    border: 1px solid var(--sla-border) !important;
+    border-radius: var(--sla-radius);
+    box-shadow: 0 0 0 1px var(--sla-accent);
+    outline: none;
+}
+
+.sla-industries.sheet.item .sla-item-root textarea,
+form.application.sla-industries.item .sla-item-root textarea,
+.application.sla-industries.item .sla-item-root textarea {
+    font-family: var(--sla-font-mono) !important;
+    color: var(--sla-text-light);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none;
+    resize: vertical;
+}
+
+.sla-industries.sheet.item .sla-item-root textarea:focus,
+form.application.sla-industries.item .sla-item-root textarea:focus,
+.application.sla-industries.item .sla-item-root textarea:focus {
+    background: #0a0a0a !important;
+    border: 1px solid var(--sla-border) !important;
+    border-radius: var(--sla-radius);
+    box-shadow: 0 0 0 1px var(--sla-accent);
+    outline: none;
+}
+
+.sla-industries.sheet.item .sla-item-root h1.charname input[type="text"],
+form.application.sla-industries.item .sla-item-root h1.charname input[type="text"],
+.application.sla-industries.item .sla-item-root h1.charname input[type="text"] {
+    @include font-header;
+    font-family: var(--sla-font-header) !important;
+    font-size: 1rem;
+    letter-spacing: 0.35px;
+    line-height: 1.2;
+    height: auto !important;
+    min-height: 0;
+    padding: 0;
+    text-shadow: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none;
+    color: #fff;
+}
+
+.sla-industries.sheet.item .sla-item-root h1.charname input[type="text"]:focus,
+form.application.sla-industries.item .sla-item-root h1.charname input[type="text"]:focus,
+.application.sla-industries.item .sla-item-root h1.charname input[type="text"]:focus {
+    background: #0a0a0a !important;
+    border: 1px solid var(--sla-border) !important;
+    border-radius: var(--sla-radius);
+    box-shadow: 0 0 0 1px var(--sla-accent);
+    outline: none;
+}
+
+.sla-industries.sheet.item .sla-item-root .editor,
+.sla-industries.sheet.item .sla-item-root prose-mirror.editor,
+form.application.sla-industries.item .sla-item-root .editor,
+form.application.sla-industries.item .sla-item-root prose-mirror.editor,
+.application.sla-industries.item .sla-item-root .editor,
+.application.sla-industries.item .sla-item-root prose-mirror.editor {
+    font-family: var(--sla-font-mono);
+}
+
+.sla-industries.sheet.item .sla-item-root .item-catalogue input:not([type="checkbox"]),
+.sla-industries.sheet.item .sla-item-root .item-catalogue select,
+form.application.sla-industries.item .sla-item-root .item-catalogue input:not([type="checkbox"]),
+form.application.sla-industries.item .sla-item-root .item-catalogue select,
+.application.sla-industries.item .sla-item-root .item-catalogue input:not([type="checkbox"]),
+.application.sla-industries.item .sla-item-root .item-catalogue select {
+    color: #000;
+}
+
+/* App V2 + PARTS `body.root: true`: template root is often hoisted onto the <form>, so `.sla-item-root` is NOT under `this.form` — rules above never match. Anchor on the form (runtime: species, package, single-view, etc.). */
+form.application.sla-industries.item {
+    font-family: var(--sla-font-mono);
+
+    .item-subtitle,
+    .type-label {
+        font-family: var(--sla-font-mono);
+    }
+
+    .sheet-header h1.charname {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none;
+        height: auto;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]),
+    select {
+        font-family: var(--sla-font-mono) !important;
+        color: var(--sla-text-light);
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none;
+    }
+
+    input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]):focus,
+    select:focus {
+        background: #0a0a0a !important;
+        border: 1px solid var(--sla-border) !important;
+        border-radius: var(--sla-radius);
+        box-shadow: 0 0 0 1px var(--sla-accent);
+        outline: none;
+    }
+
+    textarea {
+        font-family: var(--sla-font-mono) !important;
+        color: var(--sla-text-light);
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none;
+        resize: vertical;
+    }
+
+    textarea:focus {
+        background: #0a0a0a !important;
+        border: 1px solid var(--sla-border) !important;
+        border-radius: var(--sla-radius);
+        box-shadow: 0 0 0 1px var(--sla-accent);
+        outline: none;
+    }
+
+    h1.charname input[type="text"] {
+        @include font-header;
+        font-family: var(--sla-font-header) !important;
+        font-size: 1rem;
+        letter-spacing: 0.35px;
+        line-height: 1.2;
+        height: auto !important;
+        min-height: 0;
+        padding: 0;
+        text-shadow: none;
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none;
+        color: #fff;
+    }
+
+    h1.charname input[type="text"]:focus {
+        background: #0a0a0a !important;
+        border: 1px solid var(--sla-border) !important;
+        border-radius: var(--sla-radius);
+        box-shadow: 0 0 0 1px var(--sla-accent);
+        outline: none;
+    }
+
+    .editor,
+    prose-mirror.editor {
+        font-family: var(--sla-font-mono);
+    }
+
+    .item-catalogue input:not([type="checkbox"]),
+    .item-catalogue select {
+        color: #000;
+    }
+
+    .glow-input input:not([type="checkbox"]) {
+        background: rgba(0, 0, 0, 0.5) !important;
+        border: 1px solid #8a2be2 !important;
+        color: #fff !important;
+        box-shadow: 0 0 5px #8a2be2 !important;
+        padding: 2px 5px;
+        width: 50%;
+        height: 24px;
+        font-size: 1.1em;
+    }
+
+    .firing-mode-row input[type="number"] {
+        background: rgba(0, 0, 0, 0.5) !important;
+        border: 1px solid #444 !important;
+        color: #fff !important;
+        text-align: center;
+        border-radius: 3px;
+        height: 22px;
+        width: 90%;
+        box-shadow: none !important;
+    }
+
+    .firing-mode-row input[type="number"]:focus {
+        box-shadow: 0 0 0 1px var(--sla-accent) !important;
+    }
+}
+
 /* Item sheet V2 (`tag: "form"`): native checkboxes stay visible on dark themes; beats `input { … !important }` on item types */
-form.application.sla-industries.sheet.item input[type="checkbox"] {
+form.application.sla-industries.sheet.item input[type="checkbox"],
+form.application.sla-industries.item input[type="checkbox"] {
     width: 18px !important;
     height: 18px !important;
     min-width: 18px !important;
@@ -56,19 +347,22 @@ form.application.sla-industries.sheet.item input[type="checkbox"] {
     text-shadow: none !important;
 }
 
-form.application.sla-industries.sheet.item input[type="checkbox"]:not(:checked) {
+form.application.sla-industries.sheet.item input[type="checkbox"]:not(:checked),
+form.application.sla-industries.item input[type="checkbox"]:not(:checked) {
     outline: 2px solid rgba(255, 255, 255, 0.55) !important;
     outline-offset: 1px;
     border-radius: 2px;
 }
 
 /* Tabbed item sheets (V2): tabs/header fixed, body scrolls */
-.sla-item-root .sheet-tabs {
+.sla-item-root .sheet-tabs,
+form.application.sla-industries.item .sheet-tabs {
     flex: 0 0 auto;
 }
 
 /* Root is .sla-item-root (not .sla-sheet) — actor tab visibility rules do not apply here */
-.sla-item-root .sheet-body .tab {
+.sla-item-root .sheet-body .tab,
+form.application.sla-industries.item .sheet-body .tab {
     display: none;
     min-height: 0;
 
@@ -78,7 +372,8 @@ form.application.sla-industries.sheet.item input[type="checkbox"]:not(:checked) 
 }
 
 /* Scroll + height: see global/_base.scss `.sla-industries.sheet.item .sla-item-root .sheet-body` */
-.sla-item-root .sheet-body:not(.single-view) .tab.active {
+.sla-item-root .sheet-body:not(.single-view) .tab.active,
+form.application.sla-industries.item .sheet-body:not(.single-view) .tab.active {
     height: auto !important;
 }
 
@@ -457,6 +752,20 @@ form.application.sla-industries.sheet.item input[type="checkbox"]:not(:checked) 
     /* Increased Size */
 }
 
+/* Beat V2 “plain until focus” rules inside item root */
+.sla-industries.sheet.item .sla-item-root .glow-input input:not([type="checkbox"]),
+form.application.sla-industries.item .sla-item-root .glow-input input:not([type="checkbox"]),
+.application.sla-industries.item .sla-item-root .glow-input input:not([type="checkbox"]) {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #8a2be2 !important;
+    color: #fff !important;
+    box-shadow: 0 0 5px #8a2be2 !important;
+    padding: 2px 5px;
+    width: 50%;
+    height: 24px;
+    font-size: 1.1em;
+}
+
 /* ==========================================
    24. GLOBAL DROP ZONES
    ========================================== */
@@ -536,14 +845,16 @@ form.application.sla-industries.sheet.item input[type="checkbox"]:not(:checked) 
 }
 
 /* Single-view: scroll lives on .sheet-body (global/_base); stack dossier + description as content height */
-.sla-item-root .sheet-body.single-view {
+.sla-item-root .sheet-body.single-view,
+form.application.sla-industries.item .sheet-body.single-view {
     flex: 1;
     min-height: 0;
     height: auto !important;
     overflow-y: auto !important;
 }
 
-.sla-item-root .sheet-body.single-view .sheet-description {
+.sla-item-root .sheet-body.single-view .sheet-description,
+form.application.sla-industries.item .sheet-body.single-view .sheet-description {
     flex: 0 0 auto;
     min-height: 140px;
 }
@@ -679,4 +990,23 @@ form.application.sla-industries.sheet.item input[type="checkbox"]:not(:checked) 
     border-radius: 3px;
     height: 22px;
     width: 90%;
+}
+
+.sla-industries.sheet.item .sla-item-root .firing-mode-row input[type="number"],
+form.application.sla-industries.item .sla-item-root .firing-mode-row input[type="number"],
+.application.sla-industries.item .sla-item-root .firing-mode-row input[type="number"] {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #444 !important;
+    color: #fff !important;
+    text-align: center;
+    border-radius: 3px;
+    height: 22px;
+    width: 90%;
+    box-shadow: none !important;
+}
+
+.sla-industries.sheet.item .sla-item-root .firing-mode-row input[type="number"]:focus,
+form.application.sla-industries.item .sla-item-root .firing-mode-row input[type="number"]:focus,
+.application.sla-industries.item .sla-item-root .firing-mode-row input[type="number"]:focus {
+    box-shadow: 0 0 0 1px var(--sla-accent) !important;
 }

@@ -1,15 +1,29 @@
 <div class="flexcol">
     
     {{!-- MOVEMENT BOX --}}
-    <div class="sla-box">
+    <div class="sla-box sla-move-box {{#if (eq statSheetMode "edit")}}sla-move-box-mode-edit{{else}}sla-move-box-mode-play{{/if}}">
         <div class="sla-box-header">MOVEMENT</div>
         <div class="compact-row">
             <label>Closing Speed</label>
+            {{#if (eq statSheetMode "edit")}}
             <input type="number" name="system.move.closing" value="{{system.move.closing}}" class="sla-input-mini"/>
+            {{else}}
+            <div class="sla-move-play-cell">
+                <input type="hidden" name="system.move.closing" value="{{system.move.closing}}" />
+                <span class="sla-move-play-val">{{system.move.closing}}</span>
+            </div>
+            {{/if}}
         </div>
         <div class="compact-row">
             <label>Rushing Speed</label>
+            {{#if (eq statSheetMode "edit")}}
             <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" class="sla-input-mini"/>
+            {{else}}
+            <div class="sla-move-play-cell">
+                <input type="hidden" name="system.move.rushing" value="{{system.move.rushing}}" />
+                <span class="sla-move-play-val">{{system.move.rushing}}</span>
+            </div>
+            {{/if}}
         </div>
     </div>
 

@@ -1,0 +1,42 @@
+<div class="sla-panel sla-effects-panel">
+    <div class="sla-header-bar flexrow" style="justify-content: space-between; align-items: center;">
+        <span>ACTIVE EFFECTS</span>
+        {{#if (and owner editable)}}
+        <a class="sla-effect-create" title="Add effect"><i class="fas fa-plus"></i></a>
+        {{/if}}
+    </div>
+
+    <div class="sla-effects-toolbar">
+        <input type="search" class="sla-effect-search" placeholder="Search effects" autocomplete="off" />
+    </div>
+
+    <ol class="items-list sla-effects-list">
+        {{#each effectsList as |eff|}}
+        <li class="item flexrow sla-effect-row" data-effect-id="{{eff.id}}" data-effect-name="{{eff.name}}">
+            <div class="item-image flex0" style="flex:0 0 32px;">
+                <img src="{{eff.img}}" width="28" height="28" alt="" />
+            </div>
+            <div class="item-name flex2" style="flex:2; min-width:0;">
+                <h4 style="margin:0; {{#if eff.disabled}}opacity:0.45{{/if}}">{{eff.name}}</h4>
+                <div class="sla-effect-meta" style="font-size:0.75em; color:#888;">
+                    {{#if eff.durationLabel}}<span>{{eff.durationLabel}}</span>{{/if}}
+                </div>
+            </div>
+            <div class="item-detail flex1" style="flex:1; text-align:right; font-size:0.8em; color:#aaa; overflow:hidden; text-overflow:ellipsis;">
+                {{eff.sourceName}}
+            </div>
+            {{#if ../owner}}
+            <div class="item-controls flex0" style="flex:0 0 88px; text-align:right;">
+                <a class="sla-effect-toggle" data-effect-id="{{eff.id}}" title="Toggle">
+                    {{#if eff.disabled}}<i class="fas fa-toggle-off"></i>{{else}}<i class="fas fa-toggle-on" style="color:#39ff14;"></i>{{/if}}
+                </a>
+                <a class="sla-effect-edit" data-effect-id="{{eff.id}}" title="Edit"><i class="fas fa-edit"></i></a>
+                <a class="sla-effect-delete" data-effect-id="{{eff.id}}" title="Delete"><i class="fas fa-trash"></i></a>
+            </div>
+            {{/if}}
+        </li>
+        {{else}}
+        <li class="sla-effects-empty" style="padding:16px; text-align:center; color:#666; font-style:italic;">No active effects.</li>
+        {{/each}}
+    </ol>
+</div>

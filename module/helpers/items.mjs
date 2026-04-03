@@ -18,6 +18,7 @@ export function prepareItems(items, rollData) {
 
     return {
         inventory: buckets.inventory,
+        infections: buckets.infections,
         traits: buckets.traits,
         disciplines: nestedDisciplines,
         skillsByStat: buckets.skillsByStat,
@@ -37,6 +38,7 @@ function initPrepareItemBuckets() {
             drug: { label: "Drugs", items: [] },
             item: { label: "Gear", items: [] }
         },
+        infections: [],
         traits: [],
         ebbFormulas: [],
         disciplines: [],
@@ -60,7 +62,9 @@ function classifyItems(items, rollData, buckets) {
     for (const item of items) {
         item.img = item.img || "icons/svg/item-bag.svg";
 
-        if (buckets.inventory[item.type]) {
+        if (item.type === "toxicant") {
+            buckets.infections.push(item);
+        } else if (buckets.inventory[item.type]) {
             buckets.inventory[item.type].items.push(item);
         }
 
@@ -107,6 +111,7 @@ function sortPreparedBuckets(buckets) {
     for (const category of Object.values(buckets.inventory)) {
         sortIfNeeded(category.items);
     }
+    sortIfNeeded(buckets.infections);
     sortIfNeeded(buckets.traits);
     sortIfNeeded(buckets.ebbFormulas);
     sortIfNeeded(buckets.disciplines);

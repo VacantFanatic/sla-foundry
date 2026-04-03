@@ -186,10 +186,25 @@ export class SlaDrugData extends foundry.abstract.TypeDataModel {
             weight: new fields.NumberField({ initial: 0.1, min: 0 }),
             quantity: new fields.NumberField({ initial: 1, min: 0, integer: true }),
             equipped: new fields.BooleanField({ initial: false }),
+            active: new fields.BooleanField({ initial: false }),
             addiction: new fields.NumberField({ initial: 10 }),
             addictionDose: new fields.StringField(),
             detoxEffects: new fields.StringField(),
             duration: new fields.StringField(),
+            description: new fields.HTMLField()
+        };
+    }
+}
+
+export class SlaToxicantData extends foundry.abstract.TypeDataModel {
+    static defineSchema() {
+        const fields = foundry.data.fields;
+        return {
+            infectionRating: new fields.NumberField({ initial: 10, min: 0, integer: true }),
+            vector: new fields.StringField(),
+            progression: new fields.StringField(),
+            treatment: new fields.StringField(),
+            treatmentRating: new fields.NumberField({ initial: 10, min: 0, integer: true }),
             description: new fields.HTMLField()
         };
     }
