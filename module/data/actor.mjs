@@ -1,4 +1,13 @@
-import { SLA } from "../config.mjs";
+/**
+ * Core stats: `value` is the sheet base (what the player edits). Active Effects should target `bonus`
+ * (mode Add, e.g. -2) so temporary modifiers do not overwrite or appear to change the base input.
+ */
+function slaCoreStat(fields) {
+    return new fields.SchemaField({
+        value: new fields.NumberField({ initial: 1, integer: true }),
+        bonus: new fields.NumberField({ initial: 0, integer: true })
+    });
+}
 
 export class SlaCharacterData extends foundry.abstract.TypeDataModel {
     static defineSchema() {
@@ -31,12 +40,12 @@ export class SlaCharacterData extends foundry.abstract.TypeDataModel {
                 })
             }),
             stats: new fields.SchemaField({
-                str: new fields.SchemaField({ value: new fields.NumberField({ initial: 1, integer: true }) }),
-                dex: new fields.SchemaField({ value: new fields.NumberField({ initial: 1, integer: true }) }),
-                know: new fields.SchemaField({ value: new fields.NumberField({ initial: 1, integer: true }) }),
-                conc: new fields.SchemaField({ value: new fields.NumberField({ initial: 1, integer: true }) }),
-                cha: new fields.SchemaField({ value: new fields.NumberField({ initial: 1, integer: true }) }),
-                cool: new fields.SchemaField({ value: new fields.NumberField({ initial: 1, integer: true }) }),
+                str: slaCoreStat(fields),
+                dex: slaCoreStat(fields),
+                know: slaCoreStat(fields),
+                conc: slaCoreStat(fields),
+                cha: slaCoreStat(fields),
+                cool: slaCoreStat(fields),
                 init: new fields.SchemaField({ value: new fields.NumberField({ initial: 0, integer: true }) }),
                 luck: new fields.SchemaField({
                     value: new fields.NumberField({ initial: 0, integer: true }),
@@ -115,12 +124,12 @@ export class SlaNPCData extends foundry.abstract.TypeDataModel {
                 scl: new fields.StringField()
             }),
             stats: new fields.SchemaField({
-                str: new fields.SchemaField({ value: new fields.NumberField({ initial: 1, integer: true }) }),
-                dex: new fields.SchemaField({ value: new fields.NumberField({ initial: 1, integer: true }) }),
-                know: new fields.SchemaField({ value: new fields.NumberField({ initial: 1, integer: true }) }),
-                conc: new fields.SchemaField({ value: new fields.NumberField({ initial: 1, integer: true }) }),
-                cha: new fields.SchemaField({ value: new fields.NumberField({ initial: 1, integer: true }) }),
-                cool: new fields.SchemaField({ value: new fields.NumberField({ initial: 1, integer: true }) }),
+                str: slaCoreStat(fields),
+                dex: slaCoreStat(fields),
+                know: slaCoreStat(fields),
+                conc: slaCoreStat(fields),
+                cha: slaCoreStat(fields),
+                cool: slaCoreStat(fields),
                 init: new fields.SchemaField({ value: new fields.NumberField({ initial: 0, integer: true }) }),
                 luck: new fields.SchemaField({
                     value: new fields.NumberField({ initial: 0, integer: true }),

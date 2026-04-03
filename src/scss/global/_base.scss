@@ -42,7 +42,8 @@ form.sla-sheet {
     padding: $padding-sm;
 }
 
-.sla-industries.sheet.item .sla-item-root.standard-form {
+.sla-industries.sheet.item .sla-item-root.standard-form,
+form.application.sla-industries.item {
     flex: 1;
     min-height: 0;
     @include flex-column;
@@ -62,7 +63,8 @@ form.application.sla-industries.sheet.item {
 }
 
 /* Item V2: same scroll contract as .sla-sheet .sheet-body (actors); forms.scss height:100% breaks flex overflow */
-.sla-industries.sheet.item .sla-item-root .sheet-body {
+.sla-industries.sheet.item .sla-item-root .sheet-body,
+form.application.sla-industries.item .sheet-body {
     flex: 1;
     min-height: 0;
     height: auto !important;

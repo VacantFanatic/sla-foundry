@@ -4,7 +4,8 @@ import { BoilerplateItem } from "./documents/item.mjs";
 import { LuckDialog } from "./apps/luck-dialog.mjs";
 
 import { SlaCharacterData, SlaNPCData, SlaVehicleData } from "./data/actor.mjs";
-import { SlaItemData, SlaSkillData, SlaTraitData, SlaWeaponData, SlaArmorData, SlaEbbFormulaData, SlaDisciplineData, SlaDrugData, SlaSpeciesData, SlaPackageData, SlaMagazineData, SlaExplosiveData } from "./data/item.mjs";
+import { SlaItemData, SlaSkillData, SlaTraitData, SlaWeaponData, SlaArmorData, SlaEbbFormulaData, SlaDisciplineData, SlaDrugData, SlaToxicantData, SlaSpeciesData, SlaPackageData, SlaMagazineData, SlaExplosiveData } from "./data/item.mjs";
+import { registerToxicantImmunityHooks } from "./helpers/toxicant-scope.mjs";
 
 // Import sheet classes.
 import { SlaActorSheet } from "./sheets/actor-sheet.mjs";
@@ -51,6 +52,7 @@ Hooks.once('init', async function () {
         ebbFormula: SlaEbbFormulaData,
         discipline: SlaDisciplineData,
         drug: SlaDrugData,
+        toxicant: SlaToxicantData,
         species: SlaSpeciesData,
         package: SlaPackageData,
         magazine: SlaMagazineData,
@@ -127,6 +129,8 @@ Hooks.once('init', async function () {
 
     CONFIG.statusEffects = SLA.statusEffects;
     CONFIG.Actor.trackableAttributes = SLA.trackableAttributes;
+
+    registerToxicantImmunityHooks();
 
 
 

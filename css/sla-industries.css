@@ -77,7 +77,8 @@ form.sla-sheet {
   padding: 5px;
 }
 
-.sla-industries.sheet.item .sla-item-root.standard-form {
+.sla-industries.sheet.item .sla-item-root.standard-form,
+form.application.sla-industries.item {
   flex: 1;
   min-height: 0;
   display: flex;
@@ -98,7 +99,8 @@ form.application.sla-industries.sheet.item {
 }
 
 /* Item V2: same scroll contract as .sla-sheet .sheet-body (actors); forms.scss height:100% breaks flex overflow */
-.sla-industries.sheet.item .sla-item-root .sheet-body {
+.sla-industries.sheet.item .sla-item-root .sheet-body,
+form.application.sla-industries.item .sheet-body {
   flex: 1;
   min-height: 0;
   height: auto !important;
@@ -107,7 +109,8 @@ form.application.sla-industries.sheet.item {
   scrollbar-width: thin;
   scrollbar-gutter: stable;
 }
-.sla-industries.sheet.item .sla-item-root .sheet-body .tab {
+.sla-industries.sheet.item .sla-item-root .sheet-body .tab,
+form.application.sla-industries.item .sheet-body .tab {
   height: auto !important;
 }
 
@@ -209,6 +212,7 @@ select option {
 .sla-industries.sheet,
 .sla-sheet.standard-form,
 .sla-item-root.standard-form,
+form.application.sla-industries.item,
 .sla-dialog-window.dialog {
   font-family: var(--sla-font-mono);
 }
@@ -642,6 +646,135 @@ select option {
 .sla-chat-card .mos-choice-container .chat-btn-damage:hover {
   background: #002200;
   box-shadow: 0 0 5px rgba(57, 255, 20, 0.4);
+}
+
+.chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) {
+  background: #000 !important;
+  background-image: none !important;
+  color: var(--sla-text-light);
+}
+.chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .message-header {
+  color: var(--sla-text-light);
+}
+.chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .message-sender {
+  color: var(--sla-text-light);
+}
+.chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .message-metadata {
+  color: #aaa;
+}
+.chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .message-content {
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--sla-text-light);
+}
+.chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .dice-roll .dice-formula,
+.chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .dice-roll .dice-total {
+  background: #1a1a1a !important;
+  color: var(--sla-text-light) !important;
+  border-color: #444 !important;
+}
+
+.chat-popout .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) {
+  background: #000 !important;
+  background-image: none !important;
+  color: var(--sla-text-light);
+}
+.chat-popout .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .message-header {
+  color: var(--sla-text-light);
+}
+.chat-popout .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .message-sender {
+  color: var(--sla-text-light);
+}
+.chat-popout .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .message-metadata {
+  color: #aaa;
+}
+.chat-popout .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .message-content {
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--sla-text-light);
+}
+.chat-popout .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .dice-roll .dice-formula,
+.chat-popout .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .dice-roll .dice-total {
+  background: #1a1a1a !important;
+  color: var(--sla-text-light) !important;
+  border-color: #444 !important;
+}
+
+#chat .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) {
+  background: #000 !important;
+  background-image: none !important;
+  color: var(--sla-text-light);
+}
+#chat .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .message-header {
+  color: var(--sla-text-light);
+}
+#chat .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .message-sender {
+  color: var(--sla-text-light);
+}
+#chat .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .message-metadata {
+  color: #aaa;
+}
+#chat .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .message-content {
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--sla-text-light);
+}
+#chat .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .dice-roll .dice-formula,
+#chat .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll)) .dice-roll .dice-total {
+  background: #1a1a1a !important;
+  color: var(--sla-text-light) !important;
+  border-color: #444 !important;
+}
+
+.chat-log .chat-message .sla-chat-card,
+.chat-popout .chat-log .chat-message .sla-chat-card,
+#chat .chat-log .chat-message .sla-chat-card {
+  box-sizing: border-box;
+  background: #000 !important;
+  background-image: none !important;
+  color: var(--sla-text-light) !important;
+}
+
+.chat-log .chat-message .sla-chat-card p,
+.chat-log .chat-message .sla-chat-card .drug-content,
+.chat-popout .chat-log .chat-message .sla-chat-card p,
+.chat-popout .chat-log .chat-message .sla-chat-card .drug-content {
+  color: #d8d8d8;
+}
+
+.chat-log .chat-message .sla-chat-card .drug-content strong,
+.chat-popout .chat-log .chat-message .sla-chat-card .drug-content strong {
+  color: #f0f0f0;
+}
+
+.sla-chat-card.toxicant-infection {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #8b2942;
+  border-left: 4px solid #8b2942;
+  box-shadow: 0 0 5px rgba(139, 41, 66, 0.25);
+}
+.sla-chat-card.toxicant-infection .drug-header {
+  background: #2a1418;
+  color: #ffb3c1;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 1.05em;
+  border-bottom: 1px solid #555;
+  margin: -8px -8px 8px -8px;
+  padding: 8px 10px;
+  border-radius: 3px 3px 0 0;
+}
+.sla-chat-card.toxicant-infection .drug-content {
+  font-size: 0.95em;
 }
 
 /* Damage Result Card */
@@ -1205,6 +1338,148 @@ select option {
   justify-content: center;
 }
 
+/* Operative sheet: sliding Edit (E) | Play (P) switch in window header */
+/* Foundry forces header buttons to a fixed square — override so the pill track can show */
+.window-app .window-header .sla-stat-sheet-header-mode {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-right: 0.35rem;
+}
+
+.window-app .window-header .sla-stat-sheet-header-mode .sla-header-stat-switch {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer;
+  width: auto !important;
+  min-width: 3.75rem;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 1.25rem;
+  max-height: none !important;
+  flex: 0 0 auto;
+  overflow: visible !important;
+  line-height: 1;
+  box-shadow: none !important;
+}
+
+.window-app .window-header .sla-header-stat-switch--static {
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.88;
+}
+
+.window-app .window-header .sla-header-stat-switch-track {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+  box-sizing: border-box;
+  width: 3.75rem;
+  min-width: 3.75rem;
+  height: 1.25rem;
+  min-height: 1.25rem;
+  /* Visible against black window chrome (core default track was effectively invisible) */
+  background: #3a3a48;
+  border: 1px solid var(--sla-border);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.window-app .window-header .sla-header-stat-switch-label {
+  position: relative;
+  z-index: 2;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sla-font-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+  user-select: none;
+}
+
+.window-app .window-header .sla-header-stat-switch.is-edit .sla-header-stat-switch-label--left {
+  color: #0a0a0a;
+}
+
+.window-app .window-header .sla-header-stat-switch.is-play .sla-header-stat-switch-label--right {
+  color: #0a0a0a;
+}
+
+.window-app .window-header .sla-header-stat-switch-thumb {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc(50% - 3px);
+  border-radius: 999px;
+  background: var(--sla-accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  z-index: 1;
+  transition: left 0.22s ease;
+  pointer-events: none;
+}
+
+.window-app .window-header .sla-header-stat-switch.is-play .sla-header-stat-switch-thumb {
+  left: calc(50% + 1px);
+}
+
+.window-app .window-header .sla-header-stat-switch:not(.sla-header-stat-switch--static):hover .sla-header-stat-switch-track {
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+.window-app .window-header .sla-header-stat-switch:not(.sla-header-stat-switch--static):focus-visible {
+  outline: 1px solid var(--sla-accent);
+  outline-offset: 2px;
+}
+
+.sla-sheet .sla-stat-base-input-edit {
+  width: 3rem;
+  text-align: center;
+  font-size: 1.25em;
+  font-weight: bold;
+  background: transparent !important;
+  border: 1px solid var(--sla-border) !important;
+  border-radius: var(--sla-radius);
+  color: var(--sla-accent) !important;
+}
+
+.sla-sheet .sla-stat-readonly {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  font-size: 1.25em;
+  font-weight: bold;
+  color: var(--sla-accent);
+}
+
+.sla-sheet .sla-stat-effective-hint {
+  font-size: 0.75em;
+  color: #39ff14;
+  white-space: nowrap;
+}
+
+.sla-sheet .sla-stat-play-base-label {
+  font-size: 0.7em;
+  color: #666;
+  white-space: nowrap;
+}
+
+.sla-sheet .stat-box.sla-stat-box-mode-play .sla-stat-play-total {
+  line-height: 1.2;
+}
+
 /* ==========================================
    4. STATS STRIP
    ========================================== */
@@ -1379,6 +1654,30 @@ select option {
   display: block;
 }
 
+/* Operative sheet only: tab content + right rail share remaining height (form overflow:hidden was clipping the rail below the fold) */
+.sla-sheet.sla-actor-layout .sla-actor-tabbed-area {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.sla-sheet.sla-actor-layout .sla-actor-tabbed-area > .sheet-body {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+}
+
+.sla-sheet.sla-actor-layout .sla-actor-tabbed-area > .sheet-body .tab {
+  height: auto !important;
+  min-height: 0;
+}
+
 .sla-sheet .main-split {
   display: grid;
   grid-template-columns: 2.2fr 1fr;
@@ -1469,6 +1768,70 @@ select option {
 .sla-sheet .sheet-tabs .item.active {
   color: #000;
   background: var(--sla-accent);
+}
+
+/* Vertical icon rail (operative sheet nav after .sheet-body) */
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail {
+  flex-direction: column;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  width: 38px;
+  padding: 6px 4px;
+  margin: 0;
+  margin-bottom: 0;
+  background: #111;
+  border: 1px solid var(--sla-border);
+  border-top: 2px solid var(--sla-accent);
+  border-radius: var(--sla-radius);
+  border-bottom: none;
+}
+
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail .item {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  font-size: 0.85rem;
+  text-transform: none;
+}
+
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-btn {
+  position: relative;
+}
+
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-tooltip {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 8px;
+  padding: 2px 8px;
+  background: #1a1a25;
+  border: 1px solid var(--sla-border);
+  color: var(--sla-text-light);
+  font-family: var(--sla-font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: none;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+  z-index: 2;
+}
+
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-btn:hover .sla-tab-rail-tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* PROSEMIRROR EDITOR STYLING */
@@ -2179,6 +2542,20 @@ select option {
   font-size: 0.85em;
   color: #ccc;
 }
+.sla-box.sla-move-box-mode-play .sla-move-play-cell {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  min-height: 22px;
+}
+.sla-box.sla-move-box-mode-play .sla-move-play-val {
+  font-size: 1.35em;
+  font-weight: bold;
+  min-width: 2.25rem;
+  text-align: center;
+  color: #eee;
+  line-height: 1.2;
+}
 
 .sla-input-mini {
   width: 45px !important;
@@ -2366,7 +2743,8 @@ select option {
   overflow: hidden;
 }
 
-.item .sheet-header {
+.item .sheet-header,
+form.application.sla-industries.item .sheet-header {
   background: #222 !important;
   color: #fff !important;
   border-bottom: 4px solid #f90;
@@ -2374,8 +2752,50 @@ select option {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
+  flex-wrap: nowrap;
 }
-.item .sheet-header img.profile-img {
+.item .sheet-header .header-details,
+form.application.sla-industries.item .sheet-header .header-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+.item .sheet-header h1.charname,
+form.application.sla-industries.item .sheet-header h1.charname {
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+  border-bottom: 0;
+}
+.item .sheet-header h1.charname input,
+form.application.sla-industries.item .sheet-header h1.charname input {
+  width: 100%;
+  height: auto !important;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+  font-size: 1rem;
+  letter-spacing: 0.35px;
+  text-shadow: none;
+}
+.item .sheet-header .item-subtitle,
+form.application.sla-industries.item .sheet-header .item-subtitle {
+  margin: 0;
+  line-height: 1.2;
+}
+.item .sheet-header .type-label,
+form.application.sla-industries.item .sheet-header .type-label {
+  font-size: 0.75rem;
+  opacity: 0.95;
+}
+.item .sheet-header img.profile-img,
+form.application.sla-industries.item .sheet-header img.profile-img {
   flex: 0 0 64px;
   width: 64px;
   height: 64px;
@@ -2383,13 +2803,256 @@ select option {
   border: 1px solid #000;
   margin-right: 10px;
   background: #000;
+  align-self: center;
 }
-.item .sheet-header img.profile-img[data-edit=img] {
+.item .sheet-header img.profile-img[data-edit=img],
+form.application.sla-industries.item .sheet-header img.profile-img[data-edit=img] {
   cursor: pointer;
 }
 
+/* Item sheet V2: Josefin + plain fields until focus.
+   v14 Application root is often `form.application.sla-industries.item` — `.sheet` may not be on the same node, so duplicate chains. */
+.sla-industries.sheet.item .sla-item-root,
+form.application.sla-industries.item .sla-item-root,
+.application.sla-industries.item .sla-item-root {
+  font-family: var(--sla-font-mono);
+}
+
+.sla-industries.sheet.item .sla-item-root .item-subtitle,
+.sla-industries.sheet.item .sla-item-root .type-label,
+form.application.sla-industries.item .sla-item-root .item-subtitle,
+form.application.sla-industries.item .sla-item-root .type-label,
+.application.sla-industries.item .sla-item-root .item-subtitle,
+.application.sla-industries.item .sla-item-root .type-label {
+  font-family: var(--sla-font-mono);
+}
+
+.sla-industries.sheet.item .sla-item-root .sheet-header h1.charname,
+form.application.sla-industries.item .sla-item-root .sheet-header h1.charname,
+.application.sla-industries.item .sla-item-root .sheet-header h1.charname {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
+  height: auto;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.sla-industries.sheet.item .sla-item-root input:not([type=checkbox]):not([type=hidden]):not([type=radio]),
+.sla-industries.sheet.item .sla-item-root select,
+form.application.sla-industries.item .sla-item-root input:not([type=checkbox]):not([type=hidden]):not([type=radio]),
+form.application.sla-industries.item .sla-item-root select,
+.application.sla-industries.item .sla-item-root input:not([type=checkbox]):not([type=hidden]):not([type=radio]),
+.application.sla-industries.item .sla-item-root select {
+  font-family: var(--sla-font-mono) !important;
+  color: var(--sla-text-light);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
+}
+
+.sla-industries.sheet.item .sla-item-root input:not([type=checkbox]):not([type=hidden]):not([type=radio]):focus,
+.sla-industries.sheet.item .sla-item-root select:focus,
+form.application.sla-industries.item .sla-item-root input:not([type=checkbox]):not([type=hidden]):not([type=radio]):focus,
+form.application.sla-industries.item .sla-item-root select:focus,
+.application.sla-industries.item .sla-item-root input:not([type=checkbox]):not([type=hidden]):not([type=radio]):focus,
+.application.sla-industries.item .sla-item-root select:focus {
+  background: #0a0a0a !important;
+  border: 1px solid var(--sla-border) !important;
+  border-radius: var(--sla-radius);
+  box-shadow: 0 0 0 1px var(--sla-accent);
+  outline: none;
+}
+
+.sla-industries.sheet.item .sla-item-root textarea,
+form.application.sla-industries.item .sla-item-root textarea,
+.application.sla-industries.item .sla-item-root textarea {
+  font-family: var(--sla-font-mono) !important;
+  color: var(--sla-text-light);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
+  resize: vertical;
+}
+
+.sla-industries.sheet.item .sla-item-root textarea:focus,
+form.application.sla-industries.item .sla-item-root textarea:focus,
+.application.sla-industries.item .sla-item-root textarea:focus {
+  background: #0a0a0a !important;
+  border: 1px solid var(--sla-border) !important;
+  border-radius: var(--sla-radius);
+  box-shadow: 0 0 0 1px var(--sla-accent);
+  outline: none;
+}
+
+.sla-industries.sheet.item .sla-item-root h1.charname input[type=text],
+form.application.sla-industries.item .sla-item-root h1.charname input[type=text],
+.application.sla-industries.item .sla-item-root h1.charname input[type=text] {
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--sla-font-header) !important;
+  font-size: 1rem;
+  letter-spacing: 0.35px;
+  line-height: 1.2;
+  height: auto !important;
+  min-height: 0;
+  padding: 0;
+  text-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
+  color: #fff;
+}
+
+.sla-industries.sheet.item .sla-item-root h1.charname input[type=text]:focus,
+form.application.sla-industries.item .sla-item-root h1.charname input[type=text]:focus,
+.application.sla-industries.item .sla-item-root h1.charname input[type=text]:focus {
+  background: #0a0a0a !important;
+  border: 1px solid var(--sla-border) !important;
+  border-radius: var(--sla-radius);
+  box-shadow: 0 0 0 1px var(--sla-accent);
+  outline: none;
+}
+
+.sla-industries.sheet.item .sla-item-root .editor,
+.sla-industries.sheet.item .sla-item-root prose-mirror.editor,
+form.application.sla-industries.item .sla-item-root .editor,
+form.application.sla-industries.item .sla-item-root prose-mirror.editor,
+.application.sla-industries.item .sla-item-root .editor,
+.application.sla-industries.item .sla-item-root prose-mirror.editor {
+  font-family: var(--sla-font-mono);
+}
+
+.sla-industries.sheet.item .sla-item-root .item-catalogue input:not([type=checkbox]),
+.sla-industries.sheet.item .sla-item-root .item-catalogue select,
+form.application.sla-industries.item .sla-item-root .item-catalogue input:not([type=checkbox]),
+form.application.sla-industries.item .sla-item-root .item-catalogue select,
+.application.sla-industries.item .sla-item-root .item-catalogue input:not([type=checkbox]),
+.application.sla-industries.item .sla-item-root .item-catalogue select {
+  color: #000;
+}
+
+/* App V2 + PARTS `body.root: true`: template root is often hoisted onto the <form>, so `.sla-item-root` is NOT under `this.form` — rules above never match. Anchor on the form (runtime: species, package, single-view, etc.). */
+form.application.sla-industries.item {
+  font-family: var(--sla-font-mono);
+}
+form.application.sla-industries.item .item-subtitle,
+form.application.sla-industries.item .type-label {
+  font-family: var(--sla-font-mono);
+}
+form.application.sla-industries.item .sheet-header h1.charname {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
+  height: auto;
+  margin: 0;
+  line-height: 1.2;
+}
+form.application.sla-industries.item input:not([type=checkbox]):not([type=hidden]):not([type=radio]),
+form.application.sla-industries.item select {
+  font-family: var(--sla-font-mono) !important;
+  color: var(--sla-text-light);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
+}
+form.application.sla-industries.item input:not([type=checkbox]):not([type=hidden]):not([type=radio]):focus,
+form.application.sla-industries.item select:focus {
+  background: #0a0a0a !important;
+  border: 1px solid var(--sla-border) !important;
+  border-radius: var(--sla-radius);
+  box-shadow: 0 0 0 1px var(--sla-accent);
+  outline: none;
+}
+form.application.sla-industries.item textarea {
+  font-family: var(--sla-font-mono) !important;
+  color: var(--sla-text-light);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
+  resize: vertical;
+}
+form.application.sla-industries.item textarea:focus {
+  background: #0a0a0a !important;
+  border: 1px solid var(--sla-border) !important;
+  border-radius: var(--sla-radius);
+  box-shadow: 0 0 0 1px var(--sla-accent);
+  outline: none;
+}
+form.application.sla-industries.item h1.charname input[type=text] {
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--sla-font-header) !important;
+  font-size: 1rem;
+  letter-spacing: 0.35px;
+  line-height: 1.2;
+  height: auto !important;
+  min-height: 0;
+  padding: 0;
+  text-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
+  color: #fff;
+}
+form.application.sla-industries.item h1.charname input[type=text]:focus {
+  background: #0a0a0a !important;
+  border: 1px solid var(--sla-border) !important;
+  border-radius: var(--sla-radius);
+  box-shadow: 0 0 0 1px var(--sla-accent);
+  outline: none;
+}
+form.application.sla-industries.item .editor,
+form.application.sla-industries.item prose-mirror.editor {
+  font-family: var(--sla-font-mono);
+}
+form.application.sla-industries.item .item-catalogue input:not([type=checkbox]),
+form.application.sla-industries.item .item-catalogue select {
+  color: #000;
+}
+form.application.sla-industries.item .glow-input input:not([type=checkbox]) {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid #8a2be2 !important;
+  color: #fff !important;
+  box-shadow: 0 0 5px #8a2be2 !important;
+  padding: 2px 5px;
+  width: 50%;
+  height: 24px;
+  font-size: 1.1em;
+}
+form.application.sla-industries.item .firing-mode-row input[type=number] {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid #444 !important;
+  color: #fff !important;
+  text-align: center;
+  border-radius: 3px;
+  height: 22px;
+  width: 90%;
+  box-shadow: none !important;
+}
+form.application.sla-industries.item .firing-mode-row input[type=number]:focus {
+  box-shadow: 0 0 0 1px var(--sla-accent) !important;
+}
+
 /* Item sheet V2 (`tag: "form"`): native checkboxes stay visible on dark themes; beats `input { … !important }` on item types */
-form.application.sla-industries.sheet.item input[type=checkbox] {
+form.application.sla-industries.sheet.item input[type=checkbox],
+form.application.sla-industries.item input[type=checkbox] {
   width: 18px !important;
   height: 18px !important;
   min-width: 18px !important;
@@ -2405,28 +3068,33 @@ form.application.sla-industries.sheet.item input[type=checkbox] {
   text-shadow: none !important;
 }
 
-form.application.sla-industries.sheet.item input[type=checkbox]:not(:checked) {
+form.application.sla-industries.sheet.item input[type=checkbox]:not(:checked),
+form.application.sla-industries.item input[type=checkbox]:not(:checked) {
   outline: 2px solid rgba(255, 255, 255, 0.55) !important;
   outline-offset: 1px;
   border-radius: 2px;
 }
 
 /* Tabbed item sheets (V2): tabs/header fixed, body scrolls */
-.sla-item-root .sheet-tabs {
+.sla-item-root .sheet-tabs,
+form.application.sla-industries.item .sheet-tabs {
   flex: 0 0 auto;
 }
 
 /* Root is .sla-item-root (not .sla-sheet) — actor tab visibility rules do not apply here */
-.sla-item-root .sheet-body .tab {
+.sla-item-root .sheet-body .tab,
+form.application.sla-industries.item .sheet-body .tab {
   display: none;
   min-height: 0;
 }
-.sla-item-root .sheet-body .tab.active {
+.sla-item-root .sheet-body .tab.active,
+form.application.sla-industries.item .sheet-body .tab.active {
   display: block;
 }
 
 /* Scroll + height: see global/_base.scss `.sla-industries.sheet.item .sla-item-root .sheet-body` */
-.sla-item-root .sheet-body:not(.single-view) .tab.active {
+.sla-item-root .sheet-body:not(.single-view) .tab.active,
+form.application.sla-industries.item .sheet-body:not(.single-view) .tab.active {
   height: auto !important;
 }
 
@@ -2803,6 +3471,20 @@ form.application.sla-industries.sheet.item input[type=checkbox]:not(:checked) {
   /* Increased Size */
 }
 
+/* Beat V2 “plain until focus” rules inside item root */
+.sla-industries.sheet.item .sla-item-root .glow-input input:not([type=checkbox]),
+form.application.sla-industries.item .sla-item-root .glow-input input:not([type=checkbox]),
+.application.sla-industries.item .sla-item-root .glow-input input:not([type=checkbox]) {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid #8a2be2 !important;
+  color: #fff !important;
+  box-shadow: 0 0 5px #8a2be2 !important;
+  padding: 2px 5px;
+  width: 50%;
+  height: 24px;
+  font-size: 1.1em;
+}
+
 /* ==========================================
    24. GLOBAL DROP ZONES
    ========================================== */
@@ -2880,14 +3562,16 @@ form.application.sla-industries.sheet.item input[type=checkbox]:not(:checked) {
 }
 
 /* Single-view: scroll lives on .sheet-body (global/_base); stack dossier + description as content height */
-.sla-item-root .sheet-body.single-view {
+.sla-item-root .sheet-body.single-view,
+form.application.sla-industries.item .sheet-body.single-view {
   flex: 1;
   min-height: 0;
   height: auto !important;
   overflow-y: auto !important;
 }
 
-.sla-item-root .sheet-body.single-view .sheet-description {
+.sla-item-root .sheet-body.single-view .sheet-description,
+form.application.sla-industries.item .sheet-body.single-view .sheet-description {
   flex: 0 0 auto;
   min-height: 140px;
 }
@@ -3023,4 +3707,23 @@ form.application.sla-industries.sheet.item input[type=checkbox]:not(:checked) {
   border-radius: 3px;
   height: 22px;
   width: 90%;
+}
+
+.sla-industries.sheet.item .sla-item-root .firing-mode-row input[type=number],
+form.application.sla-industries.item .sla-item-root .firing-mode-row input[type=number],
+.application.sla-industries.item .sla-item-root .firing-mode-row input[type=number] {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid #444 !important;
+  color: #fff !important;
+  text-align: center;
+  border-radius: 3px;
+  height: 22px;
+  width: 90%;
+  box-shadow: none !important;
+}
+
+.sla-industries.sheet.item .sla-item-root .firing-mode-row input[type=number]:focus,
+form.application.sla-industries.item .sla-item-root .firing-mode-row input[type=number]:focus,
+.application.sla-industries.item .sla-item-root .firing-mode-row input[type=number]:focus {
+  box-shadow: 0 0 0 1px var(--sla-accent) !important;
 }

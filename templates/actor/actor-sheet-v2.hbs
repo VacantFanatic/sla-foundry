@@ -1,4 +1,4 @@
-<div class="{{cssClass}} sla-sheet standard-form" autocomplete="off">
+<div class="{{cssClass}} sla-sheet standard-form sla-actor-layout" autocomplete="off">
 
     {{> "systems/sla-industries/templates/actor/parts/header-card.hbs"}}
 
@@ -6,30 +6,52 @@
         {{> "systems/sla-industries/templates/actor/parts/stats.hbs"}}
     </div>
 
-    <nav class="sheet-tabs tabs" data-group="primary">
-        <a class="item {{tabs.main.cssClass}}" href="#" data-group="primary" data-tab="main">Main</a>
-        <a class="item {{tabs.ebb.cssClass}}" href="#" data-group="primary" data-tab="ebb">Combat</a>
-        <a class="item {{tabs.inventory.cssClass}}" href="#" data-group="primary" data-tab="inventory">Inventory</a>
-        <a class="item {{tabs.biography.cssClass}}" href="#" data-group="primary" data-tab="biography">Bio & Traits</a>
-    </nav>
+    <div class="sla-actor-tabbed-area">
+        <section class="sheet-body sla-actor-sheet-body">
 
-    <section class="sheet-body">
+            <div class="tab {{tabs.main.cssClass}}" data-group="primary" data-tab="main">
+                {{> "systems/sla-industries/templates/actor/parts/main-tab.hbs"}}
+            </div>
 
-        <div class="tab {{tabs.main.cssClass}}" data-group="primary" data-tab="main">
-            {{> "systems/sla-industries/templates/actor/parts/main-tab.hbs"}}
-        </div>
+            <div class="tab {{tabs.ebb.cssClass}}" data-group="primary" data-tab="ebb">
+                {{> "systems/sla-industries/templates/actor/parts/combat-tab.hbs"}}
+            </div>
 
-        <div class="tab {{tabs.ebb.cssClass}}" data-group="primary" data-tab="ebb">
-            {{> "systems/sla-industries/templates/actor/parts/combat-tab.hbs"}}
-        </div>
+            <div class="tab {{tabs.inventory.cssClass}}" data-group="primary" data-tab="inventory">
+                {{> "systems/sla-industries/templates/actor/parts/inventory-tab.hbs"}}
+            </div>
 
-        <div class="tab {{tabs.inventory.cssClass}}" data-group="primary" data-tab="inventory">
-            {{> "systems/sla-industries/templates/actor/parts/inventory-tab.hbs"}}
-        </div>
+            <div class="tab {{tabs.biography.cssClass}}" data-group="primary" data-tab="biography">
+                {{> "systems/sla-industries/templates/actor/parts/bio-traits-tab.hbs"}}
+            </div>
 
-        <div class="tab {{tabs.biography.cssClass}}" data-group="primary" data-tab="biography">
-            {{> "systems/sla-industries/templates/actor/parts/bio-traits-tab.hbs"}}
-        </div>
+            <div class="tab {{tabs.effects.cssClass}}" data-group="primary" data-tab="effects">
+                {{> "systems/sla-industries/templates/actor/parts/effects-tab.hbs"}}
+            </div>
 
-    </section>
+        </section>
+
+        <nav class="sheet-tabs tabs sla-sheet-tab-rail" data-group="primary" aria-label="Sheet sections">
+            <a class="item sla-tab-rail-btn {{tabs.main.cssClass}}" href="#" data-group="primary" data-tab="main" title="{{tabs.main.label}}">
+                <i class="fas {{tabs.main.icon}}"></i>
+                <span class="sla-tab-rail-tooltip">{{tabs.main.label}}</span>
+            </a>
+            <a class="item sla-tab-rail-btn {{tabs.ebb.cssClass}}" href="#" data-group="primary" data-tab="ebb" title="{{tabs.ebb.label}}">
+                <i class="fas {{tabs.ebb.icon}}"></i>
+                <span class="sla-tab-rail-tooltip">{{tabs.ebb.label}}</span>
+            </a>
+            <a class="item sla-tab-rail-btn {{tabs.inventory.cssClass}}" href="#" data-group="primary" data-tab="inventory" title="{{tabs.inventory.label}}">
+                <i class="fas {{tabs.inventory.icon}}"></i>
+                <span class="sla-tab-rail-tooltip">{{tabs.inventory.label}}</span>
+            </a>
+            <a class="item sla-tab-rail-btn {{tabs.biography.cssClass}}" href="#" data-group="primary" data-tab="biography" title="{{tabs.biography.label}}">
+                <i class="fas {{tabs.biography.icon}}"></i>
+                <span class="sla-tab-rail-tooltip">{{tabs.biography.label}}</span>
+            </a>
+            <a class="item sla-tab-rail-btn {{tabs.effects.cssClass}}" href="#" data-group="primary" data-tab="effects" title="{{tabs.effects.label}}">
+                <i class="fas {{tabs.effects.icon}}"></i>
+                <span class="sla-tab-rail-tooltip">{{tabs.effects.label}}</span>
+            </a>
+        </nav>
+    </div>
 </div>

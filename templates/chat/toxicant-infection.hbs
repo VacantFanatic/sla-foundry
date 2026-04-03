@@ -1,0 +1,15 @@
+<div class="sla-chat-card toxicant-infection">
+    <div class="drug-header">TOXICANT: {{itemName}}</div>
+    <div class="drug-content">
+        {{#if immune}}
+        <p><strong>{{actorName}}</strong> is already immune to this toxicant for the current encounter <span style="opacity:0.7;">({{scope}})</span>.</p>
+        {{else}}
+        <p><strong>Infection test:</strong> Success Die ({{sdRaw}}) + STR ({{strVal}}) = <strong>{{total}}</strong> vs IR <strong>{{infectionRating}}</strong></p>
+        {{#if success}}
+        <p style="color:#39ff14;"><strong>Success</strong> — no infection. Immune for this encounter.</p>
+        {{else}}
+        <p style="color:#ff6b6b;"><strong>Failure</strong> — infected. Applied item effects to {{actorName}}.</p>
+        {{/if}}
+        {{/if}}
+    </div>
+</div>

@@ -94,6 +94,96 @@
     }
 }
 
+// Chat log: Foundry paints parchment on .chat-message — theme the whole row (header + body) for SLA cards and dice rolls
+$_sla-chat-dark-row-selectors: (
+    '.chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll))',
+    '.chat-popout .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll))',
+    '#chat .chat-log .chat-message:is(:has(.sla-chat-card), :has(.dice-roll))'
+);
+
+@each $sel in $_sla-chat-dark-row-selectors {
+    #{$sel} {
+        background: #000 !important;
+        background-image: none !important;
+        color: var(--sla-text-light);
+
+        .message-header {
+            color: var(--sla-text-light);
+        }
+
+        .message-sender {
+            color: var(--sla-text-light);
+        }
+
+        .message-metadata {
+            color: #aaa;
+        }
+
+        .message-content {
+            background: transparent !important;
+            background-image: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: var(--sla-text-light);
+        }
+
+        // Default Foundry roll UI: light grey boxes on dark row
+        .dice-roll {
+            .dice-formula,
+            .dice-total {
+                background: #1a1a1a !important;
+                color: var(--sla-text-light) !important;
+                border-color: #444 !important;
+            }
+        }
+    }
+}
+
+.chat-log .chat-message .sla-chat-card,
+.chat-popout .chat-log .chat-message .sla-chat-card,
+#chat .chat-log .chat-message .sla-chat-card {
+    box-sizing: border-box;
+    background: #000 !important;
+    background-image: none !important;
+    color: var(--sla-text-light) !important;
+}
+
+.chat-log .chat-message .sla-chat-card p,
+.chat-log .chat-message .sla-chat-card .drug-content,
+.chat-popout .chat-log .chat-message .sla-chat-card p,
+.chat-popout .chat-log .chat-message .sla-chat-card .drug-content {
+    color: #d8d8d8;
+}
+
+.chat-log .chat-message .sla-chat-card .drug-content strong,
+.chat-popout .chat-log .chat-message .sla-chat-card .drug-content strong {
+    color: #f0f0f0;
+}
+
+// Toxicant infection card (reuses .drug-header / .drug-content; not wrapped by .drug-use)
+.sla-chat-card.toxicant-infection {
+    padding: 8px;
+    border-radius: $border-radius;
+    border: $border-width solid #8b2942;
+    border-left: 4px solid #8b2942;
+    box-shadow: 0 0 5px rgba(139, 41, 66, 0.25);
+
+    .drug-header {
+        background: #2a1418;
+        color: #ffb3c1;
+        @include font-header;
+        font-size: 1.05em;
+        border-bottom: $border-width solid #555;
+        margin: -8px -8px 8px -8px;
+        padding: 8px 10px;
+        border-radius: 3px 3px 0 0;
+    }
+
+    .drug-content {
+        font-size: 0.95em;
+    }
+}
+
 /* Damage Result Card */
 .sla-chat-card.damage-result {
     padding: 8px;

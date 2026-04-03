@@ -1,0 +1,31 @@
+<div class="sla-panel" style="background-color: #000; color: #e0e0e0; padding: 5px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+        <div class="form-group">
+            <label style="color:var(--sla-accent);">Infection Rating (IR)</label>
+            <input type="number" name="system.infectionRating" value="{{system.infectionRating}}" min="0" step="1" />
+        </div>
+        <div class="form-group">
+            <label style="color:var(--sla-accent);">Treatment Rating</label>
+            <input type="number" name="system.treatmentRating" value="{{system.treatmentRating}}" min="0" step="1" />
+        </div>
+    </div>
+
+    <div class="form-group" style="flex-direction: column; align-items: flex-start; margin-bottom: 8px;">
+        <label style="color:var(--sla-accent); margin-bottom: 2px;">Vectors</label>
+        <input type="text" name="system.vector" value="{{system.vector}}" placeholder="e.g. Ingestion or blood contact" style="width:100%;" />
+    </div>
+
+    <div class="form-group" style="flex-direction: column; align-items: flex-start; margin-bottom: 8px;">
+        <label style="color:var(--sla-accent); margin-bottom: 2px;">Progression</label>
+        <textarea name="system.progression" rows="2" style="width:100%;">{{system.progression}}</textarea>
+    </div>
+
+    <div class="form-group" style="flex-direction: column; align-items: flex-start;">
+        <label style="color:var(--sla-accent); margin-bottom: 2px;">Treatment</label>
+        <textarea name="system.treatment" rows="3" style="width:100%;">{{system.treatment}}</textarea>
+    </div>
+
+    <div style="margin-top: 10px; font-size: 0.8em; color: #777; text-align: center; font-style: italic;">
+        Define mechanical changes on the Effects tab. Exposure uses Success Die + STR vs IR.
+    </div>
+</div>

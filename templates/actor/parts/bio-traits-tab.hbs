@@ -34,6 +34,51 @@
         </div>
     </div>
 
+    {{!-- Infections (toxicants) --}}
+    <div class="sla-panel" style="flex: 0 0 auto; max-height: 220px; margin-bottom: 5px; display: flex; flex-direction: column; min-height: 0;">
+        <div class="sla-header-bar flexrow" style="align-items: center;">
+            <span style="flex:1;">INFECTIONS</span>
+            {{#if editable}}
+            <div class="item-controls" style="float:none;">
+                <a class="item-create" data-type="toxicant" title="Add toxicant"><i class="fas fa-plus"></i></a>
+            </div>
+            {{/if}}
+        </div>
+        <div class="scroll-list" style="flex:1; min-height:0; overflow-y:auto;">
+            <table class="sla-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:left; padding-left:5px;" colspan="2">Name</th>
+                        <th style="width:48px; text-align:center;">IR</th>
+                        <th style="width:100px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each infections as |item|}}
+                    <tr class="item" data-item-id="{{item._id}}" style="border-bottom:1px solid #333;">
+                        <td class="item-image" style="width:30px; padding:2px;">
+                            <img src="{{item.img}}" width="24" height="24" alt="" />
+                        </td>
+                        <td class="item-name" style="padding-left:5px; font-weight:bold; color:#e0e0e0;">
+                            <a class="rollable" data-roll-type="item">{{item.name}}</a>
+                        </td>
+                        <td style="text-align:center; color:#aaa;">{{item.system.infectionRating}}</td>
+                        <td class="item-controls" style="text-align:right; padding-right:5px;">
+                            <a class="item-control item-use-toxicant" title="Infection test"><i class="fas fa-biohazard" style="color:#9acd32; margin-right:5px;"></i></a>
+                            <a class="item-edit" title="Edit Item"><i class="fas fa-edit" style="color:#444;"></i></a>
+                            <a class="item-delete" title="Delete Item"><i class="fas fa-trash" style="color:#444;"></i></a>
+                        </td>
+                    </tr>
+                    {{else}}
+                    <tr>
+                        <td colspan="4" style="padding:12px; text-align:center; color:#555; font-style:italic;">No active infection entries. Drag a toxicant here or add one.</td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     {{!-- Notes Section --}}
     <div class="sla-panel" style="flex: 1; min-height: 300px; display: flex; flex-direction: column;">
         <div class="sla-header-bar">NOTES</div>

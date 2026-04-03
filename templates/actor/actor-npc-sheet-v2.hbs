@@ -32,12 +32,12 @@
             </thead>
             <tbody>
                 <tr class="threat-row-value">
-                    <td><input type="number" name="system.stats.str.value" value="{{system.stats.str.value}}" /></td>
-                    <td><input type="number" name="system.stats.dex.value" value="{{system.stats.dex.value}}" /></td>
-                    <td><input type="number" name="system.stats.know.value" value="{{system.stats.know.value}}" /></td>
-                    <td><input type="number" name="system.stats.conc.value" value="{{system.stats.conc.value}}" /></td>
-                    <td><input type="number" name="system.stats.cha.value" value="{{system.stats.cha.value}}" /></td>
-                    <td><input type="number" name="system.stats.cool.value" value="{{system.stats.cool.value}}" /></td>
+                    <td><input type="number" name="system.stats.str.value" value="{{#if statInputs}}{{statInputs.str}}{{else}}{{system.stats.str.value}}{{/if}}" /></td>
+                    <td><input type="number" name="system.stats.dex.value" value="{{#if statInputs}}{{statInputs.dex}}{{else}}{{system.stats.dex.value}}{{/if}}" /></td>
+                    <td><input type="number" name="system.stats.know.value" value="{{#if statInputs}}{{statInputs.know}}{{else}}{{system.stats.know.value}}{{/if}}" /></td>
+                    <td><input type="number" name="system.stats.conc.value" value="{{#if statInputs}}{{statInputs.conc}}{{else}}{{system.stats.conc.value}}{{/if}}" /></td>
+                    <td><input type="number" name="system.stats.cha.value" value="{{#if statInputs}}{{statInputs.cha}}{{else}}{{system.stats.cha.value}}{{/if}}" /></td>
+                    <td><input type="number" name="system.stats.cool.value" value="{{#if statInputs}}{{statInputs.cool}}{{else}}{{system.stats.cool.value}}{{/if}}" /></td>
                 </tr>
             </tbody>
         </table>
