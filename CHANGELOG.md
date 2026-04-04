@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-04-04
+
+### Changed
+* **World migration version** is **`2.2.1`**. Worlds older than that still run the usual migration pass (including **2.0.0** HTML defaults and **2.1.0** drug field cleanup when needed); this release adds no new document transforms.
+
+### Fixed
+* **Item sheet — Description tab (weapon, armor, explosive):** The rich text editor (`<prose-mirror>`) could appear missing because the active tab used `display: block` while the editor is laid out as a flex item; the description tab is now a **flex column** with a **minimum height** so the editor stays visible and usable.
+
 ## [2.2.0] - 2026-04-04
 
 ### Added
@@ -424,7 +432,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.2.0...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.2.1...HEAD
+[2.2.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.2.1
 [2.2.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.2.0
 [2.1.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.1.0
 [2.0.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.0.1
