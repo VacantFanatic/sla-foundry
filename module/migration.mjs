@@ -1,5 +1,6 @@
 import { NATURAL_WEAPONS } from "./data/natural-weapons.mjs";
 import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
+import { consolidateStackableItemsOnActor } from "./helpers/inventory-stack.mjs";
 
 /** * module/migration.mjs
  * World migration version is stored in game.settings ("sla-industries", "systemMigrationVersion").
@@ -7,7 +8,7 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
  */
 
 /** Matches `version` in system.json when migration logic is updated for that release. */
-export const CURRENT_MIGRATION_VERSION = "2.2.1";
+export const CURRENT_MIGRATION_VERSION = "2.3.0";
 
 /**
  * Main Entry Point
@@ -18,6 +19,7 @@ export async function migrateWorld() {
     // Run version-specific migrations (before per-document loops below)
     await migrateTo200();
     await migrateTo210();
+    await migrateTo230();
 
     const meleeSkills = ["melee", "unarmed", "thrown"];
 
@@ -561,5 +563,26 @@ async function migrateTo210() {
             await actor.updateEmbeddedDocuments("Item", embedded);
             console.log(`SLA | 2.1.0: Stripped legacy drug fields on ${embedded.length} item(s) on "${actor.name}"`);
         }
+    }
+}
+
+/**
+ * 2.3.0: Merge duplicate stackable inventory rows (item / explosive / magazine / drug) per actor;
+ * quantity is summed. Groups where any row has embedded ActiveEffects are skipped (logged).
+ */
+async function migrateTo230() {
+    console.log("SLA Industries | Migration 2.3.0: Consolidate stackable inventory duplicates");
+
+    let totalMerged = 0;
+    let totalSkipped = 0;
+
+    for (const actor of game.actors) {
+        const { merged, skipped } = await consolidateStackableItemsOnActor(actor);
+        totalMerged += merged;
+        totalSkipped += skipped;
+    }
+
+    if (totalMerged || totalSkipped) {
+        console.log(`SLA | 2.3.0: Removed ${totalMerged} duplicate item row(s); skipped ${totalSkipped} group(s) with effects`);
     }
 }

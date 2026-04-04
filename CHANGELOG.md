@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-04-04
+
+### Added
+* **Stackable inventory drops:** Dragging **gear** (`item`), **explosives**, **magazines**, or **drugs** onto an actor sheet **merges** into an existing row when the system considers it the same item: **`_stats.compendiumSource`** or **`flags.core.sourceId`** when present, otherwise same **type** + **name** (case-insensitive), and for **magazines** also the same **`ammoType`** and **`ammoCapacity`**. The first row gets an explicit **quantity** (default **1**); further drops **add** the incoming quantity (invalid or missing quantity on the payload is treated as **1**). **Weapons**, **armor**, and other types are unchanged (including NPC auto-equip and vehicle weapon drops).
+
+### Changed
+* **World migration version** is **`2.3.0`**. **`migrateTo230`** runs after earlier steps: on each actor it **consolidates** duplicate stackable rows using the same identity rules, **summing** quantities (each row contributes **`max(1, floor(quantity))`** or **1** if missing/invalid). Rows are **not** merged if **any** duplicate in the group has **embedded Active Effects** on the Item (a warning is logged so worlds can be cleaned manually).
+
 ## [2.2.1] - 2026-04-04
 
 ### Changed
@@ -432,7 +440,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.2.1...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.3.0...HEAD
+[2.3.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.3.0
 [2.2.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.2.1
 [2.2.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.2.0
 [2.1.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.1.0
