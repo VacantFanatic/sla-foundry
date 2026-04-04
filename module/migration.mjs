@@ -7,7 +7,7 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
  */
 
 /** Matches `version` in system.json when migration logic is updated for that release. */
-export const CURRENT_MIGRATION_VERSION = "2.2.0";
+export const CURRENT_MIGRATION_VERSION = "2.2.1";
 
 /**
  * Main Entry Point

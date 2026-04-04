@@ -3266,6 +3266,15 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.active {
   height: auto !important;
 }
 
+/* Description tab: <prose-mirror class="editor"> is `display:flex; flex:1` — a block parent gives it no flex line, so it can collapse to zero height. */
+.sla-item-root .sheet-body:not(.single-view) .tab.description.active,
+form.application.sla-industries.item .sheet-body:not(.single-view) .tab.description.active,
+.application.sla-industries.item .sheet-body:not(.single-view) .tab.description.active {
+  display: flex;
+  flex-direction: column;
+  min-height: 12rem;
+}
+
 /* Academic Theme (Skills/Traits) */
 .item.skill .window-content,
 .item.trait .window-content {
