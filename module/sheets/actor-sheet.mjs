@@ -9,6 +9,7 @@ import { prepareItems } from "../helpers/items.mjs";
 import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from "../helpers/modifiers.mjs";
 import { addActorItemToHotbar } from "../helpers/sla-hotbar.mjs";
 import { SLAChat } from "../helpers/chat.mjs";
+import { handleStackableActorItemDrop } from "../helpers/inventory-stack.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -2545,6 +2546,9 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (this._shouldAutoEquipDroppedItem(itemData)) {
             return this._createEquippedItem(itemData);
         }
+
+        const stacked = await handleStackableActorItemDrop(this.actor, itemData);
+        if (stacked) return;
 
         return super._onDropItem(event, data);
     }
