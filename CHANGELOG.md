@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-04-05
+
+### Added
+* **Item sheet — header toggle menu:** **View Item Artwork** opens the item image in Foundry’s **Image Popout**; the popout’s own toggle menu includes **Show Players** (core `shareImage`) so GMs can share the artwork with connected players.
+
 ## [2.3.0] - 2026-04-04
 
 ### Added

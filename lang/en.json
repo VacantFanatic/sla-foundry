@@ -39,5 +39,7 @@
   "TYPES.Item.vehicle": "Vehicle (invalid item — use Actor vehicle)",
   "TYPES.Actor.character": "Operative",
   "TYPES.Actor.npc": "Threat",
-  "TYPES.Actor.vehicle": "Vehicle"
+  "TYPES.Actor.vehicle": "Vehicle",
+  "SLA.ItemSheet.ViewArtwork": "View Item Artwork",
+  "SLA.ItemSheet.NoImage": "This item has no image to display."
 }

@@ -74,6 +74,33 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         await handleSkillDelete(index, this.item);
     }
 
+    /**
+     * Header control: open item image in ImagePopout (includes Show Players via core share).
+     * @param {PointerEvent} event
+     * @param {HTMLElement} target
+     */
+    static showItemArtwork(event, target) {
+        event.preventDefault();
+        const item = this.item;
+        if (!item) return;
+        const src = item.img;
+        if (!src) {
+            ui.notifications?.warn?.(game.i18n.localize("SLA.ItemSheet.NoImage"));
+            return;
+        }
+        const ImagePopout = foundry.applications.apps?.ImagePopout ?? globalThis.ImagePopout;
+        if (!ImagePopout) {
+            ui.notifications?.error?.("ImagePopout is unavailable.");
+            return;
+        }
+        const popout = new ImagePopout({
+            src,
+            uuid: item.uuid,
+            window: { title: item.name }
+        });
+        popout.render(true);
+    }
+
     /** @override */
     static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
         tag: "form",
@@ -96,9 +123,28 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
             removeWeaponLink: SlaItemSheet.removeWeaponLink,
             removeSkillLink: SlaItemSheet.removeSkillLink,
             removeDisciplineLink: SlaItemSheet.removeDisciplineLink,
-            deleteSkillGrant: SlaItemSheet.deleteSkillGrant
+            deleteSkillGrant: SlaItemSheet.deleteSkillGrant,
+            showItemArtwork: SlaItemSheet.showItemArtwork
         }
     }, { inplace: false });
+
+    /** @override */
+    _getHeaderControls() {
+        const controls = super._getHeaderControls();
+        const artworkActions = new Set(["showArtwork", "showPortrait", "showItemArtwork"]);
+        if (controls.some((c) => artworkActions.has(String(c?.action ?? "")))) {
+            return controls;
+        }
+        return [
+            ...controls,
+            {
+                icon: "fa-solid fa-image",
+                label: game.i18n.localize("SLA.ItemSheet.ViewArtwork"),
+                action: "showItemArtwork",
+                ownership: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER
+            }
+        ];
+    }
 
     /** @type {AbortController | null} */
     #dropListenersAbort = null;
