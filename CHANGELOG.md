@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.4.2] - 2026-04-05
+
+### Changed
+* Updated system `version` and release `download` URL in `system.json` to `2.4.2`.
+
 ## [2.4.0] - 2026-04-05
 
 ### Added
@@ -445,7 +450,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.3.0...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.2...HEAD
+[2.4.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.2
+[2.4.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.0
 [2.3.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.3.0
 [2.2.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.2.1
 [2.2.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.2.0
