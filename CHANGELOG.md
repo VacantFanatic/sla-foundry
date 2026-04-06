@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [2.4.3] - 2026-04-06
 
+### Added
+* **Regression tests:** Node (`npm run test:unit`) covers `module/helpers/inventory-stack.mjs`, **`module/helpers/dice.mjs`** (`calculateRollResult` / `getMOS`), and validates `system.json`. Playwright **`tests/e2e/regression-sla.spec.js`** (`npm run test:e2e:regression`) exercises SLA APIs and settings UI; **`tests/e2e/regression-operators.spec.js`** (`npm run test:e2e:operators`) covers Foundry `Roll` evaluation, **`CONFIG.SLA`**, GM **operative** create/delete, embedded **weapon** items, and roll-data integration — GM-only steps skip unless **`FOUNDRY_USER`** is a Gamemaster. All E2E require a running Foundry instance and **`FOUNDRY_USER`**.
+
 ### Changed
 * Declared **Foundry VTT v14** compatibility in `system.json` (`compatibility.minimum` **14**, `verified` **14.359**).
 * Updated system/package metadata version to `2.4.3` and release `download` URL in `system.json`.
