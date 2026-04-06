@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.4.3] - 2026-04-06
+
+### Changed
+* Declared **Foundry VTT v14** compatibility in `system.json` (`compatibility.minimum` **14**, `verified` **14.359**).
+* Updated system/package metadata version to `2.4.3` and release `download` URL in `system.json`.
+* Migration version remains **`2.1.0`** in `module/migration.mjs`; no new persisted document schema/data transforms are introduced by this compatibility and runtime behavior update.
+
+### Fixed
+* **Explosive throw targeting preview:** Before confirming throw placement, the canvas now shows a live dashed blast preview (outer and inner rings) to assist target selection.
+* **Explosive templates:** Final placed blast regions now use non-grid-based circles so templates remain visually round.
+* **Explosive wall blocking:** Initial throw path and deviation path now clamp to the nearest movement-blocking wall collision using v14 movement polygon collision checks with fallback handling.
+* **Foundry v14 deprecation cleanup:** Replaced deprecated `CONST.ACTIVE_EFFECT_MODES` lookup with `CONST.ACTIVE_EFFECT_CHANGE_TYPES` in actor derived-data effect summation.
+
 ## [2.4.2] - 2026-04-05
 
 ### Changed
@@ -450,7 +463,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.2...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.3...HEAD
+[2.4.3]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.3
 [2.4.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.2
 [2.4.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.0
 [2.3.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.3.0

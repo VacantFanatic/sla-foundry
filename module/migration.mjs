@@ -6,7 +6,11 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
  * Bump CURRENT_MIGRATION_VERSION when this file’s behavior changes so older worlds re-run migration.
  */
 
-/** Matches `version` in system.json when migration logic is updated for that release. */
+/**
+ * Highest world-data migration currently required.
+ * Keep this at 2.1.0 until a release introduces new persisted schema transforms;
+ * v14 compatibility and sheet/runtime API updates do not require stored document changes.
+ */
 export const CURRENT_MIGRATION_VERSION = "2.1.0";
 
 /**
