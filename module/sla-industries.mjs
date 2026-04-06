@@ -23,6 +23,102 @@ import { SLA } from "./config.mjs";
 import { migrateWorld, CURRENT_MIGRATION_VERSION } from "./migration.mjs";
 import { rollOwnedItem, addActorItemToHotbar, registerSlaHotbar } from "./helpers/sla-hotbar.mjs";
 
+const movementActionState = new Map();
+
+function getMovementStateKey(combatId, combatantId) {
+    if (!combatId || !combatantId) return null;
+    return `${combatId}:${combatantId}`;
+}
+
+function getTokenDocument(tokenLike) {
+    if (!tokenLike) return null;
+    return tokenLike.document ?? tokenLike;
+}
+
+function getCombatAndCombatantForToken(tokenLike) {
+    const combat = game.combat;
+    if (!combat) return { combat: null, combatant: null };
+    const tokenDoc = getTokenDocument(tokenLike);
+    const tokenId = tokenDoc?.id;
+    if (!tokenId) return { combat, combatant: null };
+    const combatant = combat.combatants.find(c => c.tokenId === tokenId) ?? null;
+    return { combat, combatant };
+}
+
+function resetMovementActionForTurn(combat, combatant) {
+    const key = getMovementStateKey(combat?.id, combatant?.id);
+    if (!key) return;
+    const tokenDoc = combatant?.token;
+    movementActionState.set(key, {
+        movementUsed: false,
+        round: combat?.round ?? null,
+        turn: combat?.turn ?? null,
+        turnStart: tokenDoc ? { x: tokenDoc.x, y: tokenDoc.y } : null
+    });
+}
+
+function markMovementActionUsed(tokenLike) {
+    const tokenDoc = getTokenDocument(tokenLike);
+    const { combat, combatant } = getCombatAndCombatantForToken(tokenLike);
+    if (!combat || !combat.started || !combatant) return;
+    const key = getMovementStateKey(combat.id, combatant.id);
+    if (!key) return;
+    const current = movementActionState.get(key) ?? {};
+    movementActionState.set(key, {
+        ...current,
+        movementUsed: true,
+        round: combat.round ?? null,
+        turn: combat.turn ?? null,
+        turnStart: current.turnStart ?? (tokenDoc ? { x: tokenDoc.x, y: tokenDoc.y } : null)
+    });
+}
+
+function resetMovementActionUsed(tokenLike) {
+    const tokenDoc = getTokenDocument(tokenLike);
+    const { combat, combatant } = getCombatAndCombatantForToken(tokenLike);
+    if (!combat || !combat.started || !combatant) return;
+    const key = getMovementStateKey(combat.id, combatant.id);
+    if (!key) return;
+    const current = movementActionState.get(key) ?? {};
+    movementActionState.set(key, {
+        ...current,
+        movementUsed: false,
+        round: combat.round ?? null,
+        turn: combat.turn ?? null,
+        turnStart: current.turnStart ?? (tokenDoc ? { x: tokenDoc.x, y: tokenDoc.y } : null)
+    });
+}
+
+function isMovementActionUsed(tokenLike) {
+    const { combat, combatant } = getCombatAndCombatantForToken(tokenLike);
+    if (!combat || !combat.started || !combatant) return false;
+    const key = getMovementStateKey(combat.id, combatant.id);
+    if (!key) return false;
+
+    const entry = movementActionState.get(key);
+    if (!entry) return false;
+    const sameTurn = entry.round === (combat.round ?? null) && entry.turn === (combat.turn ?? null);
+    if (!sameTurn) {
+        movementActionState.delete(key);
+        return false;
+    }
+    return entry.movementUsed === true;
+}
+
+function canTokenMoveThisTurn(tokenLike) {
+    if (!game.settings.get("sla-industries", "enableCombatMovementLock")) return true;
+    const { combat, combatant } = getCombatAndCombatantForToken(tokenLike);
+    if (!combat || !combat.started || !combatant) return true;
+
+    const activeCombatant = combat.combatant;
+    if (!activeCombatant || activeCombatant.id !== combatant.id) return true;
+    return !isMovementActionUsed(tokenLike);
+}
+
+function isUndoMovement(options) {
+    return options?.isUndo === true || options?.undo === true || options?.undoMovement === true;
+}
+
 /* -------------------------------------------- */
 /* Init Hook                                   */
 /* -------------------------------------------- */
@@ -143,6 +239,15 @@ Hooks.once('init', async function () {
         default: true
     });
 
+    game.settings.register("sla-industries", "enableCombatMovementLock", {
+        name: "Enable Combat Movement Lock",
+        hint: "When enabled, a combatant can only move once per turn. Disable to allow multiple movement updates during a turn.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
     CONFIG.statusEffects = SLA.statusEffects;
     CONFIG.Actor.trackableAttributes = SLA.trackableAttributes;
 
@@ -167,7 +272,11 @@ Hooks.once('init', async function () {
     foundry.documents.collections.Items.unregisterSheet("core", foundry.appv1.sheets.ItemSheet);
     foundry.documents.collections.Items.registerSheet("sla-industries", SlaItemSheet, { makeDefault: true, label: "SLA Item Sheet" });
 
-    game.sla = foundry.utils.mergeObject(game.sla ?? {}, { rollOwnedItem, addActorItemToHotbar });
+    game.sla = foundry.utils.mergeObject(game.sla ?? {}, {
+        rollOwnedItem,
+        addActorItemToHotbar,
+        canTokenMoveThisTurn
+    });
 
     return preloadHandlebarsTemplates();
 });
@@ -202,6 +311,42 @@ Hooks.once("ready", async function () {
     Hooks.on("renderChatMessageHTML", SLAChat.onRenderChatMessage);
 
     registerSlaHotbar();
+
+    Hooks.on("updateCombat", (combat, changed) => {
+        if (!combat?.started) return;
+        if (!(foundry.utils.hasProperty(changed, "turn") || foundry.utils.hasProperty(changed, "round"))) return;
+        const activeCombatant = combat.combatant;
+        if (!activeCombatant?.id) return;
+        resetMovementActionForTurn(combat, activeCombatant);
+    });
+
+    Hooks.on("deleteCombat", (combat) => {
+        if (!combat?.id) return;
+        for (const key of movementActionState.keys()) {
+            if (key.startsWith(`${combat.id}:`)) movementActionState.delete(key);
+        }
+    });
+
+    Hooks.on("preUpdateToken", (tokenDocument, changed, options) => {
+        const isMoveUpdate = foundry.utils.hasProperty(changed, "x") || foundry.utils.hasProperty(changed, "y");
+        if (!isMoveUpdate) return true;
+        if (isUndoMovement(options)) return true;
+        if (canTokenMoveThisTurn(tokenDocument)) return true;
+
+        ui.notifications.warn("Movement action already used this turn.");
+        return false;
+    });
+
+    Hooks.on("updateToken", (tokenDocument, changed, options) => {
+        const isMoveUpdate = foundry.utils.hasProperty(changed, "x") || foundry.utils.hasProperty(changed, "y");
+        if (!isMoveUpdate) return;
+        if (isUndoMovement(options)) {
+            resetMovementActionUsed(tokenDocument);
+            ui.notifications.info("Movement undo detected: movement action reset for this turn.");
+            return;
+        }
+        markMovementActionUsed(tokenDocument);
+    });
 
     // Stunned: act at the lowest initiative in the encounter — clamp to current minimum when initiative updates
     Hooks.on("updateCombatant", async (combatant, changed, options) => {
