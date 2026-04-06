@@ -8,10 +8,10 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
 
 /**
  * Highest world-data migration currently required.
- * Keep this at 2.1.0 until a release introduces new persisted schema transforms;
- * v14 compatibility and sheet/runtime API updates do not require stored document changes.
+ * Bump when migration steps change so older worlds re-run. `2.1.1` supersedes `2.1.0` so worlds
+ * that reached `2.1.0` without `migrateTo210` (drug legacy keys) still run that step once.
  */
-export const CURRENT_MIGRATION_VERSION = "2.1.0";
+export const CURRENT_MIGRATION_VERSION = "2.1.1";
 
 /**
  * Client-side world snapshot for disaster recovery before migration runs.
@@ -84,6 +84,7 @@ export async function migrateWorld() {
 
     // Run version-specific migrations (before per-document loops below)
     await migrateTo200();
+    await migrateTo210();
 
     const meleeSkills = ["melee", "unarmed", "thrown"];
 
@@ -577,6 +578,55 @@ async function migrateTo200() {
         if (embedded.length) {
             await actor.updateEmbeddedDocuments("Item", embedded);
             console.log(`SLA | 2.0.0: Initialized system.description on ${embedded.length} item(s) on "${actor.name}"`);
+        }
+    }
+}
+
+/**
+ * 2.1.0: Drug items no longer use `system.mods` or `system.damageReduction` (use embedded Active Effects).
+ * Drop those keys from persisted data so it matches the current drug item schema.
+ */
+async function migrateTo210() {
+    console.log("SLA Industries | Migration 2.1.0: Remove legacy drug mod/damageReduction fields");
+
+    /**
+     * @param {Item} item
+     * @returns {Record<string, unknown>|null}
+     */
+    const drugLegacyDelta = (item) => {
+        if (item.type !== "drug") return null;
+        const src = item._source;
+        if (!src) return null;
+        const delta = {};
+        let has = false;
+        if (foundry.utils.hasProperty(src, "system.mods")) {
+            delta["system.-=mods"] = null;
+            has = true;
+        }
+        if (foundry.utils.hasProperty(src, "system.damageReduction")) {
+            delta["system.-=damageReduction"] = null;
+            has = true;
+        }
+        return has ? delta : null;
+    };
+
+    for (const item of game.items.contents) {
+        const d = drugLegacyDelta(item);
+        if (d) {
+            await item.update(d);
+            console.log(`SLA | 2.1.0: Stripped legacy drug fields from world item "${item.name}"`);
+        }
+    }
+
+    for (const actor of game.actors) {
+        const embedded = [];
+        for (const item of actor.items.contents) {
+            const d = drugLegacyDelta(item);
+            if (d) embedded.push({ _id: item.id, ...d });
+        }
+        if (embedded.length) {
+            await actor.updateEmbeddedDocuments("Item", embedded);
+            console.log(`SLA | 2.1.0: Stripped legacy drug fields on ${embedded.length} item(s) on "${actor.name}"`);
         }
     }
 }

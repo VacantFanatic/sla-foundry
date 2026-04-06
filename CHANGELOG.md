@@ -13,9 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Updated system/package metadata version to `2.4.3` and release `download` URL in `system.json`.
 * **Token ruler (combat):** When a combatant has already used movement this turn, ruler segments render as over-limit to reflect that movement is no longer available as an action.
 * **Combat movement lock setting:** Added world setting **Enable Combat Movement Lock** to toggle one-move-per-turn enforcement on or off.
-* Migration version remains **`2.1.0`** in `module/migration.mjs`; no new persisted document schema/data transforms are introduced by this compatibility and runtime behavior update.
+* World migration version is **`2.1.1`** in `module/migration.mjs` (was `2.1.0`); worlds at `2.1.0` without the drug cleanup step run migration once more.
 
 ### Fixed
+* **World migration — drug items:** Restored **`migrateTo210`** (strip legacy `system.mods` / `system.damageReduction` from drug items) so upgrades from pre-`2.1.0` and worlds stuck at `2.1.0` without that step are cleaned up; it runs after **`migrateTo200`** as before.
 * **Single movement action enforcement:** In combat, the active combatant can only move once per turn; a second movement attempt in the same turn is blocked with a warning.
 * **Movement undo support:** Undoing token movement (Ctrl+Z / undo update flags) now clears the per-turn movement lock so the combatant can move again that turn.
 * **Explosive throw targeting preview:** Before confirming throw placement, the canvas now shows a live dashed blast preview (outer and inner rings) to assist target selection.
