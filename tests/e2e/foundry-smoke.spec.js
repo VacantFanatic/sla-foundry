@@ -23,8 +23,10 @@ test.describe("Foundry + SLA (requires env)", () => {
 
         await joinGame(page);
 
-        await page.waitForFunction(() => globalThis.game?.ready === true, null, { timeout: 90_000 });
-        const systemId = await page.evaluate(() => globalThis.game?.system?.id ?? null);
-        expect(systemId).toBe("sla-industries");
+        await page.waitForFunction(
+            () => globalThis.game?.system?.id === "sla-industries",
+            null,
+            { timeout: 90_000 }
+        );
     });
 });
