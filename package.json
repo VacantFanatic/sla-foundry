@@ -4,7 +4,11 @@
   "description": "CSS compiler for the SLA Industries system",
   "scripts": {
     "build": "sass src/scss/sla-industries.scss css/sla-industries.css --style=expanded --no-source-map",
-    "watch": "sass src/scss/sla-industries.scss css/sla-industries.css --style=expanded --no-source-map --watch"
+    "watch": "sass src/scss/sla-industries.scss css/sla-industries.css --style=expanded --no-source-map --watch",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:install": "playwright install chromium"
   },
   "browserslist": [
     "last 3 versions"
@@ -13,6 +17,7 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
+    "@playwright/test": "^1.49.0",
     "glob": "^10.3.10",
     "inquirer": "^9.2.15",
     "prompt": "^1.3.0",
