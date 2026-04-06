@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.4.3] - 2026-04-06
+
+### Added
+* **Regression tests:** Node (`npm run test:unit`) covers `module/helpers/inventory-stack.mjs`, **`module/helpers/dice.mjs`** (`calculateRollResult` / `getMOS`), and validates `system.json`. Playwright **`tests/e2e/regression-sla.spec.js`** (`npm run test:e2e:regression`) exercises SLA APIs and settings UI; **`tests/e2e/regression-operators.spec.js`** (`npm run test:e2e:operators`) covers Foundry `Roll` evaluation, **`CONFIG.SLA`**, GM **operative** create/delete, embedded **weapon** items, and roll-data integration — GM-only steps skip unless **`FOUNDRY_USER`** is a Gamemaster. All E2E require a running Foundry instance and **`FOUNDRY_USER`**.
+
+### Changed
+* Declared **Foundry VTT v14** compatibility in `system.json` (`compatibility.minimum` **14**, `verified` **14.359**).
+* Updated system/package metadata version to `2.4.3` and release `download` URL in `system.json`.
+* **Token ruler (combat):** When a combatant has already used movement this turn, ruler segments render as over-limit to reflect that movement is no longer available as an action.
+* **Combat movement lock setting:** Added world setting **Enable Combat Movement Lock** to toggle one-move-per-turn enforcement on or off.
+* World migration version is **`2.1.1`** in `module/migration.mjs` (was `2.1.0`); worlds at `2.1.0` without the drug cleanup step run migration once more.
+
+### Fixed
+* **World migration — drug items:** Restored **`migrateTo210`** (strip legacy `system.mods` / `system.damageReduction` from drug items) so upgrades from pre-`2.1.0` and worlds stuck at `2.1.0` without that step are cleaned up; it runs after **`migrateTo200`** as before.
+* **Single movement action enforcement:** In combat, the active combatant can only move once per turn; a second movement attempt in the same turn is blocked with a warning.
+* **Movement undo support:** Undoing token movement (Ctrl+Z / undo update flags) now clears the per-turn movement lock so the combatant can move again that turn.
+* **Explosive throw targeting preview:** Before confirming throw placement, the canvas now shows a live dashed blast preview (outer and inner rings) to assist target selection.
+* **Explosive templates:** Final placed blast regions now use non-grid-based circles so templates remain visually round.
+* **Explosive wall blocking:** Initial throw path and deviation path now clamp to the nearest movement-blocking wall collision using v14 movement polygon collision checks with fallback handling.
+* **Foundry v14 deprecation cleanup:** Replaced deprecated `CONST.ACTIVE_EFFECT_MODES` lookup with `CONST.ACTIVE_EFFECT_CHANGE_TYPES` in actor derived-data effect summation.
+
 ## [2.4.2] - 2026-04-05
 
 ### Changed
@@ -450,7 +471,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.2...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.3...HEAD
+[2.4.3]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.3
 [2.4.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.2
 [2.4.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.0
 [2.3.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.3.0

@@ -1938,7 +1938,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const effectiveRange = 15 + (Math.min(Math.max(0, strValue), 5) * 5);
         notes.push(`<strong>Max Range:</strong> ${effectiveRange}m`);
 
-        if (!token) return;
+        if (!token || target == null) return;
         const ray = new foundry.canvas.geometry.Ray(token.center, target);
         const distMeters = (ray.distance / canvas.scene.grid.size) * canvas.scene.grid.distance;
         if (distMeters > effectiveRange) {
@@ -1946,21 +1946,40 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
     }
 
-    _resolveDeviationWallCollision(start, end, epsilon = 2) {
+    _resolveDeviationWallCollision(start, end, epsilon = 2, source = null) {
         const fallback = { x: end.x, y: end.y, blocked: false };
         if (!canvas?.walls) return fallback;
 
         const ray = new foundry.canvas.geometry.Ray(start, end);
+        const distanceFromStart = (point) => {
+            if (point?.x == null || point?.y == null) return Number.POSITIVE_INFINITY;
+            return Math.hypot(point.x - start.x, point.y - start.y);
+        };
+        const extractImpact = (collision) => {
+            if (!collision) return null;
+            const impact = collision.intersection || collision.point || collision;
+            if (impact?.x == null || impact?.y == null) return null;
+            return impact;
+        };
         const resolveImpact = (collision) => {
             if (!collision) return null;
-            if (Array.isArray(collision)) return resolveImpact(collision[0]);
+            if (Array.isArray(collision)) {
+                const impacts = collision
+                    .map(extractImpact)
+                    .filter((p) => p?.x != null && p?.y != null);
+                if (!impacts.length) return null;
+                impacts.sort((a, b) => distanceFromStart(a) - distanceFromStart(b));
+                return resolveImpact(impacts[0]);
+            }
 
-            const impact = collision.intersection || collision.point || collision;
+            const impact = extractImpact(collision);
             if (impact?.x == null || impact?.y == null) return null;
 
             // Pull back slightly so the template center never crosses the wall boundary.
-            const t = Math.max(0, Math.min(1, (ray.distance - epsilon) / (ray.distance || 1)));
-            if (ray.distance <= epsilon) return { x: start.x, y: start.y, blocked: true };
+            const impactDistance = distanceFromStart(impact);
+            if (impactDistance <= epsilon) return { x: start.x, y: start.y, blocked: true };
+            const safeDistance = Math.max(0, impactDistance - epsilon);
+            const t = safeDistance / (impactDistance || 1);
             return {
                 x: start.x + ((impact.x - start.x) * t),
                 y: start.y + ((impact.y - start.y) * t),
@@ -1969,7 +1988,18 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         };
 
         try {
-            const closest = canvas.walls.checkCollision(ray, { type: "move", mode: "closest" });
+            const backend = CONFIG?.Canvas?.polygonBackends?.move;
+            const backendClosest = backend?.testCollision
+                ? backend.testCollision(start, end, { type: "move", mode: "closest", source })
+                : null;
+            const resolvedBackendClosest = resolveImpact(backendClosest);
+            if (resolvedBackendClosest) return resolvedBackendClosest;
+        } catch (_err) {
+            // Keep fallback path active for API/version differences.
+        }
+
+        try {
+            const closest = canvas.walls.checkCollision(ray, { type: "move", mode: "closest", source });
             const resolvedClosest = resolveImpact(closest);
             if (resolvedClosest) return resolvedClosest;
         } catch (_err) {
@@ -1977,9 +2007,9 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
 
         try {
-            const any = canvas.walls.checkCollision(ray, { type: "move", mode: "any" });
+            const any = canvas.walls.checkCollision(ray, { type: "move", mode: "any", source });
             if (any === true) {
-                const collisions = canvas.walls.checkCollision(ray, { type: "move", mode: "all" });
+                const collisions = canvas.walls.checkCollision(ray, { type: "move", mode: "all", source });
                 const resolvedAll = resolveImpact(collisions);
                 if (resolvedAll) return resolvedAll;
             }
@@ -1991,11 +2021,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     _resolveExplosiveDeviation({ isBaseSuccess, skillSuccessCount, target, token }) {
+        const noCanvasTarget = target == null;
         let outcomeText = "";
         let resultColor = "#f55";
         let isSuccess = false;
-        let finalX = target.x;
-        let finalY = target.y;
+        let finalX = noCanvasTarget ? 0 : target.x;
+        let finalY = noCanvasTarget ? 0 : target.y;
         let wallBlocked = false;
 
         const allDiceFailed = (!isBaseSuccess) && (skillSuccessCount === 0);
@@ -2006,14 +2037,20 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 finalX = token.center.x;
                 finalY = token.center.y;
             }
-            return { outcomeText, resultColor, isSuccess, finalX, finalY };
+            return { outcomeText, resultColor, isSuccess, finalX, finalY, wallBlocked };
         }
 
         if (isBaseSuccess && skillSuccessCount > 0) {
-            outcomeText = "<strong style='color:#39ff14'>LANDS ON TARGET</strong>";
+            outcomeText = noCanvasTarget
+                ? "<strong style='color:#39ff14'>SUCCESS</strong>"
+                : "<strong style='color:#39ff14'>LANDS ON TARGET</strong>";
             resultColor = "#39ff14";
             isSuccess = true;
-            return { outcomeText, resultColor, isSuccess, finalX, finalY };
+            if (noCanvasTarget) {
+                finalX = 0;
+                finalY = 0;
+            }
+            return { outcomeText, resultColor, isSuccess, finalX, finalY, wallBlocked };
         }
 
         const devMeters = isBaseSuccess ? 5 : 10;
@@ -2021,12 +2058,29 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             ? "<strong style='color:#ffa500'>DEVIATION: 5m</strong>"
             : "<strong style='color:#ff5555'>DEVIATION: 10m</strong>";
         resultColor = isBaseSuccess ? "#ffa500" : "#ff5555";
+
+        if (noCanvasTarget) {
+            const originX = token?.center?.x ?? 0;
+            const originY = token?.center?.y ?? 0;
+            const grid = canvas?.scene?.grid;
+            if (grid?.distance && grid?.size) {
+                const devPixels = (devMeters / grid.distance) * grid.size;
+                const angle = Math.random() * 2 * Math.PI;
+                finalX = originX + Math.cos(angle) * devPixels;
+                finalY = originY + Math.sin(angle) * devPixels;
+            } else {
+                finalX = originX;
+                finalY = originY;
+            }
+            return { outcomeText, resultColor, isSuccess, finalX, finalY, wallBlocked: false };
+        }
+
         const devPixels = (devMeters / canvas.scene.grid.distance) * canvas.scene.grid.size;
         const angle = Math.random() * 2 * Math.PI;
-        finalX += Math.cos(angle) * devPixels;
-        finalY += Math.sin(angle) * devPixels;
+        finalX = target.x + Math.cos(angle) * devPixels;
+        finalY = target.y + Math.sin(angle) * devPixels;
 
-        const wallCollision = this._resolveDeviationWallCollision(target, { x: finalX, y: finalY });
+        const wallCollision = this._resolveDeviationWallCollision(target, { x: finalX, y: finalY }, 2, token?.document ?? null);
         finalX = wallCollision.x;
         finalY = wallCollision.y;
         wallBlocked = wallCollision.blocked;
@@ -2036,31 +2090,43 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     async _placeExplosiveTemplates({ item, blastRadius, innerDist, finalX, finalY, isSuccess }) {
         try {
-            const templates = [{
-                t: "circle",
-                user: game.user.id,
-                x: finalX,
-                y: finalY,
-                distance: blastRadius,
-                fillColor: game.user.color,
-                fillAlpha: 0.2,
-                flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "outer" } }
+            const distancePixels = canvas?.dimensions?.distancePixels ?? (canvas.scene.grid.size / canvas.scene.grid.distance);
+            const baseRegionData = {
+                color: game.user.color,
+                displayMeasurements: true,
+                visibility: CONST.REGION_VISIBILITY.OBSERVER,
+                ownership: { [game.user.id]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER },
+                ...(canvas.level?.id ? { levels: [canvas.level.id] } : {})
+            };
+            const regions = [{
+                ...baseRegionData,
+                name: `${item.name} (Outer)`,
+                flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "outer" } },
+                shapes: [{
+                    type: "circle",
+                    x: finalX,
+                    y: finalY,
+                    radius: blastRadius * distancePixels,
+                    gridBased: false
+                }]
             }];
 
             if (innerDist > 0 && innerDist < blastRadius) {
-                templates.push({
-                    t: "circle",
-                    user: game.user.id,
-                    x: finalX,
-                    y: finalY,
-                    distance: innerDist,
-                    fillColor: game.user.color,
-                    fillAlpha: 0.6,
-                    flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "inner" } }
+                regions.push({
+                    ...baseRegionData,
+                    name: `${item.name} (Inner)`,
+                    flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "inner" } },
+                    shapes: [{
+                        type: "circle",
+                        x: finalX,
+                        y: finalY,
+                        radius: innerDist * distancePixels,
+                        gridBased: false
+                    }]
                 });
             }
 
-            canvas.scene.createEmbeddedDocuments("MeasuredTemplate", templates);
+            await canvas.scene.createEmbeddedDocuments("Region", regions);
         } catch (err) {
             console.error("SLA | Template Creation Failed:", err);
         }
@@ -2073,30 +2139,113 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         const rollData = this._readExplosiveRollForm(form);
         const { innerDist, outerDist } = this._resolveExplosiveBlastData(item);
-        ui.notifications.info("Select target position...");
-        const target = await this._waitForCanvasClick();
-        if (!target) return;
+        const automateThrow = game.settings.get("sla-industries", "enableExplosiveThrowAutomation");
+        let target = null;
+        if (automateThrow) {
+            ui.notifications.info("Select target position...");
+            target = await this._waitForCanvasClick({ outerDist, innerDist });
+            if (!target) return;
+        }
         await this._resolveExplosiveRoll(item, rollData, target, outerDist, innerDist);
     }
 
-    _waitForCanvasClick() {
+    _drawDashedCircle(graphics, centerX, centerY, radius, color, thickness, dashLength, gapLength) {
+        if (!graphics || radius <= 0) return;
+        const circumference = Math.PI * 2 * radius;
+        const segmentLength = Math.max(1, dashLength + gapLength);
+        const segmentCount = Math.max(12, Math.floor(circumference / segmentLength));
+        const angleStep = (Math.PI * 2) / segmentCount;
+        const dashStep = Math.max(1, Math.floor(segmentCount * (dashLength / segmentLength)));
+
+        graphics.lineStyle(thickness, color, 1);
+        for (let i = 0; i < segmentCount; i += (dashStep * 2)) {
+            for (let j = 0; j < dashStep; j++) {
+                const idx = i + j;
+                if (idx >= segmentCount) break;
+                const a1 = idx * angleStep;
+                const a2 = (idx + 1) * angleStep;
+                const x1 = centerX + Math.cos(a1) * radius;
+                const y1 = centerY + Math.sin(a1) * radius;
+                const x2 = centerX + Math.cos(a2) * radius;
+                const y2 = centerY + Math.sin(a2) * radius;
+                graphics.moveTo(x1, y1);
+                graphics.lineTo(x2, y2);
+            }
+        }
+    }
+
+    _waitForCanvasClick({ outerDist = 0, innerDist = 0 } = {}) {
         return new Promise((resolve) => {
-            const handler = (event) => {
+            const stage = canvas?.app?.stage;
+            if (!stage) {
+                resolve(null);
+                return;
+            }
+
+            const distancePixels = canvas?.dimensions?.distancePixels ?? (canvas?.scene?.grid?.size / canvas?.scene?.grid?.distance);
+            const outerRadiusPx = Math.max(0, Number(outerDist) || 0) * (distancePixels || 0);
+            const innerRadiusPx = Math.max(0, Number(innerDist) || 0) * (distancePixels || 0);
+            const preview = new PIXI.Graphics();
+            preview.eventMode = "none";
+            preview.zIndex = 9999;
+            stage.addChild(preview);
+
+            const redrawPreview = (x, y) => {
+                preview.clear();
+
+                // Faint fill + dashed edge for target preview.
+                if (outerRadiusPx > 0) {
+                    preview.beginFill(0xffaa00, 0.08);
+                    preview.drawCircle(x, y, outerRadiusPx);
+                    preview.endFill();
+                    this._drawDashedCircle(preview, x, y, outerRadiusPx, 0xffaa00, 2, 7, 6);
+                }
+
+                if (innerRadiusPx > 0 && innerRadiusPx < outerRadiusPx) {
+                    preview.beginFill(0xff4444, 0.1);
+                    preview.drawCircle(x, y, innerRadiusPx);
+                    preview.endFill();
+                    this._drawDashedCircle(preview, x, y, innerRadiusPx, 0xff4444, 2, 5, 5);
+                }
+            };
+
+            const cleanup = () => {
+                stage.off("click", clickHandler);
+                stage.off("pointermove", moveHandler);
+                stage.off("rightdown", cancelHandler);
+                if (preview.parent) preview.parent.removeChild(preview);
+                preview.destroy();
+            };
+
+            const moveHandler = (event) => {
+                const pos = event?.data?.getLocalPosition(stage);
+                if (!pos) return;
+                redrawPreview(pos.x, pos.y);
+            };
+
+            // Initialize preview at current mouse position when possible.
+            if (canvas?.mousePosition) {
+                redrawPreview(canvas.mousePosition.x, canvas.mousePosition.y);
+            }
+
+            stage.on("pointermove", moveHandler);
+
+            const clickHandler = (event) => {
                 event.stopPropagation();
                 // Get world coords
-                const pos = event.data.getLocalPosition(canvas.app.stage);
-                canvas.app.stage.off('click', handler);
+                const pos = event.data.getLocalPosition(stage);
+                cleanup();
                 resolve({ x: pos.x, y: pos.y });
             };
-            canvas.app.stage.on('click', handler);
+            stage.on("click", clickHandler);
 
             // Allow cancelling with Right Click
             const cancelHandler = (event) => {
-                canvas.app.stage.off('click', handler);
-                canvas.app.stage.off('rightdown', cancelHandler);
+                event?.stopPropagation?.();
+                cleanup();
                 resolve(null);
             };
-            canvas.app.stage.on('rightdown', cancelHandler);
+            stage.on("rightdown", cancelHandler);
         });
     }
 
@@ -2118,8 +2267,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         let notes = [];
         const token = this._getActorTokenForExplosiveRange();
         let resolvedTarget = target;
-        if (token) {
-            const throwCollision = this._resolveDeviationWallCollision(token.center, target);
+        if (target != null && token) {
+            const throwCollision = this._resolveDeviationWallCollision(token.center, target, 2, token.document ?? null);
             if (throwCollision.blocked) {
                 resolvedTarget = { x: throwCollision.x, y: throwCollision.y };
                 notes.push("<strong>Throw:</strong> Stopped by wall.");
@@ -2168,7 +2317,9 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             notes.push(`<br/><strong>Kill Zone (< ${innerDist}m):</strong> +2 Damage`);
         }
 
-        await this._placeExplosiveTemplates({ item, blastRadius, innerDist, finalX, finalY, isSuccess });
+        if (game.settings.get("sla-industries", "enableExplosiveThrowAutomation") && target != null) {
+            await this._placeExplosiveTemplates({ item, blastRadius, innerDist, finalX, finalY, isSuccess });
+        }
 
         let baseDmg = item.system.damage || "0";
         const adValue = Number(item.system.ad) || 0;

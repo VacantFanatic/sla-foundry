@@ -37,6 +37,14 @@ export class SLATokenRuler extends foundry.canvas.placeables.tokens.TokenRuler {
     
     const actor = this.token.actor;
     if (!actor) return style;
+    const tokenDoc = this.token.document ?? this.token;
+
+    // In combat, once movement action is spent this turn, always show over-limit color.
+    const canMove = game.sla?.canTokenMoveThisTurn?.(tokenDoc);
+    if (canMove === false) {
+      style.color = 0xFF0000;
+      return style;
+    }
 
     // 2. Get Distance
     // In V13, 'cost' represents the cumulative distance traversed at this waypoint.

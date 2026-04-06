@@ -24,7 +24,8 @@ export class BoilerplateActor extends Actor {
      * @param {string} statKey  str, dex, know, conc, cha, cool
      */
     _sumActiveEffectAddsForCoreStat(statKey) {
-        const addMode = globalThis.CONST?.ACTIVE_EFFECT_MODES?.ADD ?? 2;
+        // v14+: ACTIVE_EFFECT_MODES is deprecated; use ACTIVE_EFFECT_CHANGE_TYPES.
+        const addMode = globalThis.CONST?.ACTIVE_EFFECT_CHANGE_TYPES?.ADD ?? 2;
         const kb = `system.stats.${statKey}.bonus`;
         const kv = `system.stats.${statKey}.value`;
         let sum = 0;

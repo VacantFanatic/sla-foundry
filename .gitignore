@@ -1,5 +1,10 @@
 node_modules/
 
+# Playwright
+/playwright-report/
+/test-results/
+/playwright/.cache/
+
 .agent/
 .cursor/
 # Foundry Pack Cache (LevelDB folders)
