@@ -29,7 +29,7 @@ A custom game system implementation for playing **SLA Industries 2nd Edition** o
   - Support for **Flux** tracking.
   - Discipline and Formula rolls calculate Success Die + Skill Dice automatically.
 - **Active Effects:**
-  - Operatives have an **Effects** tab and support Foundry **Active Effects** for temporary modifiers (e.g. drugs, poison, stance). See [Configuring Active Effects](#configuring-active-effects) below.
+  - Operatives have an **Effects** tab and support Foundry **Active Effects** for temporary modifiers (e.g. drugs, poison, stance). See the wiki for setup details.
 
 ### What stays manual at the table
 
@@ -54,66 +54,15 @@ The system runs without add-ons. These community modules are commonly paired wit
 
 [https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json](https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json)
 
-## ⚙️ Setup Guide
+## Wiki Documentation
 
-[https://github.com/VacantFanatic/sla-foundry/blob/main/item_setup.md](https://github.com/VacantFanatic/sla-foundry/blob/main/item_setup.md)
+Project wiki pages for users and contributors are available on GitHub:
 
-## 🎲 Usage Guide
+- [https://github.com/VacantFanatic/sla-foundry/wiki](https://github.com/VacantFanatic/sla-foundry/wiki)
 
-### Character Creation
+If you are working directly from this repository, the source markdown for those pages is under:
 
-1. Create a new Actor (Type: `Character`).
-2. Open the **Compendium Packs** and find **SLA Species**.
-3. Drag a Species (e.g., *Human*) onto the sheet. This will:
-  - Set Min/Max Stats.
-    - Set Base HP and Movement.
-    - Add starting Skills (Rank 1).
-4. Manually adjust stats within the Min/Max limits.
-
-### Combat Rolls
-
-1. Click the **Die Icon** next to a weapon in the "Combat" tab.
-2. **Ranged:** Select your Firing Mode from the dropdown. The system will calculate modifiers based on Recoil, Cover, and Range.
-3. **Melee:** Enter any **Reserved Dice** you wish to withhold for defense. Enter the target's Defense ratings if known.
-4. Click **Roll**. The result will show:
-  - **Success Die** (Black/White).
-    - **Skill Dice** (Matches or Hits).
-    - **Margin of Success (MOS)** effects (e.g., +Damage or Headshots).
-
-### Drugs & Consumables
-
-1. Add a Drug item (e.g., *Shatter*) to your inventory.
-2. Click the **Syringe Icon**  on the item line.
-3. This consumes 1 dose and prints the drug's Duration and Effects to the chat log for reference.
-4. If the drug has **embedded Active Effects** (item **Effects** tab), those are applied to the actor while active; older items may still use the built-in **stat mod** fields, which the system maps onto Active Effects for you.
-
-### Configuring Active Effects
-
-Use the operative’s **Effects** tab or define effects on items (e.g. drugs, toxicants) via the item’s **Effects** tab. When an effect is enabled, the sheet’s **Play** mode (header switch to the **right**, **P**) shows **effective** stats after modifiers; **Edit** mode (switch to the **left**, **E**) shows the **base** scores you enter on the sheet. Click the switch to flip between the two.
-
-**Recommended modules:** See [Recommended modules (optional)](#recommended-modules-optional) for **Autocomplete Inline Properties** (Active Effect **Attribute Key** paths and other inline fields) and **Tokenizer** (token/portrait art). Both are optional; this system works without them.
-
-#### Core stats (STR, DEX, KNOW, CONC, CHA, COOL)
-
-- **Attribute key (preferred):** `system.stats.<stat>.bonus` where `<stat>` is `str`, `dex`, `know`, `conc`, `cha`, or `cool`.
-- **Change mode:** **Add**.
-- **Value:** use a positive or negative integer (e.g. `-1` to penalize STR by 1).
-
-The **base** value on the sheet (`system.stats.<stat>.value`) is what you edit; **bonus** is the channel for temporary modifiers so the base field is not overwritten by effects.
-
-**Legacy:** **Add** on `system.stats.<stat>.value` is still read and folded into the same effective total, but new effects should use `**.bonus`**.
-
-#### Other supported keys
-
-- **Damage reduction (stacking add):** `system.wounds.damageReduction` — mode **Add**, numeric value (used by legacy drug DR; same path for custom effects if you want that behavior).
-
-#### Not automated
-
-- **Treatment** and **addiction** mechanics are **not** rolled by the system. Use the fields on drug/toxicant items for notes and ratings, then handle tests manually.
-
-#### Conditions (status icons)
-
-Foundry **status effects** on the token/actor (e.g. bleeding, prone) tie into the sheet’s condition toggles where the system implements them. Add or configure those like any other Foundry Active Effect with the appropriate status.
+- [`.docs/wiki/`](.docs/wiki/)
 
 ## ⚖️ License & Credits
 

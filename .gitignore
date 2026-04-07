@@ -7,5 +7,7 @@ node_modules/
 
 .agent/
 .cursor/
+.docs/
+
 # Foundry Pack Cache (LevelDB folders)
 packs/*/
