@@ -9,6 +9,7 @@ import { prepareItems } from "../helpers/items.mjs";
 import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from "../helpers/modifiers.mjs";
 import { addActorItemToHotbar } from "../helpers/sla-hotbar.mjs";
 import { SLAChat } from "../helpers/chat.mjs";
+import { shouldShowMosWoundChoice } from "../helpers/wound-visibility.mjs";
 import { handleStackableActorItemDrop } from "../helpers/inventory-stack.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -1464,6 +1465,13 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         mosEffectText,
         mosChoiceData
     }) {
+        const targetActorType = game.user.targets.first()?.actor?.type;
+        const showWoundChoice = shouldShowMosWoundChoice({
+            hasChoice: Boolean(mosChoiceData?.hasChoice),
+            targetActorType,
+            enableNpcWoundTracking: game.settings.get("sla-industries", "enableNPCWoundTracking")
+        });
+
         return {
             actorUuid: this.actor.uuid,
             borderColor: resultColor,
@@ -1484,7 +1492,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 isSuccess: isSuccess,
                 hits: skillSuccessCount,
                 effect: mosEffectText,
-                ...mosChoiceData
+                ...mosChoiceData,
+                showWoundChoice
             },
             canUseLuck: this.actor.system.stats.luck.value > 0,
             luckValue: this.actor.system.stats.luck.value,

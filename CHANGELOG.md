@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.4.4] - 2026-04-07
+
+### Added
+* **Weapon chat card tests:** Added unit coverage for MOS wound-button visibility rules in `tests/unit/chat-wound-options.test.mjs` (NPC target + wound tracking off hides the wound option; NPC on, non-NPC, no-target, and no-choice paths covered).
+
+### Changed
+* **Weapon chat card tactical choices:** The `Inflict ... Wound` button is now hidden when the selected target is an **NPC** and world setting **Enable NPC Wound Tracking** is disabled; the `+Damage` tactical option remains available.
+* Updated system and package metadata version to `2.4.4`, including the release `download` URL in `system.json`.
+
 ## [2.4.3] - 2026-04-06
 
 ### Added
@@ -471,7 +480,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.3...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.4...HEAD
+[2.4.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.4
 [2.4.3]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.3
 [2.4.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.2
 [2.4.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.0
