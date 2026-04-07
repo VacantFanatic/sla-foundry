@@ -49,10 +49,12 @@
         <div style="font-weight:bold; color:#D05E1A; margin-bottom:4px;">TACTICAL CHOICE:</div>
         <div style="display:flex; gap:5px;">
             {{!-- Button 1: Inflict Wound --}}
+            {{#if mos.showWoundChoice}}
             <button class="chat-btn-wound" data-action="wound" data-location="{{mos.choiceType}}"
                 data-damage-bonus="{{mos.choiceDmg}}" data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}">
                 Inflict {{capitalize mos.choiceType}} Wound
             </button>
+            {{/if}}
 
             {{!-- Button 2: Extra Damage --}}
             <button class="chat-btn-damage" data-action="damage" data-damage-bonus="{{mos.choiceDmg}}"
