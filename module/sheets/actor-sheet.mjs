@@ -276,10 +276,15 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     async _prepareContext(options) {
         const context = await super._prepareContext(options);
         context.actor = this.actor;
+        const primaryTabs = this.constructor.TABS?.primary?.tabs ?? [];
+
         if (this.actor.type === "character") {
             context.statSheetMode = this.actor.getFlag("sla-industries", "statSheetMode") ?? "play";
+        }
+
+        if (primaryTabs.length) {
             context.tabs = this._prepareTabs("primary");
-            for (const t of SlaActorSheet.TABS.primary.tabs) {
+            for (const t of primaryTabs) {
                 const tab = context.tabs[t.id];
                 if (tab) {
                     tab.icon = t.icon;
@@ -288,7 +293,9 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                     tab.label = loc !== lk ? loc : t.label;
                 }
             }
-            context.effectsList = this._prepareEffectsList();
+            if (primaryTabs.some((t) => t.id === "effects")) {
+                context.effectsList = this._prepareEffectsList();
+            }
         }
         context.owner = this.actor.isOwner;
         context.editable = this.isEditable;
@@ -449,14 +456,18 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         this.#sheetUiAbort = new AbortController();
         const { signal } = this.#sheetUiAbort;
         const root = this.element;
+        const primaryTabs = this.constructor.TABS?.primary?.tabs ?? [];
+
         // Operative tabs: App V2's default tab binding expects a `.content` wrapper; we use `.sheet-body`.
         // Also register even when !isEditable so observers can switch tabs.
-        if (this.actor.type === "character") {
+        if (primaryTabs.length) {
             root.addEventListener("click", this.#onTabNavClick, { signal, capture: true });
-            const fxSearch = root.querySelector(".sla-effect-search");
-            if (fxSearch instanceof HTMLInputElement) {
-                fxSearch.addEventListener("input", this.#onActorEffectSearchInput, { signal });
-            }
+        }
+        const fxSearch = root.querySelector(".sla-effect-search");
+        if (fxSearch instanceof HTMLInputElement) {
+            fxSearch.addEventListener("input", this.#onActorEffectSearchInput, { signal });
+        }
+        if (this.actor.type === "character") {
             this.#injectStatSheetHeaderToggle(signal);
         }
 
@@ -526,7 +537,6 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      * @param {PointerEvent} event
      */
     #onTabNavClick = (event) => {
-        if (this.actor.type !== "character") return;
         const raw = event.target;
         const el = raw instanceof Element ? raw : raw?.parentElement;
         const tabNavLink = el?.closest?.("nav.sheet-tabs.tabs [data-tab]");

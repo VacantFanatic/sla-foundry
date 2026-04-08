@@ -7,6 +7,20 @@ import { SlaActorSheet } from "./actor-sheet.mjs";
 export class SlaNPCSheet extends SlaActorSheet {
 
     /** @override */
+    static TABS = {
+        primary: {
+            tabs: [
+                { id: "combat", label: "Combat", icon: "fa-crosshairs" },
+                { id: "inventory", label: "Inventory", icon: "fa-box-open" },
+                { id: "effects", label: "Effects", icon: "fa-bolt" },
+                { id: "skills", label: "Skills", icon: "fa-graduation-cap" },
+                { id: "notes", label: "Notes", icon: "fa-book-open" }
+            ],
+            initial: "combat"
+        }
+    };
+
+    /** @override */
     static PARTS = {
         sheet: {
             template: "systems/sla-industries/templates/actor/actor-npc-sheet-v2.hbs",

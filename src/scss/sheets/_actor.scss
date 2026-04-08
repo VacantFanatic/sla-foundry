@@ -5,6 +5,7 @@
     font-variant-numeric: tabular-nums;
 }
 
+
 /* ==========================================
    3. HEADER LAYOUT
    ========================================== */
@@ -1797,45 +1798,44 @@
    16. THREAT / NPC THEME
    ========================================== */
 .sla-sheet.threat-sheet {
-    /* Override Accent Color for Threats */
-    --sla-accent: #b2d235;
-    /* Toxic Green for Threats */
-    --sla-accent-faint: rgba(178, 210, 53, 0.2);
-    --sla-border: #445522;
+    /* Unified NPC palette: maroon + white */
+    --sla-accent: #800000;
+    --sla-accent-faint: rgba(128, 0, 0, 0.2);
+    --sla-border: #7a3939;
 
     .sheet-header {
         border-color: var(--sla-accent);
-        background: #0a1100;
+        background: #2a1111;
     }
 
     .header-section-title {
-        background: #0a1100;
-        color: var(--sla-accent);
+        background: #2a1111;
+        color: #fff;
         border-bottom-color: var(--sla-accent);
     }
 
     .header-left {
-        background: #111a0a;
+        background: #3a1717;
         border-right-color: var(--sla-accent);
     }
 
     .portrait-container {
         border-right-color: var(--sla-accent);
-        background: #050800;
+        background: #2a1111;
     }
 
     .finance-box {
-        background: #111a0a;
+        background: #3a1717;
 
         .finance-title {
-            color: var(--sla-accent);
+            color: #fff;
             border-bottom-color: var(--sla-accent);
         }
     }
 
     /* Stats Strip Overrides */
     .rating-block {
-        background: #0a1100 !important;
+        background: #2a1111 !important;
         border-color: var(--sla-border);
 
         &::after {
@@ -1843,22 +1843,22 @@
         }
 
         .rating-val {
-            color: var(--sla-accent) !important;
+            color: #fff !important;
         }
     }
 
     .stat-box {
-        background: #0a1100 !important;
+        background: #2a1111 !important;
         border-color: var(--sla-border);
 
         label {
-            background: #111a0a !important;
+            background: #3a1717 !important;
             border-right-color: var(--sla-border);
-            color: #ccc;
+            color: #fff;
         }
 
         input {
-            color: #deffaa !important;
+            color: #fff !important;
         }
     }
 
@@ -1874,13 +1874,154 @@
 
     /* Editor */
     .editor-edit {
-        background: #1a2a0a !important;
+        background: #2a1111 !important;
         border-color: var(--sla-accent) !important;
-        color: var(--sla-accent) !important;
+        color: #fff !important;
     }
 
     .editor-edit:hover {
-        background: var(--sla-accent) !important;
-        color: #000 !important;
+        background: #a24848 !important;
+        color: #fff !important;
+    }
+
+    &.sla-actor-layout .threat-tabbed-area {
+        margin-top: 10px;
+        min-height: 0;
+    }
+
+    &.sla-actor-layout .threat-tabbed-area>.sheet-body {
+        background: transparent;
+    }
+
+    &.sla-actor-layout .threat-tabbed-area .tab {
+        padding-right: 2px;
+    }
+
+    .sheet-tabs.sla-sheet-tab-rail {
+        background: #f5f0e9;
+        border-color: #7a3939;
+        border-top-color: #800000;
+    }
+
+    .sheet-tabs.sla-sheet-tab-rail .item {
+        color: #5f2626;
+        border-radius: 3px;
+    }
+
+    .sheet-tabs.sla-sheet-tab-rail .item:hover {
+        color: #ffffff;
+        background: #7a3939;
+    }
+
+    .sheet-tabs.sla-sheet-tab-rail .item.active {
+        color: #ffffff;
+        background: #800000;
+    }
+
+    .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-tooltip {
+        background: #2a1111;
+        border-color: #7a3939;
+        color: #fff;
+    }
+
+    /* Unify NPC tab content to white panels + maroon accents */
+    .sla-panel,
+    .sla-dialog-panel,
+    .threat-content-box,
+    .scroll-list {
+        background: #fff !important;
+        border-color: #7a3939 !important;
+        color: #2a1111;
+    }
+
+    .sla-header-bar,
+    .sla-header-bar-small,
+    .threat-section-bar {
+        background: #800000 !important;
+        color: #fff !important;
+        border-color: #7a3939 !important;
+    }
+
+    .sla-table,
+    .sla-table thead,
+    .sla-table tbody,
+    .sla-table tr,
+    .sla-table th,
+    .sla-table td {
+        background: #fff !important;
+        color: #2a1111 !important;
+        border-color: #c9a3a3 !important;
+    }
+
+    .sla-table a,
+    .sla-panel a,
+    .threat-content-box a {
+        color: #800000;
+    }
+
+    .sla-table a:hover,
+    .sla-panel a:hover,
+    .threat-content-box a:hover {
+        color: #a24848;
+    }
+
+    .sla-combat-loadout .sla-combat-group-header,
+    .sla-combat-loadout .combat-list .sla-combat-colhead {
+        background: #f6eeee !important;
+        color: #800000 !important;
+        border-color: #c9a3a3 !important;
+    }
+
+    .sla-combat-loadout .combat-list .sla-combat-row {
+        background: #fff !important;
+        border-color: #d9b8b8 !important;
+    }
+
+    .sla-combat-loadout .sla-combat-name,
+    .sla-combat-loadout .sla-combat-stat-dmg,
+    .sla-combat-loadout .sla-combat-stat-extra,
+    .sla-combat-loadout .sla-combat-resistance-max {
+        color: #2a1111 !important;
+    }
+
+    .sla-combat-loadout .sla-combat-resistance-input {
+        background: #fff !important;
+        color: #2a1111 !important;
+        border-color: #a27171 !important;
+    }
+
+    .sla-combat-loadout .sla-combat-actions .sla-combat-action,
+    .sla-combat-loadout .sla-combat-actions>a {
+        color: #800000 !important;
+    }
+
+    .sla-combat-loadout .sla-combat-actions .sla-combat-action:hover,
+    .sla-combat-loadout .sla-combat-actions>a:hover {
+        color: #a24848 !important;
+    }
+
+    .sla-effects-toolbar input.sla-effect-search {
+        background: #fff !important;
+        color: #2a1111 !important;
+        border: 1px solid #a27171 !important;
+    }
+
+    .sla-effects-list .sla-effect-row,
+    .sla-effects-list .sla-effects-empty {
+        background: #fff !important;
+        color: #2a1111 !important;
+        border-color: #d9b8b8 !important;
+    }
+
+    .sla-effects-list .sla-effect-meta,
+    .sla-effects-list .item-detail {
+        color: #6b3b3b !important;
+    }
+
+    .threat-content-box.threat-notes-editor .editor,
+    .threat-content-box.threat-notes-editor prose-mirror.editor,
+    .threat-content-box.threat-notes-editor .editor-content {
+        background: #fff !important;
+        color: #2a1111 !important;
     }
 }
