@@ -2,7 +2,7 @@
 
 A custom game system implementation for playing **SLA Industries 2nd Edition** on Foundry Virtual Tabletop. This system features a high-contrast dark UI, automated combat mechanics, and drag-and-drop character creation tools.
 
-🌟 Key Features
+Key Features
 
 ### Character Sheet
 
@@ -10,7 +10,7 @@ A custom game system implementation for playing **SLA Industries 2nd Edition** o
 - **Tabbed Navigation:** Organized sections for Stats, Skills, Combat, Inventory, and Biography.
 - **Rich Text Editors:** Full support for HTML/Text editing in Biographies, Notes, and Item descriptions.
 
-### 🎥 Automation & Mechanics
+### Automation & Mechanics
 
 - **Species & Packages:**
   - Drag-and-drop a **Species** item (e.g., *Shaktar*, *Ebonite*) to automatically set Base Stats, Movement Rates, HP, and starting Skills.
@@ -36,7 +36,7 @@ A custom game system implementation for playing **SLA Industries 2nd Edition** o
 - **Treatment rolls** (e.g. for diseases/toxicants): items may store **Treatment Rating** and **Treatment** notes for reference, but the system does **not** automate treatment rolls or recovery.
 - **Addiction tests**: drugs can record **Addiction Rating** and **Addiction Dose** text on the item sheet; the system does **not** roll or track addiction tests. Resolve those manually (or with macros) per your table.
 
-## 🛠️ Installation
+## Installation
 
 1. Download the system files.
 2. Extract the folder into your Foundry VTT `Data/systems/` directory.
@@ -64,7 +64,7 @@ If you are working directly from this repository, the source markdown for those 
 
 - [`.docs/wiki/`](.docs/wiki/)
 
-## ⚖️ License & Credits
+##  License & Credits
 
 This system is an unofficial fan creation.
 
