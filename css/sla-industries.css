@@ -2822,60 +2822,60 @@ form.application.sla-industries.item,
    16. THREAT / NPC THEME
    ========================================== */
 .sla-sheet.threat-sheet {
-  /* Override Accent Color for Threats */
-  --sla-accent: #b2d235;
-  /* Toxic Green for Threats */
-  --sla-accent-faint: rgba(178, 210, 53, 0.2);
-  --sla-border: #445522;
+  /* Unified NPC palette: maroon + white */
+  --sla-accent: #800000;
+  --sla-accent-faint: rgba(128, 0, 0, 0.2);
+  --sla-border: #7a3939;
   /* Stats Strip Overrides */
   /* Tabs */
   /* Editor */
+  /* Unify NPC tab content to white panels + maroon accents */
 }
 .sla-sheet.threat-sheet .sheet-header {
   border-color: var(--sla-accent);
-  background: #0a1100;
+  background: #2a1111;
 }
 .sla-sheet.threat-sheet .header-section-title {
-  background: #0a1100;
-  color: var(--sla-accent);
+  background: #2a1111;
+  color: #fff;
   border-bottom-color: var(--sla-accent);
 }
 .sla-sheet.threat-sheet .header-left {
-  background: #111a0a;
+  background: #3a1717;
   border-right-color: var(--sla-accent);
 }
 .sla-sheet.threat-sheet .portrait-container {
   border-right-color: var(--sla-accent);
-  background: #050800;
+  background: #2a1111;
 }
 .sla-sheet.threat-sheet .finance-box {
-  background: #111a0a;
+  background: #3a1717;
 }
 .sla-sheet.threat-sheet .finance-box .finance-title {
-  color: var(--sla-accent);
+  color: #fff;
   border-bottom-color: var(--sla-accent);
 }
 .sla-sheet.threat-sheet .rating-block {
-  background: #0a1100 !important;
+  background: #2a1111 !important;
   border-color: var(--sla-border);
 }
 .sla-sheet.threat-sheet .rating-block::after {
   background: var(--sla-accent);
 }
 .sla-sheet.threat-sheet .rating-block .rating-val {
-  color: var(--sla-accent) !important;
+  color: #fff !important;
 }
 .sla-sheet.threat-sheet .stat-box {
-  background: #0a1100 !important;
+  background: #2a1111 !important;
   border-color: var(--sla-border);
 }
 .sla-sheet.threat-sheet .stat-box label {
-  background: #111a0a !important;
+  background: #3a1717 !important;
   border-right-color: var(--sla-border);
-  color: #ccc;
+  color: #fff;
 }
 .sla-sheet.threat-sheet .stat-box input {
-  color: #deffaa !important;
+  color: #fff !important;
 }
 .sla-sheet.threat-sheet .sheet-tabs {
   border-bottom-color: var(--sla-accent);
@@ -2885,13 +2885,130 @@ form.application.sla-industries.item,
   color: #000;
 }
 .sla-sheet.threat-sheet .editor-edit {
-  background: #1a2a0a !important;
+  background: #2a1111 !important;
   border-color: var(--sla-accent) !important;
-  color: var(--sla-accent) !important;
+  color: #fff !important;
 }
 .sla-sheet.threat-sheet .editor-edit:hover {
-  background: var(--sla-accent) !important;
-  color: #000 !important;
+  background: #a24848 !important;
+  color: #fff !important;
+}
+.sla-sheet.threat-sheet.sla-actor-layout .threat-tabbed-area {
+  margin-top: 10px;
+  min-height: 0;
+}
+.sla-sheet.threat-sheet.sla-actor-layout .threat-tabbed-area > .sheet-body {
+  background: transparent;
+}
+.sla-sheet.threat-sheet.sla-actor-layout .threat-tabbed-area .tab {
+  padding-right: 2px;
+}
+.sla-sheet.threat-sheet .sheet-tabs.sla-sheet-tab-rail {
+  background: #f5f0e9;
+  border-color: #7a3939;
+  border-top-color: #800000;
+}
+.sla-sheet.threat-sheet .sheet-tabs.sla-sheet-tab-rail .item {
+  color: #5f2626;
+  border-radius: 3px;
+}
+.sla-sheet.threat-sheet .sheet-tabs.sla-sheet-tab-rail .item:hover {
+  color: #ffffff;
+  background: #7a3939;
+}
+.sla-sheet.threat-sheet .sheet-tabs.sla-sheet-tab-rail .item.active {
+  color: #ffffff;
+  background: #800000;
+}
+.sla-sheet.threat-sheet .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-tooltip {
+  background: #2a1111;
+  border-color: #7a3939;
+  color: #fff;
+}
+.sla-sheet.threat-sheet .sla-panel,
+.sla-sheet.threat-sheet .sla-dialog-panel,
+.sla-sheet.threat-sheet .threat-content-box,
+.sla-sheet.threat-sheet .scroll-list {
+  background: #fff !important;
+  border-color: #7a3939 !important;
+  color: #2a1111;
+}
+.sla-sheet.threat-sheet .sla-header-bar,
+.sla-sheet.threat-sheet .sla-header-bar-small,
+.sla-sheet.threat-sheet .threat-section-bar {
+  background: #800000 !important;
+  color: #fff !important;
+  border-color: #7a3939 !important;
+}
+.sla-sheet.threat-sheet .sla-table,
+.sla-sheet.threat-sheet .sla-table thead,
+.sla-sheet.threat-sheet .sla-table tbody,
+.sla-sheet.threat-sheet .sla-table tr,
+.sla-sheet.threat-sheet .sla-table th,
+.sla-sheet.threat-sheet .sla-table td {
+  background: #fff !important;
+  color: #2a1111 !important;
+  border-color: #c9a3a3 !important;
+}
+.sla-sheet.threat-sheet .sla-table a,
+.sla-sheet.threat-sheet .sla-panel a,
+.sla-sheet.threat-sheet .threat-content-box a {
+  color: #800000;
+}
+.sla-sheet.threat-sheet .sla-table a:hover,
+.sla-sheet.threat-sheet .sla-panel a:hover,
+.sla-sheet.threat-sheet .threat-content-box a:hover {
+  color: #a24848;
+}
+.sla-sheet.threat-sheet .sla-combat-loadout .sla-combat-group-header,
+.sla-sheet.threat-sheet .sla-combat-loadout .combat-list .sla-combat-colhead {
+  background: #f6eeee !important;
+  color: #800000 !important;
+  border-color: #c9a3a3 !important;
+}
+.sla-sheet.threat-sheet .sla-combat-loadout .combat-list .sla-combat-row {
+  background: #fff !important;
+  border-color: #d9b8b8 !important;
+}
+.sla-sheet.threat-sheet .sla-combat-loadout .sla-combat-name,
+.sla-sheet.threat-sheet .sla-combat-loadout .sla-combat-stat-dmg,
+.sla-sheet.threat-sheet .sla-combat-loadout .sla-combat-stat-extra,
+.sla-sheet.threat-sheet .sla-combat-loadout .sla-combat-resistance-max {
+  color: #2a1111 !important;
+}
+.sla-sheet.threat-sheet .sla-combat-loadout .sla-combat-resistance-input {
+  background: #fff !important;
+  color: #2a1111 !important;
+  border-color: #a27171 !important;
+}
+.sla-sheet.threat-sheet .sla-combat-loadout .sla-combat-actions .sla-combat-action,
+.sla-sheet.threat-sheet .sla-combat-loadout .sla-combat-actions > a {
+  color: #800000 !important;
+}
+.sla-sheet.threat-sheet .sla-combat-loadout .sla-combat-actions .sla-combat-action:hover,
+.sla-sheet.threat-sheet .sla-combat-loadout .sla-combat-actions > a:hover {
+  color: #a24848 !important;
+}
+.sla-sheet.threat-sheet .sla-effects-toolbar input.sla-effect-search {
+  background: #fff !important;
+  color: #2a1111 !important;
+  border: 1px solid #a27171 !important;
+}
+.sla-sheet.threat-sheet .sla-effects-list .sla-effect-row,
+.sla-sheet.threat-sheet .sla-effects-list .sla-effects-empty {
+  background: #fff !important;
+  color: #2a1111 !important;
+  border-color: #d9b8b8 !important;
+}
+.sla-sheet.threat-sheet .sla-effects-list .sla-effect-meta,
+.sla-sheet.threat-sheet .sla-effects-list .item-detail {
+  color: #6b3b3b !important;
+}
+.sla-sheet.threat-sheet .threat-content-box.threat-notes-editor .editor,
+.sla-sheet.threat-sheet .threat-content-box.threat-notes-editor prose-mirror.editor,
+.sla-sheet.threat-sheet .threat-content-box.threat-notes-editor .editor-content {
+  background: #fff !important;
+  color: #2a1111 !important;
 }
 
 /* ==========================================

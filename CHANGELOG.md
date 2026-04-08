@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.4.5] - 2026-04-08
+
+### Added
+* **Threat/NPC sheet sidebar navigation:** Added operative-style right-rail tabs on the NPC sheet, including dedicated **Combat**, **Inventory**, **Effects**, **Skills**, and **Notes** tabs.
+
+### Changed
+* **Threat/NPC sheet layout:** Moved skills and notes into their own tabs and aligned combat/inventory sub-box columns with the operative combat-loadout and inventory tab patterns.
+* **Threat/NPC sheet theming:** Unified NPC tab/panel styling to a maroon-and-white palette across combat, inventory, effects, skills, and notes, while keeping operative sheet colors unchanged.
+* Updated system and package metadata version to `2.4.5`, including the release `download` URL in `system.json`.
+
 ## [2.4.4] - 2026-04-07
 
 ### Added
@@ -480,7 +490,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.4...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.5...HEAD
+[2.4.5]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.5
 [2.4.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.4
 [2.4.3]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.3
 [2.4.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.2
