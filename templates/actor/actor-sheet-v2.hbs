@@ -13,9 +13,15 @@
                 {{> "systems/sla-industries/templates/actor/parts/main-tab.hbs"}}
             </div>
 
-            <div class="tab {{tabs.ebb.cssClass}}" data-group="primary" data-tab="ebb">
+            <div class="tab {{tabs.combat.cssClass}}" data-group="primary" data-tab="combat">
                 {{> "systems/sla-industries/templates/actor/parts/combat-tab.hbs"}}
             </div>
+
+            {{#if isEbonite}}
+            <div class="tab {{tabs.ebb.cssClass}}" data-group="primary" data-tab="ebb">
+                {{> "systems/sla-industries/templates/actor/parts/ebb-tab.hbs"}}
+            </div>
+            {{/if}}
 
             <div class="tab {{tabs.inventory.cssClass}}" data-group="primary" data-tab="inventory">
                 {{> "systems/sla-industries/templates/actor/parts/inventory-tab.hbs"}}
@@ -36,10 +42,16 @@
                 <i class="fas {{tabs.main.icon}}"></i>
                 <span class="sla-tab-rail-tooltip">{{tabs.main.label}}</span>
             </a>
+            <a class="item sla-tab-rail-btn {{tabs.combat.cssClass}}" href="#" data-group="primary" data-tab="combat" title="{{tabs.combat.label}}">
+                <i class="fas {{tabs.combat.icon}}"></i>
+                <span class="sla-tab-rail-tooltip">{{tabs.combat.label}}</span>
+            </a>
+            {{#if isEbonite}}
             <a class="item sla-tab-rail-btn {{tabs.ebb.cssClass}}" href="#" data-group="primary" data-tab="ebb" title="{{tabs.ebb.label}}">
                 <i class="fas {{tabs.ebb.icon}}"></i>
                 <span class="sla-tab-rail-tooltip">{{tabs.ebb.label}}</span>
             </a>
+            {{/if}}
             <a class="item sla-tab-rail-btn {{tabs.inventory.cssClass}}" href="#" data-group="primary" data-tab="inventory" title="{{tabs.inventory.label}}">
                 <i class="fas {{tabs.inventory.icon}}"></i>
                 <span class="sla-tab-rail-tooltip">{{tabs.inventory.label}}</span>

@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-04-10
+
+### Added
+
+* **Ebb formula targeting & effects:** Formula items have **Target** (self / ally / enemy), **HP effect** (damage / heal / none), and **Wounds to remove** (integer **0–6**). On apply, that many wound **locations** are cleared in fixed order (head, torso, arms, legs), only where currently wounded. Chat cards show target/effect hints; heal rolls use a green-styled button and healing result messaging. **Self** target formulas skip “apply to target/selected” on the follow-up card and apply damage/heal (and optional wound removal) to the **caster** immediately after the roll.
+* **Wounds-only formulas:** With HP effect **none** and **wounds to remove** greater than zero, a successful roll shows a **Remove wounds** button (ally uses the selected token; enemy uses the targeted token).
+* **Ebb heal: heal+wounds vs heal or wounds:** **Ebb Formula** items with Effect **Heal** can set **Heal and wounds (one apply)** vs **Heal or wounds (separate actions)** (`system.ebbHealWoundMode`). **And** bundles HP healing and configured wound removal on the same apply path as the heal roll; **Or** shows a **Remove wounds** button alongside the heal roll, and only one of the two may be used per check (the other is disabled with tooltips; choice is stored on the chat message for re-renders and other clients).
+* **Chat card hints** for heal formulas with wound removal: subtitle shows **Heal + wounds** or **Heal or wounds** when both a heal roll and wound removal apply.
+* **Embedded effects (self):** When the formula target is **Self**, GM sees a single **Apply effects to caster** button instead of target/selected.
+* **Ebb critical FLUX:** On a successful Ebb roll with MOS 4+, the caster **regains 1 FLUX** (capped at max), with chat-flag tracking so GM **TN** changes and **Luck** rerolls stay in sync (including revoking the point if a recalc drops below critical MOS).
+* **Operative Ebb tab:** **Ebonite** characters (species name contains “ebonite”) get a dedicated **Ebb** sidebar tab for disciplines and nested formulas; **Combat** is wounds + loadout only. Non-Ebonites do not see the Ebb tab; a persisted primary tab id `ebb` from before this split is redirected to **Combat** when the actor is not Ebonite.
+* **Unit tests:** `tests/unit/ebb-mos.test.mjs` covers Ebb MOS damage bonus rules (`getEbbMosDamageBonus` in `module/helpers/ebb-mos.mjs`).
+
+### Changed
+
+* **Flux cost:** Ebb formula rolls now spend `system.cost` flux (minimum 0, defaulting to 1 if unset) instead of a hardcoded 1.
+* **Ebb MOS vs heal:** Margin-of-success **damage** bonuses (+1 / +2 / +4) apply only to **damage** Ebb formulas; **heal** and **effect** formulas no longer add those values to the heal/damage formula string. Chat copy and Luck rerolls use the same distinction.
+* **Critical condition:** The skull control on the operative wounds panel is **display-only**; **Critical** follows **HP** (and the active effect sync). It is no longer toggled from the sheet. **HP max** changes (e.g. STR) also re-sync critical vs half max HP.
+* **Actor & item UI:** Discipline/formula lists use card layouts with badges; Ebb and Discipline item sheets use a clearer spectral-themed grid for formula stats and discipline rank.
+* **Discipline item sheet (single view):** Rank card and **Description** use a **two-column** grid on typical widths (stacks on narrow panels).
+* **Luck on Ebb:** Luck dialog recalculates Ebb rolls using the formula’s **TN** from chat flags (not a hardcoded TN).
+* **World migration `2.5.0`:** **Ebb Formula** embedded updates: legacy boolean `system.removeWounds` → integer **0–6** (`true` → 6; aligns with **`2.4.8`**), `ebbEffect` **`none`** → **`effect`** (**`2.4.9`**), and `system.ebbHpWoundMode` → `system.ebbHealWoundMode` with removal of the old key when present (interim dev cleanup).
+* **Damage** Ebb formulas with **Wounds to remove** still apply **damage and** wound clearing together; the heal/wounds toggle applies only to **Heal** formulas.
+* Updated system and package metadata version to `2.5.0`, including the release `download` URL in `system.json`.
+
+### Notes
+
+* **World data migration** target version is **`2.5.0`** (`module/migration.mjs`), including the **Ebb Formula** transforms listed under **Changed** above.
+
 ## [2.4.7] - 2026-04-11
 
 ### Added
@@ -512,7 +541,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.7...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.5.0...HEAD
+[2.5.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.0
 [2.4.7]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.7
 [2.4.6]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.6
 [2.4.5]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.5

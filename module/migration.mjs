@@ -10,8 +10,11 @@ import { migrateNaturalWeapons } from "../scripts/migrate_stat_damage.js";
  * Highest world-data migration currently required.
  * Bump when migration steps change so older worlds re-run. `2.1.1` supersedes `2.1.0` so worlds
  * that reached `2.1.0` without `migrateTo210` (drug legacy keys) still run that step once.
+ * `2.4.8`: Ebb formula `removeWounds` boolean → integer 0–6 (true → 6).
+ * `2.4.9`: Ebb formula `ebbEffect` `none` → `effect`.
+ * `2.5.0`: Ebb formula `ebbHpWoundMode` → `ebbHealWoundMode` when present (interim dev field cleanup).
  */
-export const CURRENT_MIGRATION_VERSION = "2.1.1";
+export const CURRENT_MIGRATION_VERSION = "2.5.0";
 
 /**
  * Client-side world snapshot for disaster recovery before migration runs.
@@ -75,6 +78,54 @@ async function downloadMigrationWorldBackup() {
 }
 
 /**
+ * 2.4.8: `system.removeWounds` on ebbFormula was boolean; now integer 0–6 (true → 6).
+ * @param {Item} item
+ * @returns {object|null} Update payload without `_id`
+ */
+function getEbbFormulaRemoveWoundsMigrationUpdate(item) {
+    const rw = foundry.utils.getProperty(item, "system.removeWounds");
+    if (typeof rw === "boolean") {
+        return { "system.removeWounds": rw ? 6 : 0 };
+    }
+    if (typeof rw === "number") {
+        const n = Math.max(0, Math.min(6, Math.floor(rw)));
+        return n !== rw ? { "system.removeWounds": n } : null;
+    }
+    if (rw !== undefined && rw !== null) {
+        return { "system.removeWounds": 0 };
+    }
+    return null;
+}
+
+/**
+ * Merge ebbFormula migrations (removeWounds + legacy `ebbEffect`).
+ * @param {Item} item
+ * @returns {object|null} Update payload without `_id`
+ */
+function getEbbFormulaMigrationUpdate(item) {
+    const updates = {};
+    const rw = getEbbFormulaRemoveWoundsMigrationUpdate(item);
+    if (rw) Object.assign(updates, rw);
+    if (foundry.utils.getProperty(item, "system.ebbEffect") === "none") {
+        updates["system.ebbEffect"] = "effect";
+    }
+    const legacyHpWound = foundry.utils.getProperty(item, "system.ebbHpWoundMode");
+    const healWound = foundry.utils.getProperty(item, "system.ebbHealWoundMode");
+    if (legacyHpWound !== undefined && healWound === undefined) {
+        updates["system.ebbHealWoundMode"] = legacyHpWound === "or" ? "or" : "and";
+        updates["system.-=ebbHpWoundMode"] = null;
+    }
+    return Object.keys(updates).length ? updates : null;
+}
+
+/** @param {Item} item */
+function getEbbFormulaMigrationEmbedded(item) {
+    const u = getEbbFormulaMigrationUpdate(item);
+    if (!u) return null;
+    return { _id: item.id, ...u };
+}
+
+/**
  * Main Entry Point
  */
 export async function migrateWorld() {
@@ -100,6 +151,13 @@ export async function migrateWorld() {
         if (item.type === "weapon") await migrateWeaponItem(item, meleeSkills);
         if (item.type === "armor") await migrateArmorItem(item);
         if (item.type === "species") await migrateSpeciesItem(item);
+        if (item.type === "ebbFormula") {
+            const u = getEbbFormulaMigrationUpdate(item);
+            if (u) {
+                console.log(`SLA | ebbFormula migration on world item "${item.name}"`);
+                await item.update(u);
+            }
+        }
     }
 
     // 2. Migrate Actor Items & Data
@@ -250,6 +308,7 @@ export async function migrateWorld() {
             if (item.type === "weapon") updateData = await getWeaponMigrationData(item, meleeSkills);
             if (item.type === "armor") updateData = await getArmorMigrationData(item);
             if (item.type === "species") updateData = await getSpeciesMigrationData(item);
+            if (item.type === "ebbFormula") updateData = getEbbFormulaMigrationEmbedded(item);
             if (updateData) updates.push(updateData);
         }
 

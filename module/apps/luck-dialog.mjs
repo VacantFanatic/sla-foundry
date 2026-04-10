@@ -1,4 +1,6 @@
 import { calculateRollResult, getMOS, generateDiceTooltip } from "../helpers/dice.mjs";
+import { syncEbbCriticalFlux } from "../helpers/ebb-flux.mjs";
+import { normalizeEbbEffect } from "../helpers/items.mjs";
 
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
@@ -229,12 +231,46 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        const result = calculateRollResult(roll, baseModifier, 11, {
+        const tn = flags.tn != null ? Number(flags.tn) : 10;
+        const result = calculateRollResult(roll, baseModifier, tn, {
             luckBonus: luckBonus,
             autoSkillSuccesses: autoSkillSuccesses
         });
 
-        const mos = getMOS(result);
+        let mosEffectText;
+        let mosDamageBonus = 0;
+        let mosHasChoice = false;
+        let mosChoiceType = "";
+        let mosChoiceDmg = 0;
+
+        if (flags.isEbb) {
+            const skillHits = result.skillHits;
+            const attackMos = normalizeEbbEffect(flags.ebbEffect) === "damage";
+            mosEffectText = result.isSuccess ? "Standard Success" : "Failed";
+            if (result.isSuccess) {
+                if (skillHits === 2) {
+                    mosEffectText = attackMos ? "+1 Damage / Effect" : "Standard Success";
+                    if (attackMos) mosDamageBonus = 1;
+                } else if (skillHits === 3) {
+                    mosEffectText = attackMos
+                        ? "+2 Damage / Repeat Ability"
+                        : "May use the same Ebb ability again within 5 minutes (-3 FLUX)";
+                    if (attackMos) mosDamageBonus = 2;
+                } else if (skillHits >= 4) {
+                    mosEffectText = attackMos
+                        ? "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX"
+                        : "<strong style='color:#39ff14'>CRITICAL:</strong> Regain 1 FLUX";
+                    if (attackMos) mosDamageBonus = 4;
+                }
+            }
+        } else {
+            const mos = getMOS(result);
+            mosEffectText = mos.effect;
+            mosDamageBonus = mos.damageBonus;
+            mosHasChoice = mos.hasChoice;
+            mosChoiceType = mos.choiceType;
+            mosChoiceDmg = mos.choiceDmg;
+        }
 
         if (result.successThroughExperience) {
             if (flavorUpdate) flavorUpdate += " | Success Through Experience";
@@ -243,7 +279,7 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const baseDmg = flags.damageBase || "0";
         const damageMod = flags.damageMod || 0;
-        const totalMod = damageMod + mos.damageBonus;
+        const totalMod = damageMod + mosDamageBonus;
 
         let finalDmgFormula = baseDmg;
         if (totalMod !== 0) {
@@ -269,10 +305,10 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
             mos: {
                 isSuccess: result.isSuccess,
                 hits: result.skillHits,
-                effect: mos.effect,
-                hasChoice: mos.hasChoice,
-                choiceType: mos.choiceType,
-                choiceDmg: mos.choiceDmg
+                effect: mosEffectText,
+                hasChoice: mosHasChoice,
+                choiceType: mosChoiceType,
+                choiceDmg: mosChoiceDmg
             },
             luckSpent: true,
             canUseLuck: this.actor.system.stats.luck.value > 0,
@@ -287,5 +323,9 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
             rolls: [JSON.stringify(roll)],
             "flags.sla.luckSpent": true
         });
+
+        if (flags.isEbb) {
+            await syncEbbCriticalFlux(message, this.actor, message.flags?.sla ?? flags, result.isSuccess, result.skillHits);
+        }
     }
 }

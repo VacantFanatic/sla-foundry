@@ -5,6 +5,13 @@
     <h3 style="color:{{headerColor}}; border-bottom:1px solid #555; margin:0 0 5px 0; font-size:1.1em;">
         {{itemName}} CHECK
     </h3>
+    {{#if ebbFormulaRoll}}
+    {{#if mos.isSuccess}}
+    <div style="font-size:0.75em; color:#a78bfa; text-align:center; margin-bottom:6px;">
+        {{ebbTargetLabel}} · {{ebbEffectLabel}}{{#if (gt removeWoundsCount 0)}} · {{localize "SLA.EbbRemoveWoundsTag"}} ({{removeWoundsCount}}){{#if showEbbHealWoundModeHint}} · {{ebbHealWoundModeLabel}}{{/if}}{{/if}}
+    </div>
+    {{/if}}
+    {{/if}}
 
     {{!-- RESULT BOX --}}
     <div
@@ -38,10 +45,12 @@
     </div>
     {{/if}}
 
-    {{!-- MOS / EFFECT TEXT --}}
+    {{!-- MOS / EFFECT TEXT (failed Ebb formula: no outcome line — success die missed the rating) --}}
+    {{#unless (and ebbFormulaRoll (not mos.isSuccess))}}
     <div style="margin-top:8px; padding:4px; background:rgba(255,255,255,0.05); font-size:0.9em;">
         {{{mos.effect}}}
     </div>
+    {{/unless}}
 
     {{!-- CRITICAL: MOS CHOICE BUTTONS --}}
     {{#if mos.hasChoice}}
@@ -75,28 +84,50 @@
     </div>
     {{/if}}
 
-    {{!-- DAMAGE FORMULA (Standard Hit) --}}
+    {{!-- DAMAGE / HEAL ROLL (Ebb) --}}
     {{#if showDamageButton}}
     <div style="margin-top:8px; text-align:center;">
-        <div style="font-size:0.8em; color:#aaa; margin-bottom:2px;">DAMAGE</div>
+        <div style="font-size:0.8em; color:#aaa; margin-bottom:2px;">{{#if isHealRoll}}{{localize "SLA.EbbHealRollLabel"}}{{else}}{{localize "SLA.EbbDamageRollLabel"}}{{/if}}</div>
         <button class="damage-roll" data-formula="{{dmgFormula}}" data-ad="{{adValue}}" data-min="{{minDamage}}"
-            style="background:#ff4444; color:#000; border:1px solid #990000; font-weight:bold;">
-            <i class="fas fa-droplet"></i> {{#if dmgDisplay}}{{dmgDisplay}}{{else}}{{dmgFormula}}{{/if}}
+            data-is-heal="{{#if isHealRoll}}true{{else}}false{{/if}}"
+            data-remove-wounds-count="{{removeWoundsBundledWithHpRoll}}"
+            data-ebb-target="{{ebbTarget}}"
+            style="{{#if isHealRoll}}background:#2d6a4f; color:#e9ffef; border:1px solid #40916c;{{else}}background:#ff4444; color:#000; border:1px solid #990000;{{/if}} font-weight:bold;">
+            <i class="fas {{#if isHealRoll}}fa-heart{{else}}fa-droplet{{/if}}"></i> {{#if dmgDisplay}}{{dmgDisplay}}{{else}}{{dmgFormula}}{{/if}}
+        </button>
+    </div>
+    {{/if}}
+
+    {{#if showRemoveWoundsOnly}}
+    <div style="margin-top:8px; text-align:center;">
+        <button type="button" class="sla-ebb-remove-wounds-btn" data-ebb-target="{{ebbTarget}}"
+            style="background:#1e3a5f; color:#93c5fd; border:1px solid #3b82f6; font-weight:bold;">
+            <i class="fas fa-band-aid"></i> {{localize "SLA.EbbRemoveWoundsButton"}}
+        </button>
+    </div>
+    {{/if}}
+
+    {{#if showEbbEffectSelfButton}}
+    <div class="sla-ebb-effect-actions" style="margin-top:8px; border-top:1px dashed #8a2be2; padding-top:6px;">
+        <div style="font-size:0.8em; color:#c4b5fd; margin-bottom:4px; text-align:center;">{{localize "SLA.EbbFormulaEffectsGM"}}</div>
+        <button type="button" class="sla-ebb-apply-effect-btn" data-target="self"
+            style="background:#2d1b4e; border:1px solid #8a2be2; color:#e9d5ff; width:100%;">
+            <i class="fas fa-user"></i> {{localize "SLA.EbbApplyEffectsCaster"}}
         </button>
     </div>
     {{/if}}
 
     {{#if showEbbEffectButtons}}
     <div class="sla-ebb-effect-actions" style="margin-top:8px; border-top:1px dashed #8a2be2; padding-top:6px;">
-        <div style="font-size:0.8em; color:#c4b5fd; margin-bottom:4px; text-align:center;">FORMULA EFFECTS (GM)</div>
+        <div style="font-size:0.8em; color:#c4b5fd; margin-bottom:4px; text-align:center;">{{localize "SLA.EbbFormulaEffectsGM"}}</div>
         <div style="display:flex; flex-direction:column; gap:4px;">
             <button type="button" class="sla-ebb-apply-effect-btn" data-target="target"
                 style="background:#2d1b4e; border:1px solid #8a2be2; color:#e9d5ff;">
-                <i class="fas fa-crosshairs"></i> Apply effects to target
+                <i class="fas fa-crosshairs"></i> {{localize "SLA.EbbApplyEffectsTarget"}}
             </button>
             <button type="button" class="sla-ebb-apply-effect-btn" data-target="selected"
                 style="background:#2d1b4e; border:1px solid #8a2be2; color:#e9d5ff;">
-                <i class="fas fa-expand"></i> Apply effects to selected
+                <i class="fas fa-expand"></i> {{localize "SLA.EbbApplyEffectsSelected"}}
             </button>
         </div>
     </div>

@@ -5,10 +5,12 @@ import { LuckDialog } from "../apps/luck-dialog.mjs";
 import { XPDialog } from "../apps/xp-dialog.mjs";
 import { SlaSimpleContentDialog } from "../apps/sla-simple-dialog.mjs";
 import { calculateRollResult, generateDiceTooltip, createSLARoll } from "../helpers/dice.mjs";
-import { prepareItems } from "../helpers/items.mjs";
+import { prepareItems, normalizeEbbEffect, normalizeEbbHealWoundMode } from "../helpers/items.mjs";
+import { getEbbMosDamageBonus } from "../helpers/ebb-mos.mjs";
 import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from "../helpers/modifiers.mjs";
 import { addActorItemToHotbar } from "../helpers/sla-hotbar.mjs";
 import { SLAChat } from "../helpers/chat.mjs";
+import { syncEbbCriticalFlux } from "../helpers/ebb-flux.mjs";
 import { shouldShowMosWoundChoice } from "../helpers/wound-visibility.mjs";
 import { handleStackableActorItemDrop } from "../helpers/inventory-stack.mjs";
 
@@ -30,7 +32,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         primary: {
             tabs: [
                 { id: "main", label: "Main", icon: "fa-id-card" },
-                { id: "ebb", label: "Combat", icon: "fa-crosshairs" },
+                { id: "combat", label: "Combat", icon: "fa-crosshairs" },
+                { id: "ebb", label: "Ebb", icon: "fa-magic" },
                 { id: "inventory", label: "Inventory", icon: "fa-box-open" },
                 { id: "biography", label: "Bio & Traits", icon: "fa-book" },
                 { id: "effects", label: "Effects", icon: "fa-bolt" }
@@ -59,6 +62,23 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             minimizable: true
         }
     }, { inplace: false });
+
+    /** @returns {boolean} */
+    #actorIsEbonite() {
+        const species = this.actor.items.find((i) => i.type === "species");
+        return Boolean(species?.name?.toLowerCase().includes("ebonite"));
+    }
+
+    /**
+     * Ebb tab exists only for Ebonites; non-Ebonites may still have a persisted primary tab id `ebb`
+     * from before the combat tab was renamed to `combat`.
+     */
+    changeTab(tab, group, options) {
+        if (group === "primary" && tab === "ebb" && !this.#actorIsEbonite()) {
+            tab = "combat";
+        }
+        return super.changeTab(tab, group, options);
+    }
 
     /** @type {AbortController | null} */
     #sheetUiAbort = null;
@@ -323,13 +343,11 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // ======================================================
         // START NEW LOGIC: SYNC CONDITIONS FOR DISPLAY
         // ======================================================
-        // This forces the sheet to look at the actual Active Effects 
-        // on the token and update the context so the buttons light up.
-        const conditionIds = ["bleeding", "burning", "stunned", "prone", "immobile", "critical"];
+        // Sync togglable conditions from Active Effects so sheet buttons match the token.
+        // Critical is excluded: it is derived from HP in prepareDerivedData (not user-toggled).
+        const conditionIds = ["bleeding", "burning", "stunned", "prone", "immobile"];
 
         for (const statusId of conditionIds) {
-            // Check if the actor has an Active Effect with this statusId
-            // We use 'this.actor' to get the live document instance
             const hasEffect = this.actor.effects.some(e => e.statuses.has(statusId));
             context.system.conditions[statusId] = hasEffect;
         }
@@ -553,6 +571,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const cond = t.closest(".condition-toggle");
         if (cond) {
             event.preventDefault();
+            if (cond.classList.contains("condition-automatic")) return;
             const conditionId = cond.dataset.condition;
             if (conditionId) await this.actor.toggleStatusEffect(conditionId);
             return;
@@ -2409,7 +2428,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     _resolveEbbContext(item) {
         const formulaRating = item.system.formulaRating || 7;
         const currentFlux = this.actor.system.stats.flux?.value || 0;
-        const fluxCost = 1;
+        const fluxCost = Math.max(0, Number(item.system.cost) || 1);
         const disciplineName = item.system.discipline;
         const resolvedDisciplineName = this._resolveEbbDisciplineName(disciplineName);
         const disciplineItem = this.actor.items.find(i =>
@@ -2456,17 +2475,28 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return { skillDiceData, skillSuccesses: skillSuccessCount };
     }
 
-    _resolveEbbOutcomeText(isBaseSuccess, skillSuccesses) {
+    _resolveEbbOutcomeText(isBaseSuccess, skillSuccesses, ebbEffectRaw) {
         const allDiceFailed = (!isBaseSuccess) && (skillSuccesses === 0);
-        const isSuccessful = isBaseSuccess || (skillSuccesses >= 1);
+        // Formula succeeds only when the success die hits the rating; skill dice alone must not unlock damage/heal/wounds/effects.
+        const isSuccessful = isBaseSuccess;
+        const ebbEffect = normalizeEbbEffect(ebbEffectRaw);
+        const attackMos = ebbEffect === "damage";
 
         let mosEffectText = "Standard Success";
         let failureConsequence = "Failed";
 
         if (isSuccessful) {
-            if (skillSuccesses === 2) mosEffectText = "+1 Damage / Effect";
-            else if (skillSuccesses === 3) mosEffectText = "+2 Damage / Repeat Ability";
-            else if (skillSuccesses >= 4) mosEffectText = "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX";
+            if (skillSuccesses === 2) {
+                mosEffectText = attackMos ? "+1 Damage / Effect" : "Standard Success";
+            } else if (skillSuccesses === 3) {
+                mosEffectText = attackMos
+                    ? "+2 Damage / Repeat Ability"
+                    : "May use the same Ebb ability again within 5 minutes (-3 FLUX)";
+            } else if (skillSuccesses >= 4) {
+                mosEffectText = attackMos
+                    ? "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX"
+                    : "<strong style='color:#39ff14'>CRITICAL:</strong> Regain 1 FLUX";
+            }
         } else if (allDiceFailed) {
             failureConsequence = "<strong style='color:#ff5555'>SEVERE FAILURE:</strong> -3 HP & -1 Extra FLUX";
         }
@@ -2475,22 +2505,49 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     _buildEbbDamageFormula(item, isSuccessful, skillSuccesses) {
-        let rawBase = item.system.dmg || item.system.damage || "0";
-        let baseDmg = String(rawBase);
-        let mosDamageBonus = 0;
-
-        if (isSuccessful) {
-            if (skillSuccesses === 2) mosDamageBonus = 1;
-            if (skillSuccesses === 3) mosDamageBonus = 2;
-            if (skillSuccesses >= 4) mosDamageBonus = 4;
-        }
+        const rawBase = item.system.dmg || item.system.damage || "0";
+        const baseDmg = String(rawBase);
+        const ebbEffect = normalizeEbbEffect(item.system.ebbEffect);
+        const mosDamageBonus = getEbbMosDamageBonus(isSuccessful, skillSuccesses, item.system.ebbEffect);
 
         let finalDmgFormula = baseDmg;
         if (baseDmg !== "0" && baseDmg !== "" && mosDamageBonus > 0) {
             finalDmgFormula = `${baseDmg} + ${mosDamageBonus}`;
         }
 
-        return { finalDmgFormula, showDamageButton: isSuccessful && (finalDmgFormula && finalDmgFormula !== "0") };
+        const hasHpFormula = finalDmgFormula && finalDmgFormula !== "0" && String(finalDmgFormula).trim() !== "";
+        const showHpRollButton = Boolean(
+            isSuccessful && (ebbEffect === "damage" || ebbEffect === "heal") && hasHpFormula
+        );
+        const removeWoundsCount = Math.max(0, Math.min(6, Math.floor(Number(item.system.removeWounds) || 0)));
+        const isHealEffect = ebbEffect === "heal";
+        const healWoundMode = normalizeEbbHealWoundMode(item.system.ebbHealWoundMode);
+        const showRemoveWoundsOnly = Boolean(
+            isSuccessful
+            && removeWoundsCount > 0
+            && (
+                (ebbEffect === "effect" && !hasHpFormula)
+                || (isHealEffect && healWoundMode === "or" && hasHpFormula)
+            )
+        );
+        const removeWoundsBundledWithHpRoll = Boolean(
+            showHpRollButton
+            && removeWoundsCount > 0
+            && !(isHealEffect && healWoundMode === "or")
+        )
+            ? removeWoundsCount
+            : 0;
+
+        return {
+            finalDmgFormula,
+            showDamageButton: showHpRollButton,
+            showHpRollButton,
+            showRemoveWoundsOnly,
+            removeWoundsBundledWithHpRoll,
+            healWoundMode,
+            ebbEffect,
+            isHealRoll: ebbEffect === "heal"
+        };
     }
 
     _buildEbbTemplateData({
@@ -2502,13 +2559,32 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         skillDiceData,
         formulaRating,
         showDamageButton,
+        showRemoveWoundsOnly,
+        removeWoundsBundledWithHpRoll,
+        healWoundMode,
         finalDmgFormula,
         isSuccessful,
         skillSuccesses,
         mosEffectText,
-        failureConsequence
+        failureConsequence,
+        isHealRoll,
+        ebbEffect
     }) {
         const effectCount = item.effects?.size ?? 0;
+        const ebbTarget = item.system.ebbTarget || "enemy";
+        const minDamageRaw = item.system.minDamage;
+        const minDamage = minDamageRaw !== undefined && minDamageRaw !== null && String(minDamageRaw).trim() !== ""
+            ? minDamageRaw
+            : "0";
+        const i18n = (k) => game.i18n?.localize(k) ?? k;
+        const targetLabel = i18n(`SLA.EbbTarget.${ebbTarget}`);
+        const effectLabel = i18n(`SLA.EbbEffect.${ebbEffect || "damage"}`);
+        const ebbHealWoundModeLabel = i18n(`SLA.EbbHealWoundMode.${healWoundMode === "or" ? "orHint" : "andHint"}`);
+        const showEbbHealWoundModeHint = Boolean(
+            isHealRoll
+            && showDamageButton
+            && Math.max(0, Math.min(6, Math.floor(Number(item.system.removeWounds) || 0))) > 0
+        );
         return {
             borderColor: resultColor,
             headerColor: resultColor,
@@ -2520,8 +2596,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             skillDice: skillDiceData,
             notes: `<strong>Formula Rating:</strong> ${formulaRating}`,
             showDamageButton: showDamageButton,
+            showRemoveWoundsOnly: showRemoveWoundsOnly,
             dmgFormula: finalDmgFormula,
             dmgDisplay: this._resolveDamageDisplay(finalDmgFormula),
+            minDamage,
             adValue: item.system.ad || 0,
             mos: {
                 isSuccess: isSuccessful,
@@ -2529,7 +2607,19 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 effect: isSuccessful ? mosEffectText : failureConsequence
             },
             isEbb: true,
-            showEbbEffectButtons: Boolean(isSuccessful && effectCount > 0)
+            ebbFormulaRoll: true,
+            isHealRoll: Boolean(isHealRoll),
+            ebbTarget,
+            ebbEffect: ebbEffect || "damage",
+            ebbTargetLabel: targetLabel,
+            ebbEffectLabel: effectLabel,
+            removeWoundsCount: Math.max(0, Math.min(6, Math.floor(Number(item.system.removeWounds) || 0))),
+            removeWoundsBundledWithHpRoll,
+            ebbHealWoundMode: healWoundMode,
+            ebbHealWoundModeLabel,
+            showEbbHealWoundModeHint,
+            showEbbEffectButtons: Boolean(isSuccessful && effectCount > 0 && ebbTarget !== "self"),
+            showEbbEffectSelfButton: Boolean(isSuccessful && effectCount > 0 && ebbTarget === "self")
         };
     }
 
@@ -2558,8 +2648,20 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const resultColor = isBaseSuccess ? '#39ff14' : '#f55';
 
         const { skillDiceData, skillSuccesses } = this._collectEbbSkillDiceData(roll, modifier, formulaRating);
-        const { isSuccessful, mosEffectText, failureConsequence } = this._resolveEbbOutcomeText(isBaseSuccess, skillSuccesses);
-        const { finalDmgFormula, showDamageButton } = this._buildEbbDamageFormula(item, isSuccessful, skillSuccesses);
+        const { isSuccessful, mosEffectText, failureConsequence } = this._resolveEbbOutcomeText(
+            isBaseSuccess,
+            skillSuccesses,
+            item.system.ebbEffect
+        );
+        const {
+            finalDmgFormula,
+            showDamageButton,
+            showRemoveWoundsOnly,
+            removeWoundsBundledWithHpRoll,
+            healWoundMode,
+            ebbEffect,
+            isHealRoll
+        } = this._buildEbbDamageFormula(item, isSuccessful, skillSuccesses);
         const notesText = `<strong>Formula Rating:</strong> ${formulaRating}`;
         const templateData = this._buildEbbTemplateData({
             item,
@@ -2570,17 +2672,30 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             skillDiceData,
             formulaRating,
             showDamageButton,
+            showRemoveWoundsOnly,
+            removeWoundsBundledWithHpRoll,
+            healWoundMode,
             finalDmgFormula,
             isSuccessful,
             skillSuccesses,
             mosEffectText,
-            failureConsequence
+            failureConsequence,
+            isHealRoll,
+            ebbEffect
         });
 
         const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
 
         const ebbEffectCount = item.effects?.size ?? 0;
-        roll.toMessage({
+        const ebbRemoveWoundsCount = Math.max(0, Math.min(6, Math.floor(Number(item.system.removeWounds) || 0)));
+        const ebbHealWoundMutualExclude = Boolean(
+            isSuccessful
+            && normalizeEbbEffect(item.system.ebbEffect) === "heal"
+            && normalizeEbbHealWoundMode(item.system.ebbHealWoundMode) === "or"
+            && ebbRemoveWoundsCount > 0
+            && showDamageButton
+        );
+        const message = await roll.toMessage({
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: chatContent,
             flags: {
@@ -2595,11 +2710,21 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                         itemUuid: item.uuid,
                         ebbHasEffects: ebbEffectCount > 0,
                         ebbRollSuccess: isSuccessful,
+                        ebbTarget: item.system.ebbTarget || "enemy",
+                        ebbEffect: normalizeEbbEffect(item.system.ebbEffect),
+                        actorUuid: this.actor.uuid,
+                        ebbRemoveWoundsCount: ebbRemoveWoundsCount,
+                        ebbHealWoundMode: normalizeEbbHealWoundMode(item.system.ebbHealWoundMode),
+                        ebbHealWoundMutualExclude,
                         targets: Array.from(game.user.targets).map((t) => t.document.uuid)
                     }
                 })
             }
         });
+        const chatMsg = Array.isArray(message) ? message[0] : message;
+        if (chatMsg) {
+            await syncEbbCriticalFlux(chatMsg, this.actor, chatMsg.flags?.sla ?? {}, isSuccessful, skillSuccesses);
+        }
     }
 
     // --- DROP ITEM HANDLER ---

@@ -1,4 +1,18 @@
 <div class="sla-chat-card damage-result">
+    {{#if isHeal}}
+    <div class="damage-header heal">
+        {{victimName}} — {{localize "SLA.HealResultHeader"}}
+    </div>
+    <div class="damage-row">
+        <span>{{localize "SLA.HealRolled"}}:</span> <strong>{{rawDamage}}</strong>
+    </div>
+    <div class="damage-row final">
+        <span>{{localize "SLA.HealApplied"}}:</span> <strong class="final-value heal-value">{{finalDamage}}</strong>
+    </div>
+    <div class="damage-hp">
+        HP: {{hpData.old}} &rarr; <strong>{{hpData.new}}</strong>
+    </div>
+    {{else}}
     <div class="damage-header">
         {{victimName}} Hit!
     </div>
@@ -21,5 +35,6 @@
     <div class="damage-armor">
         <i class="fas fa-shield-alt"></i> Armor Res: {{armorData.current}} &rarr; {{armorData.new}} (-{{armorData.ad}})
     </div>
+    {{/if}}
     {{/if}}
 </div>

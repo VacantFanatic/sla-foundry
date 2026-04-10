@@ -1,68 +1,52 @@
-<div class="sla-panel">
+<div class="sla-panel sla-ebb-disciplines-panel">
 
     <div class="sla-header-bar flexrow">
-        <span style="flex:1">EBB DISCIPLINES & FORMULAE</span>
-        <a class="item-create" data-type="discipline" title="Create New Discipline"><i class="fas fa-plus"></i></a>
+        <span style="flex:1">{{localize "SLA.EbbDisciplinesHeader"}}</span>
+        <a class="item-create" data-type="discipline" title="{{localize "SLA.EbbCreateDiscipline"}}"><i class="fas fa-plus"></i></a>
     </div>
 
-    <div class="scroll-list">
-        <table class="sla-table" style="table-layout: fixed;">
-            <thead>
-                <tr>
-                    <th style="text-align: left; padding-left: 5px;">Name</th>
-                    <th style="width: 70px; text-align: center;">Rank/Cost</th>
-                    <th style="width: 50px;"></th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each disciplines as |discipline|}}
-
-                {{!-- PARENT ROW: DISCIPLINE --}}
-                <tr class="item discipline-row" data-item-id="{{discipline._id}}">
-                    <td class="item-name" style="font-weight: bold; color: #cfaaf5; padding-left: 5px;">
-                        {{discipline.name}}
-                    </td>
-                    <td style="text-align: center; font-weight: bold; color: #fff; background: rgba(0,0,0,0.3);">
-                        {{discipline.system.rank}}
-                    </td>
-                    <td class="item-controls" style="text-align: center;">
-                        <a class="item-edit" title="Edit Discipline"><i class="fas fa-edit"></i></a>
-                        <a class="item-delete" title="Delete Discipline"><i class="fas fa-trash"></i></a>
-                    </td>
-                </tr>
-
-                {{!-- CHILD ROWS: FORMULAS --}}
+    <div class="scroll-list sla-ebb-disciplines-scroll">
+        {{#each disciplines as |discipline|}}
+        <div class="sla-ebb-discipline-card item discipline-row" data-item-id="{{discipline._id}}">
+            <div class="sla-ebb-discipline-card__header">
+                <span class="sla-ebb-discipline-card__name">{{discipline.name}}</span>
+                <span class="sla-ebb-discipline-card__rank" title="{{localize "SLA.DisciplineRank"}}">{{discipline.system.rank}}</span>
+                <span class="sla-ebb-discipline-card__controls item-controls">
+                    <a class="item-edit" title="{{localize "SLA.EditDiscipline"}}"><i class="fas fa-edit"></i></a>
+                    <a class="item-delete" title="{{localize "SLA.DeleteDiscipline"}}"><i class="fas fa-trash"></i></a>
+                </span>
+            </div>
+            {{#if discipline.formulas.length}}
+            <ul class="sla-ebb-formula-list">
                 {{#each discipline.formulas as |formula|}}
-                <tr class="item formula-row" data-item-id="{{formula._id}}">
-                    {{!-- Indented Name --}}
-                    <td class="item-name rollable" data-roll-type="item"
-                        style="padding-left: 20px; font-size: 0.9em; color: #ccc;">
-                        <i class="fas fa-angle-right" style="font-size: 0.8em; color: #8a2be2;"></i> {{formula.name}}
-                    </td>
-                    {{!-- Cost --}}
-                    <td style="text-align: center; font-size: 0.85em; color: #aaa;">
-                        {{formula.system.cost}} Flux
-                    </td>
-                    {{!-- Controls --}}
-                    <td class="item-controls" style="text-align: center;">
-                        <a class="item-control item-rollable" data-roll-type="item" title="Use Formula"><i
-                                class="fas fa-bolt" style="color:#ffd700;"></i></a>
-                        <a class="item-edit" title="Edit Formula"><i class="fas fa-edit"></i></a>
-                        <a class="item-delete" title="Delete Formula"><i class="fas fa-trash"></i></a>
-                    </td>
-                </tr>
+                <li class="sla-ebb-formula-row item formula-row" data-item-id="{{formula._id}}">
+                    <span class="sla-ebb-formula-row__main">
+                        <i class="fas fa-angle-right sla-ebb-formula-row__chev"></i>
+                        <span class="item-name rollable" data-roll-type="item">{{formula.name}}</span>
+                    </span>
+                    <span class="sla-ebb-formula-row__badges">
+                        <span class="sla-ebb-badge sla-ebb-badge--target">{{formula.ebbTargetLabel}}</span>
+                        <span class="sla-ebb-badge sla-ebb-badge--effect">{{formula.ebbEffectLabel}}</span>
+                        {{#if (gt formula.system.removeWounds 0)}}
+                        <span class="sla-ebb-badge sla-ebb-badge--wounds">{{formula.system.removeWounds}} {{localize "SLA.EbbWoundsShort"}}</span>
+                        {{/if}}
+                    </span>
+                    <span class="sla-ebb-formula-row__cost">{{formula.system.cost}} {{localize "SLA.EbbFluxShort"}}</span>
+                    <span class="item-controls sla-ebb-formula-row__controls">
+                        <a class="item-control item-rollable" data-roll-type="item" title="{{localize "SLA.UseFormula"}}"><i
+                                class="fas fa-bolt"></i></a>
+                        <a class="item-edit" title="{{localize "SLA.EditFormula"}}"><i class="fas fa-edit"></i></a>
+                        <a class="item-delete" title="{{localize "SLA.DeleteFormula"}}"><i class="fas fa-trash"></i></a>
+                    </span>
+                </li>
                 {{/each}}
+            </ul>
+            {{/if}}
+        </div>
+        {{/each}}
 
-                {{/each}}
-
-                {{#unless disciplines}}
-                <tr>
-                    <td colspan="3" style="text-align: center; color: #555; font-style: italic; padding: 10px;">
-                        No Disciplines learned.
-                    </td>
-                </tr>
-                {{/unless}}
-            </tbody>
-        </table>
+        {{#unless disciplines}}
+        <div class="sla-ebb-empty">{{localize "SLA.NoDisciplines"}}</div>
+        {{/unless}}
     </div>
 </div>

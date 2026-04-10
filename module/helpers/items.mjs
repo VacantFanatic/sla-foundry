@@ -5,6 +5,26 @@
 const NON_RELOADABLE_SKILLS = new Set(["melee", "unarmed"]);
 
 /**
+ * Normalize legacy `ebbEffect` on Ebb formulas (`none` → `effect`).
+ * @param {string|undefined|null} raw
+ * @returns {"damage"|"heal"|"effect"|string}
+ */
+export function normalizeEbbEffect(raw) {
+    const v = raw || "damage";
+    return v === "none" ? "effect" : v;
+}
+
+/**
+ * Heal formulas only: `and` = heal and wound removal on one apply; `or` = separate actions.
+ * @param {string|undefined|null} raw
+ * @returns {"and"|"or"}
+ */
+export function normalizeEbbHealWoundMode(raw) {
+    const v = String(raw ?? "and").toLowerCase();
+    return v === "or" ? "or" : "and";
+}
+
+/**
  * Prepares and organizes items for display in the actor sheet.
  * @param {Array} items - The actor's items collection.
  * @param {Object} rollData - The actor's roll data for resolving formulas.
@@ -86,9 +106,14 @@ function classifyItems(items, rollData, buckets) {
             case "trait":
                 buckets.traits.push(item);
                 break;
-            case "ebbFormula":
+            case "ebbFormula": {
+                const t = item.system.ebbTarget || "enemy";
+                const e = normalizeEbbEffect(item.system.ebbEffect);
+                item.ebbTargetLabel = game.i18n?.localize(`SLA.EbbTarget.${t}`) ?? t;
+                item.ebbEffectLabel = game.i18n?.localize(`SLA.EbbEffect.${e}`) ?? e;
                 buckets.ebbFormulas.push(item);
                 break;
+            }
             case "discipline":
                 buckets.disciplines.push(item);
                 break;

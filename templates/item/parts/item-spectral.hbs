@@ -1,46 +1,87 @@
 <div class="spectral-container">
-    {{!-- DISCIPLINE ITEM (Simple Rank) --}}
+    {{!-- DISCIPLINE ITEM --}}
     {{#if (eq item.type "discipline")}}
-    <div class="form-group glow-input"><label>Rank</label><input type="number" name="system.rank"
-            value="{{system.rank}}" /></div>
+    <div class="spectral-discipline-card">
+        <div class="spectral-discipline-card__header">{{localize "TYPES.Item.discipline"}}</div>
+        <div class="form-group glow-input spectral-discipline-card__rank">
+            <label>{{localize "SLA.DisciplineRank"}}</label>
+            <input type="number" name="system.rank" value="{{system.rank}}" />
+        </div>
+    </div>
     {{/if}}
 
     {{!-- EBB FORMULA ITEM --}}
     {{#if (eq item.type "ebbFormula")}}
-    <div class="catalogue-grid" style="background:transparent; border:none; padding:0; margin-bottom:10px;">
-        <div class="form-group glow-input">
-            <label>Formula Rating</label>
-            <input type="number" name="system.formulaRating" value="{{system.formulaRating}}" />
+    <div class="spectral-ebb-card">
+        <div class="spectral-ebb-card__row spectral-ebb-card__row--primary">
+            <div class="form-group glow-input">
+                <label>{{localize "SLA.EbbFormulaRating"}}</label>
+                <input type="number" name="system.formulaRating" value="{{system.formulaRating}}" />
+            </div>
+            <div class="form-group glow-input">
+                <label>{{localize "SLA.EbbFluxCost"}}</label>
+                <input type="number" name="system.cost" value="{{system.cost}}" />
+            </div>
         </div>
-        <div class="form-group glow-input">
-            <label>Flux Cost</label>
-            <input type="number" name="system.cost" value="{{system.cost}}" />
-        </div>
-        <div class="form-group glow-input"><label>Dmg</label><input type="text" name="system.damage"
-                value="{{system.damage}}" /></div>
-        <div class="form-group glow-input"><label>Rng</label><input type="text" name="system.range"
-                value="{{system.range}}" /></div>
-    </div>
-
-    {{!-- LINKED DISCIPLINE (Dashed Drop Zone) --}}
-    <div class="form-group" style="margin-top:10px;">
-        <label style="color:#a855f7; font-weight:bold; font-size:0.8em; margin-bottom:5px; display:block;">REQUIRED
-            DISCIPLINE</label>
-
-        {{!-- This container acts as the drop target --}}
-        <div class="drop-zone discipline-drop-zone linked-item {{#if system.discipline}}filled{{/if}}">
-            {{#if system.discipline}}
-            {{!-- Display Linked Item --}}
-            <img src="{{linkedDisciplineImg}}" />
-            <span class="linked-name">{{system.discipline}}</span>
-            <button type="button" class="remove-discipline" data-action="removeDisciplineLink" title="Remove Link"><i class="fas fa-times"></i></button>
-            {{else}}
-            {{!-- Placeholder Text --}}
-            <span class="placeholder">Drop Discipline Here</span>
+        <div class="spectral-ebb-card__row spectral-ebb-card__row--effect">
+            <div class="form-group glow-input">
+                <label>{{localize "SLA.EbbTargetField"}}</label>
+                <select name="system.ebbTarget" data-dtype="String">
+                    <option value="self" {{#if (eq system.ebbTarget "self")}}selected{{/if}}>{{localize "SLA.EbbTarget.self"}}</option>
+                    <option value="ally" {{#if (eq system.ebbTarget "ally")}}selected{{/if}}>{{localize "SLA.EbbTarget.ally"}}</option>
+                    <option value="enemy" {{#unless (or (eq system.ebbTarget "self") (eq system.ebbTarget "ally"))}}selected{{/unless}}>{{localize "SLA.EbbTarget.enemy"}}</option>
+                </select>
+            </div>
+            <div class="form-group glow-input">
+                <label>{{localize "SLA.EbbEffectField"}}</label>
+                <select name="system.ebbEffect" data-dtype="String">
+                    <option value="heal" {{#if (eq system.ebbEffect "heal")}}selected{{/if}}>{{localize "SLA.EbbEffect.heal"}}</option>
+                    <option value="damage" {{#unless (or (eq system.ebbEffect "heal") (eq system.ebbEffect "effect") (eq system.ebbEffect "none"))}}selected{{/unless}}>{{localize "SLA.EbbEffect.damage"}}</option>
+                    <option value="effect" {{#if (or (eq system.ebbEffect "effect") (eq system.ebbEffect "none"))}}selected{{/if}}>{{localize "SLA.EbbEffect.effect"}}</option>
+                </select>
+            </div>
+            <div class="form-group glow-input spectral-ebb-card__wounds-count">
+                <label>{{localize "SLA.EbbRemoveWoundsField"}}</label>
+                <input type="number" name="system.removeWounds" min="0" max="6" step="1"
+                    value="{{system.removeWounds}}" />
+            </div>
+            {{#if (eq system.ebbEffect "heal")}}
+            <div class="form-group glow-input">
+                <label>{{localize "SLA.EbbHealWoundModeField"}}</label>
+                <select name="system.ebbHealWoundMode" data-dtype="String">
+                    <option value="and" {{#unless (eq system.ebbHealWoundMode "or")}}selected{{/unless}}>{{localize "SLA.EbbHealWoundMode.and"}}</option>
+                    <option value="or" {{#if (eq system.ebbHealWoundMode "or")}}selected{{/if}}>{{localize "SLA.EbbHealWoundMode.or"}}</option>
+                </select>
+            </div>
             {{/if}}
         </div>
+        <div class="spectral-ebb-card__row spectral-ebb-card__row--combat">
+            <div class="form-group glow-input">
+                <label>{{localize "SLA.EbbDamageFormula"}}</label>
+                <input type="text" name="system.damage" value="{{system.damage}}" />
+            </div>
+            <div class="form-group glow-input">
+                <label>{{localize "SLA.EbbMinDamage"}}</label>
+                <input type="text" name="system.minDamage" value="{{system.minDamage}}" />
+            </div>
+            <div class="form-group glow-input">
+                <label>{{localize "SLA.EbbRange"}}</label>
+                <input type="text" name="system.range" value="{{system.range}}" />
+            </div>
+        </div>
+    </div>
 
-        {{!-- Hidden input saves the name --}}
+    <div class="form-group spectral-ebb-discipline-link">
+        <label class="spectral-ebb-discipline-link__label">{{localize "SLA.EbbRequiredDiscipline"}}</label>
+        <div class="drop-zone discipline-drop-zone linked-item {{#if system.discipline}}filled{{/if}}">
+            {{#if system.discipline}}
+            <img src="{{linkedDisciplineImg}}" alt="" />
+            <span class="linked-name">{{system.discipline}}</span>
+            <button type="button" class="remove-discipline" data-action="removeDisciplineLink" title="{{localize "SLA.EbbRemoveDisciplineLink"}}"><i class="fas fa-times"></i></button>
+            {{else}}
+            <span class="placeholder">{{localize "SLA.EbbDropDiscipline"}}</span>
+            {{/if}}
+        </div>
         <input type="hidden" name="system.discipline" value="{{system.discipline}}" />
     </div>
     {{/if}}
