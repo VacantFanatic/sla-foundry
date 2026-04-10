@@ -2110,10 +2110,14 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     async _placeExplosiveTemplates({ item, blastRadius, innerDist, finalX, finalY, isSuccess }) {
         try {
             const distancePixels = canvas?.dimensions?.distancePixels ?? (canvas.scene.grid.size / canvas.scene.grid.distance);
+            const visMode = game.settings.get("sla-industries", "blastRegionVisibility") ?? "observer";
+            const visibility = visMode === "always"
+                ? CONST.REGION_VISIBILITY.ALWAYS
+                : CONST.REGION_VISIBILITY.OBSERVER;
             const baseRegionData = {
                 color: game.user.color,
                 displayMeasurements: true,
-                visibility: CONST.REGION_VISIBILITY.OBSERVER,
+                visibility,
                 ownership: { [game.user.id]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER },
                 ...(canvas.level?.id ? { levels: [canvas.level.id] } : {})
             };
