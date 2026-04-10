@@ -221,6 +221,19 @@ Hooks.once('init', async function () {
         default: true
     });
 
+    game.settings.register("sla-industries", "blastRegionVisibility", {
+        name: "Explosive Blast Region Visibility",
+        hint: "Who sees blast area Regions created by explosive throw automation. Observer matches the previous SLA default. Always shows blast overlays to any user who can see the scene (aligned with Foundry 14.360+ measured-template visibility).",
+        scope: "world",
+        config: true,
+        type: String,
+        choices: {
+            observer: "Observers (owner and GM)",
+            always: "Always (all users who see the scene)"
+        },
+        default: "observer"
+    });
+
     game.settings.register("sla-industries", "enableAutomaticWoundPenalties", {
         name: "Enable Automatic Wound Penalties",
         hint: "When enabled, wound count automatically reduces all dice rolls. When disabled, wound penalties are not applied.",

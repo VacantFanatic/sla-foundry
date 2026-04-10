@@ -45,6 +45,20 @@ test.describe("SLA regression — authenticated", () => {
         expect(ok).toBe(true);
     });
 
+    test("blast region visibility world setting is registered", async ({ page }) => {
+        const mode = await page.evaluate(() => game.settings.get("sla-industries", "blastRegionVisibility"));
+        expect(["observer", "always"]).toContain(mode);
+    });
+
+    test("Foundry v14+ Active Effect change types are available (effect stack smoke)", async ({ page }) => {
+        const ok = await page.evaluate(() => {
+            const t = globalThis.CONST?.ACTIVE_EFFECT_CHANGE_TYPES;
+            const add = t?.ADD;
+            return Boolean(t && typeof t === "object" && add !== undefined && add !== null);
+        });
+        expect(ok).toBe(true);
+    });
+
     test("Configure Settings lists SLA Industries section", async ({ page }) => {
         await dismissFoundryNotifications(page);
         await page.getByRole("tab", { name: /game settings/i }).click();
@@ -52,6 +66,7 @@ test.describe("SLA regression — authenticated", () => {
         await page.getByRole("button", { name: /SLA Industries 2nd Edition/i }).click();
         await expect(page.getByText(/Enable Combat Movement Lock/i).first()).toBeVisible({ timeout: 15_000 });
         await expect(page.getByText(/Enable Explosive Throw Automation/i).first()).toBeVisible();
+        await expect(page.getByText(/Explosive Blast Region Visibility/i).first()).toBeVisible();
         await page.keyboard.press("Escape");
     });
 

@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.4.6] - 2026-04-10
+
+### Added
+
+* World setting **Explosive Blast Region Visibility** (`observer` default, optional **Always**) for blast `Region` documents created by explosive throw automation, aligned with Foundry 14.360 measured-template visibility expectations.
+* Playwright regression coverage for `blastRegionVisibility` and a smoke check that `CONST.ACTIVE_EFFECT_CHANGE_TYPES` is present on Foundry v14+.
+
+### Changed
+
+* Set `compatibility.verified` to **14.360** in `system.json` (Foundry VTT v14 Stable 2).
+* Updated system and package metadata version to `2.4.6`, including the release `download` URL in `system.json`.
+
 ## [2.4.5] - 2026-04-08
 
 ### Added
@@ -490,7 +502,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.5...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.6...HEAD
+[2.4.6]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.6
 [2.4.5]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.5
 [2.4.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.4
 [2.4.3]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.3
