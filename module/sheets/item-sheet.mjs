@@ -10,6 +10,7 @@ const { ItemSheetV2 } = foundry.applications.sheets;
 
 const ITEM_TAB_TYPES = new Set(["weapon", "armor", "explosive"]);
 const CONSUMABLE_TAB_TYPES = new Set(["drug", "toxicant"]);
+const SPECTRAL_TAB_TYPES = new Set(["ebbFormula"]);
 
 export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
@@ -173,10 +174,11 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
         context.useConsumableTabs = CONSUMABLE_TAB_TYPES.has(item.type);
         context.useItemTabs = ITEM_TAB_TYPES.has(item.type);
-        if (context.useConsumableTabs || context.useItemTabs) {
+        context.useSpectralTabs = SPECTRAL_TAB_TYPES.has(item.type);
+        if (context.useConsumableTabs || context.useItemTabs || context.useSpectralTabs) {
             context.tabs = this._prepareTabs("primary");
         }
-        if (context.useConsumableTabs) {
+        if (context.useConsumableTabs || context.useSpectralTabs) {
             context.itemEffects = Array.from(item.effects).map((e) => ({
                 id: e.id,
                 name: e.name,

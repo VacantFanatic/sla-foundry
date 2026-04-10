@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.4.7] - 2026-04-11
+
+### Added
+
+* **Ebb Formula Active Effects:** Ebb Formula items use a tabbed item sheet (Details, Description, **Effects**) so you can embed Active Effects on the formula. On a **successful** formula roll, the chat card shows GM-only buttons to apply those effects to the **targeted** token (or **selected** token), using the same visibility pattern as damage apply buttons.
+
+### Changed
+
+* Updated system and package metadata version to `2.4.7`, including the release `download` URL in `system.json`.
+
 ## [2.4.6] - 2026-04-10
 
 ### Added
@@ -502,7 +512,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.6...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.4.7...HEAD
+[2.4.7]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.7
 [2.4.6]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.6
 [2.4.5]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.5
 [2.4.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.4

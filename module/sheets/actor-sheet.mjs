@@ -2508,6 +2508,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         mosEffectText,
         failureConsequence
     }) {
+        const effectCount = item.effects?.size ?? 0;
         return {
             borderColor: resultColor,
             headerColor: resultColor,
@@ -2527,7 +2528,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 hits: skillSuccesses,
                 effect: isSuccessful ? mosEffectText : failureConsequence
             },
-            isEbb: true
+            isEbb: true,
+            showEbbEffectButtons: Boolean(isSuccessful && effectCount > 0)
         };
     }
 
@@ -2577,6 +2579,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
 
+        const ebbEffectCount = item.effects?.size ?? 0;
         roll.toMessage({
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: chatContent,
@@ -2588,7 +2591,11 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                     tn: formulaRating,
                     extra: {
                         isWeapon: false,
-                        isEbb: true
+                        isEbb: true,
+                        itemUuid: item.uuid,
+                        ebbHasEffects: ebbEffectCount > 0,
+                        ebbRollSuccess: isSuccessful,
+                        targets: Array.from(game.user.targets).map((t) => t.document.uuid)
                     }
                 })
             }

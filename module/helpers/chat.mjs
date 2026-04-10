@@ -24,10 +24,12 @@ export class SLAChat {
         $(document.body).off("click", ".roll-toggle");
         $(document.body).off("click", ".chat-btn-luck");
         $(document.body).off("click", ".diff-btn");
+        $(document.body).off("click", ".sla-ebb-apply-effect-btn");
 
         // Register Listeners
         $(document.body).on("click", ".chat-btn-wound, .chat-btn-damage, .damage-roll", this._onRollDamage.bind(this));
         $(document.body).on("click", ".apply-damage-btn", this._onApplyDamage.bind(this));
+        $(document.body).on("click", ".sla-ebb-apply-effect-btn", this._onApplyEbbEffects.bind(this));
         $(document.body).on("click", ".roll-toggle", this._onToggleRoll.bind(this));
         $(document.body).on("click", ".chat-btn-luck", this._onLuck.bind(this));
         $(document.body).on("click", ".diff-btn", this._onChangeDifficulty.bind(this));
@@ -382,6 +384,49 @@ export class SLAChat {
     }
 
     /**
+     * Apply embedded Active Effects from an Ebb Formula item to a target or selected token (GM only).
+     */
+    static async _onApplyEbbEffects(ev) {
+        ev.preventDefault();
+        const btn = $(ev.currentTarget);
+
+        try {
+            if (!game.user.isGM) {
+                ui.notifications.warn("SLA | Only a GM can apply formula effects.");
+                return;
+            }
+
+            const card = btn.closest(".sla-chat-card");
+            const messageId = card.closest(".message").data("messageId");
+            const message = game.messages.get(messageId);
+            if (!message) return;
+
+            const flags = message.flags?.sla ?? {};
+            if (!flags.ebbRollSuccess || !flags.ebbHasEffects || !flags.itemUuid) {
+                ui.notifications.warn("SLA | This roll cannot apply Ebb formula effects.");
+                return;
+            }
+
+            const item = await fromUuid(flags.itemUuid);
+            if (!item || item.type !== "ebbFormula" || !(item.effects?.size > 0)) {
+                ui.notifications.warn("SLA | Ebb formula or embedded effects not found.");
+                return;
+            }
+
+            const type = btn.data("target");
+            const targetUuid = btn.attr("data-target-uuid") || btn.data("target-uuid");
+            const victim = await this._resolveVictimForApplyDamage({ targetUuid, type });
+            if (!victim) return;
+
+            await item.applyItemEffectsToActor(victim);
+            ui.notifications.info(`SLA | Applied ${item.name} effects to ${victim.name}.`);
+        } catch (err) {
+            console.error("SLA | Error in _onApplyEbbEffects:", err);
+            ui.notifications.error("SLA | Failed to apply formula effects. See console for details.");
+        }
+    }
+
+    /**
      * PART 3: TOGGLE ROLL TOOLTIP
      */
     static _onToggleRoll(ev) {
@@ -594,20 +639,40 @@ export class SLAChat {
         const htmlElement = html instanceof HTMLElement ? html : html[0];
         const $html = $(htmlElement);
 
+        const ebbBlock = $html.find(".sla-ebb-effect-actions");
+        if (ebbBlock.length) {
+            if (!game.user.isGM) {
+                ebbBlock.remove();
+            } else {
+                const targets = message.flags?.sla?.targets || [];
+                if (targets.length > 0) {
+                    try {
+                        const targetUuid = targets[0];
+                        const tokenDocument = await fromUuid(targetUuid);
+                        if (tokenDocument) {
+                            const ebbTargetBtn = $html.find('.sla-ebb-apply-effect-btn[data-target="target"]');
+                            ebbTargetBtn.html(`<i class="fas fa-crosshairs"></i> Apply effects to ${tokenDocument.name}`);
+                            ebbTargetBtn.attr("data-target-uuid", targetUuid);
+                        }
+                    } catch (err) {
+                        console.error("SLA | Error in onRenderChatMessage (Ebb effect target button):", err);
+                    }
+                }
+            }
+        }
+
         const dmgButtons = $html.find(".apply-damage-btn");
         if (!dmgButtons.length) return;
 
-        // 1. Hide for Non-GMs
         if (!game.user.isGM) {
             dmgButtons.remove();
             return;
         }
 
-        // 2. Dynamic Target Button for GM
         const targets = message.flags?.sla?.targets || [];
         if (targets.length > 0) {
             try {
-                const targetUuid = targets[0]; // Take first target
+                const targetUuid = targets[0];
                 const tokenDocument = await fromUuid(targetUuid);
 
                 if (tokenDocument) {
@@ -617,7 +682,6 @@ export class SLAChat {
                 }
             } catch (err) {
                 console.error("SLA | Error in onRenderChatMessage (target button):", err);
-                // Non-critical error, don't show notification
             }
         }
     }

@@ -86,6 +86,22 @@
     </div>
     {{/if}}
 
+    {{#if showEbbEffectButtons}}
+    <div class="sla-ebb-effect-actions" style="margin-top:8px; border-top:1px dashed #8a2be2; padding-top:6px;">
+        <div style="font-size:0.8em; color:#c4b5fd; margin-bottom:4px; text-align:center;">FORMULA EFFECTS (GM)</div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+            <button type="button" class="sla-ebb-apply-effect-btn" data-target="target"
+                style="background:#2d1b4e; border:1px solid #8a2be2; color:#e9d5ff;">
+                <i class="fas fa-crosshairs"></i> Apply effects to target
+            </button>
+            <button type="button" class="sla-ebb-apply-effect-btn" data-target="selected"
+                style="background:#2d1b4e; border:1px solid #8a2be2; color:#e9d5ff;">
+                <i class="fas fa-expand"></i> Apply effects to selected
+            </button>
+        </div>
+    </div>
+    {{/if}}
+
     {{!-- DIFFICULTY ADJUSTMENT (Skills Only) - Difficulty is Fixed 10 for Combat and Formula Rating for Ebb --}}
     {{#unless (or isWeapon isEbb)}}
     <div class="sla-difficulty-select" style="margin-top:8px; border-top:1px dashed #555; padding-top:4px;">
