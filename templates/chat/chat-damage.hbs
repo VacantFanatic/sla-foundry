@@ -1,43 +1,50 @@
-<div class="sla-chat-card" style="background:#222; border:1px solid #D05E1A; padding:5px;">
+<div class="sla-chat-card" data-actor-uuid="{{actorUuid}}"
+    style="background:#222; border:1px solid {{#if isHeal}}#2d6a4f{{else}}#D05E1A{{/if}}; padding:5px;">
     
-    <h3 style="color:#D05E1A; border-bottom:1px solid #555; margin:0 0 5px 0;">
-        DAMAGE ROLL
+    <h3 style="color:{{#if isHeal}}#95d5b2{{else}}#D05E1A{{/if}}; border-bottom:1px solid #555; margin:0 0 5px 0;">
+        {{#if isHeal}}{{localize "SLA.ChatHealRoll"}}{{else}}{{localize "SLA.ChatDamageRoll"}}{{/if}}
     </h3>
 
-    {{!-- RESULT BOXES --}}
     <div style="display:flex; gap:5px; margin-bottom:10px;">
         
-        {{!-- DAMAGE TOTAL --}}
         <div style="flex:1; background:rgba(0,0,0,0.3); padding:5px; text-align:center; border:1px solid #555;">
-            <div style="font-size:0.8em; color:#aaa;">DAMAGE</div>
+            <div style="font-size:0.8em; color:#aaa;">{{#if isHeal}}{{localize "SLA.HealAmountLabel"}}{{else}}{{localize "SLA.DamageAmountLabel"}}{{/if}}</div>
             <div style="font-size:1.8em; font-weight:bold; color:#fff;">{{damageTotal}}</div>
         </div>
 
-        {{!-- AD VALUE (The value passed from the button) --}}
+        {{#unless isHeal}}
         <div style="flex:0 0 60px; background:rgba(0,0,0,0.3); padding:5px; text-align:center; border:1px solid #555;">
             <div style="font-size:0.8em; color:#aaa;">AD</div>
             <div style="font-size:1.8em; font-weight:bold; color:#D05E1A;">{{adValue}}</div>
         </div>
+        {{/unless}}
     </div>
 
-    {{!-- APPLY BUTTONS (Passes the AD along to the listener) --}}
+    {{#unless hideApplyButtons}}
     <div style="display:flex; flex-direction:column; gap:4px;">
         <button class="apply-damage-btn" 
                 data-target="target" 
                 data-dmg="{{damageTotal}}" 
                 data-ad="{{adValue}}"
+                data-is-heal="{{#if isHeal}}true{{else}}false{{/if}}"
+                data-remove-wounds-count="{{removeWoundsCount}}"
+                data-ebb-target="{{ebbTarget}}"
                 style="background:#333; border:1px solid #555; color:#fff;">
-            <i class="fas fa-crosshairs"></i> Apply to Target
+            <i class="fas fa-crosshairs"></i> {{localize "SLA.ApplyToTarget"}}
         </button>
         
         <button class="apply-damage-btn" 
                 data-target="selected" 
                 data-dmg="{{damageTotal}}" 
                 data-ad="{{adValue}}"
+                data-is-heal="{{#if isHeal}}true{{else}}false{{/if}}"
+                data-remove-wounds-count="{{removeWoundsCount}}"
+                data-ebb-target="{{ebbTarget}}"
                 style="background:#333; border:1px solid #555; color:#fff;">
-            <i class="fas fa-expand"></i> Apply to Selected
+            <i class="fas fa-expand"></i> {{localize "SLA.ApplyToSelected"}}
         </button>
     </div>
+    {{/unless}}
 
     <div style="margin-top:5px; font-size:0.8em; color:#777; font-style:italic; text-align:center;">
         {{{flavor}}}

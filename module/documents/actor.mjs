@@ -816,8 +816,9 @@ export class BoilerplateActor extends Actor {
             await this._handleWoundEffects(woundChanges || {});
         }
 
-        // 2. SEPARATE LOGIC: Handle HP Auto-Wounding
-        if (foundry.utils.hasProperty(changed, "system.hp.value")) {
+        // 2. SEPARATE LOGIC: Critical / dead status vs HP (value or max threshold)
+        if (foundry.utils.hasProperty(changed, "system.hp.value")
+            || foundry.utils.hasProperty(changed, "system.hp.max")) {
             await this._handleWoundThresholds();
         }
     }

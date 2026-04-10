@@ -162,7 +162,12 @@ export class SlaEbbFormulaData extends foundry.abstract.TypeDataModel {
             rof: new fields.StringField(),
             recoil: new fields.StringField(),
             range: new fields.StringField(),
-            skill: new fields.StringField()
+            skill: new fields.StringField(),
+            ebbTarget: new fields.StringField({ initial: "enemy" }),
+            ebbEffect: new fields.StringField({ initial: "damage" }),
+            /** Heal formulas only: `and` = heal + clear wounds together; `or` = heal roll vs wound button. */
+            ebbHealWoundMode: new fields.StringField({ initial: "and" }),
+            removeWounds: new fields.NumberField({ initial: 0, min: 0, max: 6, integer: true })
         };
     }
 }

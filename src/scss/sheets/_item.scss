@@ -493,6 +493,84 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.descript
     line-height: 1;
 }
 
+.spectral-ebb-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(138, 43, 226, 0.45);
+    border-radius: 8px;
+}
+
+.spectral-ebb-card__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.spectral-ebb-card__row--primary .form-group,
+.spectral-ebb-card__row--combat .form-group {
+    flex: 1 1 120px;
+    min-width: 100px;
+}
+
+.spectral-ebb-card__row--effect {
+    align-items: center;
+}
+
+.spectral-ebb-card__row--effect .form-group {
+    flex: 1 1 140px;
+    min-width: 120px;
+}
+
+.spectral-ebb-card__check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: #d8bfff;
+    font-size: 0.9em;
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.spectral-ebb-discipline-link {
+    margin-top: 8px;
+}
+
+.spectral-ebb-discipline-link__label {
+    color: #c4b5fd !important;
+    font-weight: 700;
+    font-size: 0.8em;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.spectral-discipline-card {
+    padding: 12px;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(138, 43, 226, 0.45);
+    border-radius: 8px;
+}
+
+.spectral-discipline-card__header {
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #a78bfa;
+    margin-bottom: 10px;
+}
+
+.item.ebbFormula select {
+    width: 100%;
+}
+
 /* ==========================================
    20. DOSSIER THEME (Species & Package)
    ========================================== */
@@ -912,6 +990,57 @@ form.application.sla-industries.item .sheet-body.single-view .sheet-description 
     text-transform: uppercase;
     border-bottom: 2px solid #555;
     margin-bottom: 5px;
+}
+
+/* Discipline item (single-view): rank card + description side by side */
+.sheet-body.single-view.sla-item-sheet-discipline {
+    display: grid;
+    grid-template-columns: minmax(200px, 1fr) minmax(240px, 1.35fr);
+    gap: 12px;
+    align-items: start;
+}
+
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-attributes,
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-description {
+    min-width: 0;
+    width: 100%;
+}
+
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-description {
+    min-height: 200px;
+    flex: initial;
+}
+
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-description .editor,
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-description prose-mirror.editor {
+    min-height: 160px;
+}
+
+@media (max-width: 520px) {
+    .sheet-body.single-view.sla-item-sheet-discipline {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Legacy: theme class on root (may not match all App V2 mount points) */
+.sla-item-root.discipline-theme .sheet-body.single-view:not(.sla-item-sheet-discipline),
+.item.discipline .sheet-body.single-view:not(.sla-item-sheet-discipline) {
+    flex-direction: row;
+    align-items: stretch;
+    flex-wrap: nowrap;
+}
+
+.sla-item-root.discipline-theme .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-attributes,
+.item.discipline .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-attributes {
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+.sla-item-root.discipline-theme .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-description,
+.item.discipline .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-description {
+    flex: 1 1 260px;
+    min-width: 0;
+    min-height: 180px;
 }
 
 /* ==========================================
