@@ -51,6 +51,32 @@
         <div class="tab effects {{tabs.effects.cssClass}}" data-group="primary" data-tab="effects" hidden aria-hidden="true"></div>
     </section>
 
+    {{else if useSpectralTabs}}
+
+    <nav class="sheet-tabs tabs sla-item-tab-nav" data-group="primary">
+        <a class="item {{tabs.attributes.cssClass}}" data-group="primary" data-tab="attributes">Details</a>
+        <a class="item {{tabs.description.cssClass}}" data-group="primary" data-tab="description">Description</a>
+        <a class="item {{tabs.effects.cssClass}}" data-group="primary" data-tab="effects">Effects</a>
+    </nav>
+
+    <section class="sheet-body">
+        <div class="tab attributes {{tabs.attributes.cssClass}}" data-group="primary" data-tab="attributes">
+            {{> "systems/sla-industries/templates/item/parts/item-spectral.hbs"}}
+        </div>
+
+        <div class="tab description {{tabs.description.cssClass}}" data-group="primary" data-tab="description">
+            {{#if editable}}
+            <prose-mirror class="editor" name="system.description" toggled value="{{system.description}}">{{{enrichedDescription}}}</prose-mirror>
+            {{else}}
+            <div class="editor">{{{enrichedDescription}}}</div>
+            {{/if}}
+        </div>
+
+        <div class="tab effects {{tabs.effects.cssClass}}" data-group="primary" data-tab="effects">
+            {{> "systems/sla-industries/templates/item/parts/item-effects.hbs"}}
+        </div>
+    </section>
+
     {{else}}
 
     <section class="sheet-body single-view">
@@ -65,7 +91,7 @@
             {{> "systems/sla-industries/templates/item/parts/item-academic.hbs"}}
             {{/if}}
 
-            {{#if (or (eq item.type "ebbFormula") (eq item.type "discipline"))}}
+            {{#if (eq item.type "discipline")}}
             {{> "systems/sla-industries/templates/item/parts/item-spectral.hbs"}}
             {{/if}}
 
