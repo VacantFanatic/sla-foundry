@@ -5,6 +5,9 @@ on:
     types:
       - published
 
+permissions:
+  contents: read
+
 jobs:
   update_foundry_website_post_release:
     runs-on: ubuntu-latest
