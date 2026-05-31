@@ -48,7 +48,7 @@ Key Features
 The system runs without add-ons. These community modules are commonly paired with it:
 
 - **[Tokenizer](https://foundryvtt.com/packages/vtta-tokenizer/)** — In-game portrait and token editor (layers, masks, framing). Useful for operatives and NPCs; open it from the actor’s image where Foundry and the module expose that control.
-- **[Autocomplete Inline Properties](https://foundryvtt.com/packages/autocomplete-inline-properties/)** — Autocomplete and browsing for **Active Effect** attribute keys and other inline property fields. Helpful if you use the guidance in [Configuring Active Effects](#configuring-active-effects) below.
+- **[Autocomplete Inline Properties](https://foundryvtt.com/packages/autocomplete-inline-properties/)** — Autocomplete and browsing for **Active Effect** attribute keys and other inline property fields. Helpful when configuring stat bonus effects; see [Active Effects and stats](DEVELOPER.md#active-effects-and-stats) in the developer guide for attribute key conventions.
 
 ## Manifest
 
