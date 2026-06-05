@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-06-05
+
+### Added
+
+* **Item sheet foundation (#243 phase 1):** Per-type CSS design tokens (`--sla-type-accent`, `--sla-type-accent-soft`, `--sla-type-frame`, `--sla-type-input-bg`, `--sla-type-input-border`, `--sla-type-panel-bg`) scoped to `.{type}-theme` roots so subsequent per-type repaints are isolated to a single theme partial.
+* **Reusable item-sheet components:** `.sla-field` (with `--inline`, `--toggle`, `--compact` variants), `.sla-section` / `.sla-section__header`, and `.sla-drop` (with `.is-drag-over` / `.sla-drop--filled`) — additive, ready for per-type Phase 2 PRs to migrate markup to.
+* **Localized tab labels:** `SLA.ItemSheet.Tab.Details`, `SLA.ItemSheet.Tab.Description`, `SLA.ItemSheet.Tab.Effects` (English and French).
+
+### Changed
+
+* **Unified item-sheet tab contract (#243):** Every item type now uses the same tab structure — `Details / Description / Effects` for inventory, dossier and consumable types; `Details / Description` for `skill`, `trait`, `discipline` (no transferable AE data model). This surfaces a description editor and Active Effects tab on `item`, `magazine`, `species`, `package` for the first time.
+* **Item-sheet input contrast:** Body inputs now render with a subtle dark fill and visible border at rest (previously transparent until focus, which made fields invisible). Focus state uses the per-type accent glow.
+* **SCSS split:** The 1150-line `src/scss/sheets/_item.scss` monolith is now an index entry that imports focused partials under `src/scss/sheets/item/` (`_tokens.scss`, `_base.scss`, `_fields.scss`, `_sections.scss`, `_drops.scss`, `_tabs.scss`, `themes/_academic.scss`, `themes/_catalogue.scss`, `themes/_weapon.scss`, `themes/_spectral.scss`, `themes/_dossier.scss`). Selector chains for the item sheet are now anchored on `form.application.sla-industries.item` per the V2 mount documented in `module/sheets/item-sheet.mjs`.
+* **Item sheet rendering:** Removed the `useConsumableTabs` / `useItemTabs` / `useSpectralTabs` branching in `module/sheets/item-sheet.mjs` in favour of a single `useTwoTabs` flag plus `useCataloguePart` for partial dispatch. `_onRender` no longer needs the consumable tab redirect since all types now expose a Description tab.
+* Updated system and package metadata version to `2.6.0`, including the release `download` URL in `system.json`.
+
+### Notes
+
+* No data-model or behaviour changes. Existing class names (`.dossier-stamp`, `.firing-mode-row`, `.spectral-ebb-card`, `.drop-zone`, etc.) remain styled for backward compatibility with worlds and modules that target them. Per-type identity repaints land in follow-up PRs (#243 phases 2–4).
+
 ## [2.5.4] - 2026-06-05
 
 ### Fixed
