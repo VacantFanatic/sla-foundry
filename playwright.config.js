@@ -21,6 +21,7 @@ module.exports = defineConfig({
     reporter: [["list"], ["html", { open: "never" }]],
     use: {
         baseURL: process.env.FOUNDRY_URL || "http://127.0.0.1:30000",
+        viewport: { width: 1920, height: 1080 },
         trace: "on-first-retry",
         screenshot: "only-on-failure",
         video: "retain-on-failure"

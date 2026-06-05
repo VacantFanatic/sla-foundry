@@ -10,6 +10,8 @@ echo "=== SLA Industries environment test ==="
 npm run build
 npm run test:unit
 
+bash scripts/cloud-foundry.sh start || true
+
 if bash scripts/cloud-foundry.sh status >/dev/null 2>&1; then
   echo "=== Foundry is up — running E2E ==="
   if [[ -z "${FOUNDRY_USER:-}" ]]; then

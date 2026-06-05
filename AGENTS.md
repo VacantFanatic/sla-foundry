@@ -43,7 +43,14 @@ Configure these in **Cloud Agents → Secrets** (one download method is enough):
 | `FOUNDRY_USER` | Display name on `/join` for Playwright E2E |
 | `FOUNDRY_PASSWORD` | Optional password for that **game** user on `/join` |
 
-Start server after secrets are set: `/home/ubuntu/start-foundry.sh`
+Start server after secrets are set:
+
+```bash
+bash scripts/cloud-foundry.sh start   # preferred: copies system, creates sla-test-world, auto-launches
+npm run test:env                      # build + unit + E2E when Foundry is up
+```
+
+Foundry v14 does not reliably detect **symlinked** systems — `cloud-foundry.sh` **rsyncs** `/workspace` into `Data/systems/sla-industries`. The test world id is `sla-test-world` (`FOUNDRY_WORLD` / `FOUNDRY_WORLD_ID`). Run `node scripts/ensure-foundry-user.mjs` if `FOUNDRY_USER` is not on the join page yet.
 
 If cloud secrets are not configured, export the same variables in your shell (or pass them only for that command) before running the script — Foundry cannot be downloaded without them.
 
