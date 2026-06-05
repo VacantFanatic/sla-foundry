@@ -10,7 +10,7 @@ Cloud agents can develop and verify this repo **without** Foundry license secret
 
 | Task | Command |
 |------|---------|
-| Install JS deps | `npm install` |
+| Install JS deps | `npm ci` |
 | Compile SCSS | `npm run build` (or `npm run watch` while editing styles) |
 | Unit tests | `npm run test:unit` (Node built-in test runner; no Foundry required) |
 
