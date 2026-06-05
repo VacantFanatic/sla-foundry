@@ -3,12 +3,12 @@
 # Credentials come from Cloud Agents → Secrets (workspace), not from the repo.
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DATA_DIR="${FOUNDRY_DATA_DIR:-/home/ubuntu/foundry-data}"
 IMAGE="${FOUNDRY_IMAGE:-ghcr.io/felddy/foundryvtt:14}"
 PORT="${FOUNDRY_PORT:-30000}"
 WORLD_ID="${FOUNDRY_WORLD_ID:-sla-test-world}"
-START_SCRIPT="${FOUNDRY_START_SCRIPT:-/home/ubuntu/start-foundry.sh}"
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+START_SCRIPT="${FOUNDRY_START_SCRIPT:-$ROOT/scripts/start-foundry.sh}"
 
 cmd="${1:-status}"
 
@@ -57,6 +57,9 @@ prepare() {
   mkdir -p "$DATA_DIR/Data/systems" "$DATA_DIR/Data/worlds" "$DATA_DIR/container_cache"
   sync_system_install
   ensure_world_json
+  if [[ -x "$ROOT/scripts/cache-foundry-release.sh" ]]; then
+    "$ROOT/scripts/cache-foundry-release.sh" || true
+  fi
   if command -v docker >/dev/null 2>&1; then
     sudo docker pull "$IMAGE" >/dev/null 2>&1 || sudo docker pull "$IMAGE"
   fi
