@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.5.1] - 2026-06-05
+
+### Added
+
+* **Cursor Cloud development environment:** `.cursor/environment.json`, `AGENTS.md`, and scripts to prepare/start Foundry VTT for Playwright E2E (`scripts/cloud-foundry.sh`, `scripts/ensure-foundry-user.mjs`, `scripts/test-environment.sh`). New npm scripts: `test:env`, `foundry:start`, `foundry:status`.
+* **Foundry bootstrap helpers:** `scripts/foundry-bootstrap.mjs` for first-time license/world setup; `ensure-foundry-user.mjs` creates the `FOUNDRY_USER` join account when missing.
+
+### Changed
+
+* **Playwright E2E:** Default viewport set to 1920×1080 to satisfy Foundry’s minimum resolution in headless runs.
+* **`.gitignore`:** Track `.cursor/environment.json` while keeping other `.cursor/*` ignored.
+* Updated system and package metadata version to `2.5.1`, including the release `download` URL in `system.json`.
+
 ## [2.5.0] - 2026-04-10
 
 ### Added
