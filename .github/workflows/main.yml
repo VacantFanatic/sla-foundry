@@ -22,12 +22,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify package.json and system.json versions match
+        run: node scripts/validate-dist.mjs --sync-only
+
+      - name: Run unit tests
+        run: npm run test:unit
+
       - name: Get Version
         id: get-version
         run: echo "version=$(node ./.github/workflows/get-version.js)" >> "$GITHUB_OUTPUT"
 
       - name: Build and package release zip
         run: npm run package
+
+      - name: Validate dist and zip artifacts
+        run: node scripts/validate-dist.mjs --zip
 
       - name: Copy manifest for release asset
         run: cp dist/system.json system.json

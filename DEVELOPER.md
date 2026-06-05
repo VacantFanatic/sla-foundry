@@ -268,6 +268,8 @@ E2E tests require:
 npm run build:css   # SCSS → css/ (local Foundry dev)
 npm run build       # css + dist/ (release tree)
 npm run package     # dist/ → sla-industries.zip
+npm run validate:dist    # assert dist/ matches system.json
+npm run validate:package # also validate zip layout
 npm run watch       # live SCSS recompile
 ```
 

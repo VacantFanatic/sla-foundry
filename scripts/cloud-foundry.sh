@@ -15,7 +15,14 @@ cmd="${1:-status}"
 sync_system_install() {
   local dest="$DATA_DIR/Data/systems/sla-industries"
   echo "Building dist/ and installing sla-industries into Foundry data..."
-  npm run build --prefix "$ROOT" >/dev/null
+  if ! npm run build --prefix "$ROOT"; then
+    echo "npm run build failed — cannot deploy dist/ to Foundry." >&2
+    exit 1
+  fi
+  if [[ ! -f "$ROOT/dist/system.json" ]]; then
+    echo "dist/system.json missing after build." >&2
+    exit 1
+  fi
   rm -rf "$dest"
   mkdir -p "$DATA_DIR/Data/systems"
   rsync -a "$ROOT/dist/" "$dest/"
@@ -23,6 +30,8 @@ sync_system_install() {
 
 ensure_world_json() {
   local world_dir="$DATA_DIR/Data/worlds/$WORLD_ID"
+  local sys_version
+  sys_version="$(node -p "require('${ROOT}/system.json').version")"
   if [[ -f "$world_dir/world.json" ]]; then
     return 0
   fi
@@ -35,7 +44,7 @@ ensure_world_json() {
   "description": "Cloud agent E2E world for SLA Industries",
   "system": "sla-industries",
   "coreVersion": "14.363",
-  "systemVersion": "2.5.0"
+  "systemVersion": "${sys_version}"
 }
 EOF
 }
