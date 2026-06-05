@@ -3,6 +3,7 @@
 # Used by scripts/cloud-foundry.sh on Cursor Cloud VMs.
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DATA_DIR="${FOUNDRY_DATA_DIR:-/home/ubuntu/foundry-data}"
 IMAGE="${FOUNDRY_IMAGE:-ghcr.io/felddy/foundryvtt:14}"
 PORT="${FOUNDRY_PORT:-30000}"
@@ -14,28 +15,8 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
-ensure_docker_daemon() {
-  if sudo docker info >/dev/null 2>&1; then
-    return 0
-  fi
-  if command -v service >/dev/null 2>&1; then
-    sudo service docker start 2>/dev/null || true
-    sudo docker info >/dev/null 2>&1 && return 0
-  fi
-  # vfs avoids overlayfs whiteout failures on nested cloud VMs.
-  if [[ ! -f /etc/docker/daemon.json ]]; then
-    sudo mkdir -p /etc/docker
-    echo '{"storage-driver":"vfs"}' | sudo tee /etc/docker/daemon.json >/dev/null
-  fi
-  sudo dockerd >/tmp/dockerd.log 2>&1 &
-  for _ in $(seq 1 30); do
-    sudo docker info >/dev/null 2>&1 && return 0
-    sleep 1
-  done
-  echo "Docker daemon failed to start — see /tmp/dockerd.log" >&2
-  return 1
-}
-
+# shellcheck source=ensure-docker.sh
+source "$ROOT/scripts/ensure-docker.sh"
 ensure_docker_daemon
 
 mkdir -p "$DATA_DIR/container_cache" "$DATA_DIR/Data/systems" "$DATA_DIR/Data/worlds"
