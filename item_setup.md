@@ -162,7 +162,110 @@ Dragging **gear**, **explosives**, **magazines**, or **drugs** onto an actor she
 
 ---
 
-## 7. Quick Troubleshooting
+## 7. Armor & Powersuits
+
+### A. Standard Armor
+
+1. Create an **Armor** item.
+2. Set **PV** (Protection Value) and **Resistance** (current/max).
+3. Mark **Equipped** on the actor sheet to activate PV for combat.
+4. Leave **Powered** unchecked for standard armor. The item weight counts towards encumbrance.
+
+### B. Powered Armor (non-powersuit)
+
+Powered armor provides stat bonuses while retaining a resistance bar.
+
+1. Create an **Armor** item and check **Powered**.
+2. Set **Resistance** (current/max) — this becomes the second token bar (`armor.resist`).
+3. Fill the **Mods** section:
+   - **STR Mod / DEX Mod:** Flat additions to the actor's derived STR and DEX totals.
+   - **Move Closing / Move Rushing:** Added to the actor's base movement from their species.
+4. If the armor's resistance drops to **0**, its PV becomes 0 and its weight counts as **6** for encumbrance regardless of its listed weight.
+
+### C. Powersuit
+
+A powersuit **replaces** the actor's STR total and caps DEX, rather than adding to them.
+
+1. Create an **Armor** item, check **Powered**, and also check **Powersuit**.
+2. Set **Resistance** and **PV** as above.
+3. Fill the **Mods** section:
+   - **STR Mod:** The value written here **becomes** the actor's STR total (not additive). Set it to the powersuit's rated strength.
+   - **DEX Mod:** Added to DEX total after the replacement (still additive for DEX).
+   - **DEX Cap:** If set (> 0), the actor's DEX total cannot exceed this value.
+   - **Init Bonus:** Added to the initiative calculation.
+   - **Move Closing / Move Rushing:** Added to base movement.
+4. If the actor wears multiple powersuit items, only the one with the highest resistance value is treated as the active powersuit.
+5. Drag `system.powersuitAttack = true` weapons to the actor to mark them as requiring powersuit use.
+
+> **Tip:** To configure the powersuit STR replacement, set `mods.str` to the powersuit's strength rating (e.g. `12`). This overwrites the biological STR entirely while the suit is equipped.
+
+---
+
+## 8. Explosives
+
+Explosives are thrown weapons with an inner and outer blast radius. The system partially automates area measurement and effect regions.
+
+### Setting up an Explosive
+
+1. Create an item of type **Explosive** (e.g., *Fragmentation Grenade*).
+2. Set the fields:
+   - **Damage** and **Min Damage:** Roll formula (e.g. `3d10`) and floor.
+   - **AD:** Armour Damage value applied on each hit.
+   - **Blast Radius Inner:** Distance in grid units for the primary zone (full effect).
+   - **Blast Radius Outer:** Distance in grid units for the secondary zone.
+   - **Skill:** The skill used for the throw roll (default: `Throw`).
+3. Link the relevant throwing skill to the actor (the *Throw* skill uses STR as its governing stat).
+
+### Throwing an Explosive
+
+1. On the Combat tab, click the roll icon next to the explosive.
+2. The system posts a throw roll card using the actor's linked throw skill.
+3. If the **Explosive Automation** world setting is enabled, a Foundry measured template (circle) is placed on the canvas at the target location.
+4. If **Explosive Blast Region Visibility** is enabled, the blast region is visible to players; otherwise it is GM-only until resolved.
+
+### Inventory tracking
+
+Explosives use the `quantity` field. One unit is consumed per throw. Stack merging applies the same rules as other consumables (see Section 6).
+
+---
+
+## 9. Vehicle Actors
+
+Vehicles are a distinct actor type with their own sheet. They track HP, armor, move speed, and carry mounted weapons.
+
+### Creating a Vehicle
+
+1. Go to the **Actors Directory** and click **Create Actor**.
+2. Choose type **Vehicle** and name it (e.g., *Manta APC*).
+3. The vehicle sheet opens with the following fields:
+
+| Field | Description |
+|---|---|
+| HP (current / max) | Vehicle structural integrity |
+| PV | Protection Value against each hit |
+| Resist (current / max) | Powered armor-style resistance bar (token bar) |
+| Move | Speed in grid units; used for the token ruler |
+| Drive Skill | The skill name used for driving checks (text reference only) |
+| Dimensions | Length / Width / Height (text, for reference) |
+| Capacity | Crew and passenger count (text, for reference) |
+| Provides Cover | Whether occupants benefit from cover |
+| Mounted Weapons Ignore Skill Req | Operators may use mounted weapons without owning the linked skill |
+
+### Adding Mounted Weapons
+
+Drag any **Weapon** item onto the vehicle sheet's **WEAPONS** drop zone. Weapon attack rolls from the vehicle sheet use the vehicle as the roll source. If **Mounted Weapons Ignore Skill Req** is checked, missing skill items do not block the roll.
+
+### Vehicle movement ruler
+
+On the canvas, the movement ruler for a vehicle turns **green** within the Move value and **red** beyond it. If the **Combat Movement Lock** setting is active and the vehicle's movement action is spent, the ruler is entirely red.
+
+### Compendium
+
+A starter set of vehicle actors is available in the **Vehicles** compendium pack (`sla-industries.vehicles`). Drag entries from there to the Actors Directory as a starting point, then adjust stats as needed.
+
+---
+
+## 10. Quick Troubleshooting
 
 - **"Skill Not Found" during Attack:** Ensure the Weapon has a skill linked in the "Required Skill" box, and that the Actor actually possesses that skill.
 - **Reload Button Missing:** The reload button only appears for **ranged** weapons. Ensure the weapon's `Required Skill` is not `melee` or `unarmed`, and that `Max Ammo` is greater than 0.

@@ -275,6 +275,229 @@ npm run watch       # live SCSS recompile
 
 ---
 
+## Combat Flow (Weapon Attack → Damage → Wounds)
+
+Source: `module/sheets/actor-sheet.mjs`, `module/helpers/chat.mjs`, `module/helpers/dice.mjs`
+
+### Step 1 — Attack roll
+
+Clicking the roll icon on a weapon in the Combat tab (or via `game.sla.rollOwnedItem`) opens an attack dialog. The system:
+
+1. Computes the dice pool: `1d10 (Success Die) + (skill_rank + 1)d10 (Skill Dice)`.
+2. Applies recoil, attack penalty, reserve dice adjustments, and the configured TN (default 10).
+3. Evaluates the roll and passes it to `calculateRollResult()`.
+
+### Step 2 — MOS resolution
+
+`getMOS(result)` maps skill hit count to a tactical outcome:
+
+| Skill dice hits | MOS outcome |
+|---|---|
+| 0 | Fail |
+| Success Die only | Standard Hit |
+| 1 | +1 Damage |
+| 2 | MOS 2 — choose: +2 Damage **or** Arm Wound |
+| 3 | MOS 3 — choose: +4 Damage **or** Leg Wound |
+| 4+ | Head Shot (+6 Damage) — auto-applied, no choice |
+
+"Success Through Experience" fires when the Success Die fails but 4+ skill dice hit; no MOS bonus, just a standard hit.
+
+### Step 3 — Chat card
+
+`SLAChat.executeStandardDamageRoll()` posts a damage card with:
+
+- **Standard damage button** (`.damage-roll`) — rolls `weapon.damage + damage_bonus + ad_bonus`.
+- **Tactical choice buttons** (MOS 2/3) — separate Damage and Wound buttons.
+- **Apply Damage button** — applies final total minus target PV; posts a wound check prompt.
+- **Luck button** — opens `LuckDialog` to reroll the Success Die.
+- **Adjust TN button** — re-evaluates the roll against a new TN (useful for range modifiers applied after rolling).
+
+Chat state is persisted on `ChatMessage.flags.sla`:
+
+| Flag | Type | Purpose |
+|---|---|---|
+| `targets` | `string[]` | Token UUIDs for apply-damage buttons |
+| `autoApply` | `boolean` | Auto-apply wound on head-shot |
+| `isEbb` | `boolean` | Identifies Ebb roll cards |
+| `ebbRollSuccess` | `boolean` | Guards damage/heal buttons on failed Ebb rolls |
+| `ebbHealWoundMutualExclude` | `boolean` | Heal and wound buttons are mutually exclusive |
+| `ebbHealWoundPathUsed` | `"heal"\|"wounds"` | Which Ebb path was already used |
+
+### Step 4 — Damage application
+
+`_applyDamageToTarget(finalTotal, adValue, targetUuid)` in `chat.mjs`:
+
+1. Looks up the target actor by UUID.
+2. Subtracts `system.armor.pv` from `finalTotal`. Armour Piercing (AP) ammo applies an additional −2 PV.
+3. Updates `system.hp.value` (clamped to 0..max).
+4. If the wound button was used: toggles the relevant `system.wounds.<location>` flag.
+
+### Wound cascade
+
+`BoilerplateActor._handleWoundEffects()` runs on every wound field change:
+
+- **Head wound** → applies `stunned` status effect.
+- **Both leg wounds** → applies `immobile` status effect.
+- **Any wound** → applies `bleeding` status effect. Exception: Frothermorfs with exactly **one** wound do not bleed (Feel No Pain).
+- **6 wounds** → sets HP to 0 and applies `dead` overlay.
+
+HP threshold monitoring runs separately in `_handleWoundThresholds()`:
+
+- HP ≤ 0 → `dead`.
+- `0 < HP ≤ floor(max / 2)` → `critical` (−2 STR, −2 DEX, −1 CONC, −1 COOL applied in `_applyPenalties`).
+
+---
+
+## Encumbrance
+
+Source: `module/documents/actor.mjs` (`_calculateEncumbrance`)
+
+Encumbrance applies to **character** actors only.
+
+### Carry capacity
+
+```
+max = max(8, STR_total × 3)
+```
+
+### Item weight
+
+- Each item contributes `weight × quantity` to the total.
+- **Powered armor** that is destroyed (`resistance.value ≤ 0`) counts as **6** weight regardless of its nominal weight.
+
+### Penalty thresholds
+
+| Remaining capacity (`max − value`) | Penalty |
+|---|---|
+| ≥ 2 | None |
+| 1 | −1 DEX; Rushing capped at 1 |
+| 0 | −2 DEX; Rushing capped at 1 |
+| < 0 (over limit) | Immobile |
+
+Encumbrance penalty is applied to DEX in `_applyPenalties` after stat totals are computed. The Rushing cap is enforced in `_calculateDerived`.
+
+---
+
+## XP and Advancement
+
+Source: `module/apps/xp-dialog.mjs`
+
+Open the XP dialog from the character sheet header (coin icon). The dialog has two modes based on the user role.
+
+### GM mode
+
+GMs can add or remove a flat XP amount with a reason. Every change appends a ledger entry to `system.xpLedger`.
+
+### Player mode
+
+Players spend XP to purchase upgrades during downtime. Changes are queued as pending before committing.
+
+**Cost formulas (from source):**
+
+| Upgrade | XP cost | Credit cost |
+|---|---|---|
+| New skill (rank 1) | 2 | — |
+| Skill rank increase | `2 + (3 × current_rank)` | +500 at rank 4 |
+| New discipline (rank 1) | 2 | — |
+| Discipline rank increase | `2 + (3 × current_rank)` | — (+3 XP at rank 4) |
+| Stat increase (+1) | `5 + current_value` per rank | — |
+
+Each stat can increase by at most **1 rank per downtime period**. When STR increases, HP value and max are both incremented immediately to account for the new hit point.
+
+### XP ledger
+
+`system.xpLedger` is an array of entries appended (never overwritten). Each entry:
+
+```js
+{
+  timestamp: Number,      // Date.now()
+  type: String,           // "add" | "remove" | "stat" | "skill" | "discipline"
+  description: String,    // Human-readable reason
+  xpChange: Number,       // Positive = gain, negative = spend
+  creditChange: Number,   // Positive = gain, negative = spend
+  details: Object         // Optional: { stat, oldValue, newValue } etc.
+}
+```
+
+The ledger is displayed (newest-first) in the XP dialog and is purely a historical record — it does not drive any derived values.
+
+---
+
+## Ammo Types and Modifiers
+
+Source: `module/config.mjs` (`SLA.ammoTypes`, `SLA.ammoModifiers`)
+
+| Key | Label | Damage mod | AD mod | PV mod |
+|---|---|---|---|---|
+| `standard` | Standard | 0 | 0 | 0 |
+| `he` | High Explosive (HE) | +1 | +1 | 0 |
+| `ap` | Armour Piercing (AP) | 0 | 0 | −2 (at target) |
+| `shotgun_std` | Shotgun Shot (Standard) | 0 | 0 | 0 |
+| `shotgun_slug` | Shotgun Slug | +1 | −1 | 0 |
+
+`AD` (Armour Damage) reduces the target's armor resistance on hit. The AP −2 PV modifier is applied during damage resolution in `_applyDamageToTarget`, not pre-roll.
+
+Magazines carry an `ammoType` field that matches these keys. When a magazine is loaded into a weapon, the weapon inherits the ammo type for that firing session.
+
+---
+
+## Powersuit Mechanics
+
+Source: `module/documents/actor.mjs` (`_applyArmorModifiers`)
+
+Powersuits are armor items with both `system.powered = true` and `system.powersuit = true`. They interact with stats differently from standard powered armor.
+
+### Selecting the active powersuit
+
+If an actor has multiple equipped powered armor items flagged as `powersuit`, the system selects the one with the highest `resistance.value`. Only one powersuit applies its override effects at a time.
+
+### Effects of the active powersuit
+
+| Field | Effect |
+|---|---|
+| `mods.str` | **Replaces** the actor's STR total entirely (not additive) |
+| `mods.dex` | **Added** to DEX total |
+| `dexCap` | Caps DEX total to this value (applied after `mods.dex`) |
+| `initBonus` | Added to the initiative bonus accumulator |
+| `mods.move.closing` / `mods.move.rushing` | Added to base movement from species item |
+
+### Non-powersuit powered armor
+
+Armor marked `powered = true` but `powersuit = false` applies STR and DEX mods **additively** (no replacement, no cap). Multiple such pieces stack.
+
+### Resistance sync
+
+When the token bar for `armor.resist` is edited, `_preUpdate` finds the equipped powered armor item and writes back to `system.resistance.value` on the item. The actor-level `system.armor.resist` is a derived display value and is not persisted directly.
+
+---
+
+## Token Ruler Colors
+
+Source: `module/canvas/sla-ruler.mjs`
+
+The `SLATokenRuler` colors the movement ruler in real-time as a token is dragged.
+
+### Characters and NPCs
+
+| Color | Meaning |
+|---|---|
+| Green (`#39ff14`) | Within Closing speed |
+| Yellow | Between Closing and Rushing speed |
+| Red | Exceeds Rushing speed |
+
+### Vehicles
+
+| Color | Meaning |
+|---|---|
+| Green (`#39ff14`) | Within `move.value` |
+| Red | Exceeds `move.value` |
+
+### Combat movement lock
+
+If the **Enable Combat Movement Lock** world setting is active and the actor has already used their movement action this turn, the entire ruler is rendered **red** regardless of distance.
+
+---
+
 ## Coding Conventions
 
 - **Application V2 only:** All new sheets and dialogs use `ApplicationV2` + `HandlebarsApplicationMixin`. No `Dialog`, no jQuery-based V1 sheets.
