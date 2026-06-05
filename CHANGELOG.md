@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.5.3] - 2026-06-05
+
+### Added
+
+* **Packaging validation:** `scripts/validate-dist.mjs` checks `dist/` and `sla-industries.zip` against `system.json` paths; `npm run validate:dist` / `validate:package`. Unit tests in `tests/unit/build-dist.test.mjs`.
+
+### Changed
+
+* **Compendium copy list** is derived from `system.json` `packs[].path` instead of a hardcoded array in `build-dist.mjs`.
+* **CI:** Runs version sync check, unit tests, `npm run package`, and `validate-dist.mjs --zip` before creating draft releases.
+* **`cloud-foundry.sh`:** Surfaces `npm run build` failures; test world `systemVersion` follows `system.json`.
+* Updated system and package metadata version to `2.5.3`, including the release `download` URL in `system.json`.
+
 ## [2.5.2] - 2026-06-05
 
 ### Added
