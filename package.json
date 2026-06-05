@@ -12,6 +12,9 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:install": "playwright install chromium",
+    "test:env": "bash scripts/test-environment.sh",
+    "foundry:start": "bash scripts/cloud-foundry.sh start",
+    "foundry:status": "bash scripts/cloud-foundry.sh status",
     "test": "npm run test:unit && npm run test:e2e"
   },
   "browserslist": [
