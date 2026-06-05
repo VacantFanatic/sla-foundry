@@ -1,0 +1,69 @@
+/**
+ * Item sheet section panels.
+ *
+ * Today the codebase ships three near-duplicate "section header" patterns:
+ *   - `.sla-header-bar`        (panel headings inside item parts)
+ *   - `.sla-header-bar-small`  (single-view "Description" subheader)
+ *   - `.paper-header`          (dossier panels)
+ *
+ * Phase 1 introduces a single `.sla-section` component with a header subclass
+ * and keeps the existing class names as visual aliases so per-type theme PRs
+ * can migrate markup gradually without breaking world / module CSS that may
+ * target the legacy class names.
+ */
+
+/* ==========================================
+   Unified .sla-section
+   ========================================== */
+form.application.sla-industries.item .sla-section {
+    background: var(--sla-type-panel-bg, var(--sla-bg-panel));
+    border: 1px solid var(--sla-border);
+    border-radius: var(--sla-radius);
+    padding: 10px;
+    margin: 0 0 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+form.application.sla-industries.item .sla-section__header {
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sla-type-accent, var(--sla-accent));
+    border-bottom: 1px solid var(--sla-type-frame, var(--sla-border));
+    padding-bottom: 4px;
+    margin: 0 0 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    > .sla-section__icon {
+        font-size: 0.9em;
+        opacity: 0.8;
+    }
+
+    > .sla-section__title {
+        flex: 1;
+    }
+
+    > .sla-section__action {
+        flex: 0 0 auto;
+    }
+}
+
+/* ==========================================
+   Legacy aliases — keep current visuals intact
+   ========================================== */
+.sla-header-bar-small {
+    background: #222;
+    color: #fff;
+    padding: 2px 5px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-bottom: 2px solid #555;
+    margin-bottom: 5px;
+}

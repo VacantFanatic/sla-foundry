@@ -1,0 +1,106 @@
+/**
+ * Item sheet base: window chrome, header, font.
+ *
+ * Selectors here intentionally anchor on the V2 form root
+ * (`form.application.sla-industries.item`) per the rationale documented in
+ * `module/sheets/item-sheet.mjs#PARTS.body.root`. The legacy
+ * `.sla-industries.sheet.item .sla-item-root` selector chain is retained where
+ * the template root may also mount on a non-form ancestor (older renders).
+ */
+
+.item .window-content {
+    background: var(--sla-bg-dark) !important;
+    border: 4px solid var(--sla-border);
+    font-family: var(--sla-font-mono);
+    color: var(--sla-text-light);
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.item .sheet-header,
+form.application.sla-industries.item .sheet-header {
+    background: #222 !important;
+    color: #fff !important;
+    border-bottom: 4px solid var(--sla-type-frame, var(--sla-accent));
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+
+    .header-details {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+    }
+
+    h1.charname {
+        height: auto;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        line-height: 1.2;
+        border-bottom: 0;
+
+        input {
+            width: 100%;
+            height: auto !important;
+            min-height: 0;
+            margin: 0;
+            padding: 0;
+            line-height: 1.2;
+            font-size: 1rem;
+            letter-spacing: 0.35px;
+            text-shadow: none;
+        }
+    }
+
+    .item-subtitle {
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .type-label {
+        font-size: 0.75rem;
+        opacity: 0.95;
+    }
+
+    img.profile-img {
+        flex: 0 0 64px;
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border: 1px solid #000;
+        margin-right: 10px;
+        background: #000;
+        align-self: center;
+    }
+
+    img.profile-img[data-edit="img"] {
+        cursor: pointer;
+    }
+}
+
+/* Body font: Josefin via design token */
+.sla-industries.sheet.item .sla-item-root,
+form.application.sla-industries.item .sla-item-root,
+.application.sla-industries.item .sla-item-root,
+form.application.sla-industries.item {
+    font-family: var(--sla-font-mono);
+
+    .item-subtitle,
+    .type-label {
+        font-family: var(--sla-font-mono);
+    }
+
+    .editor,
+    prose-mirror.editor {
+        font-family: var(--sla-font-mono);
+    }
+}

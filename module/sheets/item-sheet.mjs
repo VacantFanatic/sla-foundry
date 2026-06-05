@@ -8,9 +8,25 @@ import { handleWeaponDrop, handleWeaponSkillDrop, handleDisciplineDrop, handleSk
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
 
-const ITEM_TAB_TYPES = new Set(["weapon", "armor", "explosive"]);
-const CONSUMABLE_TAB_TYPES = new Set(["drug", "toxicant"]);
-const SPECTRAL_TAB_TYPES = new Set(["ebbFormula"]);
+/**
+ * Tab contract (#243 Phase 1):
+ * - TWO_TAB_TYPES render a Details + Description sheet only (no transferable
+ *   Active Effects in the data model).
+ * - All other types render the full Details + Description + Effects layout.
+ * - CATALOGUE_PART_TYPES are the types whose Details tab uses the catalogue
+ *   partial (physical inventory items).
+ */
+const TWO_TAB_TYPES = new Set(["skill", "trait", "discipline"]);
+const CATALOGUE_PART_TYPES = new Set([
+    "item",
+    "weapon",
+    "armor",
+    "explosive",
+    "magazine",
+    "drug",
+    "toxicant",
+    "vehicle"
+]);
 
 export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
@@ -28,9 +44,9 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     static TABS = {
         primary: {
             tabs: [
-                { id: "attributes", label: "Details" },
-                { id: "description", label: "Description" },
-                { id: "effects", label: "Effects" }
+                { id: "attributes", label: "SLA.ItemSheet.Tab.Details" },
+                { id: "description", label: "SLA.ItemSheet.Tab.Description" },
+                { id: "effects", label: "SLA.ItemSheet.Tab.Effects" }
             ],
             initial: "attributes"
         }
@@ -172,13 +188,10 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         context.owner = item.isOwner;
         context.editable = this.isEditable;
 
-        context.useConsumableTabs = CONSUMABLE_TAB_TYPES.has(item.type);
-        context.useItemTabs = ITEM_TAB_TYPES.has(item.type);
-        context.useSpectralTabs = SPECTRAL_TAB_TYPES.has(item.type);
-        if (context.useConsumableTabs || context.useItemTabs || context.useSpectralTabs) {
-            context.tabs = this._prepareTabs("primary");
-        }
-        if (context.useConsumableTabs || context.useSpectralTabs) {
+        context.useTwoTabs = TWO_TAB_TYPES.has(item.type);
+        context.useCataloguePart = CATALOGUE_PART_TYPES.has(item.type);
+        context.tabs = this._prepareTabs("primary");
+        if (!context.useTwoTabs) {
             context.itemEffects = Array.from(item.effects).map((e) => ({
                 id: e.id,
                 name: e.name,
@@ -454,9 +467,6 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     /** @override */
     async _onRender(context, options) {
         await super._onRender(context, options);
-        if (CONSUMABLE_TAB_TYPES.has(this.item.type) && this.tabGroups?.primary === "description") {
-            this.changeTab("attributes", "primary", { force: true });
-        }
         this.#bindItemSheetScrollLayout();
         this.#dropListenersAbort?.abort();
 

@@ -1,0 +1,185 @@
+/**
+ * Item sheet tabs + body scroll.
+ *
+ * Phase 1 (#243): every item type now uses the same tab markup. Types that
+ * historically rendered single-view still work via `.sheet-body.single-view`
+ * — the new template falls back to single-view only for `discipline` (which
+ * has bespoke side-by-side rank+description layout).
+ */
+
+.sla-item-root .sheet-tabs,
+form.application.sla-industries.item .sheet-tabs {
+    flex: 0 0 auto;
+}
+
+/* Item tab nav styling (matches actor sheet visual rhythm) */
+.sla-item-tab-nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--sla-border);
+    padding: 0 8px;
+    background: var(--sla-bg-panel);
+
+    .item {
+        padding: 6px 12px;
+        color: var(--sla-text-light);
+        text-decoration: none;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border: 1px solid transparent;
+        border-bottom: none;
+        opacity: 0.7;
+        transition: opacity 0.15s ease, color 0.15s ease;
+        cursor: pointer;
+
+        &:hover {
+            opacity: 1;
+            color: var(--sla-type-accent, var(--sla-accent));
+        }
+
+        &.active {
+            opacity: 1;
+            color: var(--sla-type-accent, var(--sla-accent));
+            border-color: var(--sla-border);
+            border-bottom-color: var(--sla-bg-dark);
+            background: var(--sla-bg-dark);
+            position: relative;
+            top: 1px;
+        }
+    }
+}
+
+/* Tab content visibility — matches actor sheet rules but scoped to item root */
+.sla-item-root .sheet-body .tab,
+form.application.sla-industries.item .sheet-body .tab {
+    display: none;
+    min-height: 0;
+
+    &.active {
+        display: block;
+    }
+}
+
+.sla-item-root .sheet-body:not(.single-view) .tab.active,
+form.application.sla-industries.item .sheet-body:not(.single-view) .tab.active {
+    height: auto !important;
+}
+
+/* Description tab: ProseMirror needs a flex parent to size correctly. */
+.sla-item-root .sheet-body:not(.single-view) .tab.description.active,
+form.application.sla-industries.item .sheet-body:not(.single-view) .tab.description.active,
+.application.sla-industries.item .sheet-body:not(.single-view) .tab.description.active {
+    display: flex;
+    flex-direction: column;
+    min-height: 12rem;
+}
+
+/* Single-view layout (discipline only after Phase 1) */
+.sheet-body.single-view {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    height: 100%;
+    overflow: hidden;
+    gap: 15px;
+}
+
+.sla-item-root .sheet-body.single-view,
+form.application.sla-industries.item .sheet-body.single-view {
+    flex: 1;
+    min-height: 0;
+    height: auto !important;
+    overflow-y: auto !important;
+}
+
+.sla-item-root .sheet-body.single-view .sheet-description,
+form.application.sla-industries.item .sheet-body.single-view .sheet-description {
+    flex: 0 0 auto;
+    min-height: 140px;
+}
+
+.sheet-body.single-view .sheet-attributes {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.sheet-body.single-view .sheet-description {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100px;
+}
+
+.sheet-body.single-view .sheet-description .editor {
+    flex: 1;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.sheet-body.single-view .sheet-description prose-mirror.editor,
+.sheet-body .tab.description prose-mirror.editor {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* Discipline single-view: rank card + description side by side */
+.sheet-body.single-view.sla-item-sheet-discipline {
+    display: grid;
+    grid-template-columns: minmax(200px, 1fr) minmax(240px, 1.35fr);
+    gap: 12px;
+    align-items: start;
+}
+
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-attributes,
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-description {
+    min-width: 0;
+    width: 100%;
+}
+
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-description {
+    min-height: 200px;
+    flex: initial;
+}
+
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-description .editor,
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-description prose-mirror.editor {
+    min-height: 160px;
+}
+
+@media (max-width: 520px) {
+    .sheet-body.single-view.sla-item-sheet-discipline {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Legacy discipline-theme stacking (older renders without the explicit class) */
+.sla-item-root.discipline-theme .sheet-body.single-view:not(.sla-item-sheet-discipline),
+.item.discipline .sheet-body.single-view:not(.sla-item-sheet-discipline) {
+    flex-direction: row;
+    align-items: stretch;
+    flex-wrap: nowrap;
+}
+
+.sla-item-root.discipline-theme .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-attributes,
+.item.discipline .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-attributes {
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+.sla-item-root.discipline-theme .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-description,
+.item.discipline .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-description {
+    flex: 1 1 260px;
+    min-width: 0;
+    min-height: 180px;
+}

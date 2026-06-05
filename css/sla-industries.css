@@ -3198,16 +3198,141 @@ form.application.sla-industries.item,
   padding: 16px 8px;
 }
 
-/* ==========================================
-   13. ITEM SHEET THEMES
-   ========================================== */
-/* Basic Item */
+/**
+ * Item sheet styles.
+ *
+ * The legacy 1150-line monolith has been split into focused partials under
+ * `sheets/item/` per #243 Phase 1 / 5. This file is now an index entry point.
+ */
+/**
+ * Item sheet partials index (#243 Phase 1 / 5).
+ *
+ * Order matters:
+ *   1. Tokens establish the per-type CSS variables.
+ *   2. Base + fields + sections + drops + tabs provide the shared shell.
+ *   3. Themes layer on each item type's identity (still mostly verbatim from
+ *      the legacy _item.scss until per-type Phase 2 PRs land).
+ */
+/**
+ * Per-type design tokens.
+ *
+ * Each item type sets its own accent / soft accent / frame colour via CSS custom
+ * properties scoped to `.{type}-theme` (already applied on the item-sheet root,
+ * see `templates/item/item-sheet-v2.hbs`). Themes added in later PRs (#243) read
+ * from these tokens rather than hard-coding hex values so that per-type repaints
+ * are isolated to a single theme partial.
+ *
+ * Fallback values mirror the historical orange accent so any type without an
+ * explicit override keeps its current look until its theme PR lands.
+ */
+.sla-item-root {
+  --sla-type-accent: var(--sla-accent);
+  --sla-type-accent-soft: rgba(208, 94, 26, 0.18);
+  --sla-type-frame: var(--sla-accent);
+  --sla-type-input-bg: rgba(0, 0, 0, 0.35);
+  --sla-type-input-border: var(--sla-border);
+  --sla-type-panel-bg: var(--sla-bg-panel);
+}
+
+/* Weapon: gunmetal + amber readout (default accent) */
+.sla-item-root.weapon-theme {
+  --sla-type-accent: #f0a050;
+  --sla-type-accent-soft: rgba(240, 160, 80, 0.18);
+  --sla-type-frame: #d05e1a;
+}
+
+/* Armor: slate + green LED */
+.sla-item-root.armor-theme {
+  --sla-type-accent: #5fb878;
+  --sla-type-accent-soft: rgba(95, 184, 120, 0.18);
+  --sla-type-frame: #3a7a4d;
+}
+
+/* Explosive: hazard yellow */
+.sla-item-root.explosive-theme {
+  --sla-type-accent: #e0c34a;
+  --sla-type-accent-soft: rgba(224, 195, 74, 0.18);
+  --sla-type-frame: #c0a020;
+}
+
+/* Magazine: kraft / ammo-label brown */
+.sla-item-root.magazine-theme {
+  --sla-type-accent: #c0a070;
+  --sla-type-accent-soft: rgba(192, 160, 112, 0.18);
+  --sla-type-frame: #806040;
+}
+
+/* Drug: pharma orange */
+.sla-item-root.drug-theme {
+  --sla-type-accent: #f0843a;
+  --sla-type-accent-soft: rgba(240, 132, 58, 0.18);
+  --sla-type-frame: #d05e1a;
+}
+
+/* Toxicant: bio-hazard green */
+.sla-item-root.toxicant-theme {
+  --sla-type-accent: #9bd152;
+  --sla-type-accent-soft: rgba(155, 209, 82, 0.18);
+  --sla-type-frame: #5b8a2e;
+}
+
+/* Skill: field-manual blue */
+.sla-item-root.skill-theme {
+  --sla-type-accent: #86b4ff;
+  --sla-type-accent-soft: rgba(134, 180, 255, 0.18);
+  --sla-type-frame: #4a78c0;
+}
+
+/* Trait: annotation tan */
+.sla-item-root.trait-theme {
+  --sla-type-accent: #d4b878;
+  --sla-type-accent-soft: rgba(212, 184, 120, 0.18);
+  --sla-type-frame: #a08040;
+}
+
+/* Species: dossier red */
+.sla-item-root.species-theme {
+  --sla-type-accent: #d04040;
+  --sla-type-accent-soft: rgba(208, 64, 64, 0.18);
+  --sla-type-frame: #9c2a2a;
+}
+
+/* Package: training program green */
+.sla-item-root.package-theme {
+  --sla-type-accent: #6fc46f;
+  --sla-type-accent-soft: rgba(111, 196, 111, 0.18);
+  --sla-type-frame: #3b8c3b;
+}
+
+/* Ebb formula / discipline: spectral purple */
+.sla-item-root.ebbFormula-theme,
+.sla-item-root.discipline-theme {
+  --sla-type-accent: #c4a0ff;
+  --sla-type-accent-soft: rgba(138, 43, 226, 0.18);
+  --sla-type-frame: #8a2be2;
+}
+
+/* Generic item: neutral grey */
+.sla-item-root.item-theme {
+  --sla-type-accent: #9090a0;
+  --sla-type-accent-soft: rgba(144, 144, 160, 0.18);
+  --sla-type-frame: #555566;
+}
+
+/**
+ * Item sheet base: window chrome, header, font.
+ *
+ * Selectors here intentionally anchor on the V2 form root
+ * (`form.application.sla-industries.item`) per the rationale documented in
+ * `module/sheets/item-sheet.mjs#PARTS.body.root`. The legacy
+ * `.sla-industries.sheet.item .sla-item-root` selector chain is retained where
+ * the template root may also mount on a non-form ancestor (older renders).
+ */
 .item .window-content {
   background: var(--sla-bg-dark) !important;
   border: 4px solid var(--sla-border);
   font-family: var(--sla-font-mono);
   color: var(--sla-text-light);
-  /* V2 + flex column: bounded height so .sheet-body.single-view can overflow-y:auto (species / package / magazine) */
   flex: 1;
   min-height: 0;
   display: flex;
@@ -3219,7 +3344,7 @@ form.application.sla-industries.item,
 form.application.sla-industries.item .sheet-header {
   background: #222 !important;
   color: #fff !important;
-  border-bottom: 4px solid #f90;
+  border-bottom: 4px solid var(--sla-type-frame, var(--sla-accent));
   padding: 10px;
   display: flex;
   align-items: center;
@@ -3282,26 +3407,54 @@ form.application.sla-industries.item .sheet-header img.profile-img[data-edit=img
   cursor: pointer;
 }
 
-/* Item sheet V2: Josefin + plain fields until focus.
-   v14 Application root is often `form.application.sla-industries.item` — `.sheet` may not be on the same node, so duplicate chains. */
+/* Body font: Josefin via design token */
 .sla-industries.sheet.item .sla-item-root,
 form.application.sla-industries.item .sla-item-root,
-.application.sla-industries.item .sla-item-root {
+.application.sla-industries.item .sla-item-root,
+form.application.sla-industries.item {
   font-family: var(--sla-font-mono);
 }
-
 .sla-industries.sheet.item .sla-item-root .item-subtitle,
 .sla-industries.sheet.item .sla-item-root .type-label,
 form.application.sla-industries.item .sla-item-root .item-subtitle,
 form.application.sla-industries.item .sla-item-root .type-label,
 .application.sla-industries.item .sla-item-root .item-subtitle,
-.application.sla-industries.item .sla-item-root .type-label {
+.application.sla-industries.item .sla-item-root .type-label,
+form.application.sla-industries.item .item-subtitle,
+form.application.sla-industries.item .type-label {
+  font-family: var(--sla-font-mono);
+}
+.sla-industries.sheet.item .sla-item-root .editor,
+.sla-industries.sheet.item .sla-item-root prose-mirror.editor,
+form.application.sla-industries.item .sla-item-root .editor,
+form.application.sla-industries.item .sla-item-root prose-mirror.editor,
+.application.sla-industries.item .sla-item-root .editor,
+.application.sla-industries.item .sla-item-root prose-mirror.editor,
+form.application.sla-industries.item .editor,
+form.application.sla-industries.item prose-mirror.editor {
   font-family: var(--sla-font-mono);
 }
 
+/**
+ * Item sheet fields & inputs.
+ *
+ * Phase 1 readability baseline (#243):
+ * - Inputs render with a subtle dark fill + visible border at rest (was
+ *   transparent until focus, which made fields invisible).
+ * - Focus state uses the per-type accent glow so each theme's identity carries
+ *   into interaction state.
+ *
+ * Catalogue tiles (light gray panel) still get a dark input override because
+ * they're meant to read as a label on a printed card; the catalogue theme
+ * partial supplies the contrasting field background.
+ *
+ * Glow inputs (spectral) keep their bespoke purple aesthetic via the spectral
+ * theme partial — those rules `!important`-win against this baseline.
+ */
+/* Item name heading – font + colour */
 .sla-industries.sheet.item .sla-item-root .sheet-header h1.charname,
 form.application.sla-industries.item .sla-item-root .sheet-header h1.charname,
-.application.sla-industries.item .sla-item-root .sheet-header h1.charname {
+form.application.sla-industries.item .sheet-header h1.charname {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -3311,58 +3464,9 @@ form.application.sla-industries.item .sla-item-root .sheet-header h1.charname,
   line-height: 1.2;
 }
 
-.sla-industries.sheet.item .sla-item-root input:not([type=checkbox]):not([type=hidden]):not([type=radio]),
-.sla-industries.sheet.item .sla-item-root select,
-form.application.sla-industries.item .sla-item-root input:not([type=checkbox]):not([type=hidden]):not([type=radio]),
-form.application.sla-industries.item .sla-item-root select,
-.application.sla-industries.item .sla-item-root input:not([type=checkbox]):not([type=hidden]):not([type=radio]),
-.application.sla-industries.item .sla-item-root select {
-  font-family: var(--sla-font-mono) !important;
-  color: var(--sla-text-light);
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  outline: none;
-}
-
-.sla-industries.sheet.item .sla-item-root input:not([type=checkbox]):not([type=hidden]):not([type=radio]):focus,
-.sla-industries.sheet.item .sla-item-root select:focus,
-form.application.sla-industries.item .sla-item-root input:not([type=checkbox]):not([type=hidden]):not([type=radio]):focus,
-form.application.sla-industries.item .sla-item-root select:focus,
-.application.sla-industries.item .sla-item-root input:not([type=checkbox]):not([type=hidden]):not([type=radio]):focus,
-.application.sla-industries.item .sla-item-root select:focus {
-  background: #0a0a0a !important;
-  border: 1px solid var(--sla-border) !important;
-  border-radius: var(--sla-radius);
-  box-shadow: 0 0 0 1px var(--sla-accent);
-  outline: none;
-}
-
-.sla-industries.sheet.item .sla-item-root textarea,
-form.application.sla-industries.item .sla-item-root textarea,
-.application.sla-industries.item .sla-item-root textarea {
-  font-family: var(--sla-font-mono) !important;
-  color: var(--sla-text-light);
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  outline: none;
-  resize: vertical;
-}
-
-.sla-industries.sheet.item .sla-item-root textarea:focus,
-form.application.sla-industries.item .sla-item-root textarea:focus,
-.application.sla-industries.item .sla-item-root textarea:focus {
-  background: #0a0a0a !important;
-  border: 1px solid var(--sla-border) !important;
-  border-radius: var(--sla-radius);
-  box-shadow: 0 0 0 1px var(--sla-accent);
-  outline: none;
-}
-
 .sla-industries.sheet.item .sla-item-root h1.charname input[type=text],
 form.application.sla-industries.item .sla-item-root h1.charname input[type=text],
-.application.sla-industries.item .sla-item-root h1.charname input[type=text] {
+form.application.sla-industries.item h1.charname input[type=text] {
   font-family: var(--sla-font-header);
   font-weight: 700;
   text-transform: uppercase;
@@ -3386,143 +3490,51 @@ form.application.sla-industries.item .sla-item-root h1.charname input[type=text]
 
 .sla-industries.sheet.item .sla-item-root h1.charname input[type=text]:focus,
 form.application.sla-industries.item .sla-item-root h1.charname input[type=text]:focus,
-.application.sla-industries.item .sla-item-root h1.charname input[type=text]:focus {
+form.application.sla-industries.item h1.charname input[type=text]:focus {
   background: #0a0a0a !important;
-  border: 1px solid var(--sla-border) !important;
+  border: 1px solid var(--sla-type-frame, var(--sla-border)) !important;
   border-radius: var(--sla-radius);
-  box-shadow: 0 0 0 1px var(--sla-accent);
+  box-shadow: 0 0 0 1px var(--sla-type-accent, var(--sla-accent));
   outline: none;
 }
 
-.sla-industries.sheet.item .sla-item-root .editor,
-.sla-industries.sheet.item .sla-item-root prose-mirror.editor,
-form.application.sla-industries.item .sla-item-root .editor,
-form.application.sla-industries.item .sla-item-root prose-mirror.editor,
-.application.sla-industries.item .sla-item-root .editor,
-.application.sla-industries.item .sla-item-root prose-mirror.editor {
-  font-family: var(--sla-font-mono);
-}
-
-.sla-industries.sheet.item .sla-item-root .item-catalogue input:not([type=checkbox]),
-.sla-industries.sheet.item .sla-item-root .item-catalogue select,
-form.application.sla-industries.item .sla-item-root .item-catalogue input:not([type=checkbox]),
-form.application.sla-industries.item .sla-item-root .item-catalogue select,
-.application.sla-industries.item .sla-item-root .item-catalogue input:not([type=checkbox]),
-.application.sla-industries.item .sla-item-root .item-catalogue select {
-  color: #000;
-}
-
-/* App V2 + PARTS `body.root: true`: template root is often hoisted onto the <form>, so `.sla-item-root` is NOT under `this.form` — rules above never match. Anchor on the form (runtime: species, package, single-view, etc.). */
-form.application.sla-industries.item {
-  font-family: var(--sla-font-mono);
-}
-form.application.sla-industries.item .item-subtitle,
-form.application.sla-industries.item .type-label {
-  font-family: var(--sla-font-mono);
-}
-form.application.sla-industries.item .sheet-header h1.charname {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  outline: none;
-  height: auto;
-  margin: 0;
-  line-height: 1.2;
-}
+/* Body inputs – always-visible baseline, focus glow uses the type accent */
 form.application.sla-industries.item input:not([type=checkbox]):not([type=hidden]):not([type=radio]),
-form.application.sla-industries.item select {
-  font-family: var(--sla-font-mono) !important;
-  color: var(--sla-text-light);
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  outline: none;
-}
-form.application.sla-industries.item input:not([type=checkbox]):not([type=hidden]):not([type=radio]):focus,
-form.application.sla-industries.item select:focus {
-  background: #0a0a0a !important;
-  border: 1px solid var(--sla-border) !important;
-  border-radius: var(--sla-radius);
-  box-shadow: 0 0 0 1px var(--sla-accent);
-  outline: none;
-}
+form.application.sla-industries.item select,
 form.application.sla-industries.item textarea {
   font-family: var(--sla-font-mono) !important;
   color: var(--sla-text-light);
-  background: transparent !important;
-  border: none !important;
+  background: var(--sla-type-input-bg, rgba(0, 0, 0, 0.35)) !important;
+  border: 1px solid var(--sla-type-input-border, var(--sla-border)) !important;
+  border-radius: var(--sla-radius);
   box-shadow: none !important;
   outline: none;
+}
+
+form.application.sla-industries.item textarea {
   resize: vertical;
 }
+
+form.application.sla-industries.item input:not([type=checkbox]):not([type=hidden]):not([type=radio]):focus,
+form.application.sla-industries.item select:focus,
 form.application.sla-industries.item textarea:focus {
   background: #0a0a0a !important;
-  border: 1px solid var(--sla-border) !important;
-  border-radius: var(--sla-radius);
-  box-shadow: 0 0 0 1px var(--sla-accent);
+  border-color: var(--sla-type-frame, var(--sla-border)) !important;
+  box-shadow: 0 0 0 1px var(--sla-type-accent, var(--sla-accent)) !important;
   outline: none;
 }
-form.application.sla-industries.item h1.charname input[type=text] {
-  font-family: var(--sla-font-header);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-family: var(--sla-font-header) !important;
-  font-size: 1rem;
-  letter-spacing: 0.35px;
-  line-height: 1.2;
-  height: auto !important;
-  min-height: 0;
-  padding: 0;
-  text-shadow: none;
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  outline: none;
-  color: #fff;
-}
-form.application.sla-industries.item h1.charname input[type=text]:focus {
-  background: #0a0a0a !important;
-  border: 1px solid var(--sla-border) !important;
-  border-radius: var(--sla-radius);
-  box-shadow: 0 0 0 1px var(--sla-accent);
-  outline: none;
-}
-form.application.sla-industries.item .editor,
-form.application.sla-industries.item prose-mirror.editor {
-  font-family: var(--sla-font-mono);
-}
+
+/* Catalogue tile inputs render on a light card and must remain dark text */
 form.application.sla-industries.item .item-catalogue input:not([type=checkbox]),
 form.application.sla-industries.item .item-catalogue select {
   color: #000;
-}
-form.application.sla-industries.item .glow-input input:not([type=checkbox]) {
-  background: rgba(0, 0, 0, 0.5) !important;
-  border: 1px solid #8a2be2 !important;
-  color: #fff !important;
-  box-shadow: 0 0 5px #8a2be2 !important;
-  padding: 2px 5px;
-  width: 50%;
-  height: 24px;
-  font-size: 1.1em;
-}
-form.application.sla-industries.item .firing-mode-row input[type=number] {
-  background: rgba(0, 0, 0, 0.5) !important;
-  border: 1px solid #444 !important;
-  color: #fff !important;
-  text-align: center;
-  border-radius: 3px;
-  height: 22px;
-  width: 90%;
-  box-shadow: none !important;
-}
-form.application.sla-industries.item .firing-mode-row input[type=number]:focus {
-  box-shadow: 0 0 0 1px var(--sla-accent) !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid #999 !important;
+  border-radius: 0;
 }
 
-/* Item sheet V2 (`tag: "form"`): native checkboxes stay visible on dark themes; beats `input { … !important }` on item types */
+/* Native checkboxes: stay visible on dark themes, beat the input-baseline rules */
 form.application.sla-industries.sheet.item input[type=checkbox],
 form.application.sla-industries.item input[type=checkbox] {
   width: 18px !important;
@@ -3531,7 +3543,7 @@ form.application.sla-industries.item input[type=checkbox] {
   min-height: 18px !important;
   margin: 0;
   cursor: pointer !important;
-  accent-color: var(--sla-accent) !important;
+  accent-color: var(--sla-type-accent, var(--sla-accent)) !important;
   vertical-align: middle;
   flex-shrink: 0;
   background: transparent !important;
@@ -3547,13 +3559,281 @@ form.application.sla-industries.item input[type=checkbox]:not(:checked) {
   border-radius: 2px;
 }
 
-/* Tabbed item sheets (V2): tabs/header fixed, body scrolls */
+/* ==========================================
+   Phase 1 component: .sla-field
+   ==========================================
+   Reusable field wrapper. Per-type theme PRs (#243) swap inline-styled
+   `.form-group` blocks for these classes. Available now so theme PRs can be
+   pure SCSS additions without re-introducing component CSS.
+*/
+form.application.sla-industries.item .sla-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+form.application.sla-industries.item .sla-field > label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sla-type-accent, var(--sla-accent));
+  opacity: 0.85;
+  margin: 0;
+}
+form.application.sla-industries.item .sla-field.sla-field--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+form.application.sla-industries.item .sla-field.sla-field--inline > label {
+  flex: 0 0 auto;
+  opacity: 1;
+}
+form.application.sla-industries.item .sla-field.sla-field--inline > input,
+form.application.sla-industries.item .sla-field.sla-field--inline > select {
+  flex: 1;
+}
+form.application.sla-industries.item .sla-field.sla-field--toggle {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+form.application.sla-industries.item .sla-field.sla-field--toggle > label {
+  flex: 1;
+}
+form.application.sla-industries.item .sla-field.sla-field--toggle > input[type=checkbox] {
+  flex: 0 0 auto;
+}
+form.application.sla-industries.item .sla-field.sla-field--compact > input, form.application.sla-industries.item .sla-field.sla-field--compact > select {
+  height: 24px;
+  padding: 0 6px;
+}
+
+/**
+ * Item sheet section panels.
+ *
+ * Today the codebase ships three near-duplicate "section header" patterns:
+ *   - `.sla-header-bar`        (panel headings inside item parts)
+ *   - `.sla-header-bar-small`  (single-view "Description" subheader)
+ *   - `.paper-header`          (dossier panels)
+ *
+ * Phase 1 introduces a single `.sla-section` component with a header subclass
+ * and keeps the existing class names as visual aliases so per-type theme PRs
+ * can migrate markup gradually without breaking world / module CSS that may
+ * target the legacy class names.
+ */
+/* ==========================================
+   Unified .sla-section
+   ========================================== */
+form.application.sla-industries.item .sla-section {
+  background: var(--sla-type-panel-bg, var(--sla-bg-panel));
+  border: 1px solid var(--sla-border);
+  border-radius: var(--sla-radius);
+  padding: 10px;
+  margin: 0 0 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+form.application.sla-industries.item .sla-section__header {
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sla-type-accent, var(--sla-accent));
+  border-bottom: 1px solid var(--sla-type-frame, var(--sla-border));
+  padding-bottom: 4px;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+form.application.sla-industries.item .sla-section__header > .sla-section__icon {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+form.application.sla-industries.item .sla-section__header > .sla-section__title {
+  flex: 1;
+}
+form.application.sla-industries.item .sla-section__header > .sla-section__action {
+  flex: 0 0 auto;
+}
+
+/* ==========================================
+   Legacy aliases — keep current visuals intact
+   ========================================== */
+.sla-header-bar-small {
+  background: #222;
+  color: #fff;
+  padding: 2px 5px;
+  font-size: 0.8em;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-bottom: 2px solid #555;
+  margin-bottom: 5px;
+}
+
+/**
+ * Drop zones.
+ *
+ * Today the codebase has five drop-zone class names (`.drop-zone`,
+ * `.skill-link-box`, `.weapon-link`, `.discipline-drop-zone`, `.skill-grant-area`)
+ * each with bespoke colours, padding, and empty-state copy.
+ *
+ * Phase 1 (#243) introduces a single `.sla-drop` component and keeps the legacy
+ * class names as visual aliases so per-type theme PRs can migrate markup
+ * gradually. The is-drag-over state will be wired in a later PR.
+ */
+/* ==========================================
+   Unified .sla-drop
+   ========================================== */
+form.application.sla-industries.item .sla-drop {
+  border: 2px dashed var(--sla-type-frame, #777);
+  background: var(--sla-type-accent-soft, rgba(255, 255, 255, 0.04));
+  padding: 6px;
+  border-radius: var(--sla-radius);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-align: center;
+}
+form.application.sla-industries.item .sla-drop.is-drag-over {
+  background: var(--sla-type-accent-soft);
+  border-style: solid;
+  border-color: var(--sla-type-accent, var(--sla-accent));
+  box-shadow: inset 0 0 0 1px var(--sla-type-accent, var(--sla-accent));
+}
+form.application.sla-industries.item .sla-drop.sla-drop--filled {
+  border-style: solid;
+}
+form.application.sla-industries.item .sla-drop > .sla-drop__hint {
+  color: #888;
+  font-style: italic;
+  font-size: 0.85em;
+}
+
+/* ==========================================
+   Legacy aliases — keep existing markup styled
+   ========================================== */
+.drop-zone {
+  border: 2px dashed #777;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 5px;
+  border-radius: 4px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-align: center;
+}
+
+.drop-zone:hover,
+.drop-zone.is-drag-over {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #aaa;
+}
+
+.drop-zone.filled {
+  border: 2px solid #555;
+  background: transparent;
+}
+
+.drop-zone button.remove-skill-link,
+.weapon-link button.remove-link {
+  background: transparent;
+  border: none;
+  margin: 0;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+  color: #ff4444;
+}
+
+.drop-zone button.remove-skill-link:hover,
+.weapon-link button.remove-link:hover {
+  color: #ff8888;
+}
+
+/* Theme-specific drop-zone tints (kept from the original _item.scss) */
+.item.ebbFormula .drop-zone {
+  border-color: #8a2be2;
+  background: rgba(138, 43, 226, 0.1);
+}
+
+.item.ebbFormula .drop-zone.filled {
+  border-style: solid;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.item.package .drop-zone,
+.item.species .drop-zone {
+  border-color: var(--sla-border);
+}
+
+.item.package .drop-zone.filled,
+.item.species .drop-zone.filled {
+  border-style: solid;
+}
+
+/**
+ * Item sheet tabs + body scroll.
+ *
+ * Phase 1 (#243): every item type now uses the same tab markup. Types that
+ * historically rendered single-view still work via `.sheet-body.single-view`
+ * — the new template falls back to single-view only for `discipline` (which
+ * has bespoke side-by-side rank+description layout).
+ */
 .sla-item-root .sheet-tabs,
 form.application.sla-industries.item .sheet-tabs {
   flex: 0 0 auto;
 }
 
-/* Root is .sla-item-root (not .sla-sheet) — actor tab visibility rules do not apply here */
+/* Item tab nav styling (matches actor sheet visual rhythm) */
+.sla-item-tab-nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--sla-border);
+  padding: 0 8px;
+  background: var(--sla-bg-panel);
+}
+.sla-item-tab-nav .item {
+  padding: 6px 12px;
+  color: var(--sla-text-light);
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid transparent;
+  border-bottom: none;
+  opacity: 0.7;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+}
+.sla-item-tab-nav .item:hover {
+  opacity: 1;
+  color: var(--sla-type-accent, var(--sla-accent));
+}
+.sla-item-tab-nav .item.active {
+  opacity: 1;
+  color: var(--sla-type-accent, var(--sla-accent));
+  border-color: var(--sla-border);
+  border-bottom-color: var(--sla-bg-dark);
+  background: var(--sla-bg-dark);
+  position: relative;
+  top: 1px;
+}
+
+/* Tab content visibility — matches actor sheet rules but scoped to item root */
 .sla-item-root .sheet-body .tab,
 form.application.sla-industries.item .sheet-body .tab {
   display: none;
@@ -3564,13 +3844,12 @@ form.application.sla-industries.item .sheet-body .tab.active {
   display: block;
 }
 
-/* Scroll + height: see global/_base.scss `.sla-industries.sheet.item .sla-item-root .sheet-body` */
 .sla-item-root .sheet-body:not(.single-view) .tab.active,
 form.application.sla-industries.item .sheet-body:not(.single-view) .tab.active {
   height: auto !important;
 }
 
-/* Description tab: <prose-mirror class="editor"> is `display:flex; flex:1` — a block parent gives it no flex line, so it can collapse to zero height. */
+/* Description tab: ProseMirror needs a flex parent to size correctly. */
 .sla-item-root .sheet-body:not(.single-view) .tab.description.active,
 form.application.sla-industries.item .sheet-body:not(.single-view) .tab.description.active,
 .application.sla-industries.item .sheet-body:not(.single-view) .tab.description.active {
@@ -3579,7 +3858,119 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.descript
   min-height: 12rem;
 }
 
-/* Academic Theme (Skills/Traits) */
+/* Single-view layout (discipline only after Phase 1) */
+.sheet-body.single-view {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  height: 100%;
+  overflow: hidden;
+  gap: 15px;
+}
+
+.sla-item-root .sheet-body.single-view,
+form.application.sla-industries.item .sheet-body.single-view {
+  flex: 1;
+  min-height: 0;
+  height: auto !important;
+  overflow-y: auto !important;
+}
+
+.sla-item-root .sheet-body.single-view .sheet-description,
+form.application.sla-industries.item .sheet-body.single-view .sheet-description {
+  flex: 0 0 auto;
+  min-height: 140px;
+}
+
+.sheet-body.single-view .sheet-attributes {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-body.single-view .sheet-description {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100px;
+}
+
+.sheet-body.single-view .sheet-description .editor {
+  flex: 1;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sheet-body.single-view .sheet-description prose-mirror.editor,
+.sheet-body .tab.description prose-mirror.editor {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Discipline single-view: rank card + description side by side */
+.sheet-body.single-view.sla-item-sheet-discipline {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(240px, 1.35fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-attributes,
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-description {
+  min-width: 0;
+  width: 100%;
+}
+
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-description {
+  min-height: 200px;
+  flex: initial;
+}
+
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-description .editor,
+.sheet-body.single-view.sla-item-sheet-discipline .sheet-description prose-mirror.editor {
+  min-height: 160px;
+}
+
+@media (max-width: 520px) {
+  .sheet-body.single-view.sla-item-sheet-discipline {
+    grid-template-columns: 1fr;
+  }
+}
+/* Legacy discipline-theme stacking (older renders without the explicit class) */
+.sla-item-root.discipline-theme .sheet-body.single-view:not(.sla-item-sheet-discipline),
+.item.discipline .sheet-body.single-view:not(.sla-item-sheet-discipline) {
+  flex-direction: row;
+  align-items: stretch;
+  flex-wrap: nowrap;
+}
+
+.sla-item-root.discipline-theme .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-attributes,
+.item.discipline .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-attributes {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.sla-item-root.discipline-theme .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-description,
+.item.discipline .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-description {
+  flex: 1 1 260px;
+  min-width: 0;
+  min-height: 180px;
+}
+
+/**
+ * Academic theme — skill, trait.
+ *
+ * Ported verbatim from the historic `_item.scss`. Phase 2 PR will replace this
+ * with the "Field Manual" / "Personnel Annotation" motifs.
+ */
 .item.skill .window-content,
 .item.trait .window-content {
   background: var(--sla-bg-dark) !important;
@@ -3591,7 +3982,7 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.descript
 .item.trait .sheet-header {
   background: var(--sla-bg-panel) !important;
   border: none;
-  border-bottom: 2px solid var(--sla-border);
+  border-bottom: 2px solid var(--sla-type-frame, var(--sla-border));
   color: var(--sla-text-light) !important;
 }
 
@@ -3605,31 +3996,210 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.descript
   font-weight: bold;
 }
 
-/* Spectral Theme (Ebb) */
+.academic-paper {
+  padding: 20px;
+  font-family: var(--sla-font-mono);
+  background: var(--sla-bg-dark);
+  color: var(--sla-text-light);
+  border-radius: 4px;
+  height: 100%;
+}
+
+.academic-paper .line-item {
+  display: flex;
+  align-items: baseline;
+  border-bottom: 1px dotted var(--sla-border);
+  margin-bottom: 8px;
+  padding-bottom: 2px;
+}
+
+.academic-paper label {
+  flex: 0 0 auto;
+  font-weight: bold;
+  margin-right: 10px;
+  color: var(--sla-text-light);
+}
+
+.academic-paper input:not([type=checkbox]),
+.academic-paper select {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid var(--sla-border) !important;
+  font-family: inherit;
+  font-size: 1.1em;
+  color: var(--sla-text-light) !important;
+}
+
+/**
+ * Catalogue theme — generic items, weapons, armor, explosives, magazines, drugs.
+ *
+ * Ported verbatim from the historic `_item.scss`. Phase 2 PRs replace this
+ * shared grid with per-type identities (Cannon Catalogue, Powersuit Telemetry,
+ * Munition Placard, Ammo Label, Pharma Label).
+ */
+.catalogue-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 10px;
+}
+
+.item-catalogue .form-group {
+  background: #ccc;
+  border: 1px solid #999;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-catalogue label {
+  font-size: 0.7em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #555;
+}
+
+.item-catalogue input:not([type=checkbox]) {
+  background: transparent;
+  border: none;
+  font-weight: bold;
+  color: #000;
+  border-bottom: 1px solid #999;
+}
+
+/* Powersuit / firing-mode toggle inputs that live inside the form root keep
+   the original brushed look – aliased here for compatibility with PR 1. */
+form.application.sla-industries.item .firing-mode-row input[type=number] {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid #444 !important;
+  color: #fff !important;
+  text-align: center;
+  border-radius: 3px;
+  height: 22px;
+  width: 90%;
+  box-shadow: none !important;
+}
+
+form.application.sla-industries.item .firing-mode-row input[type=number]:focus {
+  box-shadow: 0 0 0 1px var(--sla-type-accent, var(--sla-accent)) !important;
+}
+
+/**
+ * Weapon firing-modes table.
+ *
+ * Phase 1 keeps the existing visual. Phase 2 weapon-theme PR replaces this
+ * with a proper `<table>` and a darker amber-on-gunmetal palette.
+ */
+.firing-mode-grid.header {
+  display: flex;
+  font-weight: bold;
+  font-size: 0.8em;
+  color: #ccc;
+  background: #000;
+  padding: 5px;
+  border-bottom: 1px solid #555;
+  text-transform: uppercase;
+}
+
+.firing-mode-row {
+  display: flex;
+  align-items: center;
+  padding: 4px 5px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid #333;
+  transition: background 0.2s;
+}
+
+.firing-mode-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.firing-mode-row.enabled {
+  background: rgba(50, 200, 50, 0.1);
+}
+
+.col-active {
+  flex: 0 0 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.col-name {
+  flex: 1;
+  padding-left: 10px;
+  color: #ddd;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.col-stat {
+  flex: 0 0 60px;
+  text-align: center;
+}
+
+.firing-mode-row input[type=checkbox] {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  margin: 0;
+  cursor: pointer !important;
+  accent-color: var(--sla-type-accent, var(--sla-accent)) !important;
+  position: relative;
+  z-index: 100;
+  pointer-events: auto;
+  flex-shrink: 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.firing-mode-row input[type=checkbox]:not(:checked) {
+  outline: 2px solid rgba(255, 255, 255, 0.55) !important;
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+.firing-mode-row input[type=number] {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #444;
+  color: #fff;
+  text-align: center;
+  border-radius: 3px;
+  height: 22px;
+  width: 90%;
+}
+
+/**
+ * Spectral theme — ebbFormula, discipline.
+ *
+ * Ported verbatim from the historic `_item.scss`. Phase 2 spectral PR tightens
+ * spacing, groups rows visually, and modernises the holographic backdrop.
+ */
 .item.ebbFormula .window-content,
 .item.discipline .window-content {
   background: #0a0011 !important;
   color: #d8bfff !important;
-  border: 2px solid #8a2be2;
+  border: 2px solid var(--sla-type-frame, #8a2be2);
 }
 
 .item.ebbFormula .sheet-header,
 .item.discipline .sheet-header {
   background: linear-gradient(90deg, #1a002a, #30004a) !important;
-  border-bottom: 1px solid #8a2be2;
+  border-bottom: 1px solid var(--sla-type-frame, #8a2be2);
 }
 
 .item.ebbFormula input:not([type=checkbox]),
 .item.discipline input:not([type=checkbox]) {
   background: rgba(0, 0, 0, 0.5) !important;
-  border: 1px solid #8a2be2 !important;
+  border: 1px solid var(--sla-type-frame, #8a2be2) !important;
   color: #fff !important;
-  text-shadow: 0 0 5px #8a2be2;
+  text-shadow: 0 0 5px var(--sla-type-frame, #8a2be2);
 }
 
-/* ==========================================
-   18. EBB FORMULA DROP ZONE
-   ========================================== */
+/* Ebb formula drop zone */
 .discipline-drop-zone {
   border: 1px dashed #8a2be2;
   background: rgba(138, 43, 226, 0.1);
@@ -3764,9 +4334,57 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.descript
   width: 100%;
 }
 
-/* ==========================================
-   20. DOSSIER THEME (Species & Package)
-   ========================================== */
+/* Spectral container + glow inputs */
+.spectral-container {
+  padding: 15px;
+  color: #d8bfff;
+}
+
+.glow-input {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.glow-input label {
+  color: #a855f7;
+  font-size: 0.8em;
+  font-weight: bold;
+  text-shadow: 0 0 5px #a855f7;
+}
+
+.glow-input input {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid #8a2be2 !important;
+  color: #fff !important;
+  box-shadow: 0 0 5px #8a2be2;
+  transition: all 0.3s ease;
+  padding: 2px 5px;
+  width: 50%;
+  height: 24px;
+  font-size: 1.1em;
+}
+
+/* Glow inputs sit inside the item-sheet form root, so they must beat the
+   baseline always-visible input rule from _fields.scss */
+form.application.sla-industries.item .glow-input input:not([type=checkbox]) {
+  background: rgba(0, 0, 0, 0.5) !important;
+  border: 1px solid #8a2be2 !important;
+  color: #fff !important;
+  box-shadow: 0 0 5px #8a2be2 !important;
+  padding: 2px 5px;
+  width: 50%;
+  height: 24px;
+  font-size: 1.1em;
+}
+
+/**
+ * Dossier theme — species, package.
+ *
+ * Ported verbatim from the historic `_item.scss`. Phase 2 dossier PR adds the
+ * green TRAINING PROGRAM stamp for packages and polishes the granted-skills
+ * row.
+ */
 .item.species .window-content,
 .item.package .window-content {
   background: var(--sla-bg-dark) !important;
@@ -3776,7 +4394,7 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.descript
 .item.species .sheet-header,
 .item.package .sheet-header {
   background: #000 !important;
-  border-bottom: 2px solid var(--sla-accent);
+  border-bottom: 2px solid var(--sla-type-frame, var(--sla-accent));
   padding: 10px;
 }
 
@@ -3808,7 +4426,7 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.descript
 
 .paper-header {
   font-family: var(--sla-font-header);
-  color: var(--sla-accent);
+  color: var(--sla-type-accent, var(--sla-accent));
   font-weight: 700;
   border-bottom: 1px solid var(--sla-border);
   margin-bottom: 8px;
@@ -3836,7 +4454,6 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.descript
   text-align: center;
 }
 
-/* Stat Limits Grid */
 .stat-limits-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -3873,7 +4490,6 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.descript
   text-align: center;
 }
 
-/* Skill Grants */
 .skill-grant-area {
   min-height: 60px;
   background: rgba(0, 0, 0, 0.2);
@@ -3888,7 +4504,7 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.descript
   display: flex;
   align-items: center;
   background: #000;
-  border: 1px solid var(--sla-accent);
+  border: 1px solid var(--sla-type-accent, var(--sla-accent));
   padding: 2px;
   border-radius: 4px;
   gap: 5px;
@@ -3905,7 +4521,7 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.descript
 .granted-skill-chip .skill-name {
   padding: 0 5px;
   font-weight: bold;
-  color: var(--sla-accent);
+  color: var(--sla-type-accent, var(--sla-accent));
 }
 
 .granted-skill-chip .delete-grant {
@@ -3924,415 +4540,4 @@ form.application.sla-industries.item .sheet-body:not(.single-view) .tab.descript
 
 .granted-skill-chip .delete-grant:hover {
   color: #f88;
-}
-
-/* ==========================================
-   21. CATALOGUE THEME GRID
-   ========================================== */
-.catalogue-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding: 10px;
-}
-
-.item-catalogue .form-group {
-  background: #ccc;
-  border: 1px solid #999;
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-}
-
-.item-catalogue label {
-  font-size: 0.7em;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #555;
-}
-
-.item-catalogue input:not([type=checkbox]) {
-  background: transparent;
-  border: none;
-  font-weight: bold;
-  color: #000;
-  border-bottom: 1px solid #999;
-}
-
-/* ==========================================
-   22. ACADEMIC THEME (Textbook)
-   ========================================== */
-.academic-paper {
-  padding: 20px;
-  font-family: var(--sla-font-mono);
-  background: var(--sla-bg-dark);
-  color: var(--sla-text-light);
-  border-radius: 4px;
-  height: 100%;
-}
-
-.academic-paper .line-item {
-  display: flex;
-  align-items: baseline;
-  border-bottom: 1px dotted var(--sla-border);
-  margin-bottom: 8px;
-  padding-bottom: 2px;
-}
-
-.academic-paper label {
-  flex: 0 0 auto;
-  font-weight: bold;
-  margin-right: 10px;
-  color: var(--sla-text-light);
-}
-
-.academic-paper input:not([type=checkbox]),
-.academic-paper select {
-  flex: 1;
-  background: rgba(0, 0, 0, 0.3) !important;
-  border: 1px solid var(--sla-border) !important;
-  font-family: inherit;
-  font-size: 1.1em;
-  color: var(--sla-text-light) !important;
-}
-
-/* ==========================================
-   23. SPECTRAL THEME (Ebb)
-   ========================================== */
-.spectral-container {
-  padding: 15px;
-  color: #d8bfff;
-}
-
-.glow-input {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 10px;
-}
-
-.glow-input label {
-  color: #a855f7;
-  font-size: 0.8em;
-  font-weight: bold;
-  text-shadow: 0 0 5px #a855f7;
-}
-
-.glow-input input {
-  background: rgba(0, 0, 0, 0.5) !important;
-  border: 1px solid #8a2be2 !important;
-  color: #fff !important;
-  box-shadow: 0 0 5px #8a2be2;
-  transition: all 0.3s ease;
-  padding: 2px 5px;
-  width: 50%;
-  height: 24px;
-  font-size: 1.1em;
-  /* Increased Size */
-}
-
-/* Beat V2 “plain until focus” rules inside item root */
-.sla-industries.sheet.item .sla-item-root .glow-input input:not([type=checkbox]),
-form.application.sla-industries.item .sla-item-root .glow-input input:not([type=checkbox]),
-.application.sla-industries.item .sla-item-root .glow-input input:not([type=checkbox]) {
-  background: rgba(0, 0, 0, 0.5) !important;
-  border: 1px solid #8a2be2 !important;
-  color: #fff !important;
-  box-shadow: 0 0 5px #8a2be2 !important;
-  padding: 2px 5px;
-  width: 50%;
-  height: 24px;
-  font-size: 1.1em;
-}
-
-/* ==========================================
-   24. GLOBAL DROP ZONES
-   ========================================== */
-.drop-zone {
-  border: 2px dashed #777;
-  background: rgba(0, 0, 0, 0.1);
-  padding: 5px;
-  border-radius: 4px;
-  min-height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  cursor: pointer;
-  text-align: center;
-}
-
-.drop-zone:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: #aaa;
-}
-
-.drop-zone.filled {
-  border: 2px solid #555;
-  background: transparent;
-}
-
-.drop-zone button.remove-skill-link,
-.weapon-link button.remove-link {
-  background: transparent;
-  border: none;
-  margin: 0;
-  font: inherit;
-  line-height: 1;
-  cursor: pointer;
-  color: #ff4444;
-}
-
-.drop-zone button.remove-skill-link:hover,
-.weapon-link button.remove-link:hover {
-  color: #ff8888;
-}
-
-/* Specific overrides for themes */
-.item.ebbFormula .drop-zone {
-  border-color: #8a2be2;
-  background: rgba(138, 43, 226, 0.1);
-}
-
-.item.ebbFormula .drop-zone.filled {
-  border-style: solid;
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.item.package .drop-zone,
-.item.species .drop-zone {
-  border-color: var(--sla-border);
-}
-
-.item.package .drop-zone.filled,
-.item.species .drop-zone.filled {
-  border-style: solid;
-}
-
-/* ==========================================
-   25. SINGLE VIEW LAYOUT
-   ========================================== */
-.sheet-body.single-view {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-  height: 100%;
-  overflow: hidden;
-  gap: 15px;
-}
-
-/* Single-view: scroll lives on .sheet-body (global/_base); stack dossier + description as content height */
-.sla-item-root .sheet-body.single-view,
-form.application.sla-industries.item .sheet-body.single-view {
-  flex: 1;
-  min-height: 0;
-  height: auto !important;
-  overflow-y: auto !important;
-}
-
-.sla-item-root .sheet-body.single-view .sheet-description,
-form.application.sla-industries.item .sheet-body.single-view .sheet-description {
-  flex: 0 0 auto;
-  min-height: 140px;
-}
-
-.sheet-body.single-view .sheet-attributes {
-  flex: 0 0 auto;
-  /* Takes only as much space as needed */
-  display: flex;
-  flex-direction: column;
-}
-
-.sheet-body.single-view .sheet-description {
-  flex: 1;
-  /* Takes remaining space */
-  display: flex;
-  flex-direction: column;
-  min-height: 100px;
-}
-
-.sheet-body.single-view .sheet-description .editor {
-  flex: 1;
-  border: 1px solid #333;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.2);
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.sheet-body.single-view .sheet-description prose-mirror.editor,
-.sheet-body .tab.description prose-mirror.editor {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #333;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.sla-header-bar-small {
-  background: #222;
-  color: #fff;
-  padding: 2px 5px;
-  font-size: 0.8em;
-  font-weight: bold;
-  text-transform: uppercase;
-  border-bottom: 2px solid #555;
-  margin-bottom: 5px;
-}
-
-/* Discipline item (single-view): rank card + description side by side */
-.sheet-body.single-view.sla-item-sheet-discipline {
-  display: grid;
-  grid-template-columns: minmax(200px, 1fr) minmax(240px, 1.35fr);
-  gap: 12px;
-  align-items: start;
-}
-
-.sheet-body.single-view.sla-item-sheet-discipline .sheet-attributes,
-.sheet-body.single-view.sla-item-sheet-discipline .sheet-description {
-  min-width: 0;
-  width: 100%;
-}
-
-.sheet-body.single-view.sla-item-sheet-discipline .sheet-description {
-  min-height: 200px;
-  flex: initial;
-}
-
-.sheet-body.single-view.sla-item-sheet-discipline .sheet-description .editor,
-.sheet-body.single-view.sla-item-sheet-discipline .sheet-description prose-mirror.editor {
-  min-height: 160px;
-}
-
-@media (max-width: 520px) {
-  .sheet-body.single-view.sla-item-sheet-discipline {
-    grid-template-columns: 1fr;
-  }
-}
-/* Legacy: theme class on root (may not match all App V2 mount points) */
-.sla-item-root.discipline-theme .sheet-body.single-view:not(.sla-item-sheet-discipline),
-.item.discipline .sheet-body.single-view:not(.sla-item-sheet-discipline) {
-  flex-direction: row;
-  align-items: stretch;
-  flex-wrap: nowrap;
-}
-
-.sla-item-root.discipline-theme .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-attributes,
-.item.discipline .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-attributes {
-  flex: 1 1 220px;
-  min-width: 0;
-}
-
-.sla-item-root.discipline-theme .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-description,
-.item.discipline .sheet-body.single-view:not(.sla-item-sheet-discipline) .sheet-description {
-  flex: 1 1 260px;
-  min-width: 0;
-  min-height: 180px;
-}
-
-/* ==========================================
-   26. WEAPON FIRING MODES
-   ========================================== */
-.firing-mode-grid.header {
-  display: flex;
-  font-weight: bold;
-  font-size: 0.8em;
-  color: #ccc;
-  background: #000;
-  padding: 5px;
-  border-bottom: 1px solid #555;
-  text-transform: uppercase;
-}
-
-.firing-mode-row {
-  display: flex;
-  align-items: center;
-  padding: 4px 5px;
-  background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid #333;
-  transition: background 0.2s;
-}
-
-.firing-mode-row:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.firing-mode-row.enabled {
-  background: rgba(50, 200, 50, 0.1);
-}
-
-/* Columns */
-.col-active {
-  flex: 0 0 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.col-name {
-  flex: 1;
-  padding-left: 10px;
-  color: #ddd;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-}
-
-.col-stat {
-  flex: 0 0 60px;
-  text-align: center;
-}
-
-/* Inputs within rows */
-.firing-mode-row input[type=checkbox] {
-  width: 18px !important;
-  height: 18px !important;
-  min-width: 18px !important;
-  min-height: 18px !important;
-  margin: 0;
-  cursor: pointer !important;
-  accent-color: var(--sla-accent) !important;
-  position: relative;
-  z-index: 100;
-  pointer-events: auto;
-  flex-shrink: 0;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-.firing-mode-row input[type=checkbox]:not(:checked) {
-  outline: 2px solid rgba(255, 255, 255, 0.55) !important;
-  outline-offset: 1px;
-  border-radius: 2px;
-}
-
-.firing-mode-row input[type=number] {
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid #444;
-  color: #fff;
-  text-align: center;
-  border-radius: 3px;
-  height: 22px;
-  width: 90%;
-}
-
-.sla-industries.sheet.item .sla-item-root .firing-mode-row input[type=number],
-form.application.sla-industries.item .sla-item-root .firing-mode-row input[type=number],
-.application.sla-industries.item .sla-item-root .firing-mode-row input[type=number] {
-  background: rgba(0, 0, 0, 0.5) !important;
-  border: 1px solid #444 !important;
-  color: #fff !important;
-  text-align: center;
-  border-radius: 3px;
-  height: 22px;
-  width: 90%;
-  box-shadow: none !important;
-}
-
-.sla-industries.sheet.item .sla-item-root .firing-mode-row input[type=number]:focus,
-form.application.sla-industries.item .sla-item-root .firing-mode-row input[type=number]:focus,
-.application.sla-industries.item .sla-item-root .firing-mode-row input[type=number]:focus {
-  box-shadow: 0 0 0 1px var(--sla-accent) !important;
 }

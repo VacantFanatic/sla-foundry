@@ -1,0 +1,206 @@
+/**
+ * Spectral theme — ebbFormula, discipline.
+ *
+ * Ported verbatim from the historic `_item.scss`. Phase 2 spectral PR tightens
+ * spacing, groups rows visually, and modernises the holographic backdrop.
+ */
+
+.item.ebbFormula .window-content,
+.item.discipline .window-content {
+    background: #0a0011 !important;
+    color: #d8bfff !important;
+    border: 2px solid var(--sla-type-frame, #8a2be2);
+}
+
+.item.ebbFormula .sheet-header,
+.item.discipline .sheet-header {
+    background: linear-gradient(90deg, #1a002a, #30004a) !important;
+    border-bottom: 1px solid var(--sla-type-frame, #8a2be2);
+}
+
+.item.ebbFormula input:not([type="checkbox"]),
+.item.discipline input:not([type="checkbox"]) {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid var(--sla-type-frame, #8a2be2) !important;
+    color: #fff !important;
+    text-shadow: 0 0 5px var(--sla-type-frame, #8a2be2);
+}
+
+/* Ebb formula drop zone */
+.discipline-drop-zone {
+    border: 1px dashed #8a2be2;
+    background: rgba(138, 43, 226, 0.1);
+    padding: 5px;
+    border-radius: 4px;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.discipline-drop-zone.filled {
+    border-style: solid;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.linked-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    justify-content: space-between;
+    padding: 0 5px;
+}
+
+.linked-item img {
+    width: 32px !important;
+    height: 32px !important;
+    object-fit: cover;
+    border: 1px solid #8a2be2;
+    background: #000;
+    flex: 0 0 32px;
+}
+
+.linked-item .linked-name {
+    flex: 1;
+    text-align: left;
+    font-weight: bold;
+    color: #d8bfff;
+}
+
+.linked-item .remove-discipline {
+    color: #ff4444;
+    cursor: pointer;
+}
+
+.linked-item button.remove-discipline {
+    background: transparent;
+    border: none;
+    margin: 0;
+    font: inherit;
+    line-height: 1;
+}
+
+.spectral-ebb-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(138, 43, 226, 0.45);
+    border-radius: 8px;
+}
+
+.spectral-ebb-card__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.spectral-ebb-card__row--primary .form-group,
+.spectral-ebb-card__row--combat .form-group {
+    flex: 1 1 120px;
+    min-width: 100px;
+}
+
+.spectral-ebb-card__row--effect {
+    align-items: center;
+}
+
+.spectral-ebb-card__row--effect .form-group {
+    flex: 1 1 140px;
+    min-width: 120px;
+}
+
+.spectral-ebb-card__check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: #d8bfff;
+    font-size: 0.9em;
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.spectral-ebb-discipline-link {
+    margin-top: 8px;
+}
+
+.spectral-ebb-discipline-link__label {
+    color: #c4b5fd !important;
+    font-weight: 700;
+    font-size: 0.8em;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.spectral-discipline-card {
+    padding: 12px;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(138, 43, 226, 0.45);
+    border-radius: 8px;
+}
+
+.spectral-discipline-card__header {
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #a78bfa;
+    margin-bottom: 10px;
+}
+
+.item.ebbFormula select {
+    width: 100%;
+}
+
+/* Spectral container + glow inputs */
+.spectral-container {
+    padding: 15px;
+    color: #d8bfff;
+}
+
+.glow-input {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+.glow-input label {
+    color: #a855f7;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-shadow: 0 0 5px #a855f7;
+}
+
+.glow-input input {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #8a2be2 !important;
+    color: #fff !important;
+    box-shadow: 0 0 5px #8a2be2;
+    transition: all 0.3s ease;
+    padding: 2px 5px;
+    width: 50%;
+    height: 24px;
+    font-size: 1.1em;
+}
+
+/* Glow inputs sit inside the item-sheet form root, so they must beat the
+   baseline always-visible input rule from _fields.scss */
+form.application.sla-industries.item .glow-input input:not([type="checkbox"]) {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #8a2be2 !important;
+    color: #fff !important;
+    box-shadow: 0 0 5px #8a2be2 !important;
+    padding: 2px 5px;
+    width: 50%;
+    height: 24px;
+    font-size: 1.1em;
+}

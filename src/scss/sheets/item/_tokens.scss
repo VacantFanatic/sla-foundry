@@ -1,0 +1,106 @@
+/**
+ * Per-type design tokens.
+ *
+ * Each item type sets its own accent / soft accent / frame colour via CSS custom
+ * properties scoped to `.{type}-theme` (already applied on the item-sheet root,
+ * see `templates/item/item-sheet-v2.hbs`). Themes added in later PRs (#243) read
+ * from these tokens rather than hard-coding hex values so that per-type repaints
+ * are isolated to a single theme partial.
+ *
+ * Fallback values mirror the historical orange accent so any type without an
+ * explicit override keeps its current look until its theme PR lands.
+ */
+
+.sla-item-root {
+    --sla-type-accent: var(--sla-accent);
+    --sla-type-accent-soft: rgba(208, 94, 26, 0.18);
+    --sla-type-frame: var(--sla-accent);
+    --sla-type-input-bg: rgba(0, 0, 0, 0.35);
+    --sla-type-input-border: var(--sla-border);
+    --sla-type-panel-bg: var(--sla-bg-panel);
+}
+
+/* Weapon: gunmetal + amber readout (default accent) */
+.sla-item-root.weapon-theme {
+    --sla-type-accent: #f0a050;
+    --sla-type-accent-soft: rgba(240, 160, 80, 0.18);
+    --sla-type-frame: #d05e1a;
+}
+
+/* Armor: slate + green LED */
+.sla-item-root.armor-theme {
+    --sla-type-accent: #5fb878;
+    --sla-type-accent-soft: rgba(95, 184, 120, 0.18);
+    --sla-type-frame: #3a7a4d;
+}
+
+/* Explosive: hazard yellow */
+.sla-item-root.explosive-theme {
+    --sla-type-accent: #e0c34a;
+    --sla-type-accent-soft: rgba(224, 195, 74, 0.18);
+    --sla-type-frame: #c0a020;
+}
+
+/* Magazine: kraft / ammo-label brown */
+.sla-item-root.magazine-theme {
+    --sla-type-accent: #c0a070;
+    --sla-type-accent-soft: rgba(192, 160, 112, 0.18);
+    --sla-type-frame: #806040;
+}
+
+/* Drug: pharma orange */
+.sla-item-root.drug-theme {
+    --sla-type-accent: #f0843a;
+    --sla-type-accent-soft: rgba(240, 132, 58, 0.18);
+    --sla-type-frame: #d05e1a;
+}
+
+/* Toxicant: bio-hazard green */
+.sla-item-root.toxicant-theme {
+    --sla-type-accent: #9bd152;
+    --sla-type-accent-soft: rgba(155, 209, 82, 0.18);
+    --sla-type-frame: #5b8a2e;
+}
+
+/* Skill: field-manual blue */
+.sla-item-root.skill-theme {
+    --sla-type-accent: #86b4ff;
+    --sla-type-accent-soft: rgba(134, 180, 255, 0.18);
+    --sla-type-frame: #4a78c0;
+}
+
+/* Trait: annotation tan */
+.sla-item-root.trait-theme {
+    --sla-type-accent: #d4b878;
+    --sla-type-accent-soft: rgba(212, 184, 120, 0.18);
+    --sla-type-frame: #a08040;
+}
+
+/* Species: dossier red */
+.sla-item-root.species-theme {
+    --sla-type-accent: #d04040;
+    --sla-type-accent-soft: rgba(208, 64, 64, 0.18);
+    --sla-type-frame: #9c2a2a;
+}
+
+/* Package: training program green */
+.sla-item-root.package-theme {
+    --sla-type-accent: #6fc46f;
+    --sla-type-accent-soft: rgba(111, 196, 111, 0.18);
+    --sla-type-frame: #3b8c3b;
+}
+
+/* Ebb formula / discipline: spectral purple */
+.sla-item-root.ebbFormula-theme,
+.sla-item-root.discipline-theme {
+    --sla-type-accent: #c4a0ff;
+    --sla-type-accent-soft: rgba(138, 43, 226, 0.18);
+    --sla-type-frame: #8a2be2;
+}
+
+/* Generic item: neutral grey */
+.sla-item-root.item-theme {
+    --sla-type-accent: #9090a0;
+    --sla-type-accent-soft: rgba(144, 144, 160, 0.18);
+    --sla-type-frame: #555566;
+}
