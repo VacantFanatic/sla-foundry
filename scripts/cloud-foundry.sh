@@ -99,14 +99,20 @@ start() {
   export FOUNDRY_WORLD="${FOUNDRY_WORLD:-$WORLD_ID}"
 
   if has_download_creds && [[ -x "$START_SCRIPT" ]]; then
-    echo "Starting Foundry via credentials (world=$FOUNDRY_WORLD)..."
+    echo "Starting Foundry via snapshot launcher (world=$FOUNDRY_WORLD)..."
     "$START_SCRIPT"
-  elif has_cache_zip; then
-    echo "Starting Foundry from container cache (world=$FOUNDRY_WORLD)..."
+  elif command -v docker >/dev/null 2>&1 && (has_cache_zip || has_download_creds); then
+    if has_cache_zip; then
+      echo "Starting Foundry from container cache (world=$FOUNDRY_WORLD)..."
+    else
+      echo "Starting Foundry via credentials + docker (world=$FOUNDRY_WORLD)..."
+    fi
     sudo docker rm -f foundry 2>/dev/null || true
     ENV_ARGS=(-e "FOUNDRY_TELEMETRY=false" -e "FOUNDRY_WORLD=${FOUNDRY_WORLD}")
     [[ -n "${FOUNDRY_LICENSE_KEY:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_LICENSE_KEY=${FOUNDRY_LICENSE_KEY}")
     [[ -n "${FOUNDRY_RELEASE_URL:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_RELEASE_URL=${FOUNDRY_RELEASE_URL}")
+    [[ -n "${FOUNDRY_USERNAME:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_USERNAME=${FOUNDRY_USERNAME}")
+    [[ -n "${FOUNDRY_ACCOUNT_PASSWORD:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_PASSWORD=${FOUNDRY_ACCOUNT_PASSWORD}")
     sudo docker run -d --name foundry \
       --hostname "${FOUNDRY_DOCKER_HOSTNAME:-foundry-server}" \
       -p "${PORT}:30000" \
@@ -114,7 +120,11 @@ start() {
       "${ENV_ARGS[@]}" \
       "$IMAGE"
   else
-    echo "Foundry not started: add Cloud Agents secrets (see AGENTS.md)."
+    if ! command -v docker >/dev/null 2>&1; then
+      echo "Foundry not started: docker is not installed (run scripts/cloud-install-docker.sh)." >&2
+    else
+      echo "Foundry not started: no FOUNDRY_RELEASE_URL/FOUNDRY_USERNAME or cached release zip (see AGENTS.md)." >&2
+    fi
     return 0
   fi
 
