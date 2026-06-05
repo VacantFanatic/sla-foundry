@@ -6,6 +6,8 @@ This repository is a **Foundry VTT v14 game system** (SLA Industries 2nd Edition
 
 ### What works without Foundry
 
+Cloud agents can develop and verify this repo **without** Foundry license secrets using the commands below. E2E and in-browser testing stay optional until you run your own Foundry instance locally or add credentials.
+
 | Task | Command |
 |------|---------|
 | Install JS deps | `npm install` |
@@ -38,6 +40,8 @@ docker run -d --name foundry \
 ```
 
 Use a **stable `--hostname`**; Foundry binds licenses to the container host.
+
+On this cloud VM, run Docker with `sudo` unless your user is in the `docker` group (`sudo usermod -aG docker $USER`, then start a new shell).
 
 ### E2E commands
 
