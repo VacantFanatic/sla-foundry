@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.5.2] - 2026-06-05
+
+### Added
+
+* **Release packaging:** `dist/` build output and `npm run package` produce `sla-industries.zip` containing only Foundry runtime files (aligned with `fvtt-cyberpunk-red-core-dev`). Scripts: `scripts/build-dist.mjs`, `scripts/package-release.sh`.
+
+### Changed
+
+* **CI:** GitHub Actions runs `npm run package` instead of `git archive`, so dev tooling (`tests/`, `src/scss/`, Playwright config, cloud scripts, etc.) is excluded from release artifacts.
+* **`npm run build`:** Now runs `build:css` then assembles `dist/`; use `build:css` alone for SCSS-only local iteration.
+* **Cloud Foundry deploy:** `cloud-foundry.sh` syncs `dist/` into Foundry data after `npm run build`.
+* Updated system and package metadata version to `2.5.2`, including the release `download` URL in `system.json`.
+
 ## [2.5.1] - 2026-06-05
 
 ### Added

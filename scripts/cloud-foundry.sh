@@ -14,12 +14,11 @@ cmd="${1:-status}"
 
 sync_system_install() {
   local dest="$DATA_DIR/Data/systems/sla-industries"
-  if [[ -L "$dest" ]] || [[ ! -f "$dest/system.json" ]]; then
-    echo "Installing sla-industries system (copy; Foundry v14 does not load symlinked systems reliably)..."
-    rm -rf "$dest"
-    mkdir -p "$DATA_DIR/Data/systems"
-    rsync -a --exclude node_modules --exclude .git "$ROOT/" "$dest/"
-  fi
+  echo "Building dist/ and installing sla-industries into Foundry data..."
+  npm run build --prefix "$ROOT" >/dev/null
+  rm -rf "$dest"
+  mkdir -p "$DATA_DIR/Data/systems"
+  rsync -a "$ROOT/dist/" "$dest/"
 }
 
 ensure_world_json() {

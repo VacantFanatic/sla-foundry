@@ -50,7 +50,7 @@ bash scripts/cloud-foundry.sh start   # preferred: copies system, creates sla-te
 npm run test:env                      # build + unit + E2E when Foundry is up
 ```
 
-Foundry v14 does not reliably detect **symlinked** systems — `cloud-foundry.sh` **rsyncs** `/workspace` into `Data/systems/sla-industries`. The test world id is `sla-test-world` (`FOUNDRY_WORLD` / `FOUNDRY_WORLD_ID`). Run `node scripts/ensure-foundry-user.mjs` if `FOUNDRY_USER` is not on the join page yet.
+Release builds use **`dist/`** (runtime files only). `npm run build` compiles SCSS and assembles `dist/`; `npm run package` creates `sla-industries.zip`. `cloud-foundry.sh` deploys **`dist/`** into Foundry data (not the full git tree). The test world id is `sla-test-world` (`FOUNDRY_WORLD` / `FOUNDRY_WORLD_ID`). Run `node scripts/ensure-foundry-user.mjs` if `FOUNDRY_USER` is not on the join page yet.
 
 If cloud secrets are not configured, export the same variables in your shell (or pass them only for that command) before running the script — Foundry cannot be downloaded without them.
 
