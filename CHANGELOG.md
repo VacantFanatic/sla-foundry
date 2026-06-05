@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.6.1] - 2026-06-05
+
+### Fixed
+
+* **Cursor Cloud Foundry startup:** `foundry_join_ready` checks v14 `/join` static HTML (`auth join` body, not “Critical Failure”) instead of treating any HTTP response as ready; `status` reports `foundry:starting` when the server is up but the world is not joinable.
+* **Docker on cloud VMs:** Shared `scripts/ensure-docker.sh` starts `dockerd` (vfs driver) before `prepare`/`start` use Docker; wired into `environment.json` install.
+* **First-boot automation:** `cloud-foundry.sh start` runs `foundry-bootstrap.mjs` (EULA, `worldLaunch`) when HTTP is up but `/join` is not; `bootstrap` subcommand waits for join readiness before creating `FOUNDRY_USER`.
+* **`ensure-foundry-user.mjs`:** Retries until `/join` lists users; no longer calls `game.shutDown()` (which stopped the world and broke subsequent E2E).
+* **`foundry-bootstrap.mjs`:** Updated for Foundry v14 UI (`#eula-agree`, `[data-action="worldLaunch"]`, 1920×1080 viewport).
+* **`environment.json` / `test-environment.sh`:** Removed `|| true` on start so startup failures surface to Cursor and CI.
+
 ## [2.6.0] - 2026-06-05
 
 ### Added

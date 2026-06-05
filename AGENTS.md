@@ -46,8 +46,9 @@ Configure these in **Cloud Agents → Secrets** (one download method is enough):
 Start server after secrets are set:
 
 ```bash
-bash scripts/cloud-foundry.sh start   # preferred: copies system, creates sla-test-world, auto-launches
-npm run test:env                      # build + unit + E2E when Foundry is up
+bash scripts/cloud-foundry.sh start   # preferred: copies system, creates sla-test-world, launches when /join is ready
+bash scripts/cloud-foundry.sh bootstrap  # first boot: EULA + world launch + FOUNDRY_USER
+npm run test:env                      # build + unit + E2E when /join is ready (not merely port open)
 ```
 
 #### Docker persistence (cloud VM)
@@ -62,7 +63,7 @@ Foundry runs in Docker via `scripts/start-foundry.sh` with data bind-mounted to 
 
 The container uses `--restart unless-stopped` and a stable `--hostname foundry-server` (license binding). **Timed `FOUNDRY_RELEASE_URL` values expire in minutes** — refresh at [foundryvtt.com/me/licenses](https://foundryvtt.com/me/licenses) if startup fails with HTTP 403, or add `FOUNDRY_USERNAME` + `FOUNDRY_ACCOUNT_PASSWORD` instead. After the first successful download, the zip in `container_cache/` makes the timed URL unnecessary.
 
-Release builds use **`dist/`** (runtime files only). `npm run build` compiles SCSS and assembles `dist/`; `npm run package` creates `sla-industries.zip`. `cloud-foundry.sh` deploys **`dist/`** into Foundry data (not the full git tree). The test world id is `sla-test-world` (`FOUNDRY_WORLD` / `FOUNDRY_WORLD_ID`). Run `node scripts/ensure-foundry-user.mjs` if `FOUNDRY_USER` is not on the join page yet.
+Release builds use **`dist/`** (runtime files only). `npm run build` compiles SCSS and assembles `dist/`; `npm run package` creates `sla-industries.zip`. `cloud-foundry.sh` deploys **`dist/`** into Foundry data (not the full git tree). The test world id is `sla-test-world` (`FOUNDRY_WORLD` / `FOUNDRY_WORLD_ID`). Run `bash scripts/cloud-foundry.sh bootstrap` (or `node scripts/ensure-foundry-user.mjs`) if `FOUNDRY_USER` is not on the join page yet. `foundry:status` requires a joinable world; `foundry:starting` means the server is up but EULA/world launch is still pending.
 
 If cloud secrets are not configured, export the same variables in your shell (or pass them only for that command) before running the script — Foundry cannot be downloaded without them.
 

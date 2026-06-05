@@ -10,7 +10,7 @@ echo "=== SLA Industries environment test ==="
 npm run build
 npm run test:unit
 
-bash scripts/cloud-foundry.sh start || true
+bash scripts/cloud-foundry.sh start
 
 if bash scripts/cloud-foundry.sh status >/dev/null 2>&1; then
   echo "=== Foundry is up — running E2E ==="
@@ -19,14 +19,8 @@ if bash scripts/cloud-foundry.sh status >/dev/null 2>&1; then
   fi
   npm run test:e2e
 else
-  echo "=== Foundry not running — skipping E2E (unit + build passed) ==="
-  bash scripts/cloud-foundry.sh start || true
-  if bash scripts/cloud-foundry.sh status >/dev/null 2>&1; then
-    echo "Foundry came up after start; running E2E..."
-    npm run test:e2e
-  else
-    echo "E2E skipped. Configure Cloud Agents secrets or save a VM snapshot with Foundry installed."
-  fi
+  echo "=== Foundry not ready — skipping E2E (unit + build passed) ==="
+  echo "Configure Cloud Agents secrets or save a VM snapshot with Foundry installed."
 fi
 
 echo "=== Environment test complete ==="
