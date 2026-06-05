@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 * **CI release publishing:** Main CI skips GitHub release creation when the versioned release already exists, avoiding immutable-release update failures on same-version main pushes.
+* **Cursor Cloud startup:** Environment installs use `npm ci`, and `cloud-foundry.sh prepare` no longer requires `rsync` to copy `dist/` into Foundry data.
 * **Foundry website update:** Replaced the third-party post-release action with a repo-local updater that uses the `system.json` package id (`sla-industries`) and the published release asset URL without forcing a `v` tag prefix.
 * Updated system and package metadata version to `2.5.4`, including the release `download` URL in `system.json`.
 

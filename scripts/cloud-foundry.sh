@@ -24,8 +24,8 @@ sync_system_install() {
     exit 1
   fi
   rm -rf "$dest"
-  mkdir -p "$DATA_DIR/Data/systems"
-  rsync -a "$ROOT/dist/" "$dest/"
+  mkdir -p "$dest"
+  cp -a "$ROOT/dist/." "$dest/"
 }
 
 ensure_world_json() {
