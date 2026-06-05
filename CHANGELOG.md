@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.5.4] - 2026-06-05
+
+### Fixed
+
+* **CI release publishing:** Main CI skips GitHub release creation when the versioned release already exists, avoiding immutable-release update failures on same-version main pushes.
+* **Foundry website update:** Replaced the third-party post-release action with a repo-local updater that uses the `system.json` package id (`sla-industries`) and the published release asset URL without forcing a `v` tag prefix.
+* Updated system and package metadata version to `2.5.4`, including the release `download` URL in `system.json`.
+
 ## [2.5.3] - 2026-06-05
 
 ### Added
@@ -580,7 +588,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Damage application targeting both selected token and target.
 * Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.5.0...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.5.4...HEAD
+[2.5.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.4
+[2.5.3]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.3
+[2.5.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.2
+[2.5.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.1
 [2.5.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.0
 [2.4.7]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.7
 [2.4.6]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.4.6

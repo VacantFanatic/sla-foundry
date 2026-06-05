@@ -17,13 +17,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: main
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Foundry Website Update
         id: foundry-website-update
-        uses: foundryvtt-dcc/foundry-package-release-action@main
-        with:
-          actionToken: ${{ secrets.GITHUB_TOKEN }}
-          manifestFileName: 'system.json'
-          foundryToken: ${{ secrets.FOUNDRY_PACKAGE_RELEASE_TOKEN }}
-          dryRun: false
+        env:
+          FOUNDRY_PACKAGE_RELEASE_TOKEN: ${{ secrets.FOUNDRY_PACKAGE_RELEASE_TOKEN }}
+          FOUNDRY_DRY_RUN: "false"
+        run: node scripts/update-foundry-release.mjs
