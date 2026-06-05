@@ -1,0 +1,54 @@
+/**
+ * Catalogue theme — generic items, weapons, armor, explosives, magazines, drugs.
+ *
+ * Ported verbatim from the historic `_item.scss`. Phase 2 PRs replace this
+ * shared grid with per-type identities (Cannon Catalogue, Powersuit Telemetry,
+ * Munition Placard, Ammo Label, Pharma Label).
+ */
+
+.catalogue-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+}
+
+.item-catalogue .form-group {
+    background: #ccc;
+    border: 1px solid #999;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+}
+
+.item-catalogue label {
+    font-size: 0.7em;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #555;
+}
+
+.item-catalogue input:not([type="checkbox"]) {
+    background: transparent;
+    border: none;
+    font-weight: bold;
+    color: #000;
+    border-bottom: 1px solid #999;
+}
+
+/* Powersuit / firing-mode toggle inputs that live inside the form root keep
+   the original brushed look – aliased here for compatibility with PR 1. */
+form.application.sla-industries.item .firing-mode-row input[type="number"] {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #444 !important;
+    color: #fff !important;
+    text-align: center;
+    border-radius: 3px;
+    height: 22px;
+    width: 90%;
+    box-shadow: none !important;
+}
+
+form.application.sla-industries.item .firing-mode-row input[type="number"]:focus {
+    box-shadow: 0 0 0 1px var(--sla-type-accent, var(--sla-accent)) !important;
+}

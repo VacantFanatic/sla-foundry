@@ -1,0 +1,181 @@
+/**
+ * Item sheet fields & inputs.
+ *
+ * Phase 1 readability baseline (#243):
+ * - Inputs render with a subtle dark fill + visible border at rest (was
+ *   transparent until focus, which made fields invisible).
+ * - Focus state uses the per-type accent glow so each theme's identity carries
+ *   into interaction state.
+ *
+ * Catalogue tiles (light gray panel) still get a dark input override because
+ * they're meant to read as a label on a printed card; the catalogue theme
+ * partial supplies the contrasting field background.
+ *
+ * Glow inputs (spectral) keep their bespoke purple aesthetic via the spectral
+ * theme partial — those rules `!important`-win against this baseline.
+ */
+
+/* Item name heading – font + colour */
+.sla-industries.sheet.item .sla-item-root .sheet-header h1.charname,
+form.application.sla-industries.item .sla-item-root .sheet-header h1.charname,
+form.application.sla-industries.item .sheet-header h1.charname {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none;
+    height: auto;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.sla-industries.sheet.item .sla-item-root h1.charname input[type="text"],
+form.application.sla-industries.item .sla-item-root h1.charname input[type="text"],
+form.application.sla-industries.item h1.charname input[type="text"] {
+    @include font-header;
+    font-family: var(--sla-font-header) !important;
+    font-size: 1rem;
+    letter-spacing: 0.35px;
+    line-height: 1.2;
+    height: auto !important;
+    min-height: 0;
+    padding: 0;
+    text-shadow: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none;
+    color: #fff;
+}
+
+.sla-industries.sheet.item .sla-item-root h1.charname input[type="text"]:focus,
+form.application.sla-industries.item .sla-item-root h1.charname input[type="text"]:focus,
+form.application.sla-industries.item h1.charname input[type="text"]:focus {
+    background: #0a0a0a !important;
+    border: 1px solid var(--sla-type-frame, var(--sla-border)) !important;
+    border-radius: var(--sla-radius);
+    box-shadow: 0 0 0 1px var(--sla-type-accent, var(--sla-accent));
+    outline: none;
+}
+
+/* Body inputs – always-visible baseline, focus glow uses the type accent */
+form.application.sla-industries.item input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]),
+form.application.sla-industries.item select,
+form.application.sla-industries.item textarea {
+    font-family: var(--sla-font-mono) !important;
+    color: var(--sla-text-light);
+    background: var(--sla-type-input-bg, rgba(0, 0, 0, 0.35)) !important;
+    border: 1px solid var(--sla-type-input-border, var(--sla-border)) !important;
+    border-radius: var(--sla-radius);
+    box-shadow: none !important;
+    outline: none;
+}
+
+form.application.sla-industries.item textarea {
+    resize: vertical;
+}
+
+form.application.sla-industries.item input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]):focus,
+form.application.sla-industries.item select:focus,
+form.application.sla-industries.item textarea:focus {
+    background: #0a0a0a !important;
+    border-color: var(--sla-type-frame, var(--sla-border)) !important;
+    box-shadow: 0 0 0 1px var(--sla-type-accent, var(--sla-accent)) !important;
+    outline: none;
+}
+
+/* Catalogue tile inputs render on a light card and must remain dark text */
+form.application.sla-industries.item .item-catalogue input:not([type="checkbox"]),
+form.application.sla-industries.item .item-catalogue select {
+    color: #000;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid #999 !important;
+    border-radius: 0;
+}
+
+/* Native checkboxes: stay visible on dark themes, beat the input-baseline rules */
+form.application.sla-industries.sheet.item input[type="checkbox"],
+form.application.sla-industries.item input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+    margin: 0;
+    cursor: pointer !important;
+    accent-color: var(--sla-type-accent, var(--sla-accent)) !important;
+    vertical-align: middle;
+    flex-shrink: 0;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+form.application.sla-industries.sheet.item input[type="checkbox"]:not(:checked),
+form.application.sla-industries.item input[type="checkbox"]:not(:checked) {
+    outline: 2px solid rgba(255, 255, 255, 0.55) !important;
+    outline-offset: 1px;
+    border-radius: 2px;
+}
+
+/* ==========================================
+   Phase 1 component: .sla-field
+   ==========================================
+   Reusable field wrapper. Per-type theme PRs (#243) swap inline-styled
+   `.form-group` blocks for these classes. Available now so theme PRs can be
+   pure SCSS additions without re-introducing component CSS.
+*/
+form.application.sla-industries.item .sla-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+
+    > label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--sla-type-accent, var(--sla-accent));
+        opacity: 0.85;
+        margin: 0;
+    }
+
+    &.sla-field--inline {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+
+        > label {
+            flex: 0 0 auto;
+            opacity: 1;
+        }
+
+        > input,
+        > select {
+            flex: 1;
+        }
+    }
+
+    &.sla-field--toggle {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+
+        > label {
+            flex: 1;
+        }
+
+        > input[type="checkbox"] {
+            flex: 0 0 auto;
+        }
+    }
+
+    &.sla-field--compact > input,
+    &.sla-field--compact > select {
+        height: 24px;
+        padding: 0 6px;
+    }
+}

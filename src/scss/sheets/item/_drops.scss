@@ -1,0 +1,111 @@
+/**
+ * Drop zones.
+ *
+ * Today the codebase has five drop-zone class names (`.drop-zone`,
+ * `.skill-link-box`, `.weapon-link`, `.discipline-drop-zone`, `.skill-grant-area`)
+ * each with bespoke colours, padding, and empty-state copy.
+ *
+ * Phase 1 (#243) introduces a single `.sla-drop` component and keeps the legacy
+ * class names as visual aliases so per-type theme PRs can migrate markup
+ * gradually. The is-drag-over state will be wired in a later PR.
+ */
+
+/* ==========================================
+   Unified .sla-drop
+   ========================================== */
+form.application.sla-industries.item .sla-drop {
+    border: 2px dashed var(--sla-type-frame, #777);
+    background: var(--sla-type-accent-soft, rgba(255, 255, 255, 0.04));
+    padding: 6px;
+    border-radius: var(--sla-radius);
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-align: center;
+
+    &.is-drag-over {
+        background: var(--sla-type-accent-soft);
+        border-style: solid;
+        border-color: var(--sla-type-accent, var(--sla-accent));
+        box-shadow: inset 0 0 0 1px var(--sla-type-accent, var(--sla-accent));
+    }
+
+    &.sla-drop--filled {
+        border-style: solid;
+    }
+
+    > .sla-drop__hint {
+        color: #888;
+        font-style: italic;
+        font-size: 0.85em;
+    }
+}
+
+/* ==========================================
+   Legacy aliases — keep existing markup styled
+   ========================================== */
+.drop-zone {
+    border: 2px dashed #777;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 5px;
+    border-radius: 4px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-align: center;
+}
+
+.drop-zone:hover,
+.drop-zone.is-drag-over {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #aaa;
+}
+
+.drop-zone.filled {
+    border: 2px solid #555;
+    background: transparent;
+}
+
+.drop-zone button.remove-skill-link,
+.weapon-link button.remove-link {
+    background: transparent;
+    border: none;
+    margin: 0;
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+    color: #ff4444;
+}
+
+.drop-zone button.remove-skill-link:hover,
+.weapon-link button.remove-link:hover {
+    color: #ff8888;
+}
+
+/* Theme-specific drop-zone tints (kept from the original _item.scss) */
+.item.ebbFormula .drop-zone {
+    border-color: #8a2be2;
+    background: rgba(138, 43, 226, 0.1);
+}
+
+.item.ebbFormula .drop-zone.filled {
+    border-style: solid;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.item.package .drop-zone,
+.item.species .drop-zone {
+    border-color: var(--sla-border);
+}
+
+.item.package .drop-zone.filled,
+.item.species .drop-zone.filled {
+    border-style: solid;
+}

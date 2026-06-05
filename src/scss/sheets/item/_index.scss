@@ -1,0 +1,22 @@
+/**
+ * Item sheet partials index (#243 Phase 1 / 5).
+ *
+ * Order matters:
+ *   1. Tokens establish the per-type CSS variables.
+ *   2. Base + fields + sections + drops + tabs provide the shared shell.
+ *   3. Themes layer on each item type's identity (still mostly verbatim from
+ *      the legacy _item.scss until per-type Phase 2 PRs land).
+ */
+
+@import 'tokens';
+@import 'base';
+@import 'fields';
+@import 'sections';
+@import 'drops';
+@import 'tabs';
+
+@import 'themes/academic';
+@import 'themes/catalogue';
+@import 'themes/weapon';
+@import 'themes/spectral';
+@import 'themes/dossier';
