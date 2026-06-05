@@ -1,5 +1,10 @@
 node_modules/
 
+# Release build output (Foundry-installable tree)
+dist/
+.package-stage/
+sla-industries.zip
+
 # Playwright
 /playwright-report/
 /test-results/
