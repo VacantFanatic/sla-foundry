@@ -1,4 +1,10 @@
-{{#if (eq item.type "drug")}}
+{{#if (eq item.type "weapon")}}
+{{> "systems/sla-industries/templates/item/parts/item-weapon.hbs"}}
+
+{{else if (eq item.type "magazine")}}
+{{> "systems/sla-industries/templates/item/parts/item-magazine.hbs"}}
+
+{{else if (eq item.type "drug")}}
 {{!-- DRUG SPECIFIC LAYOUT: Two Columns --}}
 <div class="catalogue-grid">
 
@@ -48,11 +54,6 @@
 
     {{!-- DYNAMIC PARTIALS --}}
 
-    {{!-- Weapon --}}
-    {{#if (eq item.type "weapon")}}
-    {{> "systems/sla-industries/templates/item/parts/item-weapon.hbs"}}
-    {{/if}}
-
     {{!-- Explosive --}}
     {{#if (eq item.type "explosive")}}
     {{> "systems/sla-industries/templates/item/parts/item-explosive.hbs"}}
@@ -61,11 +62,6 @@
     {{!-- Armor --}}
     {{#if (eq item.type "armor")}}
     {{> "systems/sla-industries/templates/item/parts/item-armor.hbs"}}
-    {{/if}}
-
-    {{!-- Magazine --}}
-    {{#if (eq item.type "magazine")}}
-    {{> "systems/sla-industries/templates/item/parts/item-magazine.hbs"}}
     {{/if}}
 
     {{!-- Generic Item Notes (Fallback for type "item") --}}

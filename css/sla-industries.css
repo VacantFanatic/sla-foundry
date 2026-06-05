@@ -4033,9 +4033,9 @@ form.application.sla-industries.item .sheet-body.single-view .sheet-description 
 /**
  * Catalogue theme — generic items, weapons, armor, explosives, magazines, drugs.
  *
- * Ported verbatim from the historic `_item.scss`. Phase 2 PRs replace this
- * shared grid with per-type identities (Cannon Catalogue, Powersuit Telemetry,
- * Munition Placard, Ammo Label, Pharma Label).
+ * Ported verbatim from the historic `_item.scss`. Phase 2+ PRs replace this
+ * shared grid with per-type identities. Weapon and magazine now use dedicated
+ * Cannon Catalogue / Ammo Label layouts (#243 phase 2).
  */
 .catalogue-grid {
   display: grid;
@@ -4085,11 +4085,162 @@ form.application.sla-industries.item .firing-mode-row input[type=number]:focus {
 }
 
 /**
- * Weapon firing-modes table.
+ * Weapon theme — Cannon Catalogue (#243 phase 2).
  *
- * Phase 1 keeps the existing visual. Phase 2 weapon-theme PR replaces this
- * with a proper `<table>` and a darker amber-on-gunmetal palette.
+ * Gunmetal panels with amber readouts. Replaces the shared light-grey
+ * catalogue grid for weapons and migrates firing modes to a semantic table.
  */
+.sla-item-root.weapon-theme {
+  --sla-type-input-bg: rgba(18, 16, 14, 0.9);
+  --sla-type-input-border: rgba(240, 160, 80, 0.25);
+  --sla-type-panel-bg: rgba(22, 20, 18, 0.95);
+}
+
+form.application.sla-industries.item .weapon-theme .sheet-header {
+  background: linear-gradient(180deg, #1a1816 0%, #121010 100%) !important;
+  border-bottom-color: var(--sla-type-frame);
+}
+
+form.application.sla-industries.item .cannon-catalogue {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+  background: linear-gradient(135deg, rgba(240, 160, 80, 0.04) 0%, transparent 40%), linear-gradient(180deg, #141210 0%, #0e0c0a 100%);
+  border: 1px solid rgba(240, 160, 80, 0.15);
+  border-radius: var(--sla-radius);
+}
+
+form.application.sla-industries.item .cannon-catalogue__stamp {
+  align-self: flex-start;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sla-type-accent);
+  border: 2px solid var(--sla-type-frame);
+  padding: 4px 10px;
+  transform: rotate(-1deg);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+form.application.sla-industries.item .cannon-catalogue__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+form.application.sla-industries.item .cannon-catalogue__powersuit-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+form.application.sla-industries.item .cannon-catalogue__powersuit-idle {
+  margin: 0;
+  padding: 8px 4px;
+  text-align: center;
+  font-style: italic;
+  color: #888;
+  font-size: 0.9em;
+}
+
+/* Firing modes table (replaces flex-row grid from phase 1) */
+form.application.sla-industries.item .firing-mode-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85em;
+}
+
+form.application.sla-industries.item .firing-mode-table thead th {
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sla-type-accent);
+  background: rgba(0, 0, 0, 0.45);
+  border-bottom: 1px solid rgba(240, 160, 80, 0.25);
+  padding: 6px 5px;
+  text-align: center;
+}
+
+form.application.sla-industries.item .firing-mode-table thead th.col-name {
+  text-align: left;
+  padding-left: 10px;
+}
+
+form.application.sla-industries.item .firing-mode-table tbody tr.firing-mode-row {
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.2s;
+}
+
+form.application.sla-industries.item .firing-mode-table tbody tr.firing-mode-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+form.application.sla-industries.item .firing-mode-table tbody tr.firing-mode-row.enabled {
+  background: rgba(240, 160, 80, 0.08);
+}
+
+form.application.sla-industries.item .firing-mode-table td {
+  padding: 4px 5px;
+  vertical-align: middle;
+}
+
+form.application.sla-industries.item .firing-mode-table .col-active {
+  width: 40px;
+  text-align: center;
+}
+
+form.application.sla-industries.item .firing-mode-table .col-name {
+  color: #ddd;
+  font-weight: 700;
+  text-align: left;
+  padding-left: 10px;
+}
+
+form.application.sla-industries.item .firing-mode-table .col-stat {
+  width: 72px;
+  text-align: center;
+}
+
+form.application.sla-industries.item .firing-mode-table input[type=checkbox] {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  margin: 0;
+  cursor: pointer !important;
+  accent-color: var(--sla-type-accent, var(--sla-accent)) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+form.application.sla-industries.item .firing-mode-table input[type=checkbox]:not(:checked) {
+  outline: 2px solid rgba(255, 255, 255, 0.55) !important;
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+form.application.sla-industries.item .firing-mode-table input[type=number] {
+  background: rgba(0, 0, 0, 0.55) !important;
+  border: 1px solid rgba(240, 160, 80, 0.2) !important;
+  color: var(--sla-type-accent) !important;
+  text-align: center;
+  border-radius: 3px;
+  height: 24px;
+  width: 90%;
+  box-shadow: none !important;
+}
+
+form.application.sla-industries.item .firing-mode-table input[type=number]:focus {
+  box-shadow: 0 0 0 1px var(--sla-type-accent, var(--sla-accent)) !important;
+}
+
+/* Legacy flex firing-mode selectors — kept for backward compatibility */
 .firing-mode-grid.header {
   display: flex;
   font-weight: bold;
@@ -4115,7 +4266,7 @@ form.application.sla-industries.item .firing-mode-row input[type=number]:focus {
 }
 
 .firing-mode-row.enabled {
-  background: rgba(50, 200, 50, 0.1);
+  background: rgba(240, 160, 80, 0.1);
 }
 
 .col-active {
@@ -4170,6 +4321,75 @@ form.application.sla-industries.item .firing-mode-row input[type=number]:focus {
   border-radius: 3px;
   height: 22px;
   width: 90%;
+}
+
+/**
+ * Magazine theme — Ammo Label (#243 phase 2).
+ *
+ * Kraft-paper label aesthetic with brown frame accents. Replaces the shared
+ * light-grey catalogue grid for magazines.
+ */
+.sla-item-root.magazine-theme {
+  --sla-type-input-bg: rgba(255, 248, 235, 0.12);
+  --sla-type-input-border: rgba(192, 160, 112, 0.45);
+  --sla-type-panel-bg: rgba(96, 72, 48, 0.35);
+}
+
+form.application.sla-industries.item .magazine-theme .sheet-header {
+  background: linear-gradient(180deg, #3a3028 0%, #2a2218 100%) !important;
+  border-bottom-color: var(--sla-type-frame);
+}
+
+form.application.sla-industries.item .ammo-label {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(255, 248, 230, 0.08) 0%, rgba(160, 128, 96, 0.06) 100%), repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(128, 96, 64, 0.08) 23px, rgba(128, 96, 64, 0.08) 24px);
+  border: 2px solid var(--sla-type-frame);
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(255, 248, 230, 0.06);
+}
+
+form.application.sla-industries.item .ammo-label__stamp {
+  align-self: flex-start;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #2a2018;
+  background: linear-gradient(180deg, #e8dcc8 0%, #d4c4a8 100%);
+  border: 2px solid var(--sla-type-frame);
+  padding: 4px 12px;
+  transform: rotate(-2deg);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+form.application.sla-industries.item .ammo-label__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+form.application.sla-industries.item .ammo-label .sla-field > label {
+  color: var(--sla-type-accent);
+  opacity: 1;
+}
+
+form.application.sla-industries.item .ammo-label__linked-name {
+  font-weight: 700;
+  color: var(--sla-type-accent);
+}
+
+form.application.sla-industries.item .ammo-label .sla-drop {
+  border-color: var(--sla-type-frame);
+  background: rgba(255, 248, 230, 0.06);
+}
+
+form.application.sla-industries.item .ammo-label .sla-drop.sla-drop--filled {
+  border-style: solid;
+  background: rgba(0, 0, 0, 0.25);
 }
 
 /**

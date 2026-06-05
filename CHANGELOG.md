@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.6.2] - 2026-06-05
+
+### Added
+
+* **Weapon item theme — Cannon Catalogue (#243 phase 2):** Gunmetal panel layout with amber readouts, `.sla-field` / `.sla-section` / `.sla-drop` markup, semantic firing-modes `<table>`, and localized field labels (`SLA.ItemSheet.Weapon.*`, shared `SLA.ItemSheet.Field.*`).
+* **Magazine item theme — Ammo Label (#243 phase 2):** Kraft-paper label aesthetic with brown frame accents, dedicated layout partial, and localized labels (`SLA.ItemSheet.Magazine.*`).
+
+### Changed
+
+* **Item catalogue routing:** Weapon and magazine sheets no longer render inside the shared light-grey `catalogue-grid`; each type uses its own themed partial (`item-weapon.hbs`, `item-magazine.hbs`).
+* **SCSS:** Expanded `themes/_weapon.scss` for Cannon Catalogue styling; added `themes/_magazine.scss`. Legacy flex-based `.firing-mode-row` selectors retained for backward compatibility.
+* Updated system and package metadata version to `2.6.2`, including the release `download` URL in `system.json`.
+
+### Notes
+
+* No data-model or behaviour changes. Drop handlers and form field names are unchanged; legacy drop-zone class names (`.skill-link-box`, `.weapon-link`, `.drop-zone`) remain on themed markup for JS binding and module CSS compatibility.
+
 ## [2.6.1] - 2026-06-05
 
 ### Fixed

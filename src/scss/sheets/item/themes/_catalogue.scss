@@ -1,9 +1,9 @@
 /**
  * Catalogue theme — generic items, weapons, armor, explosives, magazines, drugs.
  *
- * Ported verbatim from the historic `_item.scss`. Phase 2 PRs replace this
- * shared grid with per-type identities (Cannon Catalogue, Powersuit Telemetry,
- * Munition Placard, Ammo Label, Pharma Label).
+ * Ported verbatim from the historic `_item.scss`. Phase 2+ PRs replace this
+ * shared grid with per-type identities. Weapon and magazine now use dedicated
+ * Cannon Catalogue / Ammo Label layouts (#243 phase 2).
  */
 
 .catalogue-grid {
