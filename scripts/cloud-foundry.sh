@@ -66,8 +66,12 @@ prepare() {
   echo "Foundry data ready at $DATA_DIR"
 }
 
+has_account_creds() {
+  [[ -n "${FOUNDRY_USERNAME:-}" && -n "${FOUNDRY_ACCOUNT_PASSWORD:-}" ]]
+}
+
 has_download_creds() {
-  [[ -n "${FOUNDRY_RELEASE_URL:-}" || -n "${FOUNDRY_USERNAME:-}" ]]
+  [[ -n "${FOUNDRY_RELEASE_URL:-}" ]] || has_account_creds || has_cache_zip
 }
 
 has_cache_zip() {
@@ -102,7 +106,11 @@ start() {
   export FOUNDRY_WORLD="${FOUNDRY_WORLD:-$WORLD_ID}"
 
   if has_download_creds && [[ -x "$START_SCRIPT" ]]; then
-    echo "Starting Foundry via credentials (world=$FOUNDRY_WORLD)..."
+    if has_account_creds; then
+      echo "Starting Foundry via foundryvtt.com account (world=$FOUNDRY_WORLD)..."
+    else
+      echo "Starting Foundry via credentials (world=$FOUNDRY_WORLD)..."
+    fi
     "$START_SCRIPT"
   elif has_cache_zip; then
     echo "Starting Foundry from container cache (world=$FOUNDRY_WORLD)..."
@@ -133,12 +141,21 @@ start() {
   return 1
 }
 
+creds_status() {
+  local parts=()
+  has_cache_zip && parts+=("cache:yes") || parts+=("cache:no")
+  has_account_creds && parts+=("account:yes") || parts+=("account:no")
+  [[ -n "${FOUNDRY_RELEASE_URL:-}" ]] && parts+=("release_url:set") || parts+=("release_url:unset")
+  [[ -n "${FOUNDRY_LICENSE_KEY:-}" ]] && parts+=("license:yes") || parts+=("license:no")
+  echo "${parts[*]}"
+}
+
 status() {
   if foundry_listening; then
     echo "foundry:up http://127.0.0.1:${PORT}"
     return 0
   fi
-  echo "foundry:down"
+  echo "foundry:down ($(creds_status))"
   return 1
 }
 

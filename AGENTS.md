@@ -32,16 +32,18 @@ This repo includes `.cursor/environment.json` so new agents run `scripts/cloud-f
 
 #### Cursor Cloud secrets
 
-Configure these in **Cloud Agents → Secrets** (one download method is enough):
+Configure these in **Cloud Agents → Secrets**:
 
-| Secret | Purpose |
-|--------|---------|
-| `FOUNDRY_RELEASE_URL` | Timed **Node.js** download URL from [foundryvtt.com/me/licenses](https://foundryvtt.com/me/licenses) (Operating System → Node.js → Timed URL) |
-| `FOUNDRY_LICENSE_KEY` | License key `AAAA-BBBB-...` (optional if using account login; Docker can auto-fetch) |
-| `FOUNDRY_USERNAME` | foundryvtt.com email (alternative to `FOUNDRY_RELEASE_URL`) |
-| `FOUNDRY_ACCOUNT_PASSWORD` | foundryvtt.com password (only with `FOUNDRY_USERNAME`; do not confuse with join-page password) |
-| `FOUNDRY_USER` | Display name on `/join` for Playwright E2E |
-| `FOUNDRY_PASSWORD` | Optional password for that **game** user on `/join` |
+| Secret | Required | Purpose |
+|--------|----------|---------|
+| `FOUNDRY_USERNAME` | **Recommended** | foundryvtt.com account email — permanent download method (no expiring URLs) |
+| `FOUNDRY_ACCOUNT_PASSWORD` | **With username** | foundryvtt.com account password — **not** the in-game `/join` password |
+| `FOUNDRY_LICENSE_KEY` | Yes | License key `AAAA-BBBB-...` |
+| `FOUNDRY_USER` | For E2E | Display name on `/join` for Playwright |
+| `FOUNDRY_PASSWORD` | Optional | Password for that **game** user on `/join` |
+| `FOUNDRY_RELEASE_URL` | Optional | Timed Node.js URL (expires in minutes; only needed if not using account login) |
+
+**Recommended:** set `FOUNDRY_USERNAME` + `FOUNDRY_ACCOUNT_PASSWORD` and omit `FOUNDRY_RELEASE_URL`. Restart the cloud agent after adding secrets so they load into the environment.
 
 Start server after secrets are set:
 
@@ -60,13 +62,9 @@ Foundry runs in Docker via `scripts/start-foundry.sh` with data bind-mounted to 
 | `/home/ubuntu/foundry-data/container_cache/foundryvtt-*.zip` | One-time Foundry download (reused after first install) |
 | `/home/ubuntu/foundry-data/Config/` | Server options (preserved with `CONTAINER_PRESERVE_CONFIG=true`) |
 
-The container uses `--restart unless-stopped` and a stable `--hostname foundry-server` (license binding). **Timed `FOUNDRY_RELEASE_URL` values expire in minutes** — generate a fresh one at [foundryvtt.com/me/licenses](https://foundryvtt.com/me/licenses) immediately before starting. Cloud Agent secrets are injected at **session boot**; after updating a secret in the dashboard, restart the agent or pass the URL inline:
+The container uses `--restart unless-stopped` and a stable `--hostname foundry-server` (license binding). Secrets are injected at **session boot** — restart the agent after changing Cloud Agents secrets. After the first successful download, the zip in `container_cache/` is reused automatically.
 
-```bash
-FOUNDRY_RELEASE_URL='https://…' bash scripts/cloud-foundry.sh start
-```
-
-Alternatively add `FOUNDRY_USERNAME` + `FOUNDRY_ACCOUNT_PASSWORD`. After the first successful download, the zip in `container_cache/` makes the timed URL unnecessary.
+Check credential readiness: `bash scripts/cloud-foundry.sh status` (shows `account:yes/no`, `cache:yes/no`).
 
 Release builds use **`dist/`** (runtime files only). `npm run build` compiles SCSS and assembles `dist/`; `npm run package` creates `sla-industries.zip`. `cloud-foundry.sh` deploys **`dist/`** into Foundry data (not the full git tree). The test world id is `sla-test-world` (`FOUNDRY_WORLD` / `FOUNDRY_WORLD_ID`). Run `node scripts/ensure-foundry-user.mjs` if `FOUNDRY_USER` is not on the join page yet.
 

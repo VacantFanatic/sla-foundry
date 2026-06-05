@@ -9,6 +9,14 @@ PORT="${FOUNDRY_PORT:-30000}"
 HOSTNAME="${FOUNDRY_DOCKER_HOSTNAME:-foundry-server}"
 WORLD="${FOUNDRY_WORLD:-${FOUNDRY_WORLD_ID:-sla-test-world}}"
 
+has_account_creds() {
+  [[ -n "${FOUNDRY_USERNAME:-}" && -n "${FOUNDRY_ACCOUNT_PASSWORD:-}" ]]
+}
+
+has_cache_zip() {
+  compgen -G "${DATA_DIR}/container_cache/foundryvtt-"*.zip >/dev/null 2>&1
+}
+
 if ! command -v docker >/dev/null 2>&1; then
   echo "docker not found — install docker.io first." >&2
   exit 1
@@ -51,18 +59,22 @@ ENV_ARGS=(
 [[ -n "${FOUNDRY_USERNAME:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_USERNAME=${FOUNDRY_USERNAME}")
 [[ -n "${FOUNDRY_ACCOUNT_PASSWORD:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_PASSWORD=${FOUNDRY_ACCOUNT_PASSWORD}")
 
-# Warm release cache before starting (one-time download; persists under /data/container_cache).
+# Warm release cache before starting (timed URL only; account creds download inside the container).
 root="$(cd "$(dirname "$0")/.." && pwd)"
-if ! compgen -G "${DATA_DIR}/container_cache/foundryvtt-"*.zip >/dev/null 2>&1; then
+if ! has_cache_zip && ! has_account_creds; then
   "$root/scripts/cache-foundry-release.sh" || true
 fi
 
-# Pass timed URL when no cached zip yet (felddy entrypoint downloads on first boot).
-if ! compgen -G "${DATA_DIR}/container_cache/foundryvtt-"*.zip >/dev/null 2>&1; then
-  if [[ -n "${FOUNDRY_RELEASE_URL:-}" ]]; then
+# Felddy precedence: RELEASE_URL → USERNAME/PASSWORD → CACHE. Never pass an expired URL when
+# account creds are available — it blocks the username login path.
+if ! has_cache_zip; then
+  if has_account_creds; then
+    echo "Using foundryvtt.com account credentials for first-time download."
+  elif [[ -n "${FOUNDRY_RELEASE_URL:-}" ]]; then
     ENV_ARGS+=(-e "FOUNDRY_RELEASE_URL=${FOUNDRY_RELEASE_URL}")
-  elif [[ -z "${FOUNDRY_USERNAME:-}" ]]; then
-    echo "No cached release and no download credentials. Refresh FOUNDRY_RELEASE_URL or restart the agent after updating secrets." >&2
+  else
+    echo "No cached release and no download credentials." >&2
+    echo "Add FOUNDRY_USERNAME + FOUNDRY_ACCOUNT_PASSWORD in Cloud Agents secrets, then restart the agent." >&2
     exit 1
   fi
 fi
