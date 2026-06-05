@@ -18,9 +18,21 @@ There is **no** `npm run lint` script or ESLint config; format with Prettier loc
 
 ### Foundry (required for E2E and real UI testing)
 
+#### Why other agents have Foundry but this chat skipped it
+
+Foundry is **not** bundled in the repo. Other cloud agents usually have one of:
+
+1. **Workspace secrets** in [Cursor → Cloud Agents → Secrets](https://cursor.com/dashboard/cloud-agents) (persists across runs; preferred)
+2. A **saved VM snapshot** taken after Foundry was installed and licensed once
+3. A cached `foundryvtt-*.zip` under `/home/ubuntu/foundry-data/container_cache/` from a prior install
+
+Skipping secrets in a single chat prompt does **not** add them to the workspace. Add them in the dashboard, then re-run the agent or call `bash scripts/cloud-foundry.sh start`.
+
+This repo includes `.cursor/environment.json` so new agents run `scripts/cloud-foundry.sh` on boot when secrets exist.
+
 #### Cursor Cloud secrets
 
-Configure these in the agent environment (one download method is enough):
+Configure these in **Cloud Agents → Secrets** (one download method is enough):
 
 | Secret | Purpose |
 |--------|---------|
@@ -74,5 +86,12 @@ npm run test:e2e:operators
 - Playwright does **not** start Foundry; the server must already be listening on `FOUNDRY_URL`.
 - After SCSS changes, run `npm run build` — hot reload is via Foundry refresh (F5), not Vite.
 - Foundry toast notifications can block Playwright clicks; tests use `dismissFoundryNotifications()` in `tests/e2e/fixtures.js`.
+
+### Environment verification
+
+```bash
+npm run test:env    # build + unit tests; E2E if Foundry is listening
+bash scripts/cloud-foundry.sh status
+```
 
 See `DEVELOPER.md` for architecture, migrations, and API details.

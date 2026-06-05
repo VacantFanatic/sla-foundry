@@ -6,7 +6,8 @@ node_modules/
 /playwright/.cache/
 
 .agent/
-.cursor/
+.cursor/*
+!.cursor/environment.json
 .docs/
 .vscode/
 
