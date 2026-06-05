@@ -18,8 +18,9 @@ zip_path="${CACHE_DIR}/foundryvtt-${build}.zip"
 
 release_url="${FOUNDRY_RELEASE_URL:-}"
 if [[ -n "$release_url" ]]; then
-  code="$(curl -sS -o /dev/null -w "%{http_code}" -I -L --max-time 15 "$release_url" || echo "000")"
-  if [[ "$code" == "200" || "$code" == "302" ]]; then
+  # S3 presigned URLs often reject HEAD; probe with a tiny ranged GET instead.
+  code="$(curl -sS -o /dev/null -w "%{http_code}" -L --max-time 30 -r 0-0 "$release_url" || echo "000")"
+  if [[ "$code" == "200" || "$code" == "206" || "$code" == "302" ]]; then
     echo "Caching Foundry ${build} release to $zip_path ..."
     curl -fsSL "$release_url" -o "$zip_path"
     echo "Cached $(du -h "$zip_path" | cut -f1) release."

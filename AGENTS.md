@@ -60,7 +60,13 @@ Foundry runs in Docker via `scripts/start-foundry.sh` with data bind-mounted to 
 | `/home/ubuntu/foundry-data/container_cache/foundryvtt-*.zip` | One-time Foundry download (reused after first install) |
 | `/home/ubuntu/foundry-data/Config/` | Server options (preserved with `CONTAINER_PRESERVE_CONFIG=true`) |
 
-The container uses `--restart unless-stopped` and a stable `--hostname foundry-server` (license binding). **Timed `FOUNDRY_RELEASE_URL` values expire in minutes** — refresh at [foundryvtt.com/me/licenses](https://foundryvtt.com/me/licenses) if startup fails with HTTP 403, or add `FOUNDRY_USERNAME` + `FOUNDRY_ACCOUNT_PASSWORD` instead. After the first successful download, the zip in `container_cache/` makes the timed URL unnecessary.
+The container uses `--restart unless-stopped` and a stable `--hostname foundry-server` (license binding). **Timed `FOUNDRY_RELEASE_URL` values expire in minutes** — generate a fresh one at [foundryvtt.com/me/licenses](https://foundryvtt.com/me/licenses) immediately before starting. Cloud Agent secrets are injected at **session boot**; after updating a secret in the dashboard, restart the agent or pass the URL inline:
+
+```bash
+FOUNDRY_RELEASE_URL='https://…' bash scripts/cloud-foundry.sh start
+```
+
+Alternatively add `FOUNDRY_USERNAME` + `FOUNDRY_ACCOUNT_PASSWORD`. After the first successful download, the zip in `container_cache/` makes the timed URL unnecessary.
 
 Release builds use **`dist/`** (runtime files only). `npm run build` compiles SCSS and assembles `dist/`; `npm run package` creates `sla-industries.zip`. `cloud-foundry.sh` deploys **`dist/`** into Foundry data (not the full git tree). The test world id is `sla-test-world` (`FOUNDRY_WORLD` / `FOUNDRY_WORLD_ID`). Run `node scripts/ensure-foundry-user.mjs` if `FOUNDRY_USER` is not on the join page yet.
 

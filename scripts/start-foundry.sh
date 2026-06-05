@@ -51,14 +51,19 @@ ENV_ARGS=(
 [[ -n "${FOUNDRY_USERNAME:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_USERNAME=${FOUNDRY_USERNAME}")
 [[ -n "${FOUNDRY_ACCOUNT_PASSWORD:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_PASSWORD=${FOUNDRY_ACCOUNT_PASSWORD}")
 
-# Prefer cached zip; only pass timed URL when cache is missing and URL still works.
-cache_zip="$(compgen -G "${DATA_DIR}/container_cache/foundryvtt-"*.zip 2>/dev/null | head -1 || true)"
-if [[ -z "$cache_zip" && -n "${FOUNDRY_RELEASE_URL:-}" ]]; then
-  code="$(curl -sS -o /dev/null -w "%{http_code}" -I -L --max-time 15 "${FOUNDRY_RELEASE_URL}" || echo "000")"
-  if [[ "$code" == "200" || "$code" == "302" ]]; then
+# Warm release cache before starting (one-time download; persists under /data/container_cache).
+root="$(cd "$(dirname "$0")/.." && pwd)"
+if ! compgen -G "${DATA_DIR}/container_cache/foundryvtt-"*.zip >/dev/null 2>&1; then
+  "$root/scripts/cache-foundry-release.sh" || true
+fi
+
+# Pass timed URL when no cached zip yet (felddy entrypoint downloads on first boot).
+if ! compgen -G "${DATA_DIR}/container_cache/foundryvtt-"*.zip >/dev/null 2>&1; then
+  if [[ -n "${FOUNDRY_RELEASE_URL:-}" ]]; then
     ENV_ARGS+=(-e "FOUNDRY_RELEASE_URL=${FOUNDRY_RELEASE_URL}")
-  else
-    echo "Skipping expired FOUNDRY_RELEASE_URL (HTTP $code). Run scripts/cache-foundry-release.sh after refreshing secrets." >&2
+  elif [[ -z "${FOUNDRY_USERNAME:-}" ]]; then
+    echo "No cached release and no download credentials. Refresh FOUNDRY_RELEASE_URL or restart the agent after updating secrets." >&2
+    exit 1
   fi
 fi
 
