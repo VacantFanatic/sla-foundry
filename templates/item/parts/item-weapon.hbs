@@ -1,89 +1,116 @@
-{{!-- 1. NEW: Weapon Type Selector --}}
-<div class="form-group">
-    <label>Type</label>
-    <select name="system.attackType">
-        {{!-- Using standard Handlebars logic for the options --}}
-        <option value="melee" {{#if (eq system.attackType "melee" )}}selected{{/if}}>Melee</option>
-        <option value="ranged" {{#if (eq system.attackType "ranged" )}}selected{{/if}}>Ranged</option>
-    </select>
-</div>
+{{!-- Cannon Catalogue — weapon item layout (#243 phase 2) --}}
+<div class="cannon-catalogue">
 
-{{!-- Standard Stats (Always Visible) --}}
-<div class="form-group"><label>Dmg</label><input type="text" name="system.damage" value="{{system.damage}}" /></div>
-<div class="form-group"><label>Min</label><input type="text" name="system.minDamage" value="{{system.minDamage}}" />
-</div>
-<div class="form-group"><label>AD</label><input type="number" name="system.ad" value="{{system.ad}}" /></div>
-<div class="form-group"><label>Range</label><input type="text" name="system.range" value="{{system.range}}" /></div>
+    <div class="cannon-catalogue__stamp">{{localize "SLA.ItemSheet.Weapon.Stamp"}}</div>
 
-<div class="sla-panel" style="grid-column: 1 / -1; margin-top: 10px;">
-    <div class="sla-header-bar" style="display:flex; align-items:center; justify-content:space-between;">
-        <span>Powersuit Attack Rules</span>
-        <div style="display:flex; align-items:center;">
-            <label style="margin-right:5px; font-size:0.8em; color:#ccc;">Enable:</label>
-            <input type="checkbox" name="system.powersuitAttack" {{checked system.powersuitAttack}} />
+    <div class="cannon-catalogue__grid">
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Weight"}}</label>
+            <input type="number" name="system.weight" value="{{system.weight}}" step="0.1" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Cost"}}</label>
+            <input type="number" name="system.price" value="{{system.price}}" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Qty"}}</label>
+            <input type="number" name="system.quantity" value="{{system.quantity}}" />
+        </div>
+
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Weapon.Type"}}</label>
+            <select name="system.attackType">
+                <option value="melee" {{#if (eq system.attackType "melee")}}selected{{/if}}>{{localize "SLA.ItemSheet.Weapon.Melee"}}</option>
+                <option value="ranged" {{#if (eq system.attackType "ranged")}}selected{{/if}}>{{localize "SLA.ItemSheet.Weapon.Ranged"}}</option>
+            </select>
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Weapon.Damage"}}</label>
+            <input type="text" name="system.damage" value="{{system.damage}}" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Weapon.MinDamage"}}</label>
+            <input type="text" name="system.minDamage" value="{{system.minDamage}}" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Weapon.AD"}}</label>
+            <input type="number" name="system.ad" value="{{system.ad}}" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Weapon.Range"}}</label>
+            <input type="text" name="system.range" value="{{system.range}}" />
         </div>
     </div>
 
-    {{#if system.powersuitAttack}}
-    <div class="grid grid-2col" style="gap: 10px; padding: 5px;">
-        <div class="form-group flexrow" style="align-items:center;">
-            <label style="flex:1;">Attack Penalty</label>
-            <input type="number" name="system.attackPenalty" value="{{system.attackPenalty}}" placeholder="-2"
-                style="flex:0 0 60px; text-align:center; height:24px;" />
+    <section class="sla-section cannon-catalogue__powersuit">
+        <div class="sla-section__header">
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.Weapon.PowersuitRules"}}</span>
+            <span class="sla-section__action sla-field sla-field--toggle">
+                <label for="weapon-powersuit-toggle">{{localize "SLA.ItemSheet.Weapon.Enable"}}</label>
+                <input id="weapon-powersuit-toggle" type="checkbox" name="system.powersuitAttack" {{checked system.powersuitAttack}} />
+            </span>
         </div>
-        <div class="form-group flexrow" style="align-items:center;">
-            <label style="flex:1;">AD = STR -</label>
-            <input type="number" name="system.adFromStrMinus" value="{{system.adFromStrMinus}}" placeholder="2"
-                style="flex:0 0 60px; text-align:center; height:24px;" />
+
+        {{#if system.powersuitAttack}}
+        <div class="cannon-catalogue__powersuit-fields">
+            <div class="sla-field sla-field--inline sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Weapon.AttackPenalty"}}</label>
+                <input type="number" name="system.attackPenalty" value="{{system.attackPenalty}}" placeholder="-2" />
+            </div>
+            <div class="sla-field sla-field--inline sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Weapon.ADFromStrMinus"}}</label>
+                <input type="number" name="system.adFromStrMinus" value="{{system.adFromStrMinus}}" placeholder="2" />
+            </div>
+        </div>
+        {{else}}
+        <p class="cannon-catalogue__powersuit-idle">{{localize "SLA.ItemSheet.Weapon.StandardRules"}}</p>
+        {{/if}}
+    </section>
+
+    <div class="sla-field">
+        <label>{{localize "SLA.ItemSheet.Weapon.RequiredSkill"}}</label>
+        <div class="sla-drop skill-link-box drop-zone {{#if system.skill}}sla-drop--filled filled{{/if}}">
+            {{#if system.skill}}
+            <span class="skill-name">{{system.skill}}</span>
+            <button type="button" class="remove-skill-link" data-action="removeSkillLink" title="{{localize "SLA.ItemSheet.UnlinkSkill"}}"><i class="fas fa-times"></i></button>
+            {{else}}
+            <span class="sla-drop__hint placeholder">{{localize "SLA.ItemSheet.Weapon.DropSkillHint"}}</span>
+            {{/if}}
         </div>
     </div>
-    {{else}}
-    <div style="padding:10px; text-align:center; font-style:italic; color:#777; font-size:0.9em;">
-        Standard Weapon Rules
-    </div>
+
+    {{#if (eq system.attackType "ranged")}}
+    <section class="sla-section cannon-catalogue__firing-modes">
+        <div class="sla-section__header">
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.Weapon.FiringModes"}}</span>
+        </div>
+
+        <table class="firing-mode-table">
+            <thead>
+                <tr>
+                    <th class="col-active">{{localize "SLA.ItemSheet.Weapon.ModeEnable"}}</th>
+                    <th class="col-name">{{localize "SLA.ItemSheet.Weapon.ModeName"}}</th>
+                    <th class="col-stat">{{localize "SLA.ItemSheet.Weapon.ModeRounds"}}</th>
+                    <th class="col-stat">{{localize "SLA.ItemSheet.Weapon.ModeRecoil"}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each firingModes as |mode key|}}
+                <tr class="firing-mode-row {{#if mode.active}}enabled{{/if}}">
+                    <td class="col-active">
+                        <input type="checkbox" name="system.firingModes.{{key}}.active" {{checked mode.active}} />
+                    </td>
+                    <td class="col-name">{{mode.label}}</td>
+                    <td class="col-stat">
+                        <input type="number" name="system.firingModes.{{key}}.rounds" value="{{mode.rounds}}" placeholder="-" />
+                    </td>
+                    <td class="col-stat">
+                        <input type="number" name="system.firingModes.{{key}}.recoil" value="{{mode.recoil}}" placeholder="0" />
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </section>
     {{/if}}
 </div>
-
-{{!-- Skill Drop Zone (Always Visible) --}}
-<div class="form-group" style="grid-column: 1 / -1;">
-    <label>Required Skill</label>
-    <div class="drop-zone skill-link-box {{#if system.skill}}filled{{/if}}">
-        {{#if system.skill}}
-        <span class="skill-name">{{system.skill}}</span>
-        <button type="button" class="remove-skill-link" data-action="removeSkillLink" title="Unlink Skill"><i class="fas fa-times"></i></button>
-        {{else}}
-        <span class="placeholder">Drop Skill Item Here</span>
-        {{/if}}
-    </div>
-</div>
-
-{{!-- 2. CONDITIONAL: Only show Firing Modes if type is 'ranged' --}}
-{{#if (eq system.attackType "ranged")}}
-<div class="sla-panel" style="grid-column: 1 / -1; margin-top: 10px;">
-    <div class="sla-header-bar">Firing Modes & Recoil</div>
-
-    <div class="firing-mode-grid header">
-        <div class="col-active">Enable</div>
-        <div class="col-name">Mode</div>
-        <div class="col-stat">Rounds</div>
-        <div class="col-stat">Recoil</div>
-    </div>
-
-    {{!-- Note: We iterate over 'firingModes' (prepared in sheet getData), NOT system.firingModes --}}
-    {{#each firingModes as |mode key|}}
-    <div class="firing-mode-row {{#if mode.active}}enabled{{/if}}">
-        <div class="col-active">
-            {{!-- The NAME is crucial: system.firingModes.<key>.active --}}
-                <input type="checkbox" name="system.firingModes.{{key}}.active" {{checked mode.active}}>
-        </div>
-        <div class="col-name">{{mode.label}}</div>
-        <div class="col-stat">
-            <input type="number" name="system.firingModes.{{key}}.rounds" value="{{mode.rounds}}" placeholder="-">
-        </div>
-        <div class="col-stat">
-            <input type="number" name="system.firingModes.{{key}}.recoil" value="{{mode.recoil}}" placeholder="0">
-        </div>
-    </div>
-    {{/each}}
-</div>
-{{/if}}

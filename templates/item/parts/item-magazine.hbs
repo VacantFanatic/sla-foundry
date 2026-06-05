@@ -1,30 +1,48 @@
-{{!-- Capacity --}}
-<div class="form-group" style="grid-column: 1 / -1;">
-    <label>Capacity</label>
-    <input type="number" name="system.ammoCapacity" value="{{system.ammoCapacity}}" placeholder="10" />
-</div>
+{{!-- Ammo Label — magazine item layout (#243 phase 2) --}}
+<div class="ammo-label">
 
-{{!-- Ammo Type Selector --}}
-<div class="form-group" style="grid-column: 1 / -1;">
-    <label>Ammo Type</label>
-    <select name="system.ammoType">
-        {{#if system.ammoType}}
-        {{selectOptions @root.config.ammoTypes selected=system.ammoType localize=false}}
-        {{else}}
-        {{selectOptions @root.config.ammoTypes selected="std" localize=false}}
-        {{/if}}
-    </select>
-</div>
+    <div class="ammo-label__stamp">{{localize "SLA.ItemSheet.Magazine.Stamp"}}</div>
 
-{{!-- Linked Weapon --}}
-<div class="form-group" style="grid-column: 1 / -1;">
-    <label>Linked:</label>
-    <div class="drop-zone weapon-link {{#if system.linkedWeapon}}filled{{/if}}">
-        {{#if system.linkedWeapon}}
-        <b>{{system.linkedWeapon}}</b>
-        <button type="button" class="remove-link" data-action="removeWeaponLink" title="Unlink weapon"><i class="fas fa-times"></i></button>
-        {{else}}
-        <span class="placeholder">Drop Weapon Here</span>
-        {{/if}}
+    <div class="ammo-label__grid">
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Weight"}}</label>
+            <input type="number" name="system.weight" value="{{system.weight}}" step="0.1" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Cost"}}</label>
+            <input type="number" name="system.price" value="{{system.price}}" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Qty"}}</label>
+            <input type="number" name="system.quantity" value="{{system.quantity}}" />
+        </div>
+
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Magazine.Capacity"}}</label>
+            <input type="number" name="system.ammoCapacity" value="{{system.ammoCapacity}}" placeholder="10" />
+        </div>
+
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Magazine.AmmoType"}}</label>
+            <select name="system.ammoType">
+                {{#if system.ammoType}}
+                {{selectOptions @root.config.ammoTypes selected=system.ammoType localize=false}}
+                {{else}}
+                {{selectOptions @root.config.ammoTypes selected="std" localize=false}}
+                {{/if}}
+            </select>
+        </div>
+    </div>
+
+    <div class="sla-field">
+        <label>{{localize "SLA.ItemSheet.Magazine.LinkedWeapon"}}</label>
+        <div class="sla-drop weapon-link drop-zone {{#if system.linkedWeapon}}sla-drop--filled filled{{/if}}">
+            {{#if system.linkedWeapon}}
+            <span class="ammo-label__linked-name">{{system.linkedWeapon}}</span>
+            <button type="button" class="remove-link" data-action="removeWeaponLink" title="{{localize "SLA.ItemSheet.UnlinkWeapon"}}"><i class="fas fa-times"></i></button>
+            {{else}}
+            <span class="sla-drop__hint placeholder">{{localize "SLA.ItemSheet.Magazine.DropWeaponHint"}}</span>
+            {{/if}}
+        </div>
     </div>
 </div>
