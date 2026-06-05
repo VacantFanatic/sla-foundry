@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distDir = path.join(root, "dist");
@@ -99,7 +99,7 @@ export function validateZip(zipFile = zipPath) {
 
     let listing;
     try {
-        listing = execSync(`unzip -Z1 ${JSON.stringify(zipFile)}`, { encoding: "utf8" });
+        listing = execFileSync("unzip", ["-Z1", zipFile], { encoding: "utf8" });
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         throw new Error(`failed to list zip: ${message}`);
