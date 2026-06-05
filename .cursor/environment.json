@@ -1,4 +1,4 @@
 {
-  "install": "npm ci && npm run test:e2e:install && bash scripts/cloud-foundry.sh prepare",
-  "start": "sudo service docker start 2>/dev/null || true; bash scripts/cloud-foundry.sh start || true"
+  "install": "sudo apt-get update -qq && sudo apt-get install -y -qq docker.io curl ripgrep && chmod +x scripts/*.sh && npm ci && npm run test:e2e:install && bash scripts/cloud-foundry.sh prepare",
+  "start": "bash scripts/cloud-foundry.sh start || true"
 }
