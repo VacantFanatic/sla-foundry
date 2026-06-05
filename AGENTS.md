@@ -18,6 +18,21 @@ There is **no** `npm run lint` script or ESLint config; format with Prettier loc
 
 ### Foundry (required for E2E and real UI testing)
 
+#### Cursor Cloud secrets
+
+Configure these in the agent environment (one download method is enough):
+
+| Secret | Purpose |
+|--------|---------|
+| `FOUNDRY_RELEASE_URL` | Timed **Node.js** download URL from [foundryvtt.com/me/licenses](https://foundryvtt.com/me/licenses) (Operating System → Node.js → Timed URL) |
+| `FOUNDRY_LICENSE_KEY` | License key `AAAA-BBBB-...` (optional if using account login; Docker can auto-fetch) |
+| `FOUNDRY_USERNAME` | foundryvtt.com email (alternative to `FOUNDRY_RELEASE_URL`) |
+| `FOUNDRY_ACCOUNT_PASSWORD` | foundryvtt.com password (only with `FOUNDRY_USERNAME`; do not confuse with join-page password) |
+| `FOUNDRY_USER` | Display name on `/join` for Playwright E2E |
+| `FOUNDRY_PASSWORD` | Optional password for that **game** user on `/join` |
+
+Start server after secrets are set: `/home/ubuntu/start-foundry.sh`
+
 1. **Install Foundry VTT v14** (verified against **14.360** per `system.json`). This cloud VM uses Docker (`ghcr.io/felddy/foundryvtt:14`) when credentials are provided.
 2. **Link this repo** into Foundry data as `Data/systems/sla-industries` (folder name must match `system.json` `id`). On this VM the symlink is already at `/home/ubuntu/foundry-data/Data/systems/sla-industries` → `/workspace`.
 3. **Create a world** using game system **SLA Industries 2nd Edition** and at least one user for `/join`.
