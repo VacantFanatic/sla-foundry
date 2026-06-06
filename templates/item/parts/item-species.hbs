@@ -1,0 +1,48 @@
+{{!-- Office dossier — species item layout (#243 phase 6) --}}
+<div class="office-dossier office-dossier--species">
+
+    <div class="dossier-stamp dossier-stamp--confidential">{{localize "SLA.ItemSheet.Species.Stamp"}}</div>
+
+    <section class="sla-section dossier-panel">
+        <div class="sla-section__header">
+            <span class="sla-section__icon"><i class="fas fa-dna"></i></span>
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.Species.BiologicalData"}}</span>
+        </div>
+
+        <div class="dossier-panel__row">
+            <div class="sla-field sla-field--inline sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Species.BaseHp"}}</label>
+                <input type="number" name="system.hp" value="{{system.hp}}" />
+            </div>
+            <div class="sla-field sla-field--inline sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Species.Movement"}}</label>
+                <div class="dossier-panel__dual-inputs">
+                    <input type="number" name="system.move.closing" value="{{system.move.closing}}" placeholder="{{localize "SLA.ItemSheet.Species.MoveClose"}}" />
+                    <span class="dossier-panel__sep">/</span>
+                    <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" placeholder="{{localize "SLA.ItemSheet.Species.MoveRush"}}" />
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="sla-section dossier-panel">
+        <div class="sla-section__header">
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.Species.StatLimits"}}</span>
+        </div>
+
+        <div class="dossier-stat-limits">
+            {{#each system.stats as |stat key|}}
+            <div class="dossier-stat-limit sla-field sla-field--compact">
+                <label>{{upper key}}</label>
+                <div class="dossier-panel__dual-inputs">
+                    <input type="number" name="system.stats.{{key}}.min" value="{{stat.min}}" />
+                    <span class="dossier-panel__sep">–</span>
+                    <input type="number" name="system.stats.{{key}}.max" value="{{stat.max}}" />
+                </div>
+            </div>
+            {{/each}}
+        </div>
+    </section>
+
+    {{> "systems/sla-industries/templates/item/parts/item-dossier-skills.hbs"}}
+</div>
