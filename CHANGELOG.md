@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+* **CI release publishing:** GitHub releases are created when a version tag is pushed (for example `2.6.5`), not on every push to `main`. Main-branch CI still runs unit tests and validates the dist build.
+
 ## [2.6.4] - 2026-06-05
 
 ### Added
