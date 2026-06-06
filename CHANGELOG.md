@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.6.8] - 2026-06-06
+
+### Changed
+
+* **Item sheet drag feedback:** Simplified `DROP_ZONE_SELECTOR` to `.sla-drop` only; cached drop-zone nodes for `dragend` cleanup instead of re-querying the DOM.
+* **Ebb formula drop zone:** Empty discipline drop no longer applies `linked-item` flex layout (centers placeholder hint correctly).
+* **Ebb formula effect select:** Uses `normalizeEbbEffect()` from context instead of duplicated Handlebars legacy-value logic.
+* **Localization cleanup:** Removed orphan per-type drop hint keys superseded by `SLA.ItemSheet.Drop.*` (`Weapon`, `Magazine`, `Explosive`, `Dossier`, `EbbDropDiscipline`).
+* **SCSS:** Narrowed `.sla-drop` transitions from `all` to drag-feedback properties only.
+* Updated system and package metadata version to `2.6.8`, including the release `download` URL in `system.json`.
+
 ## [2.6.7] - 2026-06-06
 
 ### Added
