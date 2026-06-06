@@ -205,6 +205,12 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
             context.firingModes = prepareFiringModes(item.system);
         }
 
+        if (item.type === "armor") {
+            const max = Number(item.system.resistance?.max) || 0;
+            const cur = Number(item.system.resistance?.value) || 0;
+            context.resistGaugePct = max > 0 ? Math.min(100, Math.round((cur / max) * 100)) : 0;
+        }
+
         context.linkedDisciplineImg = getLinkedDisciplineImage(item);
 
         return context;

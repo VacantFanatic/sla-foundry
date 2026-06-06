@@ -1,22 +1,53 @@
-{{!-- Standard Stats --}}
-<div class="form-group"><label>Dmg</label><input type="text" name="system.damage" value="{{system.damage}}" /></div>
-<div class="form-group"><label>Min</label><input type="text" name="system.minDamage" value="{{system.minDamage}}" />
-</div>
-<div class="form-group"><label>AD</label><input type="number" name="system.ad" value="{{system.ad}}" /></div>
-<div class="form-group"><label>Kill Zone (m)</label><input type="number" name="system.blastRadiusInner"
-        value="{{system.blastRadiusInner}}" placeholder="0" /></div>
-<div class="form-group"><label>Max Blast (m)</label><input type="number" name="system.blastRadiusOuter"
-        value="{{system.blastRadiusOuter}}" placeholder="5" /></div>
+{{!-- Munition Placard — explosive item layout (#243 phase 3) --}}
+<div class="munition-placard">
 
-{{!-- Skill Drop Zone --}}
-<div class="form-group" style="grid-column: 1 / -1;">
-    <label>Required Skill</label>
-    <div class="drop-zone skill-link-box {{#if system.skill}}filled{{/if}}">
-        {{#if system.skill}}
-        <span class="skill-name">{{system.skill}}</span>
-        <button type="button" class="remove-skill-link" data-action="removeSkillLink" title="Unlink Skill"><i class="fas fa-times"></i></button>
-        {{else}}
-        <span class="placeholder">Drop Skill Item Here</span>
-        {{/if}}
+    <div class="munition-placard__stamp">{{localize "SLA.ItemSheet.Explosive.Stamp"}}</div>
+
+    <div class="munition-placard__grid">
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Weight"}}</label>
+            <input type="number" name="system.weight" value="{{system.weight}}" step="0.1" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Cost"}}</label>
+            <input type="number" name="system.price" value="{{system.price}}" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Qty"}}</label>
+            <input type="number" name="system.quantity" value="{{system.quantity}}" />
+        </div>
+
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Explosive.Damage"}}</label>
+            <input type="text" name="system.damage" value="{{system.damage}}" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Explosive.MinDamage"}}</label>
+            <input type="text" name="system.minDamage" value="{{system.minDamage}}" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Explosive.AD"}}</label>
+            <input type="number" name="system.ad" value="{{system.ad}}" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Explosive.KillZone"}}</label>
+            <input type="number" name="system.blastRadiusInner" value="{{system.blastRadiusInner}}" placeholder="0" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Explosive.MaxBlast"}}</label>
+            <input type="number" name="system.blastRadiusOuter" value="{{system.blastRadiusOuter}}" placeholder="5" />
+        </div>
+    </div>
+
+    <div class="sla-field">
+        <label>{{localize "SLA.ItemSheet.Explosive.RequiredSkill"}}</label>
+        <div class="sla-drop skill-link-box drop-zone {{#if system.skill}}sla-drop--filled filled{{/if}}">
+            {{#if system.skill}}
+            <span class="skill-name">{{system.skill}}</span>
+            <button type="button" class="remove-skill-link" data-action="removeSkillLink" title="{{localize "SLA.ItemSheet.UnlinkSkill"}}"><i class="fas fa-times"></i></button>
+            {{else}}
+            <span class="sla-drop__hint placeholder">{{localize "SLA.ItemSheet.Explosive.DropSkillHint"}}</span>
+            {{/if}}
+        </div>
     </div>
 </div>

@@ -4034,8 +4034,8 @@ form.application.sla-industries.item .sheet-body.single-view .sheet-description 
  * Catalogue theme — generic items, weapons, armor, explosives, magazines, drugs.
  *
  * Ported verbatim from the historic `_item.scss`. Phase 2+ PRs replace this
- * shared grid with per-type identities. Weapon and magazine now use dedicated
- * Cannon Catalogue / Ammo Label layouts (#243 phase 2).
+ * shared grid with per-type identities. Weapon, magazine, armor, and explosive
+ * now use dedicated themed layouts (#243 phases 2–3).
  */
 .catalogue-grid {
   display: grid;
@@ -4388,6 +4388,212 @@ form.application.sla-industries.item .ammo-label .sla-drop {
 }
 
 form.application.sla-industries.item .ammo-label .sla-drop.sla-drop--filled {
+  border-style: solid;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/**
+ * Armor theme — Powersuit Telemetry (#243 phase 3).
+ *
+ * Slate panels with green LED readouts. Replaces the shared light-grey
+ * catalogue grid for armor and introduces the `.sla-pv-gauge` component.
+ */
+.sla-item-root.armor-theme {
+  --sla-type-input-bg: rgba(12, 20, 14, 0.9);
+  --sla-type-input-border: rgba(95, 184, 120, 0.3);
+  --sla-type-panel-bg: rgba(16, 24, 18, 0.95);
+}
+
+form.application.sla-industries.item .armor-theme .sheet-header {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #1a2420 0%, #101814 100%) !important;
+  border-bottom-color: var(--sla-type-frame);
+}
+
+/* Telemetry LED stripe motif — pure CSS, no image assets */
+form.application.sla-industries.item .armor-theme .sheet-header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 48px;
+  background: repeating-linear-gradient(180deg, transparent 0, transparent 3px, rgba(95, 184, 120, 0.35) 3px, rgba(95, 184, 120, 0.35) 5px);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+form.application.sla-industries.item .powersuit-telemetry {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+  background: linear-gradient(135deg, rgba(95, 184, 120, 0.05) 0%, transparent 45%), linear-gradient(180deg, #121a14 0%, #0c100e 100%);
+  border: 1px solid rgba(95, 184, 120, 0.2);
+  border-radius: var(--sla-radius);
+}
+
+form.application.sla-industries.item .powersuit-telemetry__stamp {
+  align-self: flex-start;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sla-type-accent);
+  border: 2px solid var(--sla-type-frame);
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 8px rgba(95, 184, 120, 0.15);
+}
+
+form.application.sla-industries.item .powersuit-telemetry__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+form.application.sla-industries.item .powersuit-telemetry__systems-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+form.application.sla-industries.item .powersuit-telemetry__systems-idle {
+  margin: 0;
+  padding: 8px 4px;
+  text-align: center;
+  font-style: italic;
+  color: #888;
+  font-size: 0.9em;
+}
+
+/* PV gauge — LED-style protection readout */
+form.application.sla-industries.item .sla-pv-gauge__readouts {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  align-items: end;
+}
+
+form.application.sla-industries.item .sla-pv-gauge__pv input {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--sla-type-accent) !important;
+  text-align: center;
+  height: 32px;
+}
+
+form.application.sla-industries.item .sla-pv-gauge__resist-inputs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+form.application.sla-industries.item .sla-pv-gauge__resist-inputs input {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+form.application.sla-industries.item .sla-pv-gauge__resist-sep {
+  color: var(--sla-type-accent);
+  opacity: 0.7;
+  font-weight: 700;
+}
+
+form.application.sla-industries.item .sla-pv-gauge__track {
+  height: 6px;
+  margin-top: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(95, 184, 120, 0.25);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+form.application.sla-industries.item .sla-pv-gauge__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--sla-type-frame), var(--sla-type-accent));
+  box-shadow: 0 0 6px rgba(95, 184, 120, 0.5);
+  transition: width 0.2s ease;
+  min-width: 0;
+}
+
+/**
+ * Explosive theme — Munition Placard (#243 phase 3).
+ *
+ * Hazard-yellow placard aesthetic with chevron header motif. Replaces the
+ * shared light-grey catalogue grid for explosives.
+ */
+.sla-item-root.explosive-theme {
+  --sla-type-input-bg: rgba(24, 20, 8, 0.9);
+  --sla-type-input-border: rgba(224, 195, 74, 0.35);
+  --sla-type-panel-bg: rgba(28, 24, 10, 0.95);
+}
+
+form.application.sla-industries.item .explosive-theme .sheet-header {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #2a2410 0%, #1a1608 100%) !important;
+  border-bottom-color: var(--sla-type-frame);
+}
+
+/* Hazard chevron motif — pure CSS, no image assets */
+form.application.sla-industries.item .explosive-theme .sheet-header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 56px;
+  background: repeating-linear-gradient(-45deg, rgba(224, 195, 74, 0.55) 0, rgba(224, 195, 74, 0.55) 6px, rgba(0, 0, 0, 0.35) 6px, rgba(0, 0, 0, 0.35) 12px);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+form.application.sla-industries.item .munition-placard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+  background: linear-gradient(135deg, rgba(224, 195, 74, 0.08) 0%, transparent 40%), linear-gradient(180deg, #1c1808 0%, #121008 100%);
+  border: 2px solid var(--sla-type-frame);
+  border-radius: var(--sla-radius);
+  box-shadow: inset 0 0 0 1px rgba(224, 195, 74, 0.12);
+}
+
+form.application.sla-industries.item .munition-placard__stamp {
+  align-self: flex-start;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #1a1400;
+  background: linear-gradient(180deg, #e8d858 0%, #c0a020 100%);
+  border: 2px solid #806010;
+  padding: 4px 12px;
+  transform: rotate(-1deg);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+form.application.sla-industries.item .munition-placard__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+form.application.sla-industries.item .munition-placard .sla-field > label {
+  color: var(--sla-type-accent);
+}
+
+form.application.sla-industries.item .munition-placard .sla-drop {
+  border-color: var(--sla-type-frame);
+  background: rgba(224, 195, 74, 0.06);
+}
+
+form.application.sla-industries.item .munition-placard .sla-drop.sla-drop--filled {
   border-style: solid;
   background: rgba(0, 0, 0, 0.25);
 }

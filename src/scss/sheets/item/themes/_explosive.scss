@@ -1,0 +1,86 @@
+/**
+ * Explosive theme — Munition Placard (#243 phase 3).
+ *
+ * Hazard-yellow placard aesthetic with chevron header motif. Replaces the
+ * shared light-grey catalogue grid for explosives.
+ */
+
+.sla-item-root.explosive-theme {
+    --sla-type-input-bg: rgba(24, 20, 8, 0.9);
+    --sla-type-input-border: rgba(224, 195, 74, 0.35);
+    --sla-type-panel-bg: rgba(28, 24, 10, 0.95);
+}
+
+form.application.sla-industries.item .explosive-theme .sheet-header {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #2a2410 0%, #1a1608 100%) !important;
+    border-bottom-color: var(--sla-type-frame);
+}
+
+/* Hazard chevron motif — pure CSS, no image assets */
+form.application.sla-industries.item .explosive-theme .sheet-header::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 56px;
+    background: repeating-linear-gradient(
+        -45deg,
+        rgba(224, 195, 74, 0.55) 0,
+        rgba(224, 195, 74, 0.55) 6px,
+        rgba(0, 0, 0, 0.35) 6px,
+        rgba(0, 0, 0, 0.35) 12px
+    );
+    opacity: 0.85;
+    pointer-events: none;
+}
+
+form.application.sla-industries.item .munition-placard {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px;
+    background:
+        linear-gradient(135deg, rgba(224, 195, 74, 0.08) 0%, transparent 40%),
+        linear-gradient(180deg, #1c1808 0%, #121008 100%);
+    border: 2px solid var(--sla-type-frame);
+    border-radius: var(--sla-radius);
+    box-shadow: inset 0 0 0 1px rgba(224, 195, 74, 0.12);
+}
+
+form.application.sla-industries.item .munition-placard__stamp {
+    align-self: flex-start;
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #1a1400;
+    background: linear-gradient(180deg, #e8d858 0%, #c0a020 100%);
+    border: 2px solid #806010;
+    padding: 4px 12px;
+    transform: rotate(-1deg);
+    box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+form.application.sla-industries.item .munition-placard__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+form.application.sla-industries.item .munition-placard .sla-field > label {
+    color: var(--sla-type-accent);
+}
+
+form.application.sla-industries.item .munition-placard .sla-drop {
+    border-color: var(--sla-type-frame);
+    background: rgba(224, 195, 74, 0.06);
+}
+
+form.application.sla-industries.item .munition-placard .sla-drop.sla-drop--filled {
+    border-style: solid;
+    background: rgba(0, 0, 0, 0.25);
+}

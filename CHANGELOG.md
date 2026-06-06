@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.6.3] - 2026-06-05
+
+### Added
+
+* **Armor item theme — Powersuit Telemetry (#243 phase 3):** Slate-and-green LED layout with `.sla-pv-gauge` protection readout (PV, resistance cur/max, fill bar), powered-armor systems panel, header LED-stripe motif via pure CSS, and localized labels (`SLA.ItemSheet.Armor.*`).
+* **Explosive item theme — Munition Placard (#243 phase 3):** Hazard-yellow placard layout with chevron header motif via pure CSS, `.sla-field` / `.sla-section` / `.sla-drop` markup, and localized labels (`SLA.ItemSheet.Explosive.*`).
+
+### Changed
+
+* **Item catalogue routing:** Armor and explosive sheets no longer render inside the shared light-grey `catalogue-grid`; each type uses its own themed partial.
+* **Armor sheet context:** `resistGaugePct` is prepared in `item-sheet.mjs` for the PV gauge fill bar (updates on sheet re-render after submit).
+* **SCSS:** Added `themes/_armor.scss` and `themes/_explosive.scss`.
+* Updated system and package metadata version to `2.6.3`, including the release `download` URL in `system.json`.
+
+### Notes
+
+* No data-model or behaviour changes. Drop handlers and form field names are unchanged; legacy drop-zone class names remain for JS binding and module CSS compatibility.
+
 ## [2.6.2] - 2026-06-05
 
 ### Added

@@ -1,67 +1,92 @@
-<div class="form-group">
-    <label>PV</label>
-    <input type="number" name="system.pv" value="{{system.pv}}" />
-</div>
+{{!-- Powersuit Telemetry — armor item layout (#243 phase 3) --}}
+<div class="powersuit-telemetry">
 
-<div class="form-group">
-    <label>Resist</label>
-    <div class="flexrow">
-        <input type="number" name="system.resistance.value" value="{{system.resistance.value}}" placeholder="Cur" /> /
-        <input type="number" name="system.resistance.max" value="{{system.resistance.max}}" placeholder="Max" />
-    </div>
-</div>
+    <div class="powersuit-telemetry__stamp">{{localize "SLA.ItemSheet.Armor.Stamp"}}</div>
 
-{{!-- POWERED ARMOR SECTION (Full Width Panel) --}}
-<div class="sla-panel" style="grid-column: 1 / -1; margin-top: 10px;">
-    <div class="sla-header-bar" style="display:flex; align-items:center; justify-content:space-between;">
-        <span>Powered Armor Systems</span>
-        <div style="display:flex; align-items:center;">
-            <label style="margin-right:5px; font-size:0.8em; color:#ccc;">Enable:</label>
-            <input type="checkbox" name="system.powered" {{checked system.powered}} />
+    <div class="powersuit-telemetry__grid">
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Weight"}}</label>
+            <input type="number" name="system.weight" value="{{system.weight}}" step="0.1" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Cost"}}</label>
+            <input type="number" name="system.price" value="{{system.price}}" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Qty"}}</label>
+            <input type="number" name="system.quantity" value="{{system.quantity}}" />
         </div>
     </div>
 
-    {{#if system.powered}}
-    <div class="grid grid-2col" style="gap: 10px; padding: 5px;">
-        <div class="form-group flexrow" style="align-items:center;">
-            <label style="flex:1;">Is Powersuit</label>
-            <input type="checkbox" name="system.powersuit" {{checked system.powersuit}} />
+    <section class="sla-section sla-pv-gauge">
+        <div class="sla-section__header">
+            <span class="sla-section__icon"><i class="fas fa-shield-alt"></i></span>
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.Armor.ProtectionReadout"}}</span>
         </div>
-        <div class="form-group flexrow" style="align-items:center;">
-            <label style="flex:1;">DEX Cap</label>
-            <input type="number" name="system.dexCap" value="{{system.dexCap}}" placeholder="0"
-                style="flex:0 0 50px; text-align:center; height:24px;" />
+
+        <div class="sla-pv-gauge__readouts">
+            <div class="sla-field sla-field--compact sla-pv-gauge__pv">
+                <label>{{localize "SLA.ItemSheet.Armor.PV"}}</label>
+                <input type="number" name="system.pv" value="{{system.pv}}" />
+            </div>
+            <div class="sla-field sla-field--compact sla-pv-gauge__resist">
+                <label>{{localize "SLA.ItemSheet.Armor.Resistance"}}</label>
+                <div class="sla-pv-gauge__resist-inputs">
+                    <input type="number" name="system.resistance.value" value="{{system.resistance.value}}" placeholder="{{localize "SLA.ItemSheet.Armor.ResistCurrent"}}" />
+                    <span class="sla-pv-gauge__resist-sep">/</span>
+                    <input type="number" name="system.resistance.max" value="{{system.resistance.max}}" placeholder="{{localize "SLA.ItemSheet.Armor.ResistMax"}}" />
+                </div>
+            </div>
         </div>
-        <div class="form-group flexrow" style="align-items:center;">
-            <label style="flex:1;">Init Bonus</label>
-            <input type="number" name="system.initBonus" value="{{system.initBonus}}" placeholder="0"
-                style="flex:0 0 50px; text-align:center; height:24px;" />
+
+        <div class="sla-pv-gauge__track" aria-hidden="true">
+            <div class="sla-pv-gauge__fill" style="width: {{resistGaugePct}}%;"></div>
         </div>
-        <div></div>
-        <div class="form-group flexrow" style="align-items:center;">
-            <label style="flex:1;">STR Bonus</label>
-            <input type="number" name="system.mods.str" value="{{system.mods.str}}" placeholder="0"
-                style="flex:0 0 50px; text-align:center; height:24px;" />
+    </section>
+
+    <section class="sla-section powersuit-telemetry__systems">
+        <div class="sla-section__header">
+            <span class="sla-section__icon"><i class="fas fa-microchip"></i></span>
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.Armor.PoweredSystems"}}</span>
+            <span class="sla-section__action sla-field sla-field--toggle">
+                <label for="armor-powered-toggle">{{localize "SLA.ItemSheet.Armor.Enable"}}</label>
+                <input id="armor-powered-toggle" type="checkbox" name="system.powered" {{checked system.powered}} />
+            </span>
         </div>
-        <div class="form-group flexrow" style="align-items:center;">
-            <label style="flex:1;">DEX Bonus</label>
-            <input type="number" name="system.mods.dex" value="{{system.mods.dex}}" placeholder="0"
-                style="flex:0 0 50px; text-align:center; height:24px;" />
+
+        {{#if system.powered}}
+        <div class="powersuit-telemetry__systems-grid">
+            <div class="sla-field sla-field--toggle sla-field--compact">
+                <label for="armor-powersuit-toggle">{{localize "SLA.ItemSheet.Armor.IsPowersuit"}}</label>
+                <input id="armor-powersuit-toggle" type="checkbox" name="system.powersuit" {{checked system.powersuit}} />
+            </div>
+            <div class="sla-field sla-field--inline sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Armor.DexCap"}}</label>
+                <input type="number" name="system.dexCap" value="{{system.dexCap}}" placeholder="0" />
+            </div>
+            <div class="sla-field sla-field--inline sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Armor.InitBonus"}}</label>
+                <input type="number" name="system.initBonus" value="{{system.initBonus}}" placeholder="0" />
+            </div>
+            <div class="sla-field sla-field--inline sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Armor.StrBonus"}}</label>
+                <input type="number" name="system.mods.str" value="{{system.mods.str}}" placeholder="0" />
+            </div>
+            <div class="sla-field sla-field--inline sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Armor.DexBonus"}}</label>
+                <input type="number" name="system.mods.dex" value="{{system.mods.dex}}" placeholder="0" />
+            </div>
+            <div class="sla-field sla-field--inline sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Armor.CloseMove"}}</label>
+                <input type="number" name="system.mods.move.closing" value="{{system.mods.move.closing}}" placeholder="0" />
+            </div>
+            <div class="sla-field sla-field--inline sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Armor.RushMove"}}</label>
+                <input type="number" name="system.mods.move.rushing" value="{{system.mods.move.rushing}}" placeholder="0" />
+            </div>
         </div>
-        <div class="form-group flexrow" style="align-items:center;">
-            <label style="flex:1;">Close mv.</label>
-            <input type="number" name="system.mods.move.closing" value="{{system.mods.move.closing}}" placeholder="0"
-                style="flex:0 0 50px; text-align:center; height:24px;" />
-        </div>
-        <div class="form-group flexrow" style="align-items:center;">
-            <label style="flex:1;">Rush mv.</label>
-            <input type="number" name="system.mods.move.rushing" value="{{system.mods.move.rushing}}" placeholder="0"
-                style="flex:0 0 50px; text-align:center; height:24px;" />
-        </div>
-    </div>
-    {{else}}
-    <div style="padding:10px; text-align:center; font-style:italic; color:#777; font-size:0.9em;">
-        Systems Offline
-    </div>
-    {{/if}}
+        {{else}}
+        <p class="powersuit-telemetry__systems-idle">{{localize "SLA.ItemSheet.Armor.SystemsOffline"}}</p>
+        {{/if}}
+    </section>
 </div>
