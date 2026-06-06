@@ -9,7 +9,7 @@ const { defineConfig, devices } = require("@playwright/test");
  *   FOUNDRY_PASSWORD     User password (may be empty if your user allows it)
  *
  * Run: npm run test:e2e:install && npm run test:e2e
- * Authenticated SLA regression: npm run test:e2e:regression (requires FOUNDRY_USER)
+ * Authenticated SLA regression: npm run test:e2e:regression (requires FOUNDRY_USER; includes item sheet UI)
  * Operators / dice / GM API: npm run test:e2e:operators (GM tests need a GM user)
  */
 module.exports = defineConfig({
