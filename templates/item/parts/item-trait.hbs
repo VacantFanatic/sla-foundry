@@ -1,0 +1,27 @@
+{{!-- Personnel Annotation — trait item layout (#243 phase 5) --}}
+<div class="personnel-annotation">
+
+    <div class="personnel-annotation__stamp">{{localize "SLA.ItemSheet.Trait.Stamp"}}</div>
+
+    <section class="sla-section personnel-annotation__record">
+        <div class="sla-section__header">
+            <span class="sla-section__icon"><i class="fas fa-sticky-note"></i></span>
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.Trait.AnnotationRecord"}}</span>
+        </div>
+
+        <div class="personnel-annotation__grid">
+            <div class="sla-field sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Trait.Rank"}}</label>
+                <input type="number" name="system.rank" value="{{system.rank}}" />
+            </div>
+            <div class="sla-field sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Trait.Type"}}</label>
+                <input type="text" name="system.type" value="{{system.type}}" />
+            </div>
+            <div class="sla-field sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Trait.XpCost"}}</label>
+                <input type="number" name="system.xpCost" value="{{system.xpCost}}" />
+            </div>
+        </div>
+    </section>
+</div>

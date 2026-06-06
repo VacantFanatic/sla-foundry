@@ -16,8 +16,11 @@
 {{else if (eq item.type "toxicant")}}
 {{> "systems/sla-industries/templates/item/parts/item-toxicant.hbs"}}
 
+{{else if (eq item.type "item")}}
+{{> "systems/sla-industries/templates/item/parts/item-item.hbs"}}
+
 {{else}}
-{{!-- STANDARD CATALOGUE LAYOUT --}}
+{{!-- Remaining catalogue types (e.g. vehicle placeholder) --}}
 <div class="catalogue-grid">
     {{!-- COMMON FIELDS (Shared by all physical items) --}}
     <div class="form-group">
@@ -33,14 +36,7 @@
         <input type="number" name="system.quantity" value="{{system.quantity}}" />
     </div>
 
-    {{!-- DYNAMIC PARTIALS --}}
+    {{!-- DYNAMIC PARTIALS — vehicle only until removed in PR 7 --}}
 
-    {{!-- Generic Item Notes (Fallback for type "item") --}}
-    {{#if (eq item.type "item")}}
-    <div class="form-group" style="grid-column: 1 / -1;">
-        <label>Notes</label>
-        <input type="text" name="system.typeNote" value="{{system.typeNote}}" />
-    </div>
-    {{/if}}
 </div>
 {{/if}}
