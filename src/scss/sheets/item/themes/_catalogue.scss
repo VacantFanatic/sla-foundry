@@ -3,7 +3,8 @@
  *
  * Ported verbatim from the historic `_item.scss`. Phase 2+ PRs replace this
  * shared grid with per-type identities. Weapon, magazine, armor, explosive,
- * drug, and toxicant now use dedicated themed layouts (#243 phases 2–4).
+ * drug, toxicant, skill, trait, and generic item now use dedicated themed
+ * layouts (#243 phases 2–5).
  */
 
 .catalogue-grid {

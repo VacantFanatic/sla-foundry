@@ -20,8 +20,12 @@
 
     <section class="sheet-body">
         <div class="tab attributes {{tabs.attributes.cssClass}}" data-group="primary" data-tab="attributes">
-            {{#if (or (eq item.type "skill") (eq item.type "trait"))}}
-            {{> "systems/sla-industries/templates/item/parts/item-academic.hbs"}}
+            {{#if (eq item.type "skill")}}
+            {{> "systems/sla-industries/templates/item/parts/item-skill.hbs"}}
+            {{/if}}
+
+            {{#if (eq item.type "trait")}}
+            {{> "systems/sla-industries/templates/item/parts/item-trait.hbs"}}
             {{/if}}
 
             {{#if (eq item.type "discipline")}}
