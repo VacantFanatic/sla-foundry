@@ -7,7 +7,7 @@
  *
  * Phase 1 (#243) introduces a single `.sla-drop` component and keeps the legacy
  * class names as visual aliases so per-type theme PRs can migrate markup
- * gradually. The is-drag-over state will be wired in a later PR.
+ * gradually. `.is-drag-over` is toggled from `item-sheet.mjs` during drag.
  */
 
 /* ==========================================

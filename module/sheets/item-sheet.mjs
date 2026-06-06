@@ -24,9 +24,18 @@ const CATALOGUE_PART_TYPES = new Set([
     "explosive",
     "magazine",
     "drug",
-    "toxicant",
-    "vehicle"
+    "toxicant"
 ]);
+
+/** Drop targets — legacy class names kept for JS binding (#243). */
+const DROP_ZONE_SELECTOR = [
+    ".sla-drop",
+    ".drop-zone",
+    ".skill-link-box",
+    ".weapon-link",
+    ".discipline-drop-zone",
+    ".skill-grant-area"
+].join(", ");
 
 export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
@@ -506,29 +515,8 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
             );
         }
 
-        const weaponLink = root.querySelector(".weapon-link");
-        if (weaponLink) {
-            weaponLink.addEventListener("drop", this.#onDropWeapon, { signal });
-            weaponLink.addEventListener("dragover", SlaItemSheet.#onDragOver, { signal });
-        }
-
-        const skillLinkBox = root.querySelector(".skill-link-box");
-        if (skillLinkBox) {
-            skillLinkBox.addEventListener("dragover", SlaItemSheet.#onDragOver, { signal });
-            skillLinkBox.addEventListener("drop", this.#onDropWeaponSkill, { signal });
-        }
-
-        const disciplineZone = root.querySelector(".discipline-drop-zone");
-        if (disciplineZone) {
-            disciplineZone.addEventListener("drop", this.#onDropDiscipline, { signal });
-            disciplineZone.addEventListener("dragover", SlaItemSheet.#onDisciplineDragOver, { signal });
-        }
-
-        const skillGrant = root.querySelector(".skill-grant-area");
-        if (skillGrant) {
-            skillGrant.addEventListener("dragover", SlaItemSheet.#onDragOver, { signal });
-            skillGrant.addEventListener("drop", this.#onDropSkill, { signal });
-        }
+        this.#bindDropZoneHandlers(root, signal);
+        this.#bindDropZoneDragFeedback(root, signal);
 
         const bindProseMirror = () => {
             for (const el of root.querySelectorAll('prose-mirror[name="system.description"]')) {
@@ -538,6 +526,67 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
             }
         };
         queueMicrotask(bindProseMirror);
+    }
+
+    /**
+     * @param {HTMLElement} root
+     * @param {AbortSignal} signal
+     */
+    #bindDropZoneHandlers(root, signal) {
+        for (const weaponLink of root.querySelectorAll(".weapon-link")) {
+            weaponLink.addEventListener("drop", this.#onDropWeapon, { signal });
+            weaponLink.addEventListener("dragover", SlaItemSheet.#onDragOver, { signal });
+        }
+
+        for (const skillLinkBox of root.querySelectorAll(".skill-link-box")) {
+            skillLinkBox.addEventListener("dragover", SlaItemSheet.#onDragOver, { signal });
+            skillLinkBox.addEventListener("drop", this.#onDropWeaponSkill, { signal });
+        }
+
+        for (const disciplineZone of root.querySelectorAll(".discipline-drop-zone")) {
+            disciplineZone.addEventListener("drop", this.#onDropDiscipline, { signal });
+            disciplineZone.addEventListener("dragover", SlaItemSheet.#onDisciplineDragOver, { signal });
+        }
+
+        for (const skillGrant of root.querySelectorAll(".skill-grant-area")) {
+            skillGrant.addEventListener("dragover", SlaItemSheet.#onDragOver, { signal });
+            skillGrant.addEventListener("drop", this.#onDropSkill, { signal });
+        }
+    }
+
+    /**
+     * Toggle `.is-drag-over` on all item-sheet drop targets during drag (#243 phase 7).
+     * @param {HTMLElement} root
+     * @param {AbortSignal} signal
+     */
+    #bindDropZoneDragFeedback(root, signal) {
+        const seen = new Set();
+        for (const zone of root.querySelectorAll(DROP_ZONE_SELECTOR)) {
+            if (!(zone instanceof HTMLElement) || seen.has(zone)) continue;
+            seen.add(zone);
+
+            zone.addEventListener("dragenter", (event) => {
+                event.preventDefault();
+                zone.classList.add("is-drag-over");
+            }, { signal });
+
+            zone.addEventListener("dragleave", (event) => {
+                const related = event.relatedTarget;
+                if (related instanceof Node && zone.contains(related)) return;
+                zone.classList.remove("is-drag-over");
+            }, { signal });
+
+            zone.addEventListener("drop", () => {
+                zone.classList.remove("is-drag-over");
+            }, { signal });
+        }
+
+        const clearAll = () => {
+            for (const zone of root.querySelectorAll(DROP_ZONE_SELECTOR)) {
+                zone.classList.remove("is-drag-over");
+            }
+        };
+        globalThis.addEventListener("dragend", clearAll, { signal });
     }
 
     static #onDragOver(event) {

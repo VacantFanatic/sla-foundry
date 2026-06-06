@@ -1,30 +1,27 @@
-<div class="spectral-container">
-    {{!-- DISCIPLINE ITEM --}}
-    {{#if (eq item.type "discipline")}}
-    <div class="spectral-discipline-card">
-        <div class="spectral-discipline-card__header">{{localize "TYPES.Item.discipline"}}</div>
-        <div class="form-group glow-input spectral-discipline-card__rank">
-            <label>{{localize "SLA.DisciplineRank"}}</label>
-            <input type="number" name="system.rank" value="{{system.rank}}" />
-        </div>
-    </div>
-    {{/if}}
+{{!-- Spectral ebb formula layout (#243 phase 7) --}}
+<div class="spectral-container spectral-container--formula">
 
-    {{!-- EBB FORMULA ITEM --}}
-    {{#if (eq item.type "ebbFormula")}}
-    <div class="spectral-ebb-card">
+    <div class="spectral-stamp">{{localize "SLA.ItemSheet.EbbFormula.Stamp"}}</div>
+
+    <section class="sla-section spectral-ebb-card">
+        <div class="sla-section__header">
+            <span class="sla-section__icon"><i class="fas fa-bolt"></i></span>
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.EbbFormula.FormulaData"}}</span>
+        </div>
+
         <div class="spectral-ebb-card__row spectral-ebb-card__row--primary">
-            <div class="form-group glow-input">
+            <div class="sla-field sla-field--compact glow-input">
                 <label>{{localize "SLA.EbbFormulaRating"}}</label>
                 <input type="number" name="system.formulaRating" value="{{system.formulaRating}}" />
             </div>
-            <div class="form-group glow-input">
+            <div class="sla-field sla-field--compact glow-input">
                 <label>{{localize "SLA.EbbFluxCost"}}</label>
                 <input type="number" name="system.cost" value="{{system.cost}}" />
             </div>
         </div>
+
         <div class="spectral-ebb-card__row spectral-ebb-card__row--effect">
-            <div class="form-group glow-input">
+            <div class="sla-field sla-field--compact glow-input">
                 <label>{{localize "SLA.EbbTargetField"}}</label>
                 <select name="system.ebbTarget" data-dtype="String">
                     <option value="self" {{#if (eq system.ebbTarget "self")}}selected{{/if}}>{{localize "SLA.EbbTarget.self"}}</option>
@@ -32,7 +29,7 @@
                     <option value="enemy" {{#unless (or (eq system.ebbTarget "self") (eq system.ebbTarget "ally"))}}selected{{/unless}}>{{localize "SLA.EbbTarget.enemy"}}</option>
                 </select>
             </div>
-            <div class="form-group glow-input">
+            <div class="sla-field sla-field--compact glow-input">
                 <label>{{localize "SLA.EbbEffectField"}}</label>
                 <select name="system.ebbEffect" data-dtype="String">
                     <option value="heal" {{#if (eq system.ebbEffect "heal")}}selected{{/if}}>{{localize "SLA.EbbEffect.heal"}}</option>
@@ -40,13 +37,12 @@
                     <option value="effect" {{#if (or (eq system.ebbEffect "effect") (eq system.ebbEffect "none"))}}selected{{/if}}>{{localize "SLA.EbbEffect.effect"}}</option>
                 </select>
             </div>
-            <div class="form-group glow-input spectral-ebb-card__wounds-count">
+            <div class="sla-field sla-field--compact glow-input spectral-ebb-card__wounds-count">
                 <label>{{localize "SLA.EbbRemoveWoundsField"}}</label>
-                <input type="number" name="system.removeWounds" min="0" max="6" step="1"
-                    value="{{system.removeWounds}}" />
+                <input type="number" name="system.removeWounds" min="0" max="6" step="1" value="{{system.removeWounds}}" />
             </div>
             {{#if (eq system.ebbEffect "heal")}}
-            <div class="form-group glow-input">
+            <div class="sla-field sla-field--compact glow-input">
                 <label>{{localize "SLA.EbbHealWoundModeField"}}</label>
                 <select name="system.ebbHealWoundMode" data-dtype="String">
                     <option value="and" {{#unless (eq system.ebbHealWoundMode "or")}}selected{{/unless}}>{{localize "SLA.EbbHealWoundMode.and"}}</option>
@@ -55,34 +51,34 @@
             </div>
             {{/if}}
         </div>
+
         <div class="spectral-ebb-card__row spectral-ebb-card__row--combat">
-            <div class="form-group glow-input">
+            <div class="sla-field sla-field--compact glow-input">
                 <label>{{localize "SLA.EbbDamageFormula"}}</label>
                 <input type="text" name="system.damage" value="{{system.damage}}" />
             </div>
-            <div class="form-group glow-input">
+            <div class="sla-field sla-field--compact glow-input">
                 <label>{{localize "SLA.EbbMinDamage"}}</label>
                 <input type="text" name="system.minDamage" value="{{system.minDamage}}" />
             </div>
-            <div class="form-group glow-input">
+            <div class="sla-field sla-field--compact glow-input">
                 <label>{{localize "SLA.EbbRange"}}</label>
                 <input type="text" name="system.range" value="{{system.range}}" />
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="form-group spectral-ebb-discipline-link">
-        <label class="spectral-ebb-discipline-link__label">{{localize "SLA.EbbRequiredDiscipline"}}</label>
-        <div class="drop-zone discipline-drop-zone linked-item {{#if system.discipline}}filled{{/if}}">
+    <div class="sla-field spectral-ebb-discipline-link">
+        <label>{{localize "SLA.EbbRequiredDiscipline"}}</label>
+        <div class="sla-drop discipline-drop-zone drop-zone linked-item {{#if system.discipline}}sla-drop--filled filled{{/if}}">
             {{#if system.discipline}}
             <img src="{{linkedDisciplineImg}}" alt="" />
             <span class="linked-name">{{system.discipline}}</span>
             <button type="button" class="remove-discipline" data-action="removeDisciplineLink" title="{{localize "SLA.EbbRemoveDisciplineLink"}}"><i class="fas fa-times"></i></button>
             {{else}}
-            <span class="placeholder">{{localize "SLA.EbbDropDiscipline"}}</span>
+            <span class="sla-drop__hint placeholder">{{localize "SLA.ItemSheet.Drop.Discipline"}}</span>
             {{/if}}
         </div>
         <input type="hidden" name="system.discipline" value="{{system.discipline}}" />
     </div>
-    {{/if}}
 </div>

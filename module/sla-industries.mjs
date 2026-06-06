@@ -149,9 +149,7 @@ Hooks.once('init', async function () {
         drug: SlaDrugData,
         species: SlaSpeciesData,
         package: SlaPackageData,
-        magazine: SlaMagazineData,
-        // Legacy/orphan: vehicles are Actors in SLA; Item type "vehicle" should not be created but old worlds may contain it
-        vehicle: SlaItemData
+        magazine: SlaMagazineData
     };
 
     // REGISTER CUSTOM TOKEN RULER
