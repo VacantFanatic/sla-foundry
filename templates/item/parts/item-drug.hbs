@@ -1,26 +1,48 @@
-<div class="sla-panel" style="background-color: #000; color: #e0e0e0; padding: 5px;">
-    
-    {{!-- Top Row: Addiction Rating & Duration --}}
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-        <div class="form-group">
-            <label style="color:var(--sla-accent);">Addiction Rating</label>
-            <input type="number" name="system.addiction" value="{{system.addiction}}" placeholder="10"/>
+{{!-- Pharma Label — combat drug item layout (#243 phase 4) --}}
+<div class="pharma-label">
+
+    <div class="pharma-label__stamp">{{localize "SLA.ItemSheet.Drug.Stamp"}}</div>
+
+    <div class="pharma-label__grid">
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Weight"}}</label>
+            <input type="number" name="system.weight" value="{{system.weight}}" step="0.1" />
         </div>
-        <div class="form-group">
-            <label style="color:var(--sla-accent);">Duration</label>
-            <input type="text" name="system.duration" value="{{system.duration}}" placeholder="e.g. 4 Hours"/>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Cost"}}</label>
+            <input type="number" name="system.price" value="{{system.price}}" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Qty"}}</label>
+            <input type="number" name="system.quantity" value="{{system.quantity}}" />
         </div>
     </div>
 
-    {{!-- Addiction Dose --}}
-    <div class="form-group" style="flex-direction: column; align-items: flex-start; margin-bottom: 8px;">
-        <label style="color:var(--sla-accent); margin-bottom: 2px;">Addiction Dose</label>
-        <input type="text" name="system.addictionDose" value="{{system.addictionDose}}" placeholder="e.g. Every 6 hours plus every combat..."/>
-    </div>
+    <section class="sla-section pharma-label__pharmacology">
+        <div class="sla-section__header">
+            <span class="sla-section__icon"><i class="fas fa-syringe"></i></span>
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.Drug.Pharmacology"}}</span>
+        </div>
 
-    {{!-- Detox Effects --}}
-    <div class="form-group" style="flex-direction: column; align-items: flex-start;">
-        <label style="color:var(--sla-accent); margin-bottom: 2px;">Detox Effects</label>
-        <textarea name="system.detoxEffects" rows="3" style="width:100%;">{{system.detoxEffects}}</textarea>
-    </div>
+        <div class="pharma-label__stats">
+            <div class="sla-field sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Drug.AddictionRating"}}</label>
+                <input type="number" name="system.addiction" value="{{system.addiction}}" placeholder="10" />
+            </div>
+            <div class="sla-field sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Drug.Duration"}}</label>
+                <input type="text" name="system.duration" value="{{system.duration}}" placeholder="{{localize "SLA.ItemSheet.Drug.DurationPlaceholder"}}" />
+            </div>
+        </div>
+
+        <div class="sla-field">
+            <label>{{localize "SLA.ItemSheet.Drug.AddictionDose"}}</label>
+            <input type="text" name="system.addictionDose" value="{{system.addictionDose}}" placeholder="{{localize "SLA.ItemSheet.Drug.AddictionDosePlaceholder"}}" />
+        </div>
+
+        <div class="sla-field">
+            <label>{{localize "SLA.ItemSheet.Drug.DetoxEffects"}}</label>
+            <textarea name="system.detoxEffects" rows="3">{{system.detoxEffects}}</textarea>
+        </div>
+    </section>
 </div>

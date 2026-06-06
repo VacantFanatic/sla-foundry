@@ -1,0 +1,86 @@
+/**
+ * Drug theme — Pharma Label (#243 phase 4).
+ *
+ * Clinical orange prescription-label aesthetic. Replaces the shared two-column
+ * catalogue grid for combat drugs.
+ */
+
+.sla-item-root.drug-theme {
+    --sla-type-input-bg: rgba(28, 16, 8, 0.88);
+    --sla-type-input-border: rgba(240, 132, 58, 0.35);
+    --sla-type-panel-bg: rgba(32, 18, 10, 0.95);
+}
+
+form.application.sla-industries.item .drug-theme .sheet-header {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #2a1810 0%, #1a1008 100%) !important;
+    border-bottom-color: var(--sla-type-frame);
+}
+
+/* Rx stripe motif — pure CSS, no image assets */
+form.application.sla-industries.item .drug-theme .sheet-header::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 52px;
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(240, 132, 58, 0.45) 0,
+        rgba(240, 132, 58, 0.45) 8px,
+        rgba(255, 255, 255, 0.12) 8px,
+        rgba(255, 255, 255, 0.12) 16px
+    );
+    opacity: 0.85;
+    pointer-events: none;
+}
+
+form.application.sla-industries.item .pharma-label {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px;
+    background:
+        linear-gradient(180deg, rgba(255, 248, 240, 0.04) 0%, rgba(240, 132, 58, 0.06) 100%),
+        linear-gradient(180deg, #1a1008 0%, #120a04 100%);
+    border: 2px solid var(--sla-type-frame);
+    border-radius: var(--sla-radius);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+form.application.sla-industries.item .pharma-label__stamp {
+    align-self: flex-start;
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(180deg, #f0843a 0%, #d05e1a 100%);
+    border: 2px solid #a04010;
+    padding: 4px 12px;
+    transform: rotate(-1deg);
+    box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+form.application.sla-industries.item .pharma-label__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+form.application.sla-industries.item .pharma-label__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+form.application.sla-industries.item .pharma-label .sla-field > label {
+    color: var(--sla-type-accent);
+}
+
+form.application.sla-industries.item .pharma-label textarea {
+    min-height: 64px;
+}
