@@ -5,7 +5,7 @@ import { LuckDialog } from "../apps/luck-dialog.mjs";
 import { XPDialog } from "../apps/xp-dialog.mjs";
 import { SlaSimpleContentDialog } from "../apps/sla-simple-dialog.mjs";
 import { calculateRollResult, generateDiceTooltip, createSLARoll } from "../helpers/dice.mjs";
-import { prepareItems, normalizeEbbEffect, normalizeEbbHealWoundMode } from "../helpers/items.mjs";
+import { prepareItems, normalizeEbbEffect, normalizeEbbHealWoundMode, incrementSkillRank } from "../helpers/items.mjs";
 import { getEbbMosDamageBonus } from "../helpers/ebb-mos.mjs";
 import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from "../helpers/modifiers.mjs";
 import { addActorItemToHotbar } from "../helpers/sla-hotbar.mjs";
@@ -2742,9 +2742,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             );
 
             if (existingSkill) {
-                const currentRank = existingSkill.system?.rank || 0;
-                toUpdate.push({ _id: existingSkill.id, "system.rank": currentRank + 1 });
-                ui.notifications.info(`Upgraded ${existingSkill.name} to Rank ${currentRank + 1}`);
+                const currentRank = Number(existingSkill.system?.rank) || 0;
+                const newRank = incrementSkillRank(currentRank);
+                toUpdate.push({ _id: existingSkill.id, "system.rank": newRank });
+                ui.notifications.info(`Upgraded ${existingSkill.name} to Rank ${newRank}`);
                 continue;
             }
 
@@ -2753,7 +2754,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 type: "skill",
                 img: skillData.img || "icons/svg/book.svg",
                 system: {
-                    rank: 1,
+                    rank: "1",
                     stat: CONFIG.SLA?.skillStats?.[skillData.name.toLowerCase()]
                         || skillData.stat
                         || skillData.system?.stat
