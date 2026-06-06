@@ -1,0 +1,88 @@
+/**
+ * Item sheet — Effects tab (#243 phase 7).
+ */
+
+form.application.sla-industries.item .sla-item-effects {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 4px;
+}
+
+form.application.sla-industries.item .sla-item-effects__header {
+    margin-bottom: 0;
+}
+
+form.application.sla-industries.item .sla-item-effects-hint {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--sla-text-muted, #999);
+}
+
+form.application.sla-industries.item .sla-effects-toolbar input.sla-item-effect-search {
+    width: 100%;
+    margin-bottom: 4px;
+}
+
+form.application.sla-industries.item .sla-item-effects-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+form.application.sla-industries.item .sla-item-effect-row {
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border: 1px solid var(--sla-border);
+    border-radius: var(--sla-radius);
+    background: rgba(0, 0, 0, 0.2);
+    transition: background 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+        background: var(--sla-type-accent-soft, rgba(255, 255, 255, 0.06));
+        border-color: var(--sla-type-accent, var(--sla-accent));
+    }
+
+    &.sla-effect-filtered {
+        display: none;
+    }
+
+    .item-name h4 {
+        margin: 0;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--sla-text-light);
+    }
+
+    .item-controls {
+        display: flex;
+        gap: 4px;
+
+        button {
+            background: transparent;
+            border: none;
+            margin: 0;
+            padding: 2px 4px;
+            cursor: pointer;
+            color: var(--sla-text-muted, #aaa);
+            line-height: 1;
+
+            &:hover {
+                color: var(--sla-type-accent, var(--sla-accent));
+            }
+        }
+    }
+}
+
+form.application.sla-industries.item .sla-effects-empty {
+    padding: 16px;
+    text-align: center;
+    color: var(--sla-text-muted, #666);
+    font-style: italic;
+    font-size: 0.8125rem;
+}

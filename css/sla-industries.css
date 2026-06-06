@@ -3573,7 +3573,7 @@ form.application.sla-industries.item .sla-field {
   min-width: 0;
 }
 form.application.sla-industries.item .sla-field > label {
-  font-size: 0.72rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -3685,7 +3685,7 @@ form.application.sla-industries.item .sla-section__header > .sla-section__action
  *
  * Phase 1 (#243) introduces a single `.sla-drop` component and keeps the legacy
  * class names as visual aliases so per-type theme PRs can migrate markup
- * gradually. The is-drag-over state will be wired in a later PR.
+ * gradually. `.is-drag-over` is toggled from `item-sheet.mjs` during drag.
  */
 /* ==========================================
    Unified .sla-drop
@@ -3912,7 +3912,7 @@ form.application.sla-industries.item .sheet-body.single-view .sheet-description 
   flex-direction: column;
   border: 1px solid #333;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.2);
+  background: #202030;
 }
 
 /* Discipline single-view: rank card + description side by side */
@@ -3963,6 +3963,88 @@ form.application.sla-industries.item .sheet-body.single-view .sheet-description 
   flex: 1 1 260px;
   min-width: 0;
   min-height: 180px;
+}
+
+/**
+ * Item sheet — Effects tab (#243 phase 7).
+ */
+form.application.sla-industries.item .sla-item-effects {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 4px;
+}
+
+form.application.sla-industries.item .sla-item-effects__header {
+  margin-bottom: 0;
+}
+
+form.application.sla-industries.item .sla-item-effects-hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--sla-text-muted, #999);
+}
+
+form.application.sla-industries.item .sla-effects-toolbar input.sla-item-effect-search {
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+form.application.sla-industries.item .sla-item-effects-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+form.application.sla-industries.item .sla-item-effect-row {
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--sla-border);
+  border-radius: var(--sla-radius);
+  background: rgba(0, 0, 0, 0.2);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+form.application.sla-industries.item .sla-item-effect-row:hover {
+  background: var(--sla-type-accent-soft, rgba(255, 255, 255, 0.06));
+  border-color: var(--sla-type-accent, var(--sla-accent));
+}
+form.application.sla-industries.item .sla-item-effect-row.sla-effect-filtered {
+  display: none;
+}
+form.application.sla-industries.item .sla-item-effect-row .item-name h4 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sla-text-light);
+}
+form.application.sla-industries.item .sla-item-effect-row .item-controls {
+  display: flex;
+  gap: 4px;
+}
+form.application.sla-industries.item .sla-item-effect-row .item-controls button {
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 2px 4px;
+  cursor: pointer;
+  color: var(--sla-text-muted, #aaa);
+  line-height: 1;
+}
+form.application.sla-industries.item .sla-item-effect-row .item-controls button:hover {
+  color: var(--sla-type-accent, var(--sla-accent));
+}
+
+form.application.sla-industries.item .sla-effects-empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--sla-text-muted, #666);
+  font-style: italic;
+  font-size: 0.8125rem;
 }
 
 /**
@@ -4940,10 +5022,9 @@ form.application.sla-industries.item .bio-hazard-notice__hint {
 }
 
 /**
- * Spectral theme — ebbFormula, discipline.
+ * Spectral theme — ebbFormula, discipline (#243 phase 7).
  *
- * Ported verbatim from the historic `_item.scss`. Phase 2 spectral PR tightens
- * spacing, groups rows visually, and modernises the holographic backdrop.
+ * Holographic purple backdrop, stamp headers, and grouped formula cards.
  */
 .item.ebbFormula .window-content,
 .item.discipline .window-content {
@@ -4959,11 +5040,63 @@ form.application.sla-industries.item .bio-hazard-notice__hint {
 }
 
 .item.ebbFormula input:not([type=checkbox]),
-.item.discipline input:not([type=checkbox]) {
+.item.discipline input:not([type=checkbox]),
+.item.ebbFormula select,
+.item.discipline select {
   background: rgba(0, 0, 0, 0.5) !important;
   border: 1px solid var(--sla-type-frame, #8a2be2) !important;
   color: #fff !important;
   text-shadow: 0 0 5px var(--sla-type-frame, #8a2be2);
+}
+
+/* Holographic panel backdrop */
+.spectral-container {
+  position: relative;
+  padding: 15px;
+  color: #d8bfff;
+  background: radial-gradient(ellipse at 20% 0%, rgba(138, 43, 226, 0.18), transparent 55%), radial-gradient(ellipse at 80% 100%, rgba(99, 102, 241, 0.12), transparent 50%), linear-gradient(180deg, rgba(10, 0, 20, 0.6), rgba(0, 0, 0, 0.35));
+  border: 1px solid rgba(138, 43, 226, 0.35);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.spectral-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(138, 43, 226, 0.03) 2px, rgba(138, 43, 226, 0.03) 4px);
+  opacity: 0.6;
+}
+.spectral-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+.spectral-stamp {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 4px 12px;
+  font-family: var(--sla-font-header);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #e9d5ff;
+  border: 2px solid rgba(168, 85, 247, 0.65);
+  border-radius: 4px;
+  background: rgba(26, 0, 42, 0.75);
+  box-shadow: 0 0 12px rgba(138, 43, 226, 0.35);
+  transform: rotate(-1.5deg);
+}
+
+.spectral-container--discipline .spectral-stamp {
+  color: #c4b5fd;
+  border-color: rgba(196, 181, 253, 0.55);
+}
+
+.spectral-container--formula .spectral-stamp {
+  color: #ddd6fe;
+  border-color: rgba(221, 214, 254, 0.5);
 }
 
 /* Ebb formula drop zone */
@@ -4977,12 +5110,20 @@ form.application.sla-industries.item .bio-hazard-notice__hint {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
-.discipline-drop-zone.filled {
+.discipline-drop-zone.filled,
+.discipline-drop-zone.sla-drop--filled {
   border-style: solid;
   background: rgba(0, 0, 0, 0.4);
+}
+
+.discipline-drop-zone.is-drag-over,
+.item.ebbFormula .drop-zone.is-drag-over {
+  background: rgba(138, 43, 226, 0.25);
+  border-color: #c084fc;
+  box-shadow: inset 0 0 0 1px rgba(192, 132, 252, 0.5), 0 0 10px rgba(138, 43, 226, 0.35);
 }
 
 .linked-item {
@@ -5023,15 +5164,18 @@ form.application.sla-industries.item .bio-hazard-notice__hint {
   line-height: 1;
 }
 
-.spectral-ebb-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.spectral-ebb-card,
+.spectral-discipline-card {
   padding: 12px;
   margin-bottom: 12px;
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(138, 43, 226, 0.45);
   border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.spectral-discipline-card {
+  margin-bottom: 10px;
 }
 
 .spectral-ebb-card__row {
@@ -5041,8 +5185,8 @@ form.application.sla-industries.item .bio-hazard-notice__hint {
   align-items: flex-end;
 }
 
-.spectral-ebb-card__row--primary .form-group,
-.spectral-ebb-card__row--combat .form-group {
+.spectral-ebb-card__row--primary .sla-field,
+.spectral-ebb-card__row--combat .sla-field {
   flex: 1 1 120px;
   min-width: 100px;
 }
@@ -5051,62 +5195,26 @@ form.application.sla-industries.item .bio-hazard-notice__hint {
   align-items: center;
 }
 
-.spectral-ebb-card__row--effect .form-group {
+.spectral-ebb-card__row--effect .sla-field {
   flex: 1 1 140px;
   min-width: 120px;
-}
-
-.spectral-ebb-card__check {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  color: #d8bfff;
-  font-size: 0.9em;
-  margin: 0;
-  flex: 0 0 auto;
 }
 
 .spectral-ebb-discipline-link {
   margin-top: 8px;
 }
 
-.spectral-ebb-discipline-link__label {
+form.application.sla-industries.item .spectral-ebb-discipline-link > label,
+form.application.sla-industries.item .spectral-container .sla-field > label {
   color: #c4b5fd !important;
-  font-weight: 700;
-  font-size: 0.8em;
-  margin-bottom: 6px;
-  display: block;
-}
-
-.spectral-discipline-card {
-  padding: 12px;
-  margin-bottom: 10px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(138, 43, 226, 0.45);
-  border-radius: 8px;
-}
-
-.spectral-discipline-card__header {
-  font-family: var(--sla-font-header);
-  font-weight: 700;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #a78bfa;
-  margin-bottom: 10px;
+  opacity: 1;
 }
 
 .item.ebbFormula select {
   width: 100%;
 }
 
-/* Spectral container + glow inputs */
-.spectral-container {
-  padding: 15px;
-  color: #d8bfff;
-}
-
+/* Glow inputs */
 .glow-input {
   display: flex;
   flex-direction: column;
@@ -5115,34 +5223,42 @@ form.application.sla-industries.item .bio-hazard-notice__hint {
 
 .glow-input label {
   color: #a855f7;
-  font-size: 0.8em;
+  font-size: 0.8125rem;
   font-weight: bold;
   text-shadow: 0 0 5px #a855f7;
 }
 
-.glow-input input {
+.glow-input input,
+.glow-input select {
   background: rgba(0, 0, 0, 0.5) !important;
   border: 1px solid #8a2be2 !important;
   color: #fff !important;
   box-shadow: 0 0 5px #8a2be2;
   transition: all 0.3s ease;
   padding: 2px 5px;
-  width: 50%;
+  width: 100%;
   height: 24px;
   font-size: 1.1em;
 }
 
-/* Glow inputs sit inside the item-sheet form root, so they must beat the
-   baseline always-visible input rule from _fields.scss */
-form.application.sla-industries.item .glow-input input:not([type=checkbox]) {
+form.application.sla-industries.item .glow-input input:not([type=checkbox]),
+form.application.sla-industries.item .glow-input select {
   background: rgba(0, 0, 0, 0.5) !important;
   border: 1px solid #8a2be2 !important;
   color: #fff !important;
   box-shadow: 0 0 5px #8a2be2 !important;
-  padding: 2px 5px;
+}
+
+form.application.sla-industries.item .spectral-discipline-card__rank input {
   width: 50%;
-  height: 24px;
-  font-size: 1.1em;
+}
+
+form.application.sla-industries.item .spectral-container .sla-section__title {
+  color: #e9d5ff;
+}
+
+form.application.sla-industries.item .spectral-container .sla-section__icon {
+  color: #a855f7;
 }
 
 /**

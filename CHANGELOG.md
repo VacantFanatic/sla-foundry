@@ -6,20 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-## [2.6.5] - 2026-06-06
+## [2.6.7] - 2026-06-06
 
 ### Added
 
-* **Skill item theme — Field Manual (#243 phase 5):** Blue ruled-page layout with training-record panel, ruled-line header motif via pure CSS, and localized labels (`SLA.ItemSheet.Skill.*`).
-* **Trait item theme — Personnel Annotation (#243 phase 5):** Tan margin-note layout with annotation-record panel, dashed-margin header motif via pure CSS, and localized labels (`SLA.ItemSheet.Trait.*`).
-* **Generic item theme — Inventory Slip (#243 phase 5):** Neutral grey receipt/slip layout for gear items, perforation header motif via pure CSS, and localized labels (`SLA.ItemSheet.Item.*`).
+* **Discipline item theme — Ebb Discipline (#243 phase 7):** Dedicated spectral partial (`item-discipline.hbs`) with holographic stamp, `.sla-section` rank card, and localized labels (`SLA.ItemSheet.Discipline.*`).
+* **Ebb formula item theme — Ebb Formula (#243 phase 7):** Dedicated spectral partial (`item-ebb-formula.hbs`) with grouped formula rows, discipline drop zone using shared `SLA.ItemSheet.Drop.*` hints, and localized labels (`SLA.ItemSheet.EbbFormula.*`).
+* **Item Effects tab polish:** Localized effects panel copy (`SLA.ItemSheet.Effects.*`), button controls instead of anchor tags, and dedicated `_effects.scss` with row hover feedback.
+* **Shared drop hints:** Centralized `SLA.ItemSheet.Drop.Skill`, `.Weapon`, `.Discipline`, and `.SkillGrant` keys (EN/FR); weapon, magazine, explosive, and dossier-skills templates now reference them.
 
 ### Changed
 
-* **Item sheet routing:** Skill and trait sheets render dedicated partials (`item-skill.hbs`, `item-trait.hbs`) instead of the legacy `item-academic.hbs` wrapper. Generic `item` gear no longer uses the shared light-grey `catalogue-grid`.
-* **SCSS:** Added `themes/_skill-trait.scss` and `themes/_generic.scss`; `themes/_academic.scss` is now a deprecated stub. Legacy `.academic-paper` selectors remain as aliases in `_skill-trait.scss`.
-* Updated system and package metadata version to `2.6.5`, including the release `download` URL in `system.json`.
-* **CI release publishing:** GitHub releases are created when a version tag is pushed (for example `2.6.5`), not on every push to `main`. Main-branch CI still runs unit tests and validates the dist build.
+* **Spectral routing:** Discipline and ebb formula sheets render dedicated partials instead of the legacy `item-spectral.hbs` wrapper (removed).
+* **Drag feedback:** Item sheet drop zones toggle `.is-drag-over` during drag enter/leave/drop (`item-sheet.mjs`).
+* **Readability pass:** Field labels bumped to 13px (`0.8125rem`); description tab ProseMirror background set to `#202030`.
+* **SCSS:** Expanded `themes/_spectral.scss` (holographic backdrop, stamps, drag-over glow); added `_effects.scss`.
+* **Item type cleanup:** Removed orphan `Item.vehicle` from `system.json` `documentTypes` and `CONFIG.Item.dataModels` (vehicles remain Actor documents; world migration still converts legacy vehicle items).
+* Updated system and package metadata version to `2.6.7`, including the release `download` URL in `system.json`.
+
+### Notes
+
+* Closes the #243 item-sheet UX rollout. No data-model field changes. Legacy drop-zone class names remain for JS binding.
 
 ## [2.6.6] - 2026-06-06
 
@@ -38,6 +45,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Notes
 
 * No data-model or behaviour changes. Skill-grant drop handlers and delete controls are unchanged; legacy class names remain for module CSS compatibility.
+
+## [2.6.5] - 2026-06-06
+
+### Added
+
+* **Skill item theme — Field Manual (#243 phase 5):** Blue ruled-page layout with training-record panel, ruled-line header motif via pure CSS, and localized labels (`SLA.ItemSheet.Skill.*`).
+* **Trait item theme — Personnel Annotation (#243 phase 5):** Tan margin-note layout with annotation-record panel, dashed-margin header motif via pure CSS, and localized labels (`SLA.ItemSheet.Trait.*`).
+* **Generic item theme — Inventory Slip (#243 phase 5):** Neutral grey receipt/slip layout for gear items, perforation header motif via pure CSS, and localized labels (`SLA.ItemSheet.Item.*`).
+
+### Changed
+
+* **Item sheet routing:** Skill and trait sheets render dedicated partials (`item-skill.hbs`, `item-trait.hbs`) instead of the legacy `item-academic.hbs` wrapper. Generic `item` gear no longer uses the shared light-grey `catalogue-grid`.
+* **SCSS:** Added `themes/_skill-trait.scss` and `themes/_generic.scss`; `themes/_academic.scss` is now a deprecated stub. Legacy `.academic-paper` selectors remain as aliases in `_skill-trait.scss`.
+* Updated system and package metadata version to `2.6.5`, including the release `download` URL in `system.json`.
+* **CI release publishing:** GitHub releases are created when a version tag is pushed (for example `2.6.5`), not on every push to `main`. Main-branch CI still runs unit tests and validates the dist build.
 
 ## [2.6.4] - 2026-06-05
 

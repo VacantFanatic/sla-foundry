@@ -1,6 +1,6 @@
 {
   "name": "sla-industries",
-  "version": "2.6.6",
+  "version": "2.6.7",
   "description": "CSS compiler for the SLA Industries system",
   "scripts": {
     "build:css": "sass src/scss/sla-industries.scss css/sla-industries.css --style=expanded --no-source-map",

@@ -1,0 +1,17 @@
+{{!-- Spectral discipline layout (#243 phase 7) --}}
+<div class="spectral-container spectral-container--discipline">
+
+    <div class="spectral-stamp">{{localize "SLA.ItemSheet.Discipline.Stamp"}}</div>
+
+    <section class="sla-section spectral-discipline-card">
+        <div class="sla-section__header">
+            <span class="sla-section__icon"><i class="fas fa-hat-wizard"></i></span>
+            <span class="sla-section__title">{{localize "TYPES.Item.discipline"}}</span>
+        </div>
+
+        <div class="sla-field sla-field--compact spectral-discipline-card__rank">
+            <label>{{localize "SLA.DisciplineRank"}}</label>
+            <input type="number" name="system.rank" value="{{system.rank}}" />
+        </div>
+    </section>
+</div>
