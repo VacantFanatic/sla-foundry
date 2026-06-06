@@ -3966,36 +3966,133 @@ form.application.sla-industries.item .sheet-body.single-view .sheet-description 
 }
 
 /**
- * Academic theme — skill, trait.
+ * Skill + trait themes — Field Manual / Personnel Annotation (#243 phase 5).
  *
- * Ported verbatim from the historic `_item.scss`. Phase 2 PR will replace this
- * with the "Field Manual" / "Personnel Annotation" motifs.
+ * Replaces the legacy `.academic-paper` layout for skills and traits.
+ * Legacy `.academic-paper` selectors remain as aliases for backward compatibility.
  */
-.item.skill .window-content,
-.item.trait .window-content {
-  background: var(--sla-bg-dark) !important;
-  font-family: var(--sla-font-mono);
-  color: var(--sla-text-light);
+.sla-item-root.skill-theme {
+  --sla-type-input-bg: rgba(10, 16, 28, 0.88);
+  --sla-type-input-border: rgba(134, 180, 255, 0.3);
+  --sla-type-panel-bg: rgba(14, 20, 32, 0.95);
 }
 
-.item.skill .sheet-header,
-.item.trait .sheet-header {
-  background: var(--sla-bg-panel) !important;
-  border: none;
-  border-bottom: 2px solid var(--sla-type-frame, var(--sla-border));
-  color: var(--sla-text-light) !important;
+.sla-item-root.trait-theme {
+  --sla-type-input-bg: rgba(24, 20, 12, 0.88);
+  --sla-type-input-border: rgba(212, 184, 120, 0.35);
+  --sla-type-panel-bg: rgba(28, 24, 16, 0.95);
 }
 
-.item.skill input:not([type=checkbox]),
-.item.trait input:not([type=checkbox]) {
-  background: rgba(0, 0, 0, 0.3) !important;
-  border: 1px solid var(--sla-border) !important;
-  border-bottom: 1px dotted var(--sla-border) !important;
-  color: var(--sla-text-light) !important;
-  font-family: var(--sla-font-mono);
-  font-weight: bold;
+form.application.sla-industries.item .skill-theme .sheet-header {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #1a2438 0%, #101828 100%) !important;
+  border-bottom-color: var(--sla-type-frame);
 }
 
+/* Ruled-page motif — pure CSS */
+form.application.sla-industries.item .skill-theme .sheet-header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 48px;
+  background: repeating-linear-gradient(180deg, transparent 0, transparent 11px, rgba(134, 180, 255, 0.2) 11px, rgba(134, 180, 255, 0.2) 12px);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+form.application.sla-industries.item .trait-theme .sheet-header {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #2a2418 0%, #1a1810 100%) !important;
+  border-bottom-color: var(--sla-type-frame);
+}
+
+/* Margin-note motif — pure CSS */
+form.application.sla-industries.item .trait-theme .sheet-header::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  bottom: 8px;
+  width: 40px;
+  background: linear-gradient(180deg, rgba(212, 184, 120, 0.25) 0%, rgba(160, 128, 64, 0.15) 100%);
+  border-left: 2px dashed rgba(212, 184, 120, 0.45);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+form.application.sla-industries.item .field-manual {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: repeating-linear-gradient(180deg, transparent, transparent 23px, rgba(134, 180, 255, 0.06) 23px, rgba(134, 180, 255, 0.06) 24px), linear-gradient(180deg, #101828 0%, #0c1220 100%);
+  border: 1px solid rgba(134, 180, 255, 0.2);
+  border-radius: var(--sla-radius);
+}
+
+form.application.sla-industries.item .field-manual__stamp {
+  align-self: flex-start;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #e8f0ff;
+  background: linear-gradient(180deg, #5a88c8 0%, #4a78c0 100%);
+  border: 2px solid var(--sla-type-frame);
+  padding: 4px 12px;
+  transform: rotate(-1deg);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+form.application.sla-industries.item .field-manual__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+form.application.sla-industries.item .personnel-annotation {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(212, 184, 120, 0.06) 0%, transparent 50%), linear-gradient(180deg, #1a1810 0%, #121008 100%);
+  border: 1px solid rgba(212, 184, 120, 0.25);
+  border-radius: var(--sla-radius);
+  box-shadow: inset 40px 0 0 rgba(212, 184, 120, 0.04);
+}
+
+form.application.sla-industries.item .personnel-annotation__stamp {
+  align-self: flex-start;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #2a2010;
+  background: linear-gradient(180deg, #e8dcc0 0%, #d4b878 100%);
+  border: 2px solid var(--sla-type-frame);
+  padding: 4px 10px;
+  transform: rotate(-2deg);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+form.application.sla-industries.item .personnel-annotation__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+form.application.sla-industries.item .field-manual .sla-field > label,
+form.application.sla-industries.item .personnel-annotation .sla-field > label {
+  color: var(--sla-type-accent);
+}
+
+/* Legacy aliases — keep current visuals intact for external CSS */
 .academic-paper {
   padding: 20px;
   font-family: var(--sla-font-mono);
@@ -4030,12 +4127,96 @@ form.application.sla-industries.item .sheet-body.single-view .sheet-description 
   color: var(--sla-text-light) !important;
 }
 
+.item.skill .window-content,
+.item.trait .window-content {
+  background: var(--sla-bg-dark) !important;
+  font-family: var(--sla-font-mono);
+  color: var(--sla-text-light);
+}
+
+.item.skill input:not([type=checkbox]),
+.item.trait input:not([type=checkbox]) {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid var(--sla-border) !important;
+  color: var(--sla-text-light) !important;
+  font-family: var(--sla-font-mono);
+  font-weight: bold;
+}
+
+/**
+ * Generic item theme — Inventory Slip (#243 phase 5).
+ *
+ * Neutral grey receipt/slip aesthetic for type `item` gear. Replaces the
+ * shared light-grey catalogue grid fallback.
+ */
+.sla-item-root.item-theme {
+  --sla-type-input-bg: rgba(16, 16, 20, 0.88);
+  --sla-type-input-border: rgba(144, 144, 160, 0.35);
+  --sla-type-panel-bg: rgba(20, 20, 24, 0.95);
+}
+
+form.application.sla-industries.item .item-theme .sheet-header {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #242430 0%, #181820 100%) !important;
+  border-bottom-color: var(--sla-type-frame);
+}
+
+/* Receipt perforation motif — pure CSS */
+form.application.sla-industries.item .item-theme .sheet-header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  background: repeating-linear-gradient(180deg, transparent 0, transparent 4px, rgba(144, 144, 160, 0.35) 4px, rgba(144, 144, 160, 0.35) 6px);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+form.application.sla-industries.item .inventory-slip {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(144, 144, 160, 0.04) 100%), linear-gradient(180deg, #1a1a20 0%, #121218 100%);
+  border: 1px dashed rgba(144, 144, 160, 0.35);
+  border-radius: 2px;
+}
+
+form.application.sla-industries.item .inventory-slip__stamp {
+  align-self: flex-start;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #d0d0d8;
+  background: linear-gradient(180deg, #404050 0%, #303038 100%);
+  border: 1px solid var(--sla-type-frame);
+  padding: 4px 12px;
+  box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.3);
+}
+
+form.application.sla-industries.item .inventory-slip__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+form.application.sla-industries.item .inventory-slip .sla-field > label {
+  color: var(--sla-type-accent);
+  opacity: 0.8;
+}
+
 /**
  * Catalogue theme — generic items, weapons, armor, explosives, magazines, drugs.
  *
  * Ported verbatim from the historic `_item.scss`. Phase 2+ PRs replace this
  * shared grid with per-type identities. Weapon, magazine, armor, explosive,
- * drug, and toxicant now use dedicated themed layouts (#243 phases 2–4).
+ * drug, toxicant, skill, trait, and generic item now use dedicated themed
+ * layouts (#243 phases 2–5).
  */
 .catalogue-grid {
   display: grid;

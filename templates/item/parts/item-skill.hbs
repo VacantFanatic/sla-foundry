@@ -1,0 +1,27 @@
+{{!-- Field Manual — skill item layout (#243 phase 5) --}}
+<div class="field-manual">
+
+    <div class="field-manual__stamp">{{localize "SLA.ItemSheet.Skill.Stamp"}}</div>
+
+    <section class="sla-section field-manual__record">
+        <div class="sla-section__header">
+            <span class="sla-section__icon"><i class="fas fa-book"></i></span>
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.Skill.TrainingRecord"}}</span>
+        </div>
+
+        <div class="field-manual__grid">
+            <div class="sla-field sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Skill.Rank"}}</label>
+                <input type="number" name="system.rank" value="{{system.rank}}" />
+            </div>
+            <div class="sla-field sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Skill.Stat"}}</label>
+                <select name="system.stat">{{selectOptions @root.config.stats selected=system.stat}}</select>
+            </div>
+            <div class="sla-field sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Skill.XpCost"}}</label>
+                <input type="number" name="system.xpCost" value="{{system.xpCost}}" />
+            </div>
+        </div>
+    </section>
+</div>

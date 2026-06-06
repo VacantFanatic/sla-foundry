@@ -6,8 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.6.5] - 2026-06-06
+
+### Added
+
+* **Skill item theme — Field Manual (#243 phase 5):** Blue ruled-page layout with training-record panel, ruled-line header motif via pure CSS, and localized labels (`SLA.ItemSheet.Skill.*`).
+* **Trait item theme — Personnel Annotation (#243 phase 5):** Tan margin-note layout with annotation-record panel, dashed-margin header motif via pure CSS, and localized labels (`SLA.ItemSheet.Trait.*`).
+* **Generic item theme — Inventory Slip (#243 phase 5):** Neutral grey receipt/slip layout for gear items, perforation header motif via pure CSS, and localized labels (`SLA.ItemSheet.Item.*`).
+
 ### Changed
 
+* **Item sheet routing:** Skill and trait sheets render dedicated partials (`item-skill.hbs`, `item-trait.hbs`) instead of the legacy `item-academic.hbs` wrapper. Generic `item` gear no longer uses the shared light-grey `catalogue-grid`.
+* **SCSS:** Added `themes/_skill-trait.scss` and `themes/_generic.scss`; `themes/_academic.scss` is now a deprecated stub. Legacy `.academic-paper` selectors remain as aliases in `_skill-trait.scss`.
+* Updated system and package metadata version to `2.6.5`, including the release `download` URL in `system.json`.
 * **CI release publishing:** GitHub releases are created when a version tag is pushed (for example `2.6.5`), not on every push to `main`. Main-branch CI still runs unit tests and validates the dist build.
 
 ## [2.6.6] - 2026-06-06

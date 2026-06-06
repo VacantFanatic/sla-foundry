@@ -1,0 +1,25 @@
+{{!-- Inventory Slip — generic gear item layout (#243 phase 5) --}}
+<div class="inventory-slip">
+
+    <div class="inventory-slip__stamp">{{localize "SLA.ItemSheet.Item.Stamp"}}</div>
+
+    <div class="inventory-slip__grid">
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Weight"}}</label>
+            <input type="number" name="system.weight" value="{{system.weight}}" step="0.1" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Cost"}}</label>
+            <input type="number" name="system.price" value="{{system.price}}" />
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.Field.Qty"}}</label>
+            <input type="number" name="system.quantity" value="{{system.quantity}}" />
+        </div>
+    </div>
+
+    <div class="sla-field">
+        <label>{{localize "SLA.ItemSheet.Item.Notes"}}</label>
+        <input type="text" name="system.typeNote" value="{{system.typeNote}}" />
+    </div>
+</div>
