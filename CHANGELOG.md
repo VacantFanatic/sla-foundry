@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.6.4] - 2026-06-05
+
+### Added
+
+* **Drug item theme — Pharma Label (#243 phase 4):** Clinical orange prescription-label layout with `.sla-field` / `.sla-section` markup, pharmacology panel (addiction, duration, dose, detox), Rx-stripe header motif via pure CSS, and localized labels (`SLA.ItemSheet.Drug.*`).
+* **Toxicant item theme — Bio-Hazard Notice (#243 phase 4):** Bio-hazard green warning-notice layout with exposure-data panel, chevron header motif via pure CSS, and localized labels (`SLA.ItemSheet.Toxicant.*`).
+
+### Changed
+
+* **Item catalogue routing:** Drug and toxicant sheets no longer render inside the shared light-grey `catalogue-grid` (drugs previously used a two-column catalogue + black panel split).
+* **SCSS:** Added `themes/_drug.scss` and `themes/_toxicant.scss`.
+* Updated system and package metadata version to `2.6.4`, including the release `download` URL in `system.json`.
+
+### Notes
+
+* No data-model or behaviour changes. Drug effect transfer, toxicant infection tests, and embedded Active Effects authoring are unchanged.
+
 ## [2.6.3] - 2026-06-05
 
 ### Added
