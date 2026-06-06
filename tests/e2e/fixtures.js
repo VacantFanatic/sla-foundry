@@ -51,4 +51,75 @@ async function dismissFoundryNotifications(page) {
     }
 }
 
-module.exports = { joinGame, waitForSLASystem, dismissFoundryNotifications };
+/**
+ * Create a world Item document for sheet UI tests.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} type
+ * @param {object} [system]
+ * @returns {Promise<string>} item id
+ */
+async function createWorldItem(page, type, system = {}) {
+    return page.evaluate(
+        async ({ itemType, itemSystem }) => {
+            const stamp = Date.now();
+            const [item] = await Item.createDocuments([
+                {
+                    name: `E2E Item ${itemType} ${stamp}`,
+                    type: itemType,
+                    system: itemSystem
+                }
+            ]);
+            return item.id;
+        },
+        { itemType: type, itemSystem: system }
+    );
+}
+
+/**
+ * Render an item sheet and return a locator scoped to its application window.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} itemId
+ */
+async function openItemSheet(page, itemId) {
+    await page.evaluate(async (id) => {
+        const item = game.items.get(id);
+        if (!item) throw new Error(`Item ${id} not found`);
+        await item.sheet.render(true);
+    }, itemId);
+
+    const sheet = page.locator("form.application.sla-industries.item").last();
+    await sheet.waitFor({ state: "visible", timeout: 15_000 });
+    return sheet;
+}
+
+/**
+ * Switch item sheet tabs (App V2 uses data-tab anchors, not link roles).
+ * @param {import('@playwright/test').Locator} sheet
+ * @param {"attributes"|"description"|"effects"} tabId
+ */
+async function clickItemSheetTab(sheet, tabId) {
+    await sheet.locator(`nav.sheet-tabs a[data-tab="${tabId}"]`).click();
+}
+
+/**
+ * Close open Foundry application windows between tests.
+ * @param {import('@playwright/test').Page} page
+ */
+async function closeApplicationWindows(page) {
+    await page.evaluate(() => {
+        for (const app of globalThis.ui?.applications?.values?.() ?? []) {
+            app.close?.();
+        }
+    }).catch(() => {});
+    await page.keyboard.press("Escape").catch(() => {});
+}
+
+module.exports = {
+    joinGame,
+    waitForSLASystem,
+    dismissFoundryNotifications,
+    createWorldItem,
+    openItemSheet,
+    clickItemSheetTab,
+    closeApplicationWindows
+};

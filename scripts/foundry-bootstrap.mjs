@@ -67,6 +67,22 @@ async function waitForJoinUsers(page) {
     throw new Error("/join did not list any users within the wait window.");
 }
 
+async function confirmWorldMigration(page) {
+    const migration = page.getByRole("button", { name: /begin migration/i });
+    if (!(await migration.count())) return false;
+    console.log("Confirming world data migration...");
+    await migration.click();
+
+    const backup = page.getByRole("button", { name: /^backup$/i });
+    if (await backup.count()) {
+        console.log("Creating pre-migration backup...");
+        await backup.click();
+    }
+
+    await page.waitForURL(/\/(game|join)/, { timeout: 300_000 });
+    return true;
+}
+
 async function launchFromSetup(page) {
     await page.goto(`${FOUNDRY_URL}/setup`, { waitUntil: "networkidle", timeout: 60_000 });
     await page.waitForTimeout(2000);
@@ -95,6 +111,11 @@ async function launchFromSetup(page) {
     }
     console.log("Launching world...");
     await launch.first().click();
+
+    if (await confirmWorldMigration(page)) {
+        return waitForJoinUsers(page);
+    }
+
     await page.waitForURL(/\/(game|join)/, { timeout: 120_000 });
     return waitForJoinUsers(page);
 }

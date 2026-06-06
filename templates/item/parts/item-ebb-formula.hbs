@@ -32,9 +32,9 @@
             <div class="sla-field sla-field--compact glow-input">
                 <label>{{localize "SLA.EbbEffectField"}}</label>
                 <select name="system.ebbEffect" data-dtype="String">
-                    <option value="heal" {{#if (eq system.ebbEffect "heal")}}selected{{/if}}>{{localize "SLA.EbbEffect.heal"}}</option>
-                    <option value="damage" {{#unless (or (eq system.ebbEffect "heal") (eq system.ebbEffect "effect") (eq system.ebbEffect "none"))}}selected{{/unless}}>{{localize "SLA.EbbEffect.damage"}}</option>
-                    <option value="effect" {{#if (or (eq system.ebbEffect "effect") (eq system.ebbEffect "none"))}}selected{{/if}}>{{localize "SLA.EbbEffect.effect"}}</option>
+                    <option value="heal" {{#if (eq normalizedEbbEffect "heal")}}selected{{/if}}>{{localize "SLA.EbbEffect.heal"}}</option>
+                    <option value="damage" {{#if (eq normalizedEbbEffect "damage")}}selected{{/if}}>{{localize "SLA.EbbEffect.damage"}}</option>
+                    <option value="effect" {{#if (eq normalizedEbbEffect "effect")}}selected{{/if}}>{{localize "SLA.EbbEffect.effect"}}</option>
                 </select>
             </div>
             <div class="sla-field sla-field--compact glow-input spectral-ebb-card__wounds-count">
@@ -70,13 +70,15 @@
 
     <div class="sla-field spectral-ebb-discipline-link">
         <label>{{localize "SLA.EbbRequiredDiscipline"}}</label>
-        <div class="sla-drop discipline-drop-zone drop-zone linked-item {{#if system.discipline}}sla-drop--filled filled{{/if}}">
+        <div class="sla-drop discipline-drop-zone drop-zone {{#if system.discipline}}sla-drop--filled filled{{/if}}">
             {{#if system.discipline}}
-            <img src="{{linkedDisciplineImg}}" alt="" />
-            <span class="linked-name">{{system.discipline}}</span>
-            <button type="button" class="remove-discipline" data-action="removeDisciplineLink" title="{{localize "SLA.EbbRemoveDisciplineLink"}}"><i class="fas fa-times"></i></button>
+            <div class="linked-item">
+                <img src="{{linkedDisciplineImg}}" alt="" />
+                <span class="linked-name">{{system.discipline}}</span>
+                <button type="button" class="remove-discipline" data-action="removeDisciplineLink" title="{{localize "SLA.EbbRemoveDisciplineLink"}}"><i class="fas fa-times"></i></button>
+            </div>
             {{else}}
-            <span class="sla-drop__hint placeholder">{{localize "SLA.ItemSheet.Drop.Discipline"}}</span>
+            <span class="sla-drop__hint">{{localize "SLA.ItemSheet.Drop.Discipline"}}</span>
             {{/if}}
         </div>
         <input type="hidden" name="system.discipline" value="{{system.discipline}}" />

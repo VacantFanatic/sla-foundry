@@ -3,6 +3,7 @@
  * @extends {HandlebarsApplicationMixin(ItemSheetV2)}
  */
 import { prepareFiringModes, getLinkedDisciplineImage, enrichItemDescription } from "../helpers/item-sheet.mjs";
+import { normalizeEbbEffect } from "../helpers/items.mjs";
 import { handleWeaponDrop, handleWeaponSkillDrop, handleDisciplineDrop, handleSkillDrop, handleSkillDelete } from "../helpers/drop-handlers.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
@@ -27,15 +28,8 @@ const CATALOGUE_PART_TYPES = new Set([
     "toxicant"
 ]);
 
-/** Drop targets — legacy class names kept for JS binding (#243). */
-const DROP_ZONE_SELECTOR = [
-    ".sla-drop",
-    ".drop-zone",
-    ".skill-link-box",
-    ".weapon-link",
-    ".discipline-drop-zone",
-    ".skill-grant-area"
-].join(", ");
+/** Visual drag feedback — every item-sheet drop target carries `.sla-drop`. */
+const DROP_ZONE_SELECTOR = ".sla-drop";
 
 export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
@@ -220,7 +214,10 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
             context.resistGaugePct = max > 0 ? Math.min(100, Math.round((cur / max) * 100)) : 0;
         }
 
-        context.linkedDisciplineImg = getLinkedDisciplineImage(item);
+        if (item.type === "ebbFormula") {
+            context.linkedDisciplineImg = getLinkedDisciplineImage(item);
+            context.normalizedEbbEffect = normalizeEbbEffect(item.system.ebbEffect);
+        }
 
         return context;
     }
@@ -560,11 +557,12 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
      * @param {AbortSignal} signal
      */
     #bindDropZoneDragFeedback(root, signal) {
-        const seen = new Set();
-        for (const zone of root.querySelectorAll(DROP_ZONE_SELECTOR)) {
-            if (!(zone instanceof HTMLElement) || seen.has(zone)) continue;
-            seen.add(zone);
+        const zones = [...root.querySelectorAll(DROP_ZONE_SELECTOR)].filter(
+            (zone) => zone instanceof HTMLElement
+        );
+        if (!zones.length) return;
 
+        for (const zone of zones) {
             zone.addEventListener("dragenter", (event) => {
                 event.preventDefault();
                 zone.classList.add("is-drag-over");
@@ -582,9 +580,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         }
 
         const clearAll = () => {
-            for (const zone of root.querySelectorAll(DROP_ZONE_SELECTOR)) {
-                zone.classList.remove("is-drag-over");
-            }
+            for (const zone of zones) zone.classList.remove("is-drag-over");
         };
         globalThis.addEventListener("dragend", clearAll, { signal });
     }
