@@ -1,0 +1,19 @@
+{{!-- Shared granted-skills drop zone for species / package dossiers (#243 phase 6) --}}
+<section class="sla-section dossier-grants">
+    <div class="sla-section__header">
+        <span class="sla-section__icon"><i class="fas fa-graduation-cap"></i></span>
+        <span class="sla-section__title">{{localize "SLA.ItemSheet.Dossier.GrantedSkills"}}</span>
+    </div>
+
+    <div class="sla-drop skill-grant-area drop-zone {{#if system.skills.length}}sla-drop--filled filled{{/if}}">
+        {{#each system.skills as |skill idx|}}
+        <div class="granted-skill-chip">
+            <img src="{{skill.img}}" title="{{skill.name}}" width="24" height="24" alt="" />
+            <span class="skill-name">{{skill.name}} ({{skill.rank}})</span>
+            <button type="button" class="delete-grant" data-action="deleteSkillGrant" data-index="{{idx}}" title="{{localize "SLA.ItemSheet.Dossier.RemoveGrant"}}"><i class="fas fa-times"></i></button>
+        </div>
+        {{else}}
+        <span class="sla-drop__hint empty-dossier-text">{{localize "SLA.ItemSheet.Dossier.DropSkillHint"}}</span>
+        {{/each}}
+    </div>
+</section>

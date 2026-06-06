@@ -1,0 +1,23 @@
+{{!-- Office dossier — training package item layout (#243 phase 6) --}}
+<div class="office-dossier office-dossier--package">
+
+    <div class="dossier-stamp dossier-stamp--training">{{localize "SLA.ItemSheet.Package.Stamp"}}</div>
+
+    <section class="sla-section dossier-panel">
+        <div class="sla-section__header">
+            <span class="sla-section__icon"><i class="fas fa-clipboard-list"></i></span>
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.Package.Prerequisites"}}</span>
+        </div>
+
+        <div class="dossier-stat-limits">
+            {{#each system.requirements as |val key|}}
+            <div class="dossier-stat-limit sla-field sla-field--compact">
+                <label>{{upper key}}</label>
+                <input type="number" name="system.requirements.{{key}}" value="{{val}}" />
+            </div>
+            {{/each}}
+        </div>
+    </section>
+
+    {{> "systems/sla-industries/templates/item/parts/item-dossier-skills.hbs"}}
+</div>

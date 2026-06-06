@@ -21,10 +21,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 * Updated system and package metadata version to `2.6.5`, including the release `download` URL in `system.json`.
 * **CI release publishing:** GitHub releases are created when a version tag is pushed (for example `2.6.5`), not on every push to `main`. Main-branch CI still runs unit tests and validates the dist build.
 
+## [2.6.6] - 2026-06-06
+
+### Added
+
+* **Species dossier polish (#243 phase 6):** CONFIDENTIAL stamp, biological-data and stat-limits panels with `.sla-field` / `.sla-section` markup, classified red header-edge motif via pure CSS, and localized labels (`SLA.ItemSheet.Species.*`, shared `SLA.ItemSheet.Dossier.*`).
+* **Package dossier polish (#243 phase 6):** TRAINING PROGRAM green stamp variant, training-prerequisites panel, and localized labels (`SLA.ItemSheet.Package.*`).
+
+### Changed
+
+* **Dossier routing:** Species and package sheets render dedicated partials (`item-species.hbs`, `item-package.hbs`) with a shared `item-dossier-skills.hbs` granted-skills partial; legacy `item-dossier.hbs` removed.
+* **Granted-skills UX:** Drop zone migrated to `.sla-drop` with polished chip rows; legacy `.skill-grant-area` / `.granted-skill-chip` selectors retained as aliases.
+* **SCSS:** Expanded `themes/_dossier.scss` for species/package stamp variants and panel layout.
+* Updated system and package metadata version to `2.6.6`, including the release `download` URL in `system.json`.
+
 ### Notes
-* No data-model or behaviour changes. Skill/trait still use the two-tab Details / Description contract (no Effects tab).
 
-
+* No data-model or behaviour changes. Skill-grant drop handlers and delete controls are unchanged; legacy class names remain for module CSS compatibility.
 
 ## [2.6.4] - 2026-06-05
 

@@ -60,8 +60,12 @@
             {{> "systems/sla-industries/templates/item/parts/item-spectral.hbs"}}
             {{/if}}
 
-            {{#if (or (eq item.type "species") (eq item.type "package"))}}
-            {{> "systems/sla-industries/templates/item/parts/item-dossier.hbs"}}
+            {{#if (eq item.type "species")}}
+            {{> "systems/sla-industries/templates/item/parts/item-species.hbs"}}
+            {{/if}}
+
+            {{#if (eq item.type "package")}}
+            {{> "systems/sla-industries/templates/item/parts/item-package.hbs"}}
             {{/if}}
         </div>
 

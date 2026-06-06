@@ -5146,45 +5146,214 @@ form.application.sla-industries.item .glow-input input:not([type=checkbox]) {
 }
 
 /**
- * Dossier theme — species, package.
+ * Dossier theme — species, package (#243 phase 6).
  *
- * Ported verbatim from the historic `_item.scss`. Phase 2 dossier PR adds the
- * green TRAINING PROGRAM stamp for packages and polishes the granted-skills
- * row.
+ * CONFIDENTIAL (species) and TRAINING PROGRAM (package) stamp variants,
+ * polished granted-skills drop UX, and header motifs via pure CSS.
+ * Legacy class names (`.dossier-stamp`, `.paper-section`, `.skill-grant-area`,
+ * etc.) remain as aliases for backward compatibility.
  */
+.sla-item-root.species-theme {
+  --sla-type-input-bg: rgba(20, 8, 8, 0.88);
+  --sla-type-input-border: rgba(208, 64, 64, 0.35);
+  --sla-type-panel-bg: rgba(24, 12, 12, 0.92);
+}
+
+.sla-item-root.package-theme {
+  --sla-type-input-bg: rgba(8, 20, 8, 0.88);
+  --sla-type-input-border: rgba(111, 196, 111, 0.35);
+  --sla-type-panel-bg: rgba(12, 24, 12, 0.92);
+}
+
+form.application.sla-industries.item .species-theme .sheet-header,
+form.application.sla-industries.item .package-theme .sheet-header {
+  position: relative;
+  overflow: hidden;
+  background: #000 !important;
+  border-bottom: 2px solid var(--sla-type-frame, var(--sla-accent));
+  padding: 10px;
+}
+
+/* Classified red edge — species */
+form.application.sla-industries.item .species-theme .sheet-header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background: repeating-linear-gradient(180deg, rgba(208, 64, 64, 0.7) 0, rgba(208, 64, 64, 0.7) 8px, rgba(0, 0, 0, 0.5) 8px, rgba(0, 0, 0, 0.5) 16px);
+  pointer-events: none;
+}
+
+/* Training program green edge — package */
+form.application.sla-industries.item .package-theme .sheet-header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background: repeating-linear-gradient(180deg, rgba(111, 196, 111, 0.65) 0, rgba(111, 196, 111, 0.65) 8px, rgba(0, 0, 0, 0.5) 8px, rgba(0, 0, 0, 0.5) 16px);
+  pointer-events: none;
+}
+
+form.application.sla-industries.item .office-dossier {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  font-family: var(--sla-font-mono);
+  border-radius: var(--sla-radius);
+}
+
+form.application.sla-industries.item .office-dossier--species {
+  background: linear-gradient(180deg, rgba(16, 8, 8, 0.94) 0%, rgba(12, 8, 8, 0.97) 100%);
+  border: 1px solid rgba(208, 64, 64, 0.25);
+}
+
+form.application.sla-industries.item .office-dossier--package {
+  background: linear-gradient(180deg, rgba(8, 16, 8, 0.94) 0%, rgba(8, 12, 8, 0.97) 100%);
+  border: 1px solid rgba(111, 196, 111, 0.25);
+}
+
+form.application.sla-industries.item .dossier-stamp {
+  align-self: flex-start;
+  font-family: var(--sla-font-header);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  display: inline-block;
+  padding: 6px 14px;
+  transform: rotate(-3deg);
+  margin-bottom: 4px;
+}
+
+form.application.sla-industries.item .dossier-stamp--confidential {
+  color: rgba(255, 80, 80, 0.9);
+  border: 3px solid rgba(255, 80, 80, 0.75);
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 12px rgba(208, 64, 64, 0.2);
+}
+
+form.application.sla-industries.item .dossier-stamp--training {
+  color: #1a3018;
+  border: 3px solid var(--sla-type-frame);
+  background: linear-gradient(180deg, #a8e0a8 0%, #6fc46f 100%);
+  box-shadow: 1px 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+form.application.sla-industries.item .dossier-panel__row {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  align-items: end;
+}
+
+form.application.sla-industries.item .dossier-panel__dual-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+form.application.sla-industries.item .dossier-panel__dual-inputs input {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+form.application.sla-industries.item .dossier-panel__sep {
+  color: var(--sla-type-accent);
+  opacity: 0.7;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+form.application.sla-industries.item .dossier-stat-limits {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+form.application.sla-industries.item .dossier-stat-limit > label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--sla-type-accent);
+  opacity: 0.85;
+}
+
+form.application.sla-industries.item .dossier-grants .sla-drop {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
+  justify-content: flex-start;
+  min-height: 72px;
+  padding: 8px;
+}
+
+form.application.sla-industries.item .dossier-grants .granted-skill-chip {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--sla-type-frame);
+  padding: 2px 4px;
+  border-radius: var(--sla-radius);
+  gap: 6px;
+  height: 32px;
+}
+
+form.application.sla-industries.item .dossier-grants .granted-skill-chip img {
+  border: 1px solid var(--sla-border);
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+form.application.sla-industries.item .dossier-grants .granted-skill-chip .skill-name {
+  font-weight: 700;
+  color: var(--sla-type-accent);
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+
+form.application.sla-industries.item .dossier-grants .delete-grant {
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0 4px;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+  color: #f44;
+}
+
+form.application.sla-industries.item .dossier-grants .delete-grant:hover {
+  color: #f88;
+}
+
+form.application.sla-industries.item .empty-dossier-text,
+form.application.sla-industries.item .dossier-grants .sla-drop__hint {
+  width: 100%;
+  text-align: center;
+  font-style: italic;
+  color: #888;
+  font-size: 0.9em;
+}
+
+/* Legacy aliases */
 .item.species .window-content,
 .item.package .window-content {
   background: var(--sla-bg-dark) !important;
   color: var(--sla-text-light);
 }
 
-.item.species .sheet-header,
-.item.package .sheet-header {
-  background: #000 !important;
-  border-bottom: 2px solid var(--sla-type-frame, var(--sla-accent));
-  padding: 10px;
-}
-
-.office-dossier {
-  padding: 10px;
-  font-family: var(--sla-font-mono);
-}
-
-.dossier-stamp {
-  font-weight: 700;
-  font-size: 1.5em;
-  color: rgba(255, 50, 50, 0.7);
-  border: 3px solid rgba(255, 50, 50, 0.7);
-  display: inline-block;
-  padding: 5px 10px;
-  text-transform: uppercase;
-  transform: rotate(-3deg);
-  margin-bottom: 20px;
-  letter-spacing: 2px;
-}
-
 .paper-section {
-  background: var(--sla-bg-panel);
+  background: var(--sla-type-panel-bg, var(--sla-bg-panel));
   border: 1px solid var(--sla-border);
   padding: 10px;
   margin-bottom: 10px;
@@ -5213,14 +5382,6 @@ form.application.sla-industries.item .glow-input input:not([type=checkbox]) {
   color: #ccc;
 }
 
-.paper-row input {
-  background: #000;
-  border: 1px solid #555;
-  color: #fff;
-  width: 60px;
-  text-align: center;
-}
-
 .stat-limits-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -5228,7 +5389,7 @@ form.application.sla-industries.item .glow-input input:not([type=checkbox]) {
 }
 
 .limit-box {
-  background: #000;
+  background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--sla-border);
   padding: 5px;
   display: flex;
@@ -5236,31 +5397,10 @@ form.application.sla-industries.item .glow-input input:not([type=checkbox]) {
   gap: 2px;
 }
 
-.limit-box label {
-  font-size: 0.8em;
-  font-weight: 700;
-  color: #888;
-}
-
-.limit-box .flexrow {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.limit-box input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid #333;
-  color: #fff;
-  text-align: center;
-}
-
 .skill-grant-area {
   min-height: 60px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px dashed var(--sla-border);
+  background: var(--sla-type-accent-soft, rgba(0, 0, 0, 0.2));
+  border: 2px dashed var(--sla-type-frame, var(--sla-border));
   padding: 5px;
   display: flex;
   flex-wrap: wrap;
@@ -5278,31 +5418,14 @@ form.application.sla-industries.item .glow-input input:not([type=checkbox]) {
   height: 32px;
 }
 
-.granted-skill-chip img {
-  border: 1px solid #333;
-  width: 24px;
-  height: 24px;
-  object-fit: cover;
-}
-
-.granted-skill-chip .skill-name {
-  padding: 0 5px;
-  font-weight: bold;
-  color: var(--sla-type-accent, var(--sla-accent));
-}
-
-.granted-skill-chip .delete-grant {
-  color: #f00;
-  padding: 0 5px;
-  cursor: pointer;
-}
-
 .granted-skill-chip button.delete-grant {
   background: transparent;
   border: none;
   margin: 0;
   font: inherit;
   line-height: 1;
+  cursor: pointer;
+  color: #f00;
 }
 
 .granted-skill-chip .delete-grant:hover {
