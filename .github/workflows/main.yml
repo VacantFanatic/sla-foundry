@@ -1,10 +1,10 @@
 name: sla-industries CI
 
-permissions:
-  contents: write
-
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
@@ -28,41 +28,8 @@ jobs:
       - name: Run unit tests
         run: npm run test:unit
 
-      - name: Get Version
-        id: get-version
-        run: echo "version=$(node ./.github/workflows/get-version.js)" >> "$GITHUB_OUTPUT"
+      - name: Build dist
+        run: npm run build
 
-      - name: Build and package release zip
-        run: npm run package
-
-      - name: Validate dist and zip artifacts
-        run: node scripts/validate-dist.mjs --zip
-
-      - name: Copy manifest for release asset
-        run: cp dist/system.json system.json
-
-      - name: Create Release
-        id: create_versioned_release
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true
-          skipIfReleaseExists: true
-          name: Release ${{ steps.get-version.outputs.version }}
-          draft: true
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "./system.json,./sla-industries.zip"
-          tag: ${{ steps.get-version.outputs.version }}
-
-      - name: Create Latest release
-        id: create_latest_release
-        uses: ncipollo/release-action@v1
-        if: endsWith(github.ref, 'master')
-        with:
-          allowUpdates: true
-          name: Latest
-          draft: true
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "./system.json,./sla-industries.zip"
-          tag: latest
+      - name: Validate dist artifacts
+        run: npm run validate:dist

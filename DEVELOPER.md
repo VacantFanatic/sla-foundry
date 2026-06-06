@@ -273,6 +273,21 @@ npm run validate:package # also validate zip layout
 npm run watch       # live SCSS recompile
 ```
 
+### GitHub release
+
+Pushes to `main` run CI only (version sync, unit tests, dist validation). To publish a release:
+
+1. Bump `version` in `package.json` and `system.json`, update `CHANGELOG.md`, and set the `download` URL in `system.json` to the new tag.
+2. Merge to `main`.
+3. Create and push a git tag matching the version (no `v` prefix required; both `2.6.5` and `v2.6.5` are accepted):
+
+```bash
+git tag 2.6.5
+git push origin 2.6.5
+```
+
+The **Release** workflow builds `sla-industries.zip`, validates it, and creates draft GitHub releases for the version tag and `latest`. Publish the draft release when ready; the **Foundry Website Update** workflow runs on `release: published`.
+
 ---
 
 ## Combat Flow (Weapon Attack → Damage → Wounds)
