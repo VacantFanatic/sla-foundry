@@ -25,6 +25,15 @@ export function normalizeEbbHealWoundMode(raw) {
 }
 
 /**
+ * Increments a skill rank stored as a string (SLA StringField).
+ * @param {string|number|null|undefined} rank
+ * @returns {string}
+ */
+export function incrementSkillRank(rank) {
+    return String((Number(rank) || 0) + 1);
+}
+
+/**
  * Prepares and organizes items for display in the actor sheet.
  * @param {Array} items - The actor's items collection.
  * @param {Object} rollData - The actor's roll data for resolving formulas.

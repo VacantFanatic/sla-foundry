@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 * **Foundry cloud bootstrap:** `foundry-bootstrap.mjs` confirms world data migration and pre-migration backup dialogs so E2E can launch `sla-test-world` after system version bumps.
 
+## [2.6.9] - 2026-06-06
+
+### Fixed
+
+* **Species/package skill overlap:** Dropping a species and package that share a skill now increments rank by one (e.g. rank 1 → 2) instead of string-concatenating to rank 11. Skill ranks are stored as strings in the data model; `_processDroppedSkills` now coerces before arithmetic.
+
 ## [2.6.8] - 2026-06-06
 
 ### Changed
