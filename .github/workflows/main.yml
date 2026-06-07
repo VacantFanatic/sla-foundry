@@ -1,5 +1,8 @@
 name: sla-industries CI
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
