@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+    clampHpValue,
     countWounds,
     hpBarState,
     isEncumbranceOverloaded,
@@ -20,6 +21,14 @@ describe('sheet-ux-pure', () => {
         assert.equal(statPlayColorClass(5, 3), 'sla-stat-buffed');
         assert.equal(statPlayColorClass(2, 4), 'sla-stat-debuffed');
         assert.equal(statPlayColorClass(4, 4), 'sla-stat-neutral');
+    });
+
+    it('clampHpValue floors at zero and ceilings at max', () => {
+        assert.equal(clampHpValue(5, 10), 5);
+        assert.equal(clampHpValue(15, 10), 10);
+        assert.equal(clampHpValue(-3, 10), 0);
+        assert.equal(clampHpValue(8, 0), 0);
+        assert.equal(clampHpValue('12', '9'), 9);
     });
 
     it('hpBarState returns percent and tone thresholds', () => {

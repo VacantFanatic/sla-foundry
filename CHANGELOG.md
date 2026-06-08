@@ -10,11 +10,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **Actor sheet density pass:** Compact header (species/package grid, shorter finance inputs), icon-only tab rail with subtle active state (no oversized orange tiles), and smaller wound/condition controls.
+- **Actor sheet density pass:** Compact header (species/package grid, shorter finance inputs), icon-only tab rail with subtle active state (no oversized orange tiles), smaller wound checkboxes/labels, icon-only Manage XP button, and looser spacing between condition toggles.
 - **Tab rail:** Removed persistent text labels under icons; tooltips and `aria-label` remain for discoverability.
 
 ### Added
 
+- **HP clamping:** `clampHpValue` enforces HP within `[0, max]` on sheet edit, document `_preUpdate`, and when derived max drops below stored HP.
 - **Screenshot capture spec:** `tests/e2e/capture-actor-sheet-screenshots.spec.js` exports header, stats, tab rail, wounds, and full sheet PNGs for UX review.
 
 ## [2.8.0] - 2026-06-08

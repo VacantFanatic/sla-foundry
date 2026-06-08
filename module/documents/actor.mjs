@@ -11,6 +11,7 @@ import {
     sumActiveEffectAddsForStat
 } from './derived/active-effects.mjs';
 import { applyStatPenalties } from './derived/penalties.mjs';
+import { clampHpValue } from '../sheets/actor/sheet-ux-pure.mjs';
 import { countWounds, deriveLogicConditions } from './derived/wounds.mjs';
 
 /**
@@ -628,13 +629,12 @@ export class SlaActor extends Actor {
     async _preUpdate(changed, options, user) {
         await super._preUpdate(changed, options, user);
 
-        // HP Floor & Ceiling
+        // HP floor & ceiling (value edits and max drops that leave stored HP above max)
         if (changed.system?.hp?.value !== undefined) {
-            const maxHp = this.system.hp.max || 0;
-            let val = changed.system.hp.value;
-            if (val < 0) val = 0;
-            if (val > maxHp) val = maxHp;
-            changed.system.hp.value = val;
+            const maxHp = changed.system?.hp?.max ?? this.system.hp.max ?? 0;
+            changed.system.hp.value = clampHpValue(changed.system.hp.value, maxHp);
+        } else if (changed.system?.hp?.max !== undefined) {
+            changed.system.hp.value = clampHpValue(this.system.hp.value, changed.system.hp.max);
         }
 
         // Luck & Flux Clamping
@@ -738,6 +738,15 @@ export class SlaActor extends Actor {
             await super._onUpdate(changed, options, userId);
         } catch (error) {
             console.error('SLA Industries | Error in super._onUpdate:', error);
+        }
+
+        // Derived max can fall below stored HP (e.g. STR drop); clamp once without looping.
+        if (!options.slaHpClamp) {
+            const clamped = clampHpValue(this.system.hp?.value, this.system.hp?.max);
+            if (clamped !== (Number(this.system.hp?.value) || 0)) {
+                await this.update({ 'system.hp.value': clamped }, { slaHpClamp: true });
+                return;
+            }
         }
 
         // 1. STOP if the update didn't touch conditions OR wounds.
