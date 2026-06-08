@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-06-08
+
 ### Added
 
 - **Prettier:** `.prettierrc`, `.prettierignore`, `npm run format` / `format:check`; CI fails on formatting drift. Handlebars templates are excluded (no parser plugin).
