@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-06-08
+
+### Added
+
+- **Actor sheet UX rollout (#244):** Comprehensive operative, threat, and vehicle sheet improvements — accessibility labels, responsive breakpoints, HP bar, wound diagram, Edit/Play mode banner, collapsible finance panel, inventory equip controls, and localized section hints.
+- **Operative tab IA:** Reordered tabs (Main → Combat → Inventory → Effects → Traits → Notes → Ebb); Bio & Traits split into separate **Traits** (traits + infections) and **Notes** tabs; legacy `biography` tab id redirects to **Traits**.
+- **Actor sheet SCSS modules:** `src/scss/sheets/actor/` (`_effects`, `_fields`, `_drops`, `_ux-enhancements`, `_responsive`) mirroring item-sheet #243 patterns.
+- **Pure UX helpers:** `module/sheets/actor/sheet-ux-pure.mjs` with unit tests (`wound count`, `HP bar tone`, `stat play color`, tab normalization).
+
+### Changed
+
+- **Effects tab:** Search filter styling fixed on actor sheets; toolbar uses buttons, row hover, and localized labels (parity with item sheets).
+- **Skills presentation:** NPC/threat sheets reuse the operative grouped skills table partial.
+- **Play-mode actions:** Equip/holster and XP management work for owners when the sheet is not in edit mode.
+- **Stats strip:** Buff/debuff colors moved from inline styles to CSS classes; play-mode totals are clickable roll targets.
+
+### Fixed
+
+- **Actor effects search:** `.sla-effect-filtered` hide rule now applies under `.sla-sheet` (previously item-sheet-only CSS).
+- **Rollable focus contrast:** Dark-sheet roll links use accent focus/hover instead of global black `#000` text.
+- **Duplicate `.stats-matrix` rules:** Removed conflicting grid block superseded by flex layout.
+
 ## [2.7.1] - 2026-06-08
 
 ### Fixed

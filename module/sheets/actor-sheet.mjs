@@ -19,6 +19,14 @@ import {
     resolveSheetDamageDisplay
 } from './actor/sheet-helpers.mjs';
 import { canProceedWithWeaponAttack, resolveRangedAttackContext } from './actor/weapon-gates.mjs';
+import {
+    countWounds,
+    hpBarState,
+    isEncumbranceOverloaded,
+    isEncumbranceWarning,
+    normalizeOperativeTabId,
+    statPlayColorClass
+} from './actor/sheet-ux-pure.mjs';
 import { executeSkillRollFromItem } from './actor/skill-rolls.mjs';
 import { executeEbbRoll } from './actor/ebb-rolls.mjs';
 import { processExplosiveRoll, renderExplosiveDialog } from './actor/explosive-rolls.mjs';
@@ -42,10 +50,11 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             tabs: [
                 { id: 'main', label: 'Main', icon: 'fa-id-card' },
                 { id: 'combat', label: 'Combat', icon: 'fa-crosshairs' },
-                { id: 'ebb', label: 'Ebb', icon: 'fa-magic' },
                 { id: 'inventory', label: 'Inventory', icon: 'fa-box-open' },
-                { id: 'biography', label: 'Bio & Traits', icon: 'fa-book' },
-                { id: 'effects', label: 'Effects', icon: 'fa-bolt' }
+                { id: 'effects', label: 'Effects', icon: 'fa-bolt' },
+                { id: 'traits', label: 'Traits', icon: 'fa-user-tag' },
+                { id: 'notes', label: 'Notes', icon: 'fa-book-open' },
+                { id: 'ebb', label: 'Ebb', icon: 'fa-magic' }
             ],
             initial: 'main'
         }
@@ -87,10 +96,15 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      * from before the combat tab was renamed to `combat`.
      */
     changeTab(tab, group, options) {
-        if (group === 'primary' && tab === 'ebb' && !this.#actorIsEbonite()) {
-            tab = 'combat';
+        if (group === 'primary') {
+            tab = normalizeOperativeTabId(tab);
+            if (tab === 'ebb' && !this.#actorIsEbonite()) {
+                tab = 'combat';
+            }
         }
-        return super.changeTab(tab, group, options);
+        const result = super.changeTab(tab, group, options);
+        if (this.element instanceof HTMLElement) this.#syncTabAccessibility(this.element);
+        return result;
     }
 
     /** @type {AbortController | null} */
@@ -344,6 +358,13 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             context.statInputs = Object.fromEntries(
                 core.map((k) => [k, Number(foundry.utils.getProperty(srcStats[k], 'value')) || 0])
             );
+            context.statPlayClasses = Object.fromEntries(
+                core.map((k) => {
+                    const base = context.statInputs[k];
+                    const total = Number(context.system.stats?.[k]?.total) ?? base;
+                    return [k, statPlayColorClass(total, base)];
+                })
+            );
         }
 
         // ... (Keep your existing stats/ratings/wounds initialization) ...
@@ -352,6 +373,28 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         context.system.wounds = context.system.wounds || {};
         context.system.move = context.system.move || {};
         context.system.conditions = context.system.conditions || {};
+
+        context.woundCount = countWounds(context.system.wounds);
+        if (context.woundCount > 0) {
+            context.woundCountLabel = game.i18n.format('SLA.ActorSheet.WoundCount', {
+                count: context.woundCount
+            });
+        }
+
+        const hpState = hpBarState(context.system.hp?.value, context.system.hp?.max);
+        context.hpBar = {
+            percent: hpState.percent,
+            tone: hpState.tone,
+            isCriticalHp: hpState.tone === 'critical' || Boolean(context.system.conditions?.critical)
+        };
+
+        if (isEncumbranceOverloaded(context.system.encumbrance?.value, context.system.encumbrance?.max)) {
+            context.encumbranceClass = 'sla-encumbrance-over';
+        } else if (isEncumbranceWarning(context.system.encumbrance?.value, context.system.encumbrance?.max)) {
+            context.encumbranceClass = 'sla-encumbrance-warning';
+        } else {
+            context.encumbranceClass = '';
+        }
 
         // ======================================================
         // START NEW LOGIC: SYNC CONDITIONS FOR DISPLAY
@@ -493,6 +536,100 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             dropZone?.addEventListener('dragover', (e) => e.preventDefault(), { signal });
             dropZone?.addEventListener('drop', (e) => void onDropVehicleWeapon(this, e), { signal });
         }
+
+        this.#bindActorDropFeedback(root, signal);
+        this.#syncTabAccessibility(root);
+    }
+
+    /** @param {HTMLElement} root */
+    #syncTabAccessibility(root) {
+        const tabs = root.querySelectorAll('nav.sheet-tabs [role="tab"]');
+        for (const tab of tabs) {
+            if (!(tab instanceof HTMLElement)) continue;
+            const selected = tab.classList.contains('active');
+            tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+            tab.setAttribute('tabindex', selected ? '0' : '-1');
+            const panelId = tab.getAttribute('aria-controls');
+            const panel = panelId ? root.querySelector(`#${panelId}`) : null;
+            if (panel instanceof HTMLElement) {
+                panel.hidden = !selected;
+            }
+        }
+    }
+
+    /**
+     * @param {HTMLElement} root
+     * @param {AbortSignal} signal
+     */
+    #bindActorDropFeedback(root, signal) {
+        const zones = [
+            ...root.querySelectorAll('.sla-drop, .chip, .chip-placeholder, .vehicle-weapon-drop, .sla-combat-empty')
+        ].filter((z) => z instanceof HTMLElement);
+        if (!zones.length) return;
+
+        const sheetRoot = root.classList.contains('sla-sheet') ? root : root.querySelector('.sla-sheet');
+        if (sheetRoot instanceof HTMLElement) {
+            sheetRoot.addEventListener(
+                'dragenter',
+                (event) => {
+                    event.preventDefault();
+                    sheetRoot.classList.add('sla-drag-target', 'is-drag-over');
+                },
+                { signal }
+            );
+            sheetRoot.addEventListener(
+                'dragleave',
+                (event) => {
+                    const related = event.relatedTarget;
+                    if (related instanceof Node && sheetRoot.contains(related)) return;
+                    sheetRoot.classList.remove('sla-drag-target', 'is-drag-over');
+                },
+                { signal }
+            );
+            sheetRoot.addEventListener(
+                'drop',
+                () => {
+                    sheetRoot.classList.remove('sla-drag-target', 'is-drag-over');
+                },
+                { signal }
+            );
+        }
+
+        for (const zone of zones) {
+            zone.addEventListener(
+                'dragenter',
+                (event) => {
+                    event.preventDefault();
+                    zone.classList.add('is-drag-over');
+                },
+                { signal }
+            );
+            zone.addEventListener(
+                'dragleave',
+                (event) => {
+                    const related = event.relatedTarget;
+                    if (related instanceof Node && zone.contains(related)) return;
+                    zone.classList.remove('is-drag-over');
+                },
+                { signal }
+            );
+            zone.addEventListener(
+                'drop',
+                () => {
+                    zone.classList.remove('is-drag-over');
+                },
+                { signal }
+            );
+        }
+
+        globalThis.addEventListener(
+            'dragend',
+            () => {
+                sheetRoot?.classList.remove('sla-drag-target', 'is-drag-over');
+                for (const zone of zones) zone.classList.remove('is-drag-over');
+            },
+            { signal }
+        );
     }
 
     /**

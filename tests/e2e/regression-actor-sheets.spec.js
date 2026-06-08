@@ -70,9 +70,7 @@ test.describe('SLA actor sheet UI — regression', () => {
             .poll(
                 async () =>
                     page.evaluate(() =>
-                        globalThis.game?.messages?.contents?.some((m) =>
-                            /STR\s+CHECK/i.test(String(m.content ?? ''))
-                        )
+                        globalThis.game?.messages?.contents?.some((m) => /STR\s+CHECK/i.test(String(m.content ?? '')))
                     ),
                 { timeout: 15_000 }
             )

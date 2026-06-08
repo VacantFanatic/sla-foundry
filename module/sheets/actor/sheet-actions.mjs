@@ -84,6 +84,24 @@ export async function handleSheetClick(sheet, event) {
         return;
     }
 
+    const itemToggle = t.closest('.item-toggle');
+    if (itemToggle && sheet.actor.isOwner) {
+        event.preventDefault();
+        const li = itemToggle.closest('.item');
+        const item = li?.dataset.itemId ? sheet.actor.items.get(li.dataset.itemId) : null;
+        if (!item) return;
+        if (item.type === 'drug') await item.toggleActive();
+        else await item.update({ 'system.equipped': !item.system.equipped });
+        return;
+    }
+
+    const xpBtn = t.closest('.xp-button');
+    if (xpBtn && sheet.actor.isOwner) {
+        event.preventDefault();
+        await XPDialog.create(sheet.actor);
+        return;
+    }
+
     if (!sheet.isEditable) return;
 
     const drugBtn = t.closest('.item-use-drug');
@@ -225,17 +243,6 @@ export async function handleSheetClick(sheet, event) {
         return;
     }
 
-    const itemToggle = t.closest('.item-toggle');
-    if (itemToggle) {
-        event.preventDefault();
-        const li = itemToggle.closest('.item');
-        const item = li?.dataset.itemId ? sheet.actor.items.get(li.dataset.itemId) : null;
-        if (!item) return;
-        if (item.type === 'drug') await item.toggleActive();
-        else await item.update({ 'system.equipped': !item.system.equipped });
-        return;
-    }
-
     const itemReload = t.closest('.item-reload');
     if (itemReload) {
         await onReloadWeapon(sheet, event, itemReload);
@@ -246,12 +253,6 @@ export async function handleSheetClick(sheet, event) {
     if (itemCreate) {
         await onItemCreate(sheet, event, itemCreate);
         return;
-    }
-
-    const xpBtn = t.closest('.xp-button');
-    if (xpBtn) {
-        event.preventDefault();
-        await XPDialog.create(sheet.actor);
     }
 }
 

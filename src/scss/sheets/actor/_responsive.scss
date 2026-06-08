@@ -1,0 +1,82 @@
+/**
+ * Actor sheet responsive breakpoints.
+ */
+
+@media (max-width: 750px) {
+    .sla-sheet .header-grid {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    .sla-sheet .header-left {
+        flex: 1 1 auto;
+        border-right: none;
+        border-bottom: 2px solid var(--sla-border);
+    }
+
+    .sla-sheet .portrait-container {
+        align-self: center;
+        margin: 8px 0;
+    }
+
+    .sla-sheet .finance-box {
+        border-top: 2px solid var(--sla-border);
+    }
+
+    .sla-sheet .main-split {
+        grid-template-columns: 1fr !important;
+    }
+
+    .sla-sheet .stats-matrix {
+        flex-wrap: wrap;
+    }
+
+    .sla-sheet .side-col {
+        flex: 1 1 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .sla-sheet .sla-actor-tabbed-area {
+        flex-direction: column;
+    }
+
+    .sla-sheet .sheet-tabs.sla-sheet-tab-rail {
+        flex-direction: row;
+        width: 100%;
+        border-left: none;
+        border-top: 2px solid var(--sla-border);
+        justify-content: space-around;
+        padding: 4px;
+    }
+
+    .sla-sheet .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-tooltip {
+        display: none;
+    }
+
+    .sla-sheet.sla-sheet-tabs-labeled .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-label {
+        display: block;
+    }
+
+    .sla-sheet .sla-combat-colhead,
+    .sla-sheet .sla-combat-row {
+        grid-template-columns: 1fr 4rem 5rem 100px !important;
+    }
+
+    .sla-sheet .sla-wound-panel {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    .sla-sheet .sla-combat-colhead,
+    .sla-sheet .sla-combat-row {
+        grid-template-columns: 1fr 3.5rem 4rem 88px !important;
+        font-size: 0.85em;
+    }
+
+    .sla-sheet .stat-box label {
+        flex: 0 0 40px;
+        font-size: 0.7em;
+    }
+}
