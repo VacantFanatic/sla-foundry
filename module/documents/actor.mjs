@@ -5,6 +5,11 @@ import {
     computeEffectiveArmorPv,
     computeEncumbranceState
 } from './derived/encumbrance.mjs';
+import {
+    effectChangeRows,
+    resolveActiveEffectAddModes,
+    sumActiveEffectAddsForStat
+} from './derived/active-effects.mjs';
 import { applyStatPenalties } from './derived/penalties.mjs';
 import { countWounds, deriveLogicConditions } from './derived/wounds.mjs';
 
@@ -19,10 +24,7 @@ export class SlaActor extends Actor {
      * @returns {EffectChangeData[]}
      */
     static _effectChangeRows(effect) {
-        const root = effect?.changes;
-        if (Array.isArray(root) && root.length) return root;
-        const nested = effect?.system?.changes;
-        return Array.isArray(nested) ? nested : [];
+        return effectChangeRows(effect);
     }
 
     /**
@@ -31,19 +33,8 @@ export class SlaActor extends Actor {
      * @param {string} statKey  str, dex, know, conc, cha, cool
      */
     _sumActiveEffectAddsForCoreStat(statKey) {
-        // v14+: ACTIVE_EFFECT_MODES is deprecated; use ACTIVE_EFFECT_CHANGE_TYPES.
-        const addMode = globalThis.CONST?.ACTIVE_EFFECT_CHANGE_TYPES?.ADD ?? 2;
-        const kb = `system.stats.${statKey}.bonus`;
-        const kv = `system.stats.${statKey}.value`;
-        let sum = 0;
-        for (const effect of this.effects ?? []) {
-            if (effect.disabled) continue;
-            for (const ch of SlaActor._effectChangeRows(effect)) {
-                if (ch.mode !== addMode) continue;
-                if (ch.key === kb || ch.key === kv) sum += Number(ch.value) || 0;
-            }
-        }
-        return sum;
+        const addModes = resolveActiveEffectAddModes();
+        return sumActiveEffectAddsForStat(this.effects, statKey, addModes);
     }
 
     /** @override */

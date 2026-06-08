@@ -104,6 +104,66 @@ async function clickItemSheetTab(sheet, tabId) {
 }
 
 /**
+ * Create a character actor for sheet UI tests.
+ * @param {import('@playwright/test').Page} page
+ * @param {object} [system]
+ * @returns {Promise<string>} actor id
+ */
+async function createTestActor(page, system = {}) {
+    return page.evaluate(async (actorSystem) => {
+        const stamp = Date.now();
+        const [actor] = await Actor.createDocuments([
+            {
+                name: `E2E Actor ${stamp}`,
+                type: 'character',
+                system: actorSystem
+            }
+        ]);
+        return actor.id;
+    }, system);
+}
+
+/**
+ * Render a character actor sheet and return a locator scoped to its window.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} actorId
+ */
+async function openActorSheet(page, actorId) {
+    await page.evaluate(async (id) => {
+        const actor = game.actors.get(id);
+        if (!actor) throw new Error(`Actor ${id} not found`);
+        await actor.sheet.render(true);
+    }, actorId);
+
+    const sheet = page.locator('form.application.sla-industries.actor').last();
+    await sheet.waitFor({ state: 'visible', timeout: 15_000 });
+    return sheet;
+}
+
+/**
+ * Switch actor sheet tabs (App V2 rail uses data-tab anchors).
+ * @param {import('@playwright/test').Locator} sheet
+ * @param {string} tabId
+ */
+async function clickActorSheetTab(sheet, tabId) {
+    await sheet.locator(`nav.sheet-tabs a[data-tab="${tabId}"]`).click();
+}
+
+/**
+ * Delete E2E actors created during tests.
+ * @param {import('@playwright/test').Page} page
+ */
+async function deleteTestActors(page) {
+    await page
+        .evaluate(async () => {
+            for (const actor of game.actors.filter((a) => a.name?.startsWith('E2E Actor '))) {
+                await actor.delete();
+            }
+        })
+        .catch(() => {});
+}
+
+/**
  * Close open Foundry application windows between tests.
  * @param {import('@playwright/test').Page} page
  */
@@ -125,5 +185,9 @@ module.exports = {
     createWorldItem,
     openItemSheet,
     clickItemSheetTab,
+    createTestActor,
+    openActorSheet,
+    clickActorSheetTab,
+    deleteTestActors,
     closeApplicationWindows
 };

@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Chat module split:** `module/helpers/chat/` (`pure.mjs`, `dom.mjs`, `damage.mjs`, `handlers.mjs`) with unit tests for pure damage/wound helpers; native `document.body` click delegation replaces jQuery listeners.
 - **Actor sheet modules (PR9):** `reload.mjs`, `item-actions.mjs`, `weapon-gates.mjs`, `actor-drops.mjs`, and `sheet-helpers.mjs` with pure drop helpers in `actor-drops-pure.mjs` (unit tested).
 - **Actor sheet modules (PR10):** `stat-rolls.mjs`, `sheet-rolls.mjs`, `sheet-actions.mjs`, and `sheet-actions-pure.mjs` for stat checks and delegated sheet UI clicks/changes.
+- **Actor sheet E2E regression:** `tests/e2e/regression-actor-sheets.spec.js` covers character sheet layout, tab navigation, stat roll chat output, and active-effect stat bonuses (legacy and Foundry v14 ADD modes).
+- **Active effect derived data:** `module/documents/derived/active-effects.mjs` with unit tests for ADD mode resolution across Foundry v10–v14.
 
 ### Changed
 
@@ -35,6 +37,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - **Toxicant item type:** Register `SlaToxicantData` in `CONFIG.Item.dataModels` (was declared in `system.json` but missing from init).
+- **Active effect stat bonuses (Foundry v14):** `SlaActor` derived data now accepts both legacy `ACTIVE_EFFECT_MODES.ADD` (mode `2`) and v14 `ACTIVE_EFFECT_CHANGE_TYPES.add` (mode `20`) when summing core stat bonuses.
+- **E2E (Foundry v14.363):** `regression-sla` settings navigation and `ACTIVE_EFFECT_CHANGE_TYPES` smoke check aligned with current Foundry UI and constant casing.
 
 ### Removed
 

@@ -14,7 +14,7 @@
         "watch": "sass src/scss/sla-industries.scss css/sla-industries.css --style=expanded --no-source-map --watch",
         "test:unit": "node --test --test-concurrency=1 tests/unit/*.test.mjs",
         "test:e2e": "playwright test",
-        "test:e2e:regression": "playwright test tests/e2e/regression-sla.spec.js tests/e2e/regression-item-sheets.spec.js",
+        "test:e2e:regression": "playwright test tests/e2e/regression-sla.spec.js tests/e2e/regression-item-sheets.spec.js tests/e2e/regression-actor-sheets.spec.js",
         "test:e2e:operators": "playwright test tests/e2e/regression-operators.spec.js",
         "test:e2e:ui": "playwright test --ui",
         "test:e2e:headed": "playwright test --headed",
