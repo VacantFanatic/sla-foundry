@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Actor roll modules:** `module/sheets/actor/roll-math.mjs` (pure weapon/skill roll math) and `skill-rolls.mjs` (skill roll execution); unit tests for roll math.
 - **Weapon roll extraction:** `module/sheets/actor/weapon-rolls.mjs` handles attack dialog and weapon roll orchestration; additional pure helpers in `roll-math.mjs`.
 - **Explosive and Ebb roll extraction:** `module/sheets/actor/explosive-rolls.mjs` and `ebb-rolls.mjs` handle throw and Ebb formula orchestration; explosive/Ebb pure helpers in `roll-math.mjs` with unit tests.
+- **Chat module split:** `module/helpers/chat/` (`pure.mjs`, `dom.mjs`, `damage.mjs`, `handlers.mjs`) with unit tests for pure damage/wound helpers; native `document.body` click delegation replaces jQuery listeners.
 
 ### Changed
 
@@ -24,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Compiled CSS:** `css/sla-industries.css` is no longer committed; run `npm run build:css` or `npm run build` before local Foundry dev (CI and `cloud-foundry.sh` already build CSS).
 - **Unit tests:** `npm run test:unit` discovers all `tests/unit/*.test.mjs` files via glob.
 - **Actor sheet:** Explosive throw and Ebb formula roll paths delegate to `explosive-rolls.mjs` and `ebb-rolls.mjs` (~870 lines removed from `actor-sheet.mjs`).
+- **Chat:** `SLAChat` is a thin facade over split modules; chat card buttons use native DOM APIs instead of jQuery.
 
 ### Fixed
 
