@@ -1,22 +1,30 @@
 /**
  * SLA actor sheet (Application V2).
  */
-import { LuckDialog } from '../apps/luck-dialog.mjs';
 import { XPDialog } from '../apps/xp-dialog.mjs';
 import { SlaSimpleContentDialog } from '../apps/sla-simple-dialog.mjs';
-import { calculateRollResult, generateDiceTooltip, createSLARoll } from '../helpers/dice.mjs';
-import { prepareItems, incrementSkillRank } from '../helpers/items.mjs';
-import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from '../helpers/modifiers.mjs';
+import { createSLARoll } from '../helpers/dice.mjs';
+import { prepareItems } from '../helpers/items.mjs';
+import { applyMeleeModifiers, applyRangedModifiers } from '../helpers/modifiers.mjs';
 import { addActorItemToHotbar } from '../helpers/sla-hotbar.mjs';
-import { SLAChat } from '../helpers/chat.mjs';
-import { handleStackableActorItemDrop } from '../helpers/inventory-stack.mjs';
+import { onDropItem, onDropVehicleWeapon, onItemCreate } from './actor/actor-drops.mjs';
+import { triggerItemRoll, useDrugItem } from './actor/item-actions.mjs';
+import { onReloadWeapon } from './actor/reload.mjs';
 import {
-    applySuccessThroughExperience,
-    buildSkillDiceResults,
-    buildWeaponDamageFormula,
-    computeMeleeStrDamageModifier,
-    computeSuccessDieOutcome
-} from './actor/roll-math.mjs';
+    applyHeadshotSideEffect,
+    applySuccessThroughExperienceForSheet,
+    buildSlaRollFlags,
+    buildSkillDiceResultsForSheet,
+    computeSuccessDieOutcomeForSheet,
+    generateSheetTooltip,
+    resolveCombatSkillRank,
+    resolveSheetDamageDisplay
+} from './actor/sheet-helpers.mjs';
+import {
+    canProceedWithWeaponAttack,
+    executeCombatLoadoutDamageRoll,
+    resolveRangedAttackContext
+} from './actor/weapon-gates.mjs';
 import { executeSkillRollFromItem } from './actor/skill-rolls.mjs';
 import { executeEbbRoll } from './actor/ebb-rolls.mjs';
 import { processExplosiveRoll, renderExplosiveDialog } from './actor/explosive-rolls.mjs';
@@ -526,7 +534,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (this.actor.type === 'vehicle') {
             const dropZone = root.querySelector('.vehicle-weapon-drop');
             dropZone?.addEventListener('dragover', (e) => e.preventDefault(), { signal });
-            dropZone?.addEventListener('drop', (e) => void this._onDropVehicleWeapon(e), { signal });
+            dropZone?.addEventListener('drop', (e) => void onDropVehicleWeapon(this, e), { signal });
         }
     }
 
@@ -607,7 +615,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const damageRoll = t.closest('.item-roll-damage');
         if (damageRoll) {
             event.preventDefault();
-            await this._onCombatLoadoutDamageRoll(damageRoll);
+            await executeCombatLoadoutDamageRoll(this, damageRoll);
             return;
         }
 
@@ -645,7 +653,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             const itemId = li?.dataset.itemId;
             const item = itemId ? this.actor.items.get(itemId) : null;
             if (!item || item.type !== 'drug') return;
-            await this._useDrugItem(item);
+            await useDrugItem(this, item);
             return;
         }
 
@@ -791,13 +799,13 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         const itemReload = t.closest('.item-reload');
         if (itemReload) {
-            await this._onReloadWeapon(event, itemReload);
+            await onReloadWeapon(this, event, itemReload);
             return;
         }
 
         const itemCreate = t.closest('.item-create');
         if (itemCreate) {
-            await this._onItemCreate(event, itemCreate);
+            await onItemCreate(this, event, itemCreate);
             return;
         }
 
@@ -848,161 +856,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
     };
 
-    // --- RELOAD LOGIC (Match by Linked Weapon Name) ---
-    async _onReloadWeapon(event, reloadEl) {
-        event.preventDefault();
-        const li = (reloadEl ?? event.currentTarget).closest('.item');
-        const weapon = li?.dataset.itemId ? this.actor.items.get(li.dataset.itemId) : null;
-        if (!weapon) return;
-        const weaponName = weapon.name;
-
-        // Find all magazines that claim to link to this weapon
-        const candidates = this.actor.items.filter(
-            (i) => i.type === 'magazine' && i.system.linkedWeapon === weaponName && i.system.quantity > 0
-        );
-
-        if (candidates.length === 0) {
-            return ui.notifications.warn(`No magazines found linked to: '${weaponName}'`);
-        }
-
-        // If only one match, just do it
-        if (candidates.length === 1) {
-            return this._performReload(weapon, candidates[0]);
-        }
-
-        // If multiple matches, Prompt User
-        const content = await foundry.applications.handlebars.renderTemplate(
-            'systems/sla-industries/templates/dialogs/reload-dialog.hbs',
-            {
-                weaponName: weaponName,
-                candidates: candidates
-            }
-        );
-
-        await new SlaSimpleContentDialog({
-            title: 'Select Ammunition',
-            contentHtml: content,
-            width: 420,
-            classes: ['sla-dialog', 'sla-sheet'],
-            actionLabel: 'Load Magazine',
-            onConfirm: (root) => {
-                const magId = root.querySelector('#magazine-select')?.value;
-                const mag = magId ? this.actor.items.get(magId) : null;
-                if (mag) void this._performReload(weapon, mag);
-            }
-        }).render(true);
-    }
-
-    async _performReload(weapon, magazine) {
-        // 1. Determine Capacity from Magazine
-        const capacity = magazine.system.ammoCapacity || 10;
-
-        // 2. Update Weapon Ammo AND Max Ammo (so we know the clip size)
-        await weapon.update({
-            'system.ammo': capacity,
-            'system.maxAmmo': capacity
-        });
-
-        // 3. Consume Magazine
-        const newQty = (magazine.system.quantity || 1) - 1;
-        const magazineDepleted = newQty <= 0;
-
-        if (magazineDepleted) {
-            await magazine.delete();
-        } else {
-            await magazine.update({ 'system.quantity': newQty });
-        }
-
-        // 4. Post Chat Message
-        const templateData = {
-            weaponName: weapon.name.toUpperCase(),
-            actorName: this.actor.name,
-            magazineName: magazine.name,
-            ammoLoaded: capacity,
-            magazineDepleted: magazineDepleted,
-            magazinesRemaining: newQty
-        };
-
-        const content = await foundry.applications.handlebars.renderTemplate(
-            'systems/sla-industries/templates/chat/reload.hbs',
-            templateData
-        );
-
-        ChatMessage.create({
-            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-            content: content
-        });
-    }
-
     /* -------------------------------------------- */
     /* ROLL HANDLERS                               */
     /* -------------------------------------------- */
 
     /**
-     * Consume one dose of a drug and post the use card (same as the sheet "use" control).
-     * @param {Item} item
-     */
-    async _useDrugItem(item) {
-        if (!item || item.type !== 'drug' || item.actor?.id !== this.actor.id) return;
-        const currentQty = item.system.quantity || 0;
-        if (currentQty <= 0) {
-            await item.delete();
-            return;
-        }
-        const newQty = currentQty - 1;
-        const templateData = {
-            itemName: item.name.toUpperCase(),
-            actorName: this.actor.name,
-            duration: item.system.duration || 'Unknown',
-            remaining: newQty
-        };
-        const content = await foundry.applications.handlebars.renderTemplate(
-            'systems/sla-industries/templates/chat/drug-use.hbs',
-            templateData
-        );
-        await ChatMessage.create({
-            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-            content: content
-        });
-        await item.applyItemEffectsToActor(this.actor);
-
-        if (newQty <= 0) {
-            await item.delete();
-            ui.notifications.info(`Used the last dose of ${item.name}.`);
-        } else {
-            await item.update({ 'system.quantity': newQty });
-        }
-    }
-
-    /**
-     * Same behavior as clicking the item's rollable name: attack/throw/ebb, use drug, or open the item sheet.
-     * Used when the sheet is not open (e.g. hotbar macro).
-     * @param {Item} item
-     */
-    async triggerItemRoll(item) {
-        if (!item || item.actor?.id !== this.actor.id) return;
-
-        if (item.type === 'weapon') {
-            const attackType = item.system.attackType || 'melee';
-            const isMelee = attackType === 'melee';
-            if (!this._canProceedWithWeaponAttack(item, { requireTarget: true })) return;
-            await this._renderAttackDialog(item, isMelee);
-        } else if (item.type === 'explosive') {
-            await this._renderExplosiveDialog(item);
-        } else if (item.type === 'ebbFormula') {
-            await this._executeEbbRoll(item);
-        } else if (item.type === 'drug') {
-            await this._useDrugItem(item);
-        } else if (item.type === 'toxicant') {
-            await item.rollInfectionTest();
-        } else if (item.type === 'skill') {
-            await this._executeSkillRollFromItem(item);
-        } else {
-            item.sheet?.render(true);
-        }
-    }
-
-    /* Handle clickable rolls.
+     * Handle clickable rolls.
      * @param {PointerEvent} event   The originating click event (must be a real event; do not spread into a plain object)
      * @param {HTMLElement} [rollTarget]  The `.rollable` / `.item-rollable` element (required for delegated clicks where `event.currentTarget` is the sheet root)
      * @private
@@ -1096,163 +955,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
     }
 
-    /**
-     * PC sheets track equipped gear; Threat sheets do not expose an equip toggle (drops default to equipped).
-     * @returns {boolean}
-     */
-    _requiresWeaponEquippedForAttack() {
-        return this.actor.type === 'character';
+    _canProceedWithWeaponAttack(item, options) {
+        return canProceedWithWeaponAttack(this, item, options);
     }
 
-    /** @returns {void} */
-    _notifyUnequippedWeaponHumor() {
-        const lines = [
-            'That hardware is still stowed—you need it in hand, not in inventory. Equip it first, operative.',
-            "You can't mug a Carrien with pocket lint. Equip the weapon, then we'll talk dice.",
-            "Bane's watching, and even he expects the barrel to leave the holster before you roll. Equip it.",
-            "Nice commitment to the bit, but mime combat doesn't bypass armor. Toggle that weapon to equipped."
-        ];
-        ui.notifications.info(lines[Math.floor(Math.random() * lines.length)]);
-    }
-
-    /**
-     * Centralized weapon attack gate checks used by dialog + roll execution.
-     * @param {Item} item
-     * @param {Object} options
-     * @param {boolean} options.requireTarget
-     * @returns {boolean}
-     */
-    _canProceedWithWeaponAttack(item, { requireTarget = false } = {}) {
-        if (this._requiresWeaponEquippedForAttack() && !item.system.equipped) {
-            this._notifyUnequippedWeaponHumor();
-            return false;
-        }
-
-        if (
-            requireTarget &&
-            game.settings.get('sla-industries', 'enableTargetRequiredFeatures') &&
-            game.user.targets.size === 0
-        ) {
-            ui.notifications.warn('You must select a target to attack.');
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Magazine ammo type damage modifier (matches attack / item roll preview).
-     * @param {Item} item
-     * @returns {number}
-     */
-    _getAmmoDamageModifierForWeapon(item) {
-        if (!item?.system?.magazineId || !this.actor) return 0;
-        const magazine = this.actor.items.get(item.system.magazineId);
-        if (!magazine) return 0;
-        const ammoType = magazine.system.ammoType || 'standard';
-        const configMods = CONFIG.SLA?.ammoModifiers?.[ammoType];
-        return configMods ? Number(configMods.damage) || 0 : 0;
-    }
-
-    /**
-     * AD for damage application (powersuit weapons derive AD from STR).
-     * @param {Item} item
-     * @returns {number}
-     */
-    _resolveWeaponAdForDamageRoll(item) {
-        let adValue = Number(item.system.ad) || 0;
-        if (item.system.powersuitAttack) {
-            const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0);
-            const adFromStrMinus = Number(item.system.adFromStrMinus) || 0;
-            if (adFromStrMinus > 0) {
-                adValue = Math.max(0, strValue - adFromStrMinus);
-            }
-        }
-        return adValue;
-    }
-
-    /**
-     * Roll weapon / explosive damage from Combat loadout (same chat card as attack damage button).
-     * @param {HTMLElement} anchor  `.item-roll-damage` inside a `.item[data-item-id]` row
-     */
-    async _onCombatLoadoutDamageRoll(anchor) {
-        const row = anchor.closest('.item');
-        const itemId = row?.dataset?.itemId;
-        const item = itemId ? this.actor.items.get(itemId) : null;
-        if (!item || (item.type !== 'weapon' && item.type !== 'explosive')) return;
-        if (!this.actor.isOwner) {
-            ui.notifications.warn('You do not own this actor.');
-            return;
-        }
-        if (!this._canProceedWithWeaponAttack(item, { requireTarget: false })) return;
-
-        const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0);
-        let damageMod = 0;
-
-        if (item.type === 'weapon') {
-            const isMelee = (item.system.attackType || 'melee') === 'melee';
-            if (isMelee) damageMod += computeMeleeStrDamageModifier(strValue);
-            damageMod += this._getAmmoDamageModifierForWeapon(item);
-        }
-
-        const rawBase = item.system.damage || item.system.dmg || '0';
-        const rollFormula = buildWeaponDamageFormula(String(rawBase), damageMod);
-        const minDamage = Number(item.system.minDamage) || 0;
-        const adValue =
-            item.type === 'explosive' ? Number(item.system.ad) || 0 : this._resolveWeaponAdForDamageRoll(item);
-
-        const flavorText =
-            item.type === 'explosive'
-                ? `<span style="color:#D05E1A">${item.name}</span> — Explosive damage`
-                : `<span style="color:#D05E1A">${item.name}</span> — Standard Damage Roll`;
-
-        const parentTargets = Array.from(game.user.targets).map((t) => t.document.uuid);
-        const rollData = typeof item.getRollData === 'function' ? item.getRollData() : this.actor.getRollData();
-
-        try {
-            await SLAChat.executeStandardDamageRoll({
-                actor: this.actor,
-                rollData: rollData ?? this.actor.getRollData(),
-                rollFormula,
-                adValue,
-                minDamage,
-                flavorText,
-                parentTargets
-            });
-        } catch (err) {
-            console.error('SLA | Combat loadout damage roll failed:', err);
-            ui.notifications.error('SLA | Failed to roll damage. See console for details.');
-        }
-    }
-
-    _getActorTokenForRangeCheck() {
-        return (
-            this.actor.token?.object ||
-            this.token ||
-            (this.actor.getActiveTokens().length > 0 ? this.actor.getActiveTokens()[0] : null)
-        );
-    }
-
-    _resolveRangedAttackContext(item, isMelee) {
-        const context = { isLongRange: false, rangePenaltyMsg: '' };
-        if (
-            isMelee ||
-            !game.settings.get('sla-industries', 'enableTargetRequiredFeatures') ||
-            game.user.targets.size === 0
-        ) {
-            return context;
-        }
-
-        const token = this._getActorTokenForRangeCheck();
-        if (!token) return context;
-
-        const target = game.user.targets.first();
-        const maxRange = parseInt(item.system.range || '10') || 10;
-        const rangeData = calculateRangePenalty(token, target, maxRange);
-
-        context.isLongRange = rangeData.isLongRange;
-        context.rangePenaltyMsg = rangeData.penaltyMsg;
-        return context;
+    async triggerItemRoll(item) {
+        return triggerItemRoll(this, item);
     }
 
     // --- DIALOG ---
@@ -1271,73 +979,40 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return executeSkillRollFromItem(this, item);
     }
 
-    // --- HELPERS: HTML GENERATION ---
-    // Kept for legacy compatibility if other modules call it, but uses new helper internally
     _generateTooltip(roll, baseModifier, successDieMod) {
-        return generateDiceTooltip(roll, baseModifier, 0, successDieMod);
+        return generateSheetTooltip(roll, baseModifier, successDieMod);
     }
 
-    _buildSlaRollFlags({ baseModifier, itemName, notes = '', tn = 10, extra = {} }) {
-        return {
-            baseModifier,
-            itemName,
-            notes,
-            tn,
-            ...extra
-        };
+    _buildSlaRollFlags(params) {
+        return buildSlaRollFlags(params);
     }
 
     _resolveCombatSkillRank(skillInput) {
-        if (!skillInput) return 0;
-
-        const combatSkills = CONFIG.SLA?.combatSkills || {};
-        const resolvedSkillName = combatSkills[skillInput] || skillInput;
-        const skillItem = this.actor.items.find(
-            (i) => i.type === 'skill' && i.name.trim().toLowerCase() === resolvedSkillName.trim().toLowerCase()
-        );
-        return skillItem ? Number(skillItem.system.rank) || 0 : 0;
+        return resolveCombatSkillRank(this.actor, skillInput);
     }
 
     async _applyHeadshotSideEffect(notes) {
-        if (game.user.targets.size === 0) return;
-
-        const target = game.user.targets.first();
-        const targetActor = target?.actor;
-        if (targetActor && !targetActor.system.wounds.head) {
-            await targetActor.update({ 'system.wounds.head': true });
-            notes.push(`<span style="color:#ff5555">Head Wound Applied!</span>`);
-        }
+        return applyHeadshotSideEffect(notes);
     }
 
     _resolveDamageDisplay(formula) {
-        const formulaStr = String(formula ?? '0').trim();
-        if (!formulaStr || formulaStr === '0') return '0';
-        if (formulaStr.includes('d')) return formulaStr;
-
-        try {
-            const replaced = Roll.replaceFormulaData(formulaStr, this.actor.getRollData());
-            const resolved = Math.round(Number(Function('"use strict";return (' + replaced + ')')()));
-            const clamped = Number.isFinite(resolved) ? Math.max(0, resolved) : null;
-            const display = clamped !== null ? String(clamped) : formulaStr;
-            return display;
-        } catch (_err) {
-            return formulaStr;
-        }
+        return resolveSheetDamageDisplay(formula, this.actor);
     }
 
     _buildSkillDiceResults(params) {
-        return buildSkillDiceResults(params);
+        return buildSkillDiceResultsForSheet(params);
     }
 
-    _computeSuccessDieOutcome({ roll, baseModifier, successDieModifier = 0, targetNumber }) {
-        const sdRaw = roll.terms[0].results[0].result;
-        return computeSuccessDieOutcome({ sdRaw, baseModifier, successDieModifier, targetNumber });
+    _computeSuccessDieOutcome(params) {
+        return computeSuccessDieOutcomeForSheet(params);
     }
 
-    _applySuccessThroughExperience({ isBaseSuccess, skillSuccessCount, threshold = 4, notes }) {
-        const result = applySuccessThroughExperience({ isBaseSuccess, skillSuccessCount, threshold });
-        if (result.note && notes) notes.push(result.note);
-        return { isSuccess: result.isSuccess, successThroughExperience: result.successThroughExperience };
+    _applySuccessThroughExperience(params) {
+        return applySuccessThroughExperienceForSheet(params);
+    }
+
+    _resolveRangedAttackContext(item, isMelee) {
+        return resolveRangedAttackContext(this, item, isMelee);
     }
 
     async _processWeaponRoll(item, html, isMelee) {
@@ -1356,174 +1031,18 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return executeEbbRoll(this, item);
     }
 
-    // --- DROP ITEM HANDLER ---
-    async _processDroppedSkills(skillsArray, sourceFlag) {
-        if (!skillsArray || !Array.isArray(skillsArray) || skillsArray.length === 0) return;
-
-        const toCreate = [];
-        const toUpdate = [];
-
-        for (const skillData of skillsArray) {
-            if (!skillData || !skillData.name) continue;
-
-            const existingSkill = this.actor.items.find(
-                (i) => i.type === 'skill' && i.name.toLowerCase() === skillData.name.toLowerCase()
-            );
-
-            if (existingSkill) {
-                const currentRank = Number(existingSkill.system?.rank) || 0;
-                const newRank = incrementSkillRank(currentRank);
-                toUpdate.push({ _id: existingSkill.id, 'system.rank': newRank });
-                ui.notifications.info(`Upgraded ${existingSkill.name} to Rank ${newRank}`);
-                continue;
-            }
-
-            toCreate.push({
-                name: skillData.name,
-                type: 'skill',
-                img: skillData.img || 'icons/svg/book.svg',
-                system: {
-                    rank: '1',
-                    stat:
-                        CONFIG.SLA?.skillStats?.[skillData.name.toLowerCase()] ||
-                        skillData.stat ||
-                        skillData.system?.stat ||
-                        'dex',
-                    description: skillData.system?.description || ''
-                },
-                flags: {
-                    'sla-industries': {
-                        [sourceFlag]: true
-                    }
-                }
-            });
-        }
-
-        if (toCreate.length > 0) {
-            await this.actor.createEmbeddedDocuments('Item', toCreate);
-        }
-        if (toUpdate.length > 0) {
-            await this.actor.updateEmbeddedDocuments('Item', toUpdate);
-        }
-    }
-
-    async _replaceSingletonItemAndLinkedSkills(itemType, linkedSkillFlag) {
-        const existing = this.actor.items.find((i) => i.type === itemType);
-        if (!existing) return;
-
-        const linkedSkills = this.actor.items.filter((i) => i.getFlag('sla-industries', linkedSkillFlag));
-        const idsToDelete = [existing.id, ...linkedSkills.map((i) => i.id)];
-        await this.actor.deleteEmbeddedDocuments('Item', idsToDelete);
-    }
-
-    _validatePackageRequirements(packageData) {
-        const requirements = packageData.system.requirements || {};
-        for (const [key, minVal] of Object.entries(requirements)) {
-            const actorStat = this.actor.system.stats[key]?.value || 0;
-            if (actorStat < minVal) {
-                ui.notifications.error(`Requirement not met: ${key.toUpperCase()} must be ${minVal}+`);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    async _handleSpeciesDrop(itemData) {
-        await this._replaceSingletonItemAndLinkedSkills('species', 'fromSpecies');
-        await this.actor.createEmbeddedDocuments('Item', [itemData]);
-        await this.actor.update({ 'system.bio.species': itemData.name });
-
-        if (itemData.system.stats) {
-            const updates = {};
-            for (const [key, val] of Object.entries(itemData.system.stats)) {
-                const valueToSet = typeof val === 'object' && val.min !== undefined ? val.min : val;
-                updates[`system.stats.${key}.value`] = valueToSet;
-            }
-            await this.actor.update(updates);
-        }
-
-        await this._processDroppedSkills(itemData.system.skills, 'fromSpecies');
-    }
-
-    async _handlePackageDrop(itemData) {
-        if (!this._validatePackageRequirements(itemData)) return;
-
-        await this._replaceSingletonItemAndLinkedSkills('package', 'fromPackage');
-        await this.actor.createEmbeddedDocuments('Item', [itemData]);
-        await this.actor.update({ 'system.bio.package': itemData.name });
-        await this._processDroppedSkills(itemData.system.skills, 'fromPackage');
-    }
-
-    _shouldAutoEquipDroppedItem(itemData) {
-        return (
-            (this.actor.type === 'npc' && ['weapon', 'armor'].includes(itemData.type)) ||
-            (this.actor.type === 'vehicle' && itemData.type === 'weapon')
-        );
-    }
-
-    async _createEquippedItem(itemData) {
-        foundry.utils.setProperty(itemData, 'system.equipped', true);
-        return this.actor.createEmbeddedDocuments('Item', [itemData]);
-    }
-
     async _onDropItem(event, data) {
-        if (!this.actor.isOwner) return false;
-        const item = await Item.implementation.fromDropData(data);
-        if (!item) return false;
-        const itemData = item.toObject();
-
-        if (itemData.type === 'species') {
-            await this._handleSpeciesDrop(itemData);
-            return;
-        }
-
-        if (itemData.type === 'package') {
-            await this._handlePackageDrop(itemData);
-            return;
-        }
-
-        if (this._shouldAutoEquipDroppedItem(itemData)) {
-            return this._createEquippedItem(itemData);
-        }
-
-        const stacked = await handleStackableActorItemDrop(this.actor, itemData);
-        if (stacked) return;
-
-        return super._onDropItem(event, data);
+        const result = await onDropItem(this, event, data);
+        if (result === null) return super._onDropItem(event, data);
+        return result;
     }
 
     async _onDropVehicleWeapon(event) {
-        event.preventDefault();
-        if (!this.actor.isOwner || this.actor.type !== 'vehicle') return false;
-
-        let dropped;
-        try {
-            const dt = event.dataTransfer ?? event.originalEvent?.dataTransfer;
-            dropped = JSON.parse(dt?.getData('text/plain') ?? '{}');
-        } catch (_err) {
-            return false;
-        }
-        if (!dropped || dropped.type !== 'Item') return false;
-
-        const item = await Item.implementation.fromDropData(dropped);
-        if (!item || item.type !== 'weapon') {
-            ui.notifications.warn('Only weapon items can be dropped into vehicle weapons.');
-            return false;
-        }
-
-        const itemData = item.toObject();
-        await this._createEquippedItem(itemData);
-        ui.notifications.info(`Equipped ${itemData.name} on ${this.actor.name}.`);
-        return true;
+        return onDropVehicleWeapon(this, event);
     }
 
     async _onItemCreate(event, createEl) {
-        event.preventDefault();
-        const header = createEl ?? event.currentTarget;
-        const type = header.dataset.type;
-        const name = `New ${type.capitalize()}`;
-        const itemData = { name: name, type: type };
-        return await Item.create(itemData, { parent: this.actor });
+        return onItemCreate(this, event, createEl);
     }
 
     // --- HELPER: MELEE LOGIC ---
