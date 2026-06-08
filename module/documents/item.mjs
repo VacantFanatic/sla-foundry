@@ -10,7 +10,7 @@ import {
  * Extend the basic Item with some very simple modifications.
  * @extends {Item}
  */
-export class BoilerplateItem extends Item {
+export class SlaItem extends Item {
     prepareDerivedData() {
         super.prepareDerivedData();
     }
@@ -262,6 +262,9 @@ export class BoilerplateItem extends Item {
         }
     }
 }
+
+/** @deprecated Use {@link SlaItem} — legacy boilerplate name kept for macro compatibility. */
+export const BoilerplateItem = SlaItem;
 
 /**
  * @param {number} sdRaw
