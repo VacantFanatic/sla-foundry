@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Natural weapons migration tests:** `classifyLegacyNaturalWeapon()` unit tests in `tests/unit/natural-weapons-migration.test.mjs`.
 - **Item sheet UI E2E regression:** Playwright spec `tests/e2e/regression-item-sheets.spec.js` covers discipline, ebb formula, weapon, magazine, skill, and generic item sheets (tabs, spectral stamps, shared drop hints, drag-over feedback, effects tab CRUD). Included in `npm run test:e2e:regression`.
 - **Data model registry:** `module/data/registry.mjs` and `module/data/model-type-keys.mjs` centralize `CONFIG.*.dataModels` registration; unit test asserts parity with `system.json` `documentTypes`.
+- **Derived data helpers:** Pure encumbrance, wound, and penalty calculators in `module/documents/derived/` with unit tests; `BoilerplateActor` delegates to these modules.
+- **Actor roll modules:** `module/sheets/actor/roll-math.mjs` (pure weapon/skill roll math) and `skill-rolls.mjs` (skill roll execution); unit tests for roll math.
 
 ### Changed
 
