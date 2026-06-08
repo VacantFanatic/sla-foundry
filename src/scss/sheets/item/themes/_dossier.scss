@@ -30,7 +30,7 @@ form.application.sla-industries.item .package-theme .sheet-header {
 
 /* Classified red edge — species */
 form.application.sla-industries.item .species-theme .sheet-header::after {
-    content: "";
+    content: '';
     position: absolute;
     right: 0;
     top: 0;
@@ -48,7 +48,7 @@ form.application.sla-industries.item .species-theme .sheet-header::after {
 
 /* Training program green edge — package */
 form.application.sla-industries.item .package-theme .sheet-header::after {
-    content: "";
+    content: '';
     position: absolute;
     right: 0;
     top: 0;
@@ -74,14 +74,12 @@ form.application.sla-industries.item .office-dossier {
 }
 
 form.application.sla-industries.item .office-dossier--species {
-    background:
-        linear-gradient(180deg, rgba(16, 8, 8, 0.94) 0%, rgba(12, 8, 8, 0.97) 100%);
+    background: linear-gradient(180deg, rgba(16, 8, 8, 0.94) 0%, rgba(12, 8, 8, 0.97) 100%);
     border: 1px solid rgba(208, 64, 64, 0.25);
 }
 
 form.application.sla-industries.item .office-dossier--package {
-    background:
-        linear-gradient(180deg, rgba(8, 16, 8, 0.94) 0%, rgba(8, 12, 8, 0.97) 100%);
+    background: linear-gradient(180deg, rgba(8, 16, 8, 0.94) 0%, rgba(8, 12, 8, 0.97) 100%);
     border: 1px solid rgba(111, 196, 111, 0.25);
 }
 

@@ -3,7 +3,7 @@
  */
 
 /** @type {ReadonlySet<string>} */
-export const STACKABLE_ITEM_TYPES = new Set(["item", "explosive", "magazine", "drug"]);
+export const STACKABLE_ITEM_TYPES = new Set(['item', 'explosive', 'magazine', 'drug']);
 
 /**
  * @param {string} type
@@ -19,12 +19,12 @@ export function isStackableItemType(type) {
  */
 function getSourceRef(plain) {
     const stats = plain._stats;
-    if (stats && typeof stats.compendiumSource === "string" && stats.compendiumSource.length) {
+    if (stats && typeof stats.compendiumSource === 'string' && stats.compendiumSource.length) {
         return stats.compendiumSource;
     }
     const sid = plain.flags?.core?.sourceId;
-    if (typeof sid === "string" && sid.length) return sid;
-    return "";
+    if (typeof sid === 'string' && sid.length) return sid;
+    return '';
 }
 
 /**
@@ -34,11 +34,11 @@ function getSourceRef(plain) {
  */
 function stackKeyFallback(plain) {
     const type = plain.type;
-    const name = (plain.name ?? "").trim().toLowerCase();
-    if (type === "magazine") {
+    const name = (plain.name ?? '').trim().toLowerCase();
+    if (type === 'magazine') {
         const sys = plain.system ?? {};
-        const ammoType = sys.ammoType ?? "";
-        const cap = sys.ammoCapacity ?? "";
+        const ammoType = sys.ammoType ?? '';
+        const cap = sys.ammoCapacity ?? '';
         return `f|${type}|${name}|${ammoType}|${cap}`;
     }
     return `f|${type}|${name}`;
@@ -62,7 +62,7 @@ export function stackKey(plain) {
  * @returns {number}
  */
 export function incomingQuantity(itemData) {
-    const q = Number(foundry.utils.getProperty(itemData, "system.quantity"));
+    const q = Number(foundry.utils.getProperty(itemData, 'system.quantity'));
     if (!Number.isFinite(q) || q <= 0) return 1;
     return Math.max(1, Math.floor(q));
 }
@@ -99,13 +99,13 @@ export async function handleStackableActorItemDrop(actor, itemData) {
         const cur = Number(existing.system?.quantity);
         const base = Number.isFinite(cur) && cur > 0 ? cur : 1;
         const next = base + addQty;
-        await actor.updateEmbeddedDocuments("Item", [{ _id: existing.id, "system.quantity": next }]);
+        await actor.updateEmbeddedDocuments('Item', [{ _id: existing.id, 'system.quantity': next }]);
         ui.notifications.info(`${existing.name}: quantity ${base} → ${next}`);
         return true;
     }
 
-    foundry.utils.setProperty(itemData, "system.quantity", addQty);
-    await actor.createEmbeddedDocuments("Item", [itemData]);
+    foundry.utils.setProperty(itemData, 'system.quantity', addQty);
+    await actor.createEmbeddedDocuments('Item', [itemData]);
     return true;
 }
 
@@ -149,9 +149,9 @@ export async function consolidateStackableItemsOnActor(actor) {
             sum += Number.isFinite(q) && q > 0 ? Math.floor(q) : 1;
         }
 
-        await actor.updateEmbeddedDocuments("Item", [{ _id: keeper.id, "system.quantity": sum }]);
+        await actor.updateEmbeddedDocuments('Item', [{ _id: keeper.id, 'system.quantity': sum }]);
         await actor.deleteEmbeddedDocuments(
-            "Item",
+            'Item',
             rest.map((it) => it.id)
         );
         merged += rest.length;

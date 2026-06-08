@@ -3,9 +3,9 @@ let slaSheetClassesPromise = null;
 
 function loadSlaSheetClasses() {
     slaSheetClassesPromise ??= Promise.all([
-        import("../sheets/actor-sheet.mjs"),
-        import("../sheets/actor-npc-sheet.mjs"),
-        import("../sheets/actor-vehicle-sheet.mjs")
+        import('../sheets/actor-sheet.mjs'),
+        import('../sheets/actor-npc-sheet.mjs'),
+        import('../sheets/actor-vehicle-sheet.mjs')
     ]);
     return slaSheetClassesPromise;
 }
@@ -16,7 +16,7 @@ function loadSlaSheetClasses() {
  */
 async function createEphemeralSlaSheet(actor) {
     const [{ SlaActorSheet }, { SlaNPCSheet }, { SlaVehicleSheet }] = await loadSlaSheetClasses();
-    const SheetClass = actor.type === "npc" ? SlaNPCSheet : actor.type === "vehicle" ? SlaVehicleSheet : SlaActorSheet;
+    const SheetClass = actor.type === 'npc' ? SlaNPCSheet : actor.type === 'vehicle' ? SlaVehicleSheet : SlaActorSheet;
     const sheet = Object.create(SheetClass.prototype);
     // ActorSheetV2 exposes `actor` / `document` as getter-only; assignment throws — use own properties.
     Object.defineProperties(sheet, {
@@ -32,7 +32,7 @@ async function createEphemeralSlaSheet(actor) {
  * @returns {boolean}
  */
 function isActorEmbeddedItemUuid(uuid) {
-    return typeof uuid === "string" && uuid.startsWith("Actor.") && uuid.includes(".Item.");
+    return typeof uuid === 'string' && uuid.startsWith('Actor.') && uuid.includes('.Item.');
 }
 
 /**
@@ -40,7 +40,7 @@ function isActorEmbeddedItemUuid(uuid) {
  * @returns {Promise<Item|null>}
  */
 async function resolveItemFromHotbarData(data) {
-    if (!data || data.type !== "Item") return null;
+    if (!data || data.type !== 'Item') return null;
     try {
         if (data.uuid) {
             const doc = await fromUuid(data.uuid);
@@ -49,7 +49,7 @@ async function resolveItemFromHotbarData(data) {
         const item = await Item.fromDropData(data);
         return item instanceof Item ? item : null;
     } catch (err) {
-        console.warn("SLA Industries | hotbar item resolve failed:", err);
+        console.warn('SLA Industries | hotbar item resolve failed:', err);
         return null;
     }
 }
@@ -60,8 +60,8 @@ async function resolveItemFromHotbarData(data) {
  * @param {string} itemUuid  Full UUID e.g. Actor.xxx.Item.yyy
  */
 export async function rollOwnedItem(itemUuid) {
-    if (!itemUuid || typeof itemUuid !== "string") {
-        ui.notifications.warn("Invalid item macro.");
+    if (!itemUuid || typeof itemUuid !== 'string') {
+        ui.notifications.warn('Invalid item macro.');
         return;
     }
     let item;
@@ -71,16 +71,16 @@ export async function rollOwnedItem(itemUuid) {
         item = null;
     }
     if (!(item instanceof Item)) {
-        ui.notifications.warn("That item no longer exists.");
+        ui.notifications.warn('That item no longer exists.');
         return;
     }
     const actor = item.actor;
     if (!actor) {
-        ui.notifications.warn("That item is not on an actor. Drag items from a character, threat, or vehicle sheet.");
+        ui.notifications.warn('That item is not on an actor. Drag items from a character, threat, or vehicle sheet.');
         return;
     }
     if (!item.isOwner) {
-        ui.notifications.warn("You do not own that item.");
+        ui.notifications.warn('You do not own that item.');
         return;
     }
     const sheet = await createEphemeralSlaSheet(actor);
@@ -92,10 +92,10 @@ export async function rollOwnedItem(itemUuid) {
  */
 export function actorItemMacroLabel(item) {
     const t = item.actor?.type;
-    if (t === "character") return "Operative";
-    if (t === "npc") return "Threat";
-    if (t === "vehicle") return "Vehicle";
-    return "Actor";
+    if (t === 'character') return 'Operative';
+    if (t === 'npc') return 'Threat';
+    if (t === 'vehicle') return 'Vehicle';
+    return 'Actor';
 }
 
 /**
@@ -117,29 +117,30 @@ function findFirstEmptyHotbarSlot() {
  */
 export async function getOrCreateSlaItemRollMacro(item) {
     if (!item?.actor) {
-        ui.notifications.warn("That item is not on an actor.");
+        ui.notifications.warn('That item is not on an actor.');
         return null;
     }
     if (!item.isOwner) {
-        ui.notifications.warn("You cannot create a macro for an item you do not own.");
+        ui.notifications.warn('You cannot create a macro for an item you do not own.');
         return null;
     }
 
     const macroName = `${actorItemMacroLabel(item)}: ${item.name}`.slice(0, 200);
     const command = `await game.sla.rollOwnedItem("${item.uuid}");`;
 
-    const existing = game.macros.find(m =>
-        m.getFlag("sla-industries", "itemMacroUuid") === item.uuid && m.isOwner
-    );
+    const existing = game.macros.find((m) => m.getFlag('sla-industries', 'itemMacroUuid') === item.uuid && m.isOwner);
 
-    return existing ?? await Macro.create({
-        name: macroName,
-        type: "script",
-        img: item.img || "icons/svg/item-bag.svg",
-        command,
-        scope: "global",
-        flags: { "sla-industries": { itemMacroUuid: item.uuid } }
-    });
+    return (
+        existing ??
+        (await Macro.create({
+            name: macroName,
+            type: 'script',
+            img: item.img || 'icons/svg/item-bag.svg',
+            command,
+            scope: 'global',
+            flags: { 'sla-industries': { itemMacroUuid: item.uuid } }
+        }))
+    );
 }
 
 /**
@@ -152,7 +153,7 @@ export async function addActorItemToHotbar(item) {
 
     const slot = findFirstEmptyHotbarSlot();
     if (slot === null) {
-        ui.notifications.warn("Hotbar is full. The macro exists in your Macro directory — assign it manually.");
+        ui.notifications.warn('Hotbar is full. The macro exists in your Macro directory — assign it manually.');
         return;
     }
 
@@ -167,7 +168,7 @@ export async function addActorItemToHotbar(item) {
 async function createSlaItemHotbarMacro(data, slot) {
     const item = await resolveItemFromHotbarData(data);
     if (!item?.actor) {
-        ui.notifications.warn("Could not resolve that item for a macro.");
+        ui.notifications.warn('Could not resolve that item for a macro.');
         return;
     }
 
@@ -178,8 +179,8 @@ async function createSlaItemHotbarMacro(data, slot) {
 }
 
 export function registerSlaHotbar() {
-    Hooks.on("hotbarDrop", (_hotbar, data, slot) => {
-        if (data?.type !== "Item") return true;
+    Hooks.on('hotbarDrop', (_hotbar, data, slot) => {
+        if (data?.type !== 'Item') return true;
         if (!isActorEmbeddedItemUuid(data.uuid)) return true;
 
         void createSlaItemHotbarMacro(data, slot);

@@ -17,8 +17,8 @@
     border-bottom: 1px solid var(--sla-type-frame, #8a2be2);
 }
 
-.item.ebbFormula input:not([type="checkbox"]),
-.item.discipline input:not([type="checkbox"]),
+.item.ebbFormula input:not([type='checkbox']),
+.item.discipline input:not([type='checkbox']),
 .item.ebbFormula select,
 .item.discipline select {
     background: rgba(0, 0, 0, 0.5) !important;
@@ -41,7 +41,7 @@
     overflow: hidden;
 
     &::before {
-        content: "";
+        content: '';
         position: absolute;
         inset: 0;
         pointer-events: none;
@@ -99,7 +99,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    transition:
+        background 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s;
 }
 
 .discipline-drop-zone.filled,
@@ -112,7 +115,9 @@
 .item.ebbFormula .drop-zone.is-drag-over {
     background: rgba(138, 43, 226, 0.25);
     border-color: #c084fc;
-    box-shadow: inset 0 0 0 1px rgba(192, 132, 252, 0.5), 0 0 10px rgba(138, 43, 226, 0.35);
+    box-shadow:
+        inset 0 0 0 1px rgba(192, 132, 252, 0.5),
+        0 0 10px rgba(138, 43, 226, 0.35);
 }
 
 .linked-item {
@@ -230,7 +235,7 @@ form.application.sla-industries.item .spectral-container .sla-field > label {
     font-size: 1.1em;
 }
 
-form.application.sla-industries.item .glow-input input:not([type="checkbox"]),
+form.application.sla-industries.item .glow-input input:not([type='checkbox']),
 form.application.sla-industries.item .glow-input select {
     background: rgba(0, 0, 0, 0.5) !important;
     border: 1px solid #8a2be2 !important;

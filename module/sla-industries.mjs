@@ -1,26 +1,26 @@
 // Import document classes.
-import { BoilerplateActor } from "./documents/actor.mjs";
-import { BoilerplateItem } from "./documents/item.mjs";
-import { LuckDialog } from "./apps/luck-dialog.mjs";
+import { BoilerplateActor } from './documents/actor.mjs';
+import { BoilerplateItem } from './documents/item.mjs';
+import { LuckDialog } from './apps/luck-dialog.mjs';
 
-import { ACTOR_DATA_MODELS, ITEM_DATA_MODELS } from "./data/registry.mjs";
+import { ACTOR_DATA_MODELS, ITEM_DATA_MODELS } from './data/registry.mjs';
 
 // Import sheet classes.
-import { SlaActorSheet } from "./sheets/actor-sheet.mjs";
-import { SlaNPCSheet } from "./sheets/actor-npc-sheet.mjs";
-import { SlaVehicleSheet } from "./sheets/actor-vehicle-sheet.mjs";
-import { SlaItemSheet } from "./sheets/item-sheet.mjs";
+import { SlaActorSheet } from './sheets/actor-sheet.mjs';
+import { SlaNPCSheet } from './sheets/actor-npc-sheet.mjs';
+import { SlaVehicleSheet } from './sheets/actor-vehicle-sheet.mjs';
+import { SlaItemSheet } from './sheets/item-sheet.mjs';
 
 // Import ruler.
-import { SLATokenRuler } from "./canvas/sla-ruler.mjs";
+import { SLATokenRuler } from './canvas/sla-ruler.mjs';
 
 // Import helpers.
-import { preloadHandlebarsTemplates } from "./helpers/templates.mjs";
-import { SLAChat } from "./helpers/chat.mjs";
-import { SLA } from "./config.mjs";
+import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
+import { SLAChat } from './helpers/chat.mjs';
+import { SLA } from './config.mjs';
 
-import { migrateWorld, CURRENT_MIGRATION_VERSION } from "./migration.mjs";
-import { rollOwnedItem, addActorItemToHotbar, registerSlaHotbar } from "./helpers/sla-hotbar.mjs";
+import { migrateWorld, CURRENT_MIGRATION_VERSION } from './migration.mjs';
+import { rollOwnedItem, addActorItemToHotbar, registerSlaHotbar } from './helpers/sla-hotbar.mjs';
 
 const movementActionState = new Map();
 
@@ -40,7 +40,7 @@ function getCombatAndCombatantForToken(tokenLike) {
     const tokenDoc = getTokenDocument(tokenLike);
     const tokenId = tokenDoc?.id;
     if (!tokenId) return { combat, combatant: null };
-    const combatant = combat.combatants.find(c => c.tokenId === tokenId) ?? null;
+    const combatant = combat.combatants.find((c) => c.tokenId === tokenId) ?? null;
     return { combat, combatant };
 }
 
@@ -105,7 +105,7 @@ function isMovementActionUsed(tokenLike) {
 }
 
 function canTokenMoveThisTurn(tokenLike) {
-    if (!game.settings.get("sla-industries", "enableCombatMovementLock")) return true;
+    if (!game.settings.get('sla-industries', 'enableCombatMovementLock')) return true;
     const { combat, combatant } = getCombatAndCombatantForToken(tokenLike);
     if (!combat || !combat.started || !combatant) return true;
 
@@ -122,7 +122,7 @@ function isUndoMovement(options) {
 /* Init Hook                                   */
 /* -------------------------------------------- */
 Hooks.once('init', async function () {
-    console.log("SLA INDUSTRIES | Initializing System...");
+    console.log('SLA INDUSTRIES | Initializing System...');
 
     CONFIG.SLA = SLA;
 
@@ -139,103 +139,103 @@ Hooks.once('init', async function () {
 
     CONFIG.Combat.initiative = SLA.combatInitiative;
 
-    game.settings.register("sla-industries", "systemMigrationVersion", {
-        name: "System Migration Version",
-        scope: "world",
-        config: false,  // Hide from UI
+    game.settings.register('sla-industries', 'systemMigrationVersion', {
+        name: 'System Migration Version',
+        scope: 'world',
+        config: false, // Hide from UI
         type: String,
-        default: "0.0.0"
+        default: '0.0.0'
     });
 
-    game.settings.register("sla-industries", "enableMigrationWorldBackup", {
-        name: "Download JSON Backup Before Migration",
-        hint: "When the SLA system migrates this world, the active GM’s browser downloads a JSON snapshot of primary world documents (actors, items, scenes, journal, etc.). Chat messages and fog exploration are omitted to keep the file smaller. Turn off if you do not want that download.",
-        scope: "world",
+    game.settings.register('sla-industries', 'enableMigrationWorldBackup', {
+        name: 'Download JSON Backup Before Migration',
+        hint: 'When the SLA system migrates this world, the active GM’s browser downloads a JSON snapshot of primary world documents (actors, items, scenes, journal, etc.). Chat messages and fog exploration are omitted to keep the file smaller. Turn off if you do not want that download.',
+        scope: 'world',
         config: true,
         type: Boolean,
         default: true
     });
 
-    game.settings.register("sla-industries", "enableLongRangeFeature", {
-        name: "Enable Long Range Feature",
+    game.settings.register('sla-industries', 'enableLongRangeFeature', {
+        name: 'Enable Long Range Feature',
         hint: "When enabled, ranged attacks beyond half the weapon's maximum range apply a -1 Skill Die penalty.",
-        scope: "world",
+        scope: 'world',
         config: true,
         type: Boolean,
         default: true
     });
 
-    game.settings.register("sla-industries", "enableTargetRequiredFeatures", {
-        name: "Enable Target-Required Features",
-        hint: "When enabled, attacks require a target to be selected and range calculations are performed. When disabled, attacks can be made without targets and range calculations are skipped.",
-        scope: "world",
+    game.settings.register('sla-industries', 'enableTargetRequiredFeatures', {
+        name: 'Enable Target-Required Features',
+        hint: 'When enabled, attacks require a target to be selected and range calculations are performed. When disabled, attacks can be made without targets and range calculations are skipped.',
+        scope: 'world',
         config: true,
         type: Boolean,
         default: true
     });
 
-    game.settings.register("sla-industries", "enableAutomaticAmmoConsumption", {
-        name: "Enable Automatic Ammo Consumption",
-        hint: "When enabled, ammo is automatically reduced when firing ranged weapons. When disabled, ammo must be tracked manually.",
-        scope: "world",
+    game.settings.register('sla-industries', 'enableAutomaticAmmoConsumption', {
+        name: 'Enable Automatic Ammo Consumption',
+        hint: 'When enabled, ammo is automatically reduced when firing ranged weapons. When disabled, ammo must be tracked manually.',
+        scope: 'world',
         config: true,
         type: Boolean,
         default: true
     });
 
-    game.settings.register("sla-industries", "enableLowAmmoValidation", {
-        name: "Enable Low Ammo Validation",
-        hint: "When enabled, prevents firing high-cost modes without enough ammo and applies -2 DMG penalty for low ammo. When disabled, these restrictions are removed.",
-        scope: "world",
+    game.settings.register('sla-industries', 'enableLowAmmoValidation', {
+        name: 'Enable Low Ammo Validation',
+        hint: 'When enabled, prevents firing high-cost modes without enough ammo and applies -2 DMG penalty for low ammo. When disabled, these restrictions are removed.',
+        scope: 'world',
         config: true,
         type: Boolean,
         default: true
     });
 
-    game.settings.register("sla-industries", "enableExplosiveThrowAutomation", {
-        name: "Enable Explosive Throw Automation",
-        hint: "When enabled, throws prompt for a canvas aim point, apply wall checks on the throw and deviation paths, random deviation by distance, and place blast Region templates. When disabled, the throw still rolls and consumes the item, but you resolve placement on the map yourself.",
-        scope: "world",
+    game.settings.register('sla-industries', 'enableExplosiveThrowAutomation', {
+        name: 'Enable Explosive Throw Automation',
+        hint: 'When enabled, throws prompt for a canvas aim point, apply wall checks on the throw and deviation paths, random deviation by distance, and place blast Region templates. When disabled, the throw still rolls and consumes the item, but you resolve placement on the map yourself.',
+        scope: 'world',
         config: true,
         type: Boolean,
         default: true
     });
 
-    game.settings.register("sla-industries", "blastRegionVisibility", {
-        name: "Explosive Blast Region Visibility",
-        hint: "Who sees blast area Regions created by explosive throw automation. Observer matches the previous SLA default. Always shows blast overlays to any user who can see the scene (aligned with Foundry 14.360+ measured-template visibility).",
-        scope: "world",
+    game.settings.register('sla-industries', 'blastRegionVisibility', {
+        name: 'Explosive Blast Region Visibility',
+        hint: 'Who sees blast area Regions created by explosive throw automation. Observer matches the previous SLA default. Always shows blast overlays to any user who can see the scene (aligned with Foundry 14.360+ measured-template visibility).',
+        scope: 'world',
         config: true,
         type: String,
         choices: {
-            observer: "Observers (owner and GM)",
-            always: "Always (all users who see the scene)"
+            observer: 'Observers (owner and GM)',
+            always: 'Always (all users who see the scene)'
         },
-        default: "observer"
+        default: 'observer'
     });
 
-    game.settings.register("sla-industries", "enableAutomaticWoundPenalties", {
-        name: "Enable Automatic Wound Penalties",
-        hint: "When enabled, wound count automatically reduces all dice rolls. When disabled, wound penalties are not applied.",
-        scope: "world",
+    game.settings.register('sla-industries', 'enableAutomaticWoundPenalties', {
+        name: 'Enable Automatic Wound Penalties',
+        hint: 'When enabled, wound count automatically reduces all dice rolls. When disabled, wound penalties are not applied.',
+        scope: 'world',
         config: true,
         type: Boolean,
         default: true
     });
 
-    game.settings.register("sla-industries", "enableNPCWoundTracking", {
-        name: "Enable NPC Wound Tracking",
-        hint: "When enabled, NPCs track wounds and display the wounds section. When disabled, NPC wound tracking is disabled and the wounds section is hidden.",
-        scope: "world",
+    game.settings.register('sla-industries', 'enableNPCWoundTracking', {
+        name: 'Enable NPC Wound Tracking',
+        hint: 'When enabled, NPCs track wounds and display the wounds section. When disabled, NPC wound tracking is disabled and the wounds section is hidden.',
+        scope: 'world',
         config: true,
         type: Boolean,
         default: true
     });
 
-    game.settings.register("sla-industries", "enableCombatMovementLock", {
-        name: "Enable Combat Movement Lock",
-        hint: "When enabled, a combatant can only move once per turn. Disable to allow multiple movement updates during a turn.",
-        scope: "world",
+    game.settings.register('sla-industries', 'enableCombatMovementLock', {
+        name: 'Enable Combat Movement Lock',
+        hint: 'When enabled, a combatant can only move once per turn. Disable to allow multiple movement updates during a turn.',
+        scope: 'world',
         config: true,
         type: Boolean,
         default: true
@@ -243,8 +243,6 @@ Hooks.once('init', async function () {
 
     CONFIG.statusEffects = SLA.statusEffects;
     CONFIG.Actor.trackableAttributes = SLA.trackableAttributes;
-
-
 
     // REGISTER HANDLEBARS HELPERS
     Handlebars.registerHelper('capitalize', function (str) {
@@ -257,13 +255,28 @@ Hooks.once('init', async function () {
         return str.toUpperCase();
     });
 
-    foundry.documents.collections.Actors.unregisterSheet("core", foundry.appv1.sheets.ActorSheet);
-    foundry.documents.collections.Actors.registerSheet("sla-industries", SlaActorSheet, { types: ["character"], makeDefault: true, label: "SLA Operative Sheet" });
-    foundry.documents.collections.Actors.registerSheet("sla-industries", SlaNPCSheet, { types: ["npc"], makeDefault: true, label: "SLA Threat Sheet" });
-    foundry.documents.collections.Actors.registerSheet("sla-industries", SlaVehicleSheet, { types: ["vehicle"], makeDefault: true, label: "SLA Vehicle Sheet" });
+    foundry.documents.collections.Actors.unregisterSheet('core', foundry.appv1.sheets.ActorSheet);
+    foundry.documents.collections.Actors.registerSheet('sla-industries', SlaActorSheet, {
+        types: ['character'],
+        makeDefault: true,
+        label: 'SLA Operative Sheet'
+    });
+    foundry.documents.collections.Actors.registerSheet('sla-industries', SlaNPCSheet, {
+        types: ['npc'],
+        makeDefault: true,
+        label: 'SLA Threat Sheet'
+    });
+    foundry.documents.collections.Actors.registerSheet('sla-industries', SlaVehicleSheet, {
+        types: ['vehicle'],
+        makeDefault: true,
+        label: 'SLA Vehicle Sheet'
+    });
 
-    foundry.documents.collections.Items.unregisterSheet("core", foundry.appv1.sheets.ItemSheet);
-    foundry.documents.collections.Items.registerSheet("sla-industries", SlaItemSheet, { makeDefault: true, label: "SLA Item Sheet" });
+    foundry.documents.collections.Items.unregisterSheet('core', foundry.appv1.sheets.ItemSheet);
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaItemSheet, {
+        makeDefault: true,
+        label: 'SLA Item Sheet'
+    });
 
     game.sla = foundry.utils.mergeObject(game.sla ?? {}, {
         rollOwnedItem,
@@ -277,22 +290,34 @@ Hooks.once('init', async function () {
 /* -------------------------------------------- */
 /* Helpers                                     */
 /* -------------------------------------------- */
-Handlebars.registerHelper('toLowerCase', function (str) { return str ? str.toLowerCase() : ""; });
-Handlebars.registerHelper('eq', function (a, b) { return a === b; });
-Handlebars.registerHelper('ne', function (a, b) { return a !== b; });
-Handlebars.registerHelper('or', function (a, b) { return a || b; });
-Handlebars.registerHelper('gt', function (a, b) { return a > b; });
-Handlebars.registerHelper('lt', function (a, b) { return a < b; });
-Handlebars.registerHelper('and', function (a, b) { return a && b; });
-
-
+Handlebars.registerHelper('toLowerCase', function (str) {
+    return str ? str.toLowerCase() : '';
+});
+Handlebars.registerHelper('eq', function (a, b) {
+    return a === b;
+});
+Handlebars.registerHelper('ne', function (a, b) {
+    return a !== b;
+});
+Handlebars.registerHelper('or', function (a, b) {
+    return a || b;
+});
+Handlebars.registerHelper('gt', function (a, b) {
+    return a > b;
+});
+Handlebars.registerHelper('lt', function (a, b) {
+    return a < b;
+});
+Handlebars.registerHelper('and', function (a, b) {
+    return a && b;
+});
 
 /* -------------------------------------------- */
 /* Global Listeners (Rolling & Applying Damage) */
 /* -------------------------------------------- */
-Hooks.once("ready", async function () {
+Hooks.once('ready', async function () {
     // 1. Check current schema version
-    const currentVersion = game.settings.get("sla-industries", "systemMigrationVersion");
+    const currentVersion = game.settings.get('sla-industries', 'systemMigrationVersion');
 
     // 2. If world is older than our code, Run Migration
     if (foundry.utils.isNewerVersion(CURRENT_MIGRATION_VERSION, currentVersion)) {
@@ -301,69 +326,69 @@ Hooks.once("ready", async function () {
 
     // 3. Initialize Global Chat Listeners
     SLAChat.init();
-    Hooks.on("renderChatMessageHTML", SLAChat.onRenderChatMessage);
+    Hooks.on('renderChatMessageHTML', SLAChat.onRenderChatMessage);
 
     registerSlaHotbar();
 
-    Hooks.on("updateCombat", (combat, changed) => {
+    Hooks.on('updateCombat', (combat, changed) => {
         if (!combat?.started) return;
-        if (!(foundry.utils.hasProperty(changed, "turn") || foundry.utils.hasProperty(changed, "round"))) return;
+        if (!(foundry.utils.hasProperty(changed, 'turn') || foundry.utils.hasProperty(changed, 'round'))) return;
         const activeCombatant = combat.combatant;
         if (!activeCombatant?.id) return;
         resetMovementActionForTurn(combat, activeCombatant);
     });
 
-    Hooks.on("deleteCombat", (combat) => {
+    Hooks.on('deleteCombat', (combat) => {
         if (!combat?.id) return;
         for (const key of movementActionState.keys()) {
             if (key.startsWith(`${combat.id}:`)) movementActionState.delete(key);
         }
     });
 
-    Hooks.on("preUpdateToken", (tokenDocument, changed, options) => {
-        const isMoveUpdate = foundry.utils.hasProperty(changed, "x") || foundry.utils.hasProperty(changed, "y");
+    Hooks.on('preUpdateToken', (tokenDocument, changed, options) => {
+        const isMoveUpdate = foundry.utils.hasProperty(changed, 'x') || foundry.utils.hasProperty(changed, 'y');
         if (!isMoveUpdate) return true;
         if (isUndoMovement(options)) return true;
         if (canTokenMoveThisTurn(tokenDocument)) return true;
 
-        ui.notifications.warn("Movement action already used this turn.");
+        ui.notifications.warn('Movement action already used this turn.');
         return false;
     });
 
-    Hooks.on("updateToken", (tokenDocument, changed, options) => {
-        const isMoveUpdate = foundry.utils.hasProperty(changed, "x") || foundry.utils.hasProperty(changed, "y");
+    Hooks.on('updateToken', (tokenDocument, changed, options) => {
+        const isMoveUpdate = foundry.utils.hasProperty(changed, 'x') || foundry.utils.hasProperty(changed, 'y');
         if (!isMoveUpdate) return;
         if (isUndoMovement(options)) {
             resetMovementActionUsed(tokenDocument);
-            ui.notifications.info("Movement undo detected: movement action reset for this turn.");
+            ui.notifications.info('Movement undo detected: movement action reset for this turn.');
             return;
         }
         markMovementActionUsed(tokenDocument);
     });
 
     // Stunned: act at the lowest initiative in the encounter — clamp to current minimum when initiative updates
-    Hooks.on("updateCombatant", async (combatant, changed, options) => {
+    Hooks.on('updateCombatant', async (combatant, changed, options) => {
         if (options?.slaStunnedInitiative) return;
         if (!game.user?.isActiveGM) return;
-        if (!foundry.utils.hasProperty(changed, "initiative")) return;
+        if (!foundry.utils.hasProperty(changed, 'initiative')) return;
         const combat = combatant.combat;
         if (!combat) return;
 
         const all = combat.combatants.contents;
-        const numeric = all.map(c => c.initiative).filter(v => typeof v === "number" && !Number.isNaN(v));
+        const numeric = all.map((c) => c.initiative).filter((v) => typeof v === 'number' && !Number.isNaN(v));
         if (!numeric.length) return;
         const minInit = Math.min(...numeric);
 
         const updates = [];
         for (const c of all) {
-            if (!c.actor?.effects?.some(e => e.statuses.has("stunned"))) continue;
-            if (typeof c.initiative !== "number" || Number.isNaN(c.initiative)) continue;
+            if (!c.actor?.effects?.some((e) => e.statuses.has('stunned'))) continue;
+            if (typeof c.initiative !== 'number' || Number.isNaN(c.initiative)) continue;
             if (c.initiative > minInit) {
                 updates.push({ _id: c.id, initiative: minInit });
             }
         }
         if (updates.length) {
-            await combat.updateEmbeddedDocuments("Combatant", updates, { slaStunnedInitiative: true });
+            await combat.updateEmbeddedDocuments('Combatant', updates, { slaStunnedInitiative: true });
         }
     });
 });

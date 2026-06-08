@@ -1,6 +1,6 @@
-import { calculateRollResult, getMOS, generateDiceTooltip } from "../helpers/dice.mjs";
-import { syncEbbCriticalFlux } from "../helpers/ebb-flux.mjs";
-import { normalizeEbbEffect } from "../helpers/items.mjs";
+import { calculateRollResult, getMOS, generateDiceTooltip } from '../helpers/dice.mjs';
+import { syncEbbCriticalFlux } from '../helpers/ebb-flux.mjs';
+import { normalizeEbbEffect } from '../helpers/items.mjs';
 
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
@@ -8,11 +8,10 @@ const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
  * Dialog for spending Luck points (Application V2).
  */
 export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
-
     /** @override */
     static PARTS = {
         body: {
-            template: "systems/sla-industries/templates/dialogs/luck-dialog.hbs"
+            template: 'systems/sla-industries/templates/dialogs/luck-dialog.hbs'
         }
     };
 
@@ -30,9 +29,9 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
     static async rerollSkill() {
         const checked = this.element.querySelectorAll("input[name='rerollSelect']:checked");
-        const indices = Array.from(checked).map(el => Number(el.value));
+        const indices = Array.from(checked).map((el) => Number(el.value));
         if (indices.length === 0) {
-            ui.notifications.warn("Select at least one die to reroll.");
+            ui.notifications.warn('Select at least one die to reroll.');
             return;
         }
         await this._applyRerollSkill(indices);
@@ -40,17 +39,21 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /** @override */
-    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-        tag: "div",
-        position: { width: 400 },
-        window: { title: "Use Luck" },
-        classes: [],
-        actions: {
-            rerollSd: LuckDialog.rerollSd,
-            addMod: LuckDialog.addMod,
-            rerollSkill: LuckDialog.rerollSkill
-        }
-    }, { inplace: false });
+    static DEFAULT_OPTIONS = foundry.utils.mergeObject(
+        super.DEFAULT_OPTIONS,
+        {
+            tag: 'div',
+            position: { width: 400 },
+            window: { title: 'Use Luck' },
+            classes: [],
+            actions: {
+                rerollSd: LuckDialog.rerollSd,
+                addMod: LuckDialog.addMod,
+                rerollSkill: LuckDialog.rerollSkill
+            }
+        },
+        { inplace: false }
+    );
 
     /**
      * @param {Actor} actor
@@ -79,17 +82,19 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     static async prepareContext(actor, roll, messageId) {
         let skillDice = [];
         if (roll.terms.length > 2 && roll.terms[2].results) {
-            skillDice = roll.terms[2].results.map(r => ({
+            skillDice = roll.terms[2].results.map((r) => ({
                 result: r.result,
                 total: r.result,
-                borderColor: r.success ? "#39ff14" : "#555"
+                borderColor: r.success ? '#39ff14' : '#555'
             }));
         }
 
         const message = game.messages.get(messageId);
         const flags = message.flags.sla || {};
         if (flags.luckSpent) {
-            ui.notifications.warn("SLA | Luck has already been spent on this roll. Only one option may be applied per roll.");
+            ui.notifications.warn(
+                'SLA | Luck has already been spent on this roll. Only one option may be applied per roll.'
+            );
             return null;
         }
 
@@ -99,8 +104,8 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         skillDice.forEach((d, i) => {
             if (rofRerollSkills.includes(i)) {
                 d.disabled = true;
-                d.borderColor = "#555";
-                d.tooltip = "Already rerolled via ROF";
+                d.borderColor = '#555';
+                d.tooltip = 'Already rerolled via ROF';
             }
         });
 
@@ -124,9 +129,9 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _resolveDamageDisplay(formula) {
-        const formulaStr = String(formula ?? "0").trim();
-        if (!formulaStr || formulaStr === "0") return "0";
-        if (formulaStr.includes("d")) return formulaStr;
+        const formulaStr = String(formula ?? '0').trim();
+        if (!formulaStr || formulaStr === '0') return '0';
+        if (formulaStr.includes('d')) return formulaStr;
         try {
             const replaced = Roll.replaceFormulaData(formulaStr, this.actor.getRollData());
             const resolved = Math.round(Number(Function('"use strict";return (' + replaced + ')')()));
@@ -139,10 +144,10 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     async _deductLuck(cost) {
         const current = this.actor.system.stats.luck.value;
         if (current < cost) {
-            ui.notifications.error("Not enough Luck!");
+            ui.notifications.error('Not enough Luck!');
             return false;
         }
-        await this.actor.update({ "system.stats.luck.value": current - cost });
+        await this.actor.update({ 'system.stats.luck.value': current - cost });
         return true;
     }
 
@@ -151,14 +156,14 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const roll = this.roll;
         const successDie = roll.terms[0];
-        const newRoll = new Roll("1d10");
+        const newRoll = new Roll('1d10');
         await newRoll.evaluate();
 
         if (newRoll.terms[0]) {
             newRoll.terms[0].options.appearance = {
-                foreground: "#FFFFFF",
-                background: "#000000",
-                edge: "#333333"
+                foreground: '#FFFFFF',
+                background: '#000000',
+                edge: '#333333'
             };
         }
 
@@ -171,7 +176,7 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
         this._updateRollTotal(roll);
 
-        await this._updateMessage(roll, "Rerolled Success Die (Luck)");
+        await this._updateMessage(roll, 'Rerolled Success Die (Luck)');
     }
 
     async _applyModifier(amount) {
@@ -179,8 +184,8 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const roll = this.roll;
 
-        roll.terms.push(new foundry.dice.terms.OperatorTerm({ operator: "+" }));
-        roll.terms.push(new foundry.dice.terms.NumericTerm({ number: amount, options: { flavor: "Luck" } }));
+        roll.terms.push(new foundry.dice.terms.OperatorTerm({ operator: '+' }));
+        roll.terms.push(new foundry.dice.terms.NumericTerm({ number: amount, options: { flavor: 'Luck' } }));
 
         this._updateRollTotal(roll);
         await this._updateMessage(roll, `Added +${amount} to Success Die (Luck)`);
@@ -196,7 +201,7 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
         for (const index of indices) {
             if (skillDieTerm.results[index]) {
-                const subRoll = new Roll("1d10");
+                const subRoll = new Roll('1d10');
                 await subRoll.evaluate();
 
                 if (game.dice3d) {
@@ -225,7 +230,10 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         let luckBonus = 0;
         if (roll.terms.length > 3) {
             for (let i = 3; i < roll.terms.length; i++) {
-                if (roll.terms[i] instanceof foundry.dice.terms.NumericTerm && roll.terms[i].options.flavor === "Luck") {
+                if (
+                    roll.terms[i] instanceof foundry.dice.terms.NumericTerm &&
+                    roll.terms[i].options.flavor === 'Luck'
+                ) {
                     luckBonus += roll.terms[i].number;
                 }
             }
@@ -240,21 +248,21 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         let mosEffectText;
         let mosDamageBonus = 0;
         let mosHasChoice = false;
-        let mosChoiceType = "";
+        let mosChoiceType = '';
         let mosChoiceDmg = 0;
 
         if (flags.isEbb) {
             const skillHits = result.skillHits;
-            const attackMos = normalizeEbbEffect(flags.ebbEffect) === "damage";
-            mosEffectText = result.isSuccess ? "Standard Success" : "Failed";
+            const attackMos = normalizeEbbEffect(flags.ebbEffect) === 'damage';
+            mosEffectText = result.isSuccess ? 'Standard Success' : 'Failed';
             if (result.isSuccess) {
                 if (skillHits === 2) {
-                    mosEffectText = attackMos ? "+1 Damage / Effect" : "Standard Success";
+                    mosEffectText = attackMos ? '+1 Damage / Effect' : 'Standard Success';
                     if (attackMos) mosDamageBonus = 1;
                 } else if (skillHits === 3) {
                     mosEffectText = attackMos
-                        ? "+2 Damage / Repeat Ability"
-                        : "May use the same Ebb ability again within 5 minutes (-3 FLUX)";
+                        ? '+2 Damage / Repeat Ability'
+                        : 'May use the same Ebb ability again within 5 minutes (-3 FLUX)';
                     if (attackMos) mosDamageBonus = 2;
                 } else if (skillHits >= 4) {
                     mosEffectText = attackMos
@@ -273,27 +281,27 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         if (result.successThroughExperience) {
-            if (flavorUpdate) flavorUpdate += " | Success Through Experience";
-            else flavorUpdate = "Success Through Experience";
+            if (flavorUpdate) flavorUpdate += ' | Success Through Experience';
+            else flavorUpdate = 'Success Through Experience';
         }
 
-        const baseDmg = flags.damageBase || "0";
+        const baseDmg = flags.damageBase || '0';
         const damageMod = flags.damageMod || 0;
         const totalMod = damageMod + mosDamageBonus;
 
         let finalDmgFormula = baseDmg;
         if (totalMod !== 0) {
-            if (baseDmg === "0" || baseDmg === "") finalDmgFormula = String(totalMod);
-            else finalDmgFormula = `${baseDmg} ${totalMod > 0 ? "+" : ""} ${totalMod}`;
+            if (baseDmg === '0' || baseDmg === '') finalDmgFormula = String(totalMod);
+            else finalDmgFormula = `${baseDmg} ${totalMod > 0 ? '+' : ''} ${totalMod}`;
         }
 
-        const showButton = result.isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
+        const showButton = result.isSuccess && finalDmgFormula && finalDmgFormula !== '0';
 
         const templateData = {
             borderColor: result.isSuccess ? '#39ff14' : '#f55',
             headerColor: result.isSuccess ? '#39ff14' : '#f55',
             resultColor: result.isSuccess ? '#39ff14' : '#f55',
-            itemName: flags.itemName || "SKILL",
+            itemName: flags.itemName || 'SKILL',
             successTotal: result.total,
             tooltip: generateDiceTooltip(roll, baseModifier, luckBonus),
             skillDice: result.skillDiceData,
@@ -316,16 +324,25 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
             actorUuid: this.actor.uuid
         };
 
-        const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+        const chatContent = await foundry.applications.handlebars.renderTemplate(
+            'systems/sla-industries/templates/chat/chat-weapon-rolls.hbs',
+            templateData
+        );
 
         await message.update({
             content: chatContent,
             rolls: [JSON.stringify(roll)],
-            "flags.sla.luckSpent": true
+            'flags.sla.luckSpent': true
         });
 
         if (flags.isEbb) {
-            await syncEbbCriticalFlux(message, this.actor, message.flags?.sla ?? flags, result.isSuccess, result.skillHits);
+            await syncEbbCriticalFlux(
+                message,
+                this.actor,
+                message.flags?.sla ?? flags,
+                result.isSuccess,
+                result.skillHits
+            );
         }
     }
 }
