@@ -26,7 +26,7 @@ form.application.sla-industries.item .skill-theme .sheet-header {
 
 /* Ruled-page motif — pure CSS */
 form.application.sla-industries.item .skill-theme .sheet-header::after {
-    content: "";
+    content: '';
     position: absolute;
     right: 0;
     top: 0;
@@ -52,7 +52,7 @@ form.application.sla-industries.item .trait-theme .sheet-header {
 
 /* Margin-note motif — pure CSS */
 form.application.sla-industries.item .trait-theme .sheet-header::after {
-    content: "";
+    content: '';
     position: absolute;
     right: 8px;
     top: 8px;
@@ -167,7 +167,7 @@ form.application.sla-industries.item .personnel-annotation .sla-field > label {
     color: var(--sla-text-light);
 }
 
-.academic-paper input:not([type="checkbox"]),
+.academic-paper input:not([type='checkbox']),
 .academic-paper select {
     flex: 1;
     background: rgba(0, 0, 0, 0.3) !important;
@@ -184,8 +184,8 @@ form.application.sla-industries.item .personnel-annotation .sla-field > label {
     color: var(--sla-text-light);
 }
 
-.item.skill input:not([type="checkbox"]),
-.item.trait input:not([type="checkbox"]) {
+.item.skill input:not([type='checkbox']),
+.item.trait input:not([type='checkbox']) {
     background: rgba(0, 0, 0, 0.3) !important;
     border: 1px solid var(--sla-border) !important;
     color: var(--sla-text-light) !important;

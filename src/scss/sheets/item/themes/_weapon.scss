@@ -123,7 +123,7 @@ form.application.sla-industries.item .firing-mode-table .col-stat {
     text-align: center;
 }
 
-form.application.sla-industries.item .firing-mode-table input[type="checkbox"] {
+form.application.sla-industries.item .firing-mode-table input[type='checkbox'] {
     width: 18px !important;
     height: 18px !important;
     min-width: 18px !important;
@@ -136,13 +136,13 @@ form.application.sla-industries.item .firing-mode-table input[type="checkbox"] {
     box-shadow: none !important;
 }
 
-form.application.sla-industries.item .firing-mode-table input[type="checkbox"]:not(:checked) {
+form.application.sla-industries.item .firing-mode-table input[type='checkbox']:not(:checked) {
     outline: 2px solid rgba(255, 255, 255, 0.55) !important;
     outline-offset: 1px;
     border-radius: 2px;
 }
 
-form.application.sla-industries.item .firing-mode-table input[type="number"] {
+form.application.sla-industries.item .firing-mode-table input[type='number'] {
     background: rgba(0, 0, 0, 0.55) !important;
     border: 1px solid rgba(240, 160, 80, 0.2) !important;
     color: var(--sla-type-accent) !important;
@@ -153,7 +153,7 @@ form.application.sla-industries.item .firing-mode-table input[type="number"] {
     box-shadow: none !important;
 }
 
-form.application.sla-industries.item .firing-mode-table input[type="number"]:focus {
+form.application.sla-industries.item .firing-mode-table input[type='number']:focus {
     box-shadow: 0 0 0 1px var(--sla-type-accent, var(--sla-accent)) !important;
 }
 
@@ -207,7 +207,7 @@ form.application.sla-industries.item .firing-mode-table input[type="number"]:foc
     text-align: center;
 }
 
-.firing-mode-row input[type="checkbox"] {
+.firing-mode-row input[type='checkbox'] {
     width: 18px !important;
     height: 18px !important;
     min-width: 18px !important;
@@ -224,13 +224,13 @@ form.application.sla-industries.item .firing-mode-table input[type="number"]:foc
     box-shadow: none !important;
 }
 
-.firing-mode-row input[type="checkbox"]:not(:checked) {
+.firing-mode-row input[type='checkbox']:not(:checked) {
     outline: 2px solid rgba(255, 255, 255, 0.55) !important;
     outline-offset: 1px;
     border-radius: 2px;
 }
 
-.firing-mode-row input[type="number"] {
+.firing-mode-row input[type='number'] {
     background: rgba(0, 0, 0, 0.5);
     border: 1px solid #444;
     color: #fff;

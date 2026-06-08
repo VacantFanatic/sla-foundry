@@ -1,0 +1,10 @@
+node_modules/
+dist/
+templates/
+.package-stage/
+css/
+packs/
+sla-industries.zip
+playwright-report/
+test-results/
+playwright/.cache/

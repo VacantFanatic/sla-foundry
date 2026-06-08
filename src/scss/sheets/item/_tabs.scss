@@ -31,7 +31,9 @@ form.application.sla-industries.item .sheet-tabs {
         border: 1px solid transparent;
         border-bottom: none;
         opacity: 0.7;
-        transition: opacity 0.15s ease, color 0.15s ease;
+        transition:
+            opacity 0.15s ease,
+            color 0.15s ease;
         cursor: pointer;
 
         &:hover {

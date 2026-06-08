@@ -9,7 +9,7 @@
 /* ==========================================
    0. FONTS
    ========================================== */
-@import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&display=swap');
 
 /* ==========================================
    1. WINDOW STYLES
@@ -86,8 +86,8 @@ form.application.sla-industries.item .sheet-body {
 /* ==========================================
    2. INPUTS (Global High Contrast)
    ========================================== */
-.sla-sheet input[type="text"],
-.sla-sheet input[type="number"],
+.sla-sheet input[type='text'],
+.sla-sheet input[type='number'],
 .sla-sheet select {
     @include input-base;
 }

@@ -8,749 +8,832 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-* **Item sheet UI E2E regression:** Playwright spec `tests/e2e/regression-item-sheets.spec.js` covers discipline, ebb formula, weapon, magazine, skill, and generic item sheets (tabs, spectral stamps, shared drop hints, drag-over feedback, effects tab CRUD). Included in `npm run test:e2e:regression`.
+- **Prettier:** `.prettierrc`, `.prettierignore`, `npm run format` / `format:check`; CI fails on formatting drift. Handlebars templates are excluded (no parser plugin).
+- **Item sheet UI E2E regression:** Playwright spec `tests/e2e/regression-item-sheets.spec.js` covers discipline, ebb formula, weapon, magazine, skill, and generic item sheets (tabs, spectral stamps, shared drop hints, drag-over feedback, effects tab CRUD). Included in `npm run test:e2e:regression`.
 
 ### Changed
 
-* **Foundry cloud bootstrap:** `foundry-bootstrap.mjs` confirms world data migration and pre-migration backup dialogs so E2E can launch `sla-test-world` after system version bumps.
+- **Foundry cloud bootstrap:** `foundry-bootstrap.mjs` confirms world data migration and pre-migration backup dialogs so E2E can launch `sla-test-world` after system version bumps.
 
 ## [2.6.9] - 2026-06-06
 
 ### Fixed
 
-* **Species/package skill overlap:** Dropping a species and package that share a skill now increments rank by one (e.g. rank 1 → 2) instead of string-concatenating to rank 11. Skill ranks are stored as strings in the data model; `_processDroppedSkills` now coerces before arithmetic.
+- **Species/package skill overlap:** Dropping a species and package that share a skill now increments rank by one (e.g. rank 1 → 2) instead of string-concatenating to rank 11. Skill ranks are stored as strings in the data model; `_processDroppedSkills` now coerces before arithmetic.
 
 ## [2.6.8] - 2026-06-06
 
 ### Changed
 
-* **Item sheet drag feedback:** Simplified `DROP_ZONE_SELECTOR` to `.sla-drop` only; cached drop-zone nodes for `dragend` cleanup instead of re-querying the DOM.
-* **Ebb formula drop zone:** Empty discipline drop no longer applies `linked-item` flex layout (centers placeholder hint correctly).
-* **Ebb formula effect select:** Uses `normalizeEbbEffect()` from context instead of duplicated Handlebars legacy-value logic.
-* **Localization cleanup:** Removed orphan per-type drop hint keys superseded by `SLA.ItemSheet.Drop.*` (`Weapon`, `Magazine`, `Explosive`, `Dossier`, `EbbDropDiscipline`).
-* **SCSS:** Narrowed `.sla-drop` transitions from `all` to drag-feedback properties only.
-* Updated system and package metadata version to `2.6.8`, including the release `download` URL in `system.json`.
+- **Item sheet drag feedback:** Simplified `DROP_ZONE_SELECTOR` to `.sla-drop` only; cached drop-zone nodes for `dragend` cleanup instead of re-querying the DOM.
+- **Ebb formula drop zone:** Empty discipline drop no longer applies `linked-item` flex layout (centers placeholder hint correctly).
+- **Ebb formula effect select:** Uses `normalizeEbbEffect()` from context instead of duplicated Handlebars legacy-value logic.
+- **Localization cleanup:** Removed orphan per-type drop hint keys superseded by `SLA.ItemSheet.Drop.*` (`Weapon`, `Magazine`, `Explosive`, `Dossier`, `EbbDropDiscipline`).
+- **SCSS:** Narrowed `.sla-drop` transitions from `all` to drag-feedback properties only.
+- Updated system and package metadata version to `2.6.8`, including the release `download` URL in `system.json`.
 
 ## [2.6.7] - 2026-06-06
 
 ### Added
 
-* **Discipline item theme — Ebb Discipline (#243 phase 7):** Dedicated spectral partial (`item-discipline.hbs`) with holographic stamp, `.sla-section` rank card, and localized labels (`SLA.ItemSheet.Discipline.*`).
-* **Ebb formula item theme — Ebb Formula (#243 phase 7):** Dedicated spectral partial (`item-ebb-formula.hbs`) with grouped formula rows, discipline drop zone using shared `SLA.ItemSheet.Drop.*` hints, and localized labels (`SLA.ItemSheet.EbbFormula.*`).
-* **Item Effects tab polish:** Localized effects panel copy (`SLA.ItemSheet.Effects.*`), button controls instead of anchor tags, and dedicated `_effects.scss` with row hover feedback.
-* **Shared drop hints:** Centralized `SLA.ItemSheet.Drop.Skill`, `.Weapon`, `.Discipline`, and `.SkillGrant` keys (EN/FR); weapon, magazine, explosive, and dossier-skills templates now reference them.
+- **Discipline item theme — Ebb Discipline (#243 phase 7):** Dedicated spectral partial (`item-discipline.hbs`) with holographic stamp, `.sla-section` rank card, and localized labels (`SLA.ItemSheet.Discipline.*`).
+- **Ebb formula item theme — Ebb Formula (#243 phase 7):** Dedicated spectral partial (`item-ebb-formula.hbs`) with grouped formula rows, discipline drop zone using shared `SLA.ItemSheet.Drop.*` hints, and localized labels (`SLA.ItemSheet.EbbFormula.*`).
+- **Item Effects tab polish:** Localized effects panel copy (`SLA.ItemSheet.Effects.*`), button controls instead of anchor tags, and dedicated `_effects.scss` with row hover feedback.
+- **Shared drop hints:** Centralized `SLA.ItemSheet.Drop.Skill`, `.Weapon`, `.Discipline`, and `.SkillGrant` keys (EN/FR); weapon, magazine, explosive, and dossier-skills templates now reference them.
 
 ### Changed
 
-* **Spectral routing:** Discipline and ebb formula sheets render dedicated partials instead of the legacy `item-spectral.hbs` wrapper (removed).
-* **Drag feedback:** Item sheet drop zones toggle `.is-drag-over` during drag enter/leave/drop (`item-sheet.mjs`).
-* **Readability pass:** Field labels bumped to 13px (`0.8125rem`); description tab ProseMirror background set to `#202030`.
-* **SCSS:** Expanded `themes/_spectral.scss` (holographic backdrop, stamps, drag-over glow); added `_effects.scss`.
-* **Item type cleanup:** Removed orphan `Item.vehicle` from `system.json` `documentTypes` and `CONFIG.Item.dataModels` (vehicles remain Actor documents; world migration still converts legacy vehicle items).
-* Updated system and package metadata version to `2.6.7`, including the release `download` URL in `system.json`.
+- **Spectral routing:** Discipline and ebb formula sheets render dedicated partials instead of the legacy `item-spectral.hbs` wrapper (removed).
+- **Drag feedback:** Item sheet drop zones toggle `.is-drag-over` during drag enter/leave/drop (`item-sheet.mjs`).
+- **Readability pass:** Field labels bumped to 13px (`0.8125rem`); description tab ProseMirror background set to `#202030`.
+- **SCSS:** Expanded `themes/_spectral.scss` (holographic backdrop, stamps, drag-over glow); added `_effects.scss`.
+- **Item type cleanup:** Removed orphan `Item.vehicle` from `system.json` `documentTypes` and `CONFIG.Item.dataModels` (vehicles remain Actor documents; world migration still converts legacy vehicle items).
+- Updated system and package metadata version to `2.6.7`, including the release `download` URL in `system.json`.
 
 ### Notes
 
-* Closes the #243 item-sheet UX rollout. No data-model field changes. Legacy drop-zone class names remain for JS binding.
+- Closes the #243 item-sheet UX rollout. No data-model field changes. Legacy drop-zone class names remain for JS binding.
 
 ## [2.6.6] - 2026-06-06
 
 ### Added
 
-* **Species dossier polish (#243 phase 6):** CONFIDENTIAL stamp, biological-data and stat-limits panels with `.sla-field` / `.sla-section` markup, classified red header-edge motif via pure CSS, and localized labels (`SLA.ItemSheet.Species.*`, shared `SLA.ItemSheet.Dossier.*`).
-* **Package dossier polish (#243 phase 6):** TRAINING PROGRAM green stamp variant, training-prerequisites panel, and localized labels (`SLA.ItemSheet.Package.*`).
+- **Species dossier polish (#243 phase 6):** CONFIDENTIAL stamp, biological-data and stat-limits panels with `.sla-field` / `.sla-section` markup, classified red header-edge motif via pure CSS, and localized labels (`SLA.ItemSheet.Species.*`, shared `SLA.ItemSheet.Dossier.*`).
+- **Package dossier polish (#243 phase 6):** TRAINING PROGRAM green stamp variant, training-prerequisites panel, and localized labels (`SLA.ItemSheet.Package.*`).
 
 ### Changed
 
-* **Dossier routing:** Species and package sheets render dedicated partials (`item-species.hbs`, `item-package.hbs`) with a shared `item-dossier-skills.hbs` granted-skills partial; legacy `item-dossier.hbs` removed.
-* **Granted-skills UX:** Drop zone migrated to `.sla-drop` with polished chip rows; legacy `.skill-grant-area` / `.granted-skill-chip` selectors retained as aliases.
-* **SCSS:** Expanded `themes/_dossier.scss` for species/package stamp variants and panel layout.
-* Updated system and package metadata version to `2.6.6`, including the release `download` URL in `system.json`.
+- **Dossier routing:** Species and package sheets render dedicated partials (`item-species.hbs`, `item-package.hbs`) with a shared `item-dossier-skills.hbs` granted-skills partial; legacy `item-dossier.hbs` removed.
+- **Granted-skills UX:** Drop zone migrated to `.sla-drop` with polished chip rows; legacy `.skill-grant-area` / `.granted-skill-chip` selectors retained as aliases.
+- **SCSS:** Expanded `themes/_dossier.scss` for species/package stamp variants and panel layout.
+- Updated system and package metadata version to `2.6.6`, including the release `download` URL in `system.json`.
 
 ### Notes
 
-* No data-model or behaviour changes. Skill-grant drop handlers and delete controls are unchanged; legacy class names remain for module CSS compatibility.
+- No data-model or behaviour changes. Skill-grant drop handlers and delete controls are unchanged; legacy class names remain for module CSS compatibility.
 
 ## [2.6.5] - 2026-06-06
 
 ### Added
 
-* **Skill item theme — Field Manual (#243 phase 5):** Blue ruled-page layout with training-record panel, ruled-line header motif via pure CSS, and localized labels (`SLA.ItemSheet.Skill.*`).
-* **Trait item theme — Personnel Annotation (#243 phase 5):** Tan margin-note layout with annotation-record panel, dashed-margin header motif via pure CSS, and localized labels (`SLA.ItemSheet.Trait.*`).
-* **Generic item theme — Inventory Slip (#243 phase 5):** Neutral grey receipt/slip layout for gear items, perforation header motif via pure CSS, and localized labels (`SLA.ItemSheet.Item.*`).
+- **Skill item theme — Field Manual (#243 phase 5):** Blue ruled-page layout with training-record panel, ruled-line header motif via pure CSS, and localized labels (`SLA.ItemSheet.Skill.*`).
+- **Trait item theme — Personnel Annotation (#243 phase 5):** Tan margin-note layout with annotation-record panel, dashed-margin header motif via pure CSS, and localized labels (`SLA.ItemSheet.Trait.*`).
+- **Generic item theme — Inventory Slip (#243 phase 5):** Neutral grey receipt/slip layout for gear items, perforation header motif via pure CSS, and localized labels (`SLA.ItemSheet.Item.*`).
 
 ### Changed
 
-* **Item sheet routing:** Skill and trait sheets render dedicated partials (`item-skill.hbs`, `item-trait.hbs`) instead of the legacy `item-academic.hbs` wrapper. Generic `item` gear no longer uses the shared light-grey `catalogue-grid`.
-* **SCSS:** Added `themes/_skill-trait.scss` and `themes/_generic.scss`; `themes/_academic.scss` is now a deprecated stub. Legacy `.academic-paper` selectors remain as aliases in `_skill-trait.scss`.
-* Updated system and package metadata version to `2.6.5`, including the release `download` URL in `system.json`.
-* **CI release publishing:** GitHub releases are created when a version tag is pushed (for example `2.6.5`), not on every push to `main`. Main-branch CI still runs unit tests and validates the dist build.
+- **Item sheet routing:** Skill and trait sheets render dedicated partials (`item-skill.hbs`, `item-trait.hbs`) instead of the legacy `item-academic.hbs` wrapper. Generic `item` gear no longer uses the shared light-grey `catalogue-grid`.
+- **SCSS:** Added `themes/_skill-trait.scss` and `themes/_generic.scss`; `themes/_academic.scss` is now a deprecated stub. Legacy `.academic-paper` selectors remain as aliases in `_skill-trait.scss`.
+- Updated system and package metadata version to `2.6.5`, including the release `download` URL in `system.json`.
+- **CI release publishing:** GitHub releases are created when a version tag is pushed (for example `2.6.5`), not on every push to `main`. Main-branch CI still runs unit tests and validates the dist build.
 
 ## [2.6.4] - 2026-06-05
 
 ### Added
 
-* **Drug item theme — Pharma Label (#243 phase 4):** Clinical orange prescription-label layout with `.sla-field` / `.sla-section` markup, pharmacology panel (addiction, duration, dose, detox), Rx-stripe header motif via pure CSS, and localized labels (`SLA.ItemSheet.Drug.*`).
-* **Toxicant item theme — Bio-Hazard Notice (#243 phase 4):** Bio-hazard green warning-notice layout with exposure-data panel, chevron header motif via pure CSS, and localized labels (`SLA.ItemSheet.Toxicant.*`).
+- **Drug item theme — Pharma Label (#243 phase 4):** Clinical orange prescription-label layout with `.sla-field` / `.sla-section` markup, pharmacology panel (addiction, duration, dose, detox), Rx-stripe header motif via pure CSS, and localized labels (`SLA.ItemSheet.Drug.*`).
+- **Toxicant item theme — Bio-Hazard Notice (#243 phase 4):** Bio-hazard green warning-notice layout with exposure-data panel, chevron header motif via pure CSS, and localized labels (`SLA.ItemSheet.Toxicant.*`).
 
 ### Changed
 
-* **Item catalogue routing:** Drug and toxicant sheets no longer render inside the shared light-grey `catalogue-grid` (drugs previously used a two-column catalogue + black panel split).
-* **SCSS:** Added `themes/_drug.scss` and `themes/_toxicant.scss`.
-* Updated system and package metadata version to `2.6.4`, including the release `download` URL in `system.json`.
+- **Item catalogue routing:** Drug and toxicant sheets no longer render inside the shared light-grey `catalogue-grid` (drugs previously used a two-column catalogue + black panel split).
+- **SCSS:** Added `themes/_drug.scss` and `themes/_toxicant.scss`.
+- Updated system and package metadata version to `2.6.4`, including the release `download` URL in `system.json`.
 
 ### Notes
 
-* No data-model or behaviour changes. Drug effect transfer, toxicant infection tests, and embedded Active Effects authoring are unchanged.
+- No data-model or behaviour changes. Drug effect transfer, toxicant infection tests, and embedded Active Effects authoring are unchanged.
 
 ## [2.6.3] - 2026-06-05
 
 ### Added
 
-* **Armor item theme — Powersuit Telemetry (#243 phase 3):** Slate-and-green LED layout with `.sla-pv-gauge` protection readout (PV, resistance cur/max, fill bar), powered-armor systems panel, header LED-stripe motif via pure CSS, and localized labels (`SLA.ItemSheet.Armor.*`).
-* **Explosive item theme — Munition Placard (#243 phase 3):** Hazard-yellow placard layout with chevron header motif via pure CSS, `.sla-field` / `.sla-section` / `.sla-drop` markup, and localized labels (`SLA.ItemSheet.Explosive.*`).
+- **Armor item theme — Powersuit Telemetry (#243 phase 3):** Slate-and-green LED layout with `.sla-pv-gauge` protection readout (PV, resistance cur/max, fill bar), powered-armor systems panel, header LED-stripe motif via pure CSS, and localized labels (`SLA.ItemSheet.Armor.*`).
+- **Explosive item theme — Munition Placard (#243 phase 3):** Hazard-yellow placard layout with chevron header motif via pure CSS, `.sla-field` / `.sla-section` / `.sla-drop` markup, and localized labels (`SLA.ItemSheet.Explosive.*`).
 
 ### Changed
 
-* **Item catalogue routing:** Armor and explosive sheets no longer render inside the shared light-grey `catalogue-grid`; each type uses its own themed partial.
-* **Armor sheet context:** `resistGaugePct` is prepared in `item-sheet.mjs` for the PV gauge fill bar (updates on sheet re-render after submit).
-* **SCSS:** Added `themes/_armor.scss` and `themes/_explosive.scss`.
-* Updated system and package metadata version to `2.6.3`, including the release `download` URL in `system.json`.
+- **Item catalogue routing:** Armor and explosive sheets no longer render inside the shared light-grey `catalogue-grid`; each type uses its own themed partial.
+- **Armor sheet context:** `resistGaugePct` is prepared in `item-sheet.mjs` for the PV gauge fill bar (updates on sheet re-render after submit).
+- **SCSS:** Added `themes/_armor.scss` and `themes/_explosive.scss`.
+- Updated system and package metadata version to `2.6.3`, including the release `download` URL in `system.json`.
 
 ### Notes
 
-* No data-model or behaviour changes. Drop handlers and form field names are unchanged; legacy drop-zone class names remain for JS binding and module CSS compatibility.
+- No data-model or behaviour changes. Drop handlers and form field names are unchanged; legacy drop-zone class names remain for JS binding and module CSS compatibility.
 
 ## [2.6.2] - 2026-06-05
 
 ### Added
 
-* **Weapon item theme — Cannon Catalogue (#243 phase 2):** Gunmetal panel layout with amber readouts, `.sla-field` / `.sla-section` / `.sla-drop` markup, semantic firing-modes `<table>`, and localized field labels (`SLA.ItemSheet.Weapon.*`, shared `SLA.ItemSheet.Field.*`).
-* **Magazine item theme — Ammo Label (#243 phase 2):** Kraft-paper label aesthetic with brown frame accents, dedicated layout partial, and localized labels (`SLA.ItemSheet.Magazine.*`).
+- **Weapon item theme — Cannon Catalogue (#243 phase 2):** Gunmetal panel layout with amber readouts, `.sla-field` / `.sla-section` / `.sla-drop` markup, semantic firing-modes `<table>`, and localized field labels (`SLA.ItemSheet.Weapon.*`, shared `SLA.ItemSheet.Field.*`).
+- **Magazine item theme — Ammo Label (#243 phase 2):** Kraft-paper label aesthetic with brown frame accents, dedicated layout partial, and localized labels (`SLA.ItemSheet.Magazine.*`).
 
 ### Changed
 
-* **Item catalogue routing:** Weapon and magazine sheets no longer render inside the shared light-grey `catalogue-grid`; each type uses its own themed partial (`item-weapon.hbs`, `item-magazine.hbs`).
-* **SCSS:** Expanded `themes/_weapon.scss` for Cannon Catalogue styling; added `themes/_magazine.scss`. Legacy flex-based `.firing-mode-row` selectors retained for backward compatibility.
-* Updated system and package metadata version to `2.6.2`, including the release `download` URL in `system.json`.
+- **Item catalogue routing:** Weapon and magazine sheets no longer render inside the shared light-grey `catalogue-grid`; each type uses its own themed partial (`item-weapon.hbs`, `item-magazine.hbs`).
+- **SCSS:** Expanded `themes/_weapon.scss` for Cannon Catalogue styling; added `themes/_magazine.scss`. Legacy flex-based `.firing-mode-row` selectors retained for backward compatibility.
+- Updated system and package metadata version to `2.6.2`, including the release `download` URL in `system.json`.
 
 ### Notes
 
-* No data-model or behaviour changes. Drop handlers and form field names are unchanged; legacy drop-zone class names (`.skill-link-box`, `.weapon-link`, `.drop-zone`) remain on themed markup for JS binding and module CSS compatibility.
+- No data-model or behaviour changes. Drop handlers and form field names are unchanged; legacy drop-zone class names (`.skill-link-box`, `.weapon-link`, `.drop-zone`) remain on themed markup for JS binding and module CSS compatibility.
 
 ## [2.6.1] - 2026-06-05
 
 ### Fixed
 
-* **Cursor Cloud Foundry startup:** `foundry_join_ready` checks v14 `/join` static HTML (`auth join` body, not “Critical Failure”) instead of treating any HTTP response as ready; `status` reports `foundry:starting` when the server is up but the world is not joinable.
-* **Docker on cloud VMs:** Shared `scripts/ensure-docker.sh` starts `dockerd` (vfs driver) before `prepare`/`start` use Docker; wired into `environment.json` install.
-* **First-boot automation:** `cloud-foundry.sh start` runs `foundry-bootstrap.mjs` (EULA, `worldLaunch`) when HTTP is up but `/join` is not; `bootstrap` subcommand waits for join readiness before creating `FOUNDRY_USER`.
-* **`ensure-foundry-user.mjs`:** Retries until `/join` lists users; no longer calls `game.shutDown()` (which stopped the world and broke subsequent E2E).
-* **`foundry-bootstrap.mjs`:** Updated for Foundry v14 UI (`#eula-agree`, `[data-action="worldLaunch"]`, 1920×1080 viewport).
-* **`environment.json` / `test-environment.sh`:** Removed `|| true` on start so startup failures surface to Cursor and CI.
+- **Cursor Cloud Foundry startup:** `foundry_join_ready` checks v14 `/join` static HTML (`auth join` body, not “Critical Failure”) instead of treating any HTTP response as ready; `status` reports `foundry:starting` when the server is up but the world is not joinable.
+- **Docker on cloud VMs:** Shared `scripts/ensure-docker.sh` starts `dockerd` (vfs driver) before `prepare`/`start` use Docker; wired into `environment.json` install.
+- **First-boot automation:** `cloud-foundry.sh start` runs `foundry-bootstrap.mjs` (EULA, `worldLaunch`) when HTTP is up but `/join` is not; `bootstrap` subcommand waits for join readiness before creating `FOUNDRY_USER`.
+- **`ensure-foundry-user.mjs`:** Retries until `/join` lists users; no longer calls `game.shutDown()` (which stopped the world and broke subsequent E2E).
+- **`foundry-bootstrap.mjs`:** Updated for Foundry v14 UI (`#eula-agree`, `[data-action="worldLaunch"]`, 1920×1080 viewport).
+- **`environment.json` / `test-environment.sh`:** Removed `|| true` on start so startup failures surface to Cursor and CI.
 
 ## [2.6.0] - 2026-06-05
 
 ### Added
 
-* **Item sheet foundation (#243 phase 1):** Per-type CSS design tokens (`--sla-type-accent`, `--sla-type-accent-soft`, `--sla-type-frame`, `--sla-type-input-bg`, `--sla-type-input-border`, `--sla-type-panel-bg`) scoped to `.{type}-theme` roots so subsequent per-type repaints are isolated to a single theme partial.
-* **Reusable item-sheet components:** `.sla-field` (with `--inline`, `--toggle`, `--compact` variants), `.sla-section` / `.sla-section__header`, and `.sla-drop` (with `.is-drag-over` / `.sla-drop--filled`) — additive, ready for per-type Phase 2 PRs to migrate markup to.
-* **Localized tab labels:** `SLA.ItemSheet.Tab.Details`, `SLA.ItemSheet.Tab.Description`, `SLA.ItemSheet.Tab.Effects` (English and French).
+- **Item sheet foundation (#243 phase 1):** Per-type CSS design tokens (`--sla-type-accent`, `--sla-type-accent-soft`, `--sla-type-frame`, `--sla-type-input-bg`, `--sla-type-input-border`, `--sla-type-panel-bg`) scoped to `.{type}-theme` roots so subsequent per-type repaints are isolated to a single theme partial.
+- **Reusable item-sheet components:** `.sla-field` (with `--inline`, `--toggle`, `--compact` variants), `.sla-section` / `.sla-section__header`, and `.sla-drop` (with `.is-drag-over` / `.sla-drop--filled`) — additive, ready for per-type Phase 2 PRs to migrate markup to.
+- **Localized tab labels:** `SLA.ItemSheet.Tab.Details`, `SLA.ItemSheet.Tab.Description`, `SLA.ItemSheet.Tab.Effects` (English and French).
 
 ### Changed
 
-* **Unified item-sheet tab contract (#243):** Every item type now uses the same tab structure — `Details / Description / Effects` for inventory, dossier and consumable types; `Details / Description` for `skill`, `trait`, `discipline` (no transferable AE data model). This surfaces a description editor and Active Effects tab on `item`, `magazine`, `species`, `package` for the first time.
-* **Item-sheet input contrast:** Body inputs now render with a subtle dark fill and visible border at rest (previously transparent until focus, which made fields invisible). Focus state uses the per-type accent glow.
-* **SCSS split:** The 1150-line `src/scss/sheets/_item.scss` monolith is now an index entry that imports focused partials under `src/scss/sheets/item/` (`_tokens.scss`, `_base.scss`, `_fields.scss`, `_sections.scss`, `_drops.scss`, `_tabs.scss`, `themes/_academic.scss`, `themes/_catalogue.scss`, `themes/_weapon.scss`, `themes/_spectral.scss`, `themes/_dossier.scss`). Selector chains for the item sheet are now anchored on `form.application.sla-industries.item` per the V2 mount documented in `module/sheets/item-sheet.mjs`.
-* **Item sheet rendering:** Removed the `useConsumableTabs` / `useItemTabs` / `useSpectralTabs` branching in `module/sheets/item-sheet.mjs` in favour of a single `useTwoTabs` flag plus `useCataloguePart` for partial dispatch. `_onRender` no longer needs the consumable tab redirect since all types now expose a Description tab.
-* Updated system and package metadata version to `2.6.0`, including the release `download` URL in `system.json`.
+- **Unified item-sheet tab contract (#243):** Every item type now uses the same tab structure — `Details / Description / Effects` for inventory, dossier and consumable types; `Details / Description` for `skill`, `trait`, `discipline` (no transferable AE data model). This surfaces a description editor and Active Effects tab on `item`, `magazine`, `species`, `package` for the first time.
+- **Item-sheet input contrast:** Body inputs now render with a subtle dark fill and visible border at rest (previously transparent until focus, which made fields invisible). Focus state uses the per-type accent glow.
+- **SCSS split:** The 1150-line `src/scss/sheets/_item.scss` monolith is now an index entry that imports focused partials under `src/scss/sheets/item/` (`_tokens.scss`, `_base.scss`, `_fields.scss`, `_sections.scss`, `_drops.scss`, `_tabs.scss`, `themes/_academic.scss`, `themes/_catalogue.scss`, `themes/_weapon.scss`, `themes/_spectral.scss`, `themes/_dossier.scss`). Selector chains for the item sheet are now anchored on `form.application.sla-industries.item` per the V2 mount documented in `module/sheets/item-sheet.mjs`.
+- **Item sheet rendering:** Removed the `useConsumableTabs` / `useItemTabs` / `useSpectralTabs` branching in `module/sheets/item-sheet.mjs` in favour of a single `useTwoTabs` flag plus `useCataloguePart` for partial dispatch. `_onRender` no longer needs the consumable tab redirect since all types now expose a Description tab.
+- Updated system and package metadata version to `2.6.0`, including the release `download` URL in `system.json`.
 
 ### Notes
 
-* No data-model or behaviour changes. Existing class names (`.dossier-stamp`, `.firing-mode-row`, `.spectral-ebb-card`, `.drop-zone`, etc.) remain styled for backward compatibility with worlds and modules that target them. Per-type identity repaints land in follow-up PRs (#243 phases 2–4).
+- No data-model or behaviour changes. Existing class names (`.dossier-stamp`, `.firing-mode-row`, `.spectral-ebb-card`, `.drop-zone`, etc.) remain styled for backward compatibility with worlds and modules that target them. Per-type identity repaints land in follow-up PRs (#243 phases 2–4).
 
 ## [2.5.4] - 2026-06-05
 
 ### Fixed
 
-* **CI release publishing:** Main CI skips GitHub release creation when the versioned release already exists, avoiding immutable-release update failures on same-version main pushes.
-* **Cursor Cloud startup:** Environment installs use `npm ci`, and `cloud-foundry.sh prepare` no longer requires `rsync` to copy `dist/` into Foundry data.
-* **Foundry website update:** Replaced the third-party post-release action with a repo-local updater that uses the `system.json` package id (`sla-industries`) and the published release asset URL without forcing a `v` tag prefix.
-* Updated system and package metadata version to `2.5.4`, including the release `download` URL in `system.json`.
+- **CI release publishing:** Main CI skips GitHub release creation when the versioned release already exists, avoiding immutable-release update failures on same-version main pushes.
+- **Cursor Cloud startup:** Environment installs use `npm ci`, and `cloud-foundry.sh prepare` no longer requires `rsync` to copy `dist/` into Foundry data.
+- **Foundry website update:** Replaced the third-party post-release action with a repo-local updater that uses the `system.json` package id (`sla-industries`) and the published release asset URL without forcing a `v` tag prefix.
+- Updated system and package metadata version to `2.5.4`, including the release `download` URL in `system.json`.
 
 ## [2.5.3] - 2026-06-05
 
 ### Added
 
-* **Packaging validation:** `scripts/validate-dist.mjs` checks `dist/` and `sla-industries.zip` against `system.json` paths; `npm run validate:dist` / `validate:package`. Unit tests in `tests/unit/build-dist.test.mjs`.
+- **Packaging validation:** `scripts/validate-dist.mjs` checks `dist/` and `sla-industries.zip` against `system.json` paths; `npm run validate:dist` / `validate:package`. Unit tests in `tests/unit/build-dist.test.mjs`.
 
 ### Changed
 
-* **Compendium copy list** is derived from `system.json` `packs[].path` instead of a hardcoded array in `build-dist.mjs`.
-* **CI:** Runs version sync check, unit tests, `npm run package`, and `validate-dist.mjs --zip` before creating draft releases.
-* **`cloud-foundry.sh`:** Surfaces `npm run build` failures; test world `systemVersion` follows `system.json`.
-* Updated system and package metadata version to `2.5.3`, including the release `download` URL in `system.json`.
+- **Compendium copy list** is derived from `system.json` `packs[].path` instead of a hardcoded array in `build-dist.mjs`.
+- **CI:** Runs version sync check, unit tests, `npm run package`, and `validate-dist.mjs --zip` before creating draft releases.
+- **`cloud-foundry.sh`:** Surfaces `npm run build` failures; test world `systemVersion` follows `system.json`.
+- Updated system and package metadata version to `2.5.3`, including the release `download` URL in `system.json`.
 
 ## [2.5.2] - 2026-06-05
 
 ### Added
 
-* **Release packaging:** `dist/` build output and `npm run package` produce `sla-industries.zip` containing only Foundry runtime files (aligned with `fvtt-cyberpunk-red-core-dev`). Scripts: `scripts/build-dist.mjs`, `scripts/package-release.sh`.
+- **Release packaging:** `dist/` build output and `npm run package` produce `sla-industries.zip` containing only Foundry runtime files (aligned with `fvtt-cyberpunk-red-core-dev`). Scripts: `scripts/build-dist.mjs`, `scripts/package-release.sh`.
 
 ### Changed
 
-* **CI:** GitHub Actions runs `npm run package` instead of `git archive`, so dev tooling (`tests/`, `src/scss/`, Playwright config, cloud scripts, etc.) is excluded from release artifacts.
-* **`npm run build`:** Now runs `build:css` then assembles `dist/`; use `build:css` alone for SCSS-only local iteration.
-* **Cloud Foundry deploy:** `cloud-foundry.sh` syncs `dist/` into Foundry data after `npm run build`.
-* Updated system and package metadata version to `2.5.2`, including the release `download` URL in `system.json`.
+- **CI:** GitHub Actions runs `npm run package` instead of `git archive`, so dev tooling (`tests/`, `src/scss/`, Playwright config, cloud scripts, etc.) is excluded from release artifacts.
+- **`npm run build`:** Now runs `build:css` then assembles `dist/`; use `build:css` alone for SCSS-only local iteration.
+- **Cloud Foundry deploy:** `cloud-foundry.sh` syncs `dist/` into Foundry data after `npm run build`.
+- Updated system and package metadata version to `2.5.2`, including the release `download` URL in `system.json`.
 
 ## [2.5.1] - 2026-06-05
 
 ### Added
 
-* **Cursor Cloud development environment:** `.cursor/environment.json`, `AGENTS.md`, and scripts to prepare/start Foundry VTT for Playwright E2E (`scripts/cloud-foundry.sh`, `scripts/ensure-foundry-user.mjs`, `scripts/test-environment.sh`). New npm scripts: `test:env`, `foundry:start`, `foundry:status`.
-* **Foundry bootstrap helpers:** `scripts/foundry-bootstrap.mjs` for first-time license/world setup; `ensure-foundry-user.mjs` creates the `FOUNDRY_USER` join account when missing.
+- **Cursor Cloud development environment:** `.cursor/environment.json`, `AGENTS.md`, and scripts to prepare/start Foundry VTT for Playwright E2E (`scripts/cloud-foundry.sh`, `scripts/ensure-foundry-user.mjs`, `scripts/test-environment.sh`). New npm scripts: `test:env`, `foundry:start`, `foundry:status`.
+- **Foundry bootstrap helpers:** `scripts/foundry-bootstrap.mjs` for first-time license/world setup; `ensure-foundry-user.mjs` creates the `FOUNDRY_USER` join account when missing.
 
 ### Changed
 
-* **Playwright E2E:** Default viewport set to 1920×1080 to satisfy Foundry’s minimum resolution in headless runs.
-* **`.gitignore`:** Track `.cursor/environment.json` while keeping other `.cursor/*` ignored.
-* Updated system and package metadata version to `2.5.1`, including the release `download` URL in `system.json`.
+- **Playwright E2E:** Default viewport set to 1920×1080 to satisfy Foundry’s minimum resolution in headless runs.
+- **`.gitignore`:** Track `.cursor/environment.json` while keeping other `.cursor/*` ignored.
+- Updated system and package metadata version to `2.5.1`, including the release `download` URL in `system.json`.
 
 ## [2.5.0] - 2026-04-10
 
 ### Added
 
-* **Ebb formula targeting & effects:** Formula items have **Target** (self / ally / enemy), **HP effect** (damage / heal / none), and **Wounds to remove** (integer **0–6**). On apply, that many wound **locations** are cleared in fixed order (head, torso, arms, legs), only where currently wounded. Chat cards show target/effect hints; heal rolls use a green-styled button and healing result messaging. **Self** target formulas skip “apply to target/selected” on the follow-up card and apply damage/heal (and optional wound removal) to the **caster** immediately after the roll.
-* **Wounds-only formulas:** With HP effect **none** and **wounds to remove** greater than zero, a successful roll shows a **Remove wounds** button (ally uses the selected token; enemy uses the targeted token).
-* **Ebb heal: heal+wounds vs heal or wounds:** **Ebb Formula** items with Effect **Heal** can set **Heal and wounds (one apply)** vs **Heal or wounds (separate actions)** (`system.ebbHealWoundMode`). **And** bundles HP healing and configured wound removal on the same apply path as the heal roll; **Or** shows a **Remove wounds** button alongside the heal roll, and only one of the two may be used per check (the other is disabled with tooltips; choice is stored on the chat message for re-renders and other clients).
-* **Chat card hints** for heal formulas with wound removal: subtitle shows **Heal + wounds** or **Heal or wounds** when both a heal roll and wound removal apply.
-* **Embedded effects (self):** When the formula target is **Self**, GM sees a single **Apply effects to caster** button instead of target/selected.
-* **Ebb critical FLUX:** On a successful Ebb roll with MOS 4+, the caster **regains 1 FLUX** (capped at max), with chat-flag tracking so GM **TN** changes and **Luck** rerolls stay in sync (including revoking the point if a recalc drops below critical MOS).
-* **Operative Ebb tab:** **Ebonite** characters (species name contains “ebonite”) get a dedicated **Ebb** sidebar tab for disciplines and nested formulas; **Combat** is wounds + loadout only. Non-Ebonites do not see the Ebb tab; a persisted primary tab id `ebb` from before this split is redirected to **Combat** when the actor is not Ebonite.
-* **Unit tests:** `tests/unit/ebb-mos.test.mjs` covers Ebb MOS damage bonus rules (`getEbbMosDamageBonus` in `module/helpers/ebb-mos.mjs`).
+- **Ebb formula targeting & effects:** Formula items have **Target** (self / ally / enemy), **HP effect** (damage / heal / none), and **Wounds to remove** (integer **0–6**). On apply, that many wound **locations** are cleared in fixed order (head, torso, arms, legs), only where currently wounded. Chat cards show target/effect hints; heal rolls use a green-styled button and healing result messaging. **Self** target formulas skip “apply to target/selected” on the follow-up card and apply damage/heal (and optional wound removal) to the **caster** immediately after the roll.
+- **Wounds-only formulas:** With HP effect **none** and **wounds to remove** greater than zero, a successful roll shows a **Remove wounds** button (ally uses the selected token; enemy uses the targeted token).
+- **Ebb heal: heal+wounds vs heal or wounds:** **Ebb Formula** items with Effect **Heal** can set **Heal and wounds (one apply)** vs **Heal or wounds (separate actions)** (`system.ebbHealWoundMode`). **And** bundles HP healing and configured wound removal on the same apply path as the heal roll; **Or** shows a **Remove wounds** button alongside the heal roll, and only one of the two may be used per check (the other is disabled with tooltips; choice is stored on the chat message for re-renders and other clients).
+- **Chat card hints** for heal formulas with wound removal: subtitle shows **Heal + wounds** or **Heal or wounds** when both a heal roll and wound removal apply.
+- **Embedded effects (self):** When the formula target is **Self**, GM sees a single **Apply effects to caster** button instead of target/selected.
+- **Ebb critical FLUX:** On a successful Ebb roll with MOS 4+, the caster **regains 1 FLUX** (capped at max), with chat-flag tracking so GM **TN** changes and **Luck** rerolls stay in sync (including revoking the point if a recalc drops below critical MOS).
+- **Operative Ebb tab:** **Ebonite** characters (species name contains “ebonite”) get a dedicated **Ebb** sidebar tab for disciplines and nested formulas; **Combat** is wounds + loadout only. Non-Ebonites do not see the Ebb tab; a persisted primary tab id `ebb` from before this split is redirected to **Combat** when the actor is not Ebonite.
+- **Unit tests:** `tests/unit/ebb-mos.test.mjs` covers Ebb MOS damage bonus rules (`getEbbMosDamageBonus` in `module/helpers/ebb-mos.mjs`).
 
 ### Changed
 
-* **Flux cost:** Ebb formula rolls now spend `system.cost` flux (minimum 0, defaulting to 1 if unset) instead of a hardcoded 1.
-* **Ebb MOS vs heal:** Margin-of-success **damage** bonuses (+1 / +2 / +4) apply only to **damage** Ebb formulas; **heal** and **effect** formulas no longer add those values to the heal/damage formula string. Chat copy and Luck rerolls use the same distinction.
-* **Critical condition:** The skull control on the operative wounds panel is **display-only**; **Critical** follows **HP** (and the active effect sync). It is no longer toggled from the sheet. **HP max** changes (e.g. STR) also re-sync critical vs half max HP.
-* **Actor & item UI:** Discipline/formula lists use card layouts with badges; Ebb and Discipline item sheets use a clearer spectral-themed grid for formula stats and discipline rank.
-* **Discipline item sheet (single view):** Rank card and **Description** use a **two-column** grid on typical widths (stacks on narrow panels).
-* **Luck on Ebb:** Luck dialog recalculates Ebb rolls using the formula’s **TN** from chat flags (not a hardcoded TN).
-* **World migration `2.5.0`:** **Ebb Formula** embedded updates: legacy boolean `system.removeWounds` → integer **0–6** (`true` → 6; aligns with **`2.4.8`**), `ebbEffect` **`none`** → **`effect`** (**`2.4.9`**), and `system.ebbHpWoundMode` → `system.ebbHealWoundMode` with removal of the old key when present (interim dev cleanup).
-* **Damage** Ebb formulas with **Wounds to remove** still apply **damage and** wound clearing together; the heal/wounds toggle applies only to **Heal** formulas.
-* Updated system and package metadata version to `2.5.0`, including the release `download` URL in `system.json`.
+- **Flux cost:** Ebb formula rolls now spend `system.cost` flux (minimum 0, defaulting to 1 if unset) instead of a hardcoded 1.
+- **Ebb MOS vs heal:** Margin-of-success **damage** bonuses (+1 / +2 / +4) apply only to **damage** Ebb formulas; **heal** and **effect** formulas no longer add those values to the heal/damage formula string. Chat copy and Luck rerolls use the same distinction.
+- **Critical condition:** The skull control on the operative wounds panel is **display-only**; **Critical** follows **HP** (and the active effect sync). It is no longer toggled from the sheet. **HP max** changes (e.g. STR) also re-sync critical vs half max HP.
+- **Actor & item UI:** Discipline/formula lists use card layouts with badges; Ebb and Discipline item sheets use a clearer spectral-themed grid for formula stats and discipline rank.
+- **Discipline item sheet (single view):** Rank card and **Description** use a **two-column** grid on typical widths (stacks on narrow panels).
+- **Luck on Ebb:** Luck dialog recalculates Ebb rolls using the formula’s **TN** from chat flags (not a hardcoded TN).
+- **World migration `2.5.0`:** **Ebb Formula** embedded updates: legacy boolean `system.removeWounds` → integer **0–6** (`true` → 6; aligns with **`2.4.8`**), `ebbEffect` **`none`** → **`effect`** (**`2.4.9`**), and `system.ebbHpWoundMode` → `system.ebbHealWoundMode` with removal of the old key when present (interim dev cleanup).
+- **Damage** Ebb formulas with **Wounds to remove** still apply **damage and** wound clearing together; the heal/wounds toggle applies only to **Heal** formulas.
+- Updated system and package metadata version to `2.5.0`, including the release `download` URL in `system.json`.
 
 ### Notes
 
-* **World data migration** target version is **`2.5.0`** (`module/migration.mjs`), including the **Ebb Formula** transforms listed under **Changed** above.
+- **World data migration** target version is **`2.5.0`** (`module/migration.mjs`), including the **Ebb Formula** transforms listed under **Changed** above.
 
 ## [2.4.7] - 2026-04-11
 
 ### Added
 
-* **Ebb Formula Active Effects:** Ebb Formula items use a tabbed item sheet (Details, Description, **Effects**) so you can embed Active Effects on the formula. On a **successful** formula roll, the chat card shows GM-only buttons to apply those effects to the **targeted** token (or **selected** token), using the same visibility pattern as damage apply buttons.
+- **Ebb Formula Active Effects:** Ebb Formula items use a tabbed item sheet (Details, Description, **Effects**) so you can embed Active Effects on the formula. On a **successful** formula roll, the chat card shows GM-only buttons to apply those effects to the **targeted** token (or **selected** token), using the same visibility pattern as damage apply buttons.
 
 ### Changed
 
-* Updated system and package metadata version to `2.4.7`, including the release `download` URL in `system.json`.
+- Updated system and package metadata version to `2.4.7`, including the release `download` URL in `system.json`.
 
 ## [2.4.6] - 2026-04-10
 
 ### Added
 
-* World setting **Explosive Blast Region Visibility** (`observer` default, optional **Always**) for blast `Region` documents created by explosive throw automation, aligned with Foundry 14.360 measured-template visibility expectations.
-* Playwright regression coverage for `blastRegionVisibility` and a smoke check that `CONST.ACTIVE_EFFECT_CHANGE_TYPES` is present on Foundry v14+.
+- World setting **Explosive Blast Region Visibility** (`observer` default, optional **Always**) for blast `Region` documents created by explosive throw automation, aligned with Foundry 14.360 measured-template visibility expectations.
+- Playwright regression coverage for `blastRegionVisibility` and a smoke check that `CONST.ACTIVE_EFFECT_CHANGE_TYPES` is present on Foundry v14+.
 
 ### Changed
 
-* Set `compatibility.verified` to **14.360** in `system.json` (Foundry VTT v14 Stable 2).
-* Updated system and package metadata version to `2.4.6`, including the release `download` URL in `system.json`.
+- Set `compatibility.verified` to **14.360** in `system.json` (Foundry VTT v14 Stable 2).
+- Updated system and package metadata version to `2.4.6`, including the release `download` URL in `system.json`.
 
 ## [2.4.5] - 2026-04-08
 
 ### Added
-* **Threat/NPC sheet sidebar navigation:** Added operative-style right-rail tabs on the NPC sheet, including dedicated **Combat**, **Inventory**, **Effects**, **Skills**, and **Notes** tabs.
+
+- **Threat/NPC sheet sidebar navigation:** Added operative-style right-rail tabs on the NPC sheet, including dedicated **Combat**, **Inventory**, **Effects**, **Skills**, and **Notes** tabs.
 
 ### Changed
-* **Threat/NPC sheet layout:** Moved skills and notes into their own tabs and aligned combat/inventory sub-box columns with the operative combat-loadout and inventory tab patterns.
-* **Threat/NPC sheet theming:** Unified NPC tab/panel styling to a maroon-and-white palette across combat, inventory, effects, skills, and notes, while keeping operative sheet colors unchanged.
-* Updated system and package metadata version to `2.4.5`, including the release `download` URL in `system.json`.
+
+- **Threat/NPC sheet layout:** Moved skills and notes into their own tabs and aligned combat/inventory sub-box columns with the operative combat-loadout and inventory tab patterns.
+- **Threat/NPC sheet theming:** Unified NPC tab/panel styling to a maroon-and-white palette across combat, inventory, effects, skills, and notes, while keeping operative sheet colors unchanged.
+- Updated system and package metadata version to `2.4.5`, including the release `download` URL in `system.json`.
 
 ## [2.4.4] - 2026-04-07
 
 ### Added
-* **Weapon chat card tests:** Added unit coverage for MOS wound-button visibility rules in `tests/unit/chat-wound-options.test.mjs` (NPC target + wound tracking off hides the wound option; NPC on, non-NPC, no-target, and no-choice paths covered).
+
+- **Weapon chat card tests:** Added unit coverage for MOS wound-button visibility rules in `tests/unit/chat-wound-options.test.mjs` (NPC target + wound tracking off hides the wound option; NPC on, non-NPC, no-target, and no-choice paths covered).
 
 ### Changed
-* **Weapon chat card tactical choices:** The `Inflict ... Wound` button is now hidden when the selected target is an **NPC** and world setting **Enable NPC Wound Tracking** is disabled; the `+Damage` tactical option remains available.
-* Updated system and package metadata version to `2.4.4`, including the release `download` URL in `system.json`.
+
+- **Weapon chat card tactical choices:** The `Inflict ... Wound` button is now hidden when the selected target is an **NPC** and world setting **Enable NPC Wound Tracking** is disabled; the `+Damage` tactical option remains available.
+- Updated system and package metadata version to `2.4.4`, including the release `download` URL in `system.json`.
 
 ## [2.4.3] - 2026-04-06
 
 ### Added
-* **Regression tests:** Node (`npm run test:unit`) covers `module/helpers/inventory-stack.mjs`, **`module/helpers/dice.mjs`** (`calculateRollResult` / `getMOS`), and validates `system.json`. Playwright **`tests/e2e/regression-sla.spec.js`** (`npm run test:e2e:regression`) exercises SLA APIs and settings UI; **`tests/e2e/regression-operators.spec.js`** (`npm run test:e2e:operators`) covers Foundry `Roll` evaluation, **`CONFIG.SLA`**, GM **operative** create/delete, embedded **weapon** items, and roll-data integration — GM-only steps skip unless **`FOUNDRY_USER`** is a Gamemaster. All E2E require a running Foundry instance and **`FOUNDRY_USER`**.
+
+- **Regression tests:** Node (`npm run test:unit`) covers `module/helpers/inventory-stack.mjs`, **`module/helpers/dice.mjs`** (`calculateRollResult` / `getMOS`), and validates `system.json`. Playwright **`tests/e2e/regression-sla.spec.js`** (`npm run test:e2e:regression`) exercises SLA APIs and settings UI; **`tests/e2e/regression-operators.spec.js`** (`npm run test:e2e:operators`) covers Foundry `Roll` evaluation, **`CONFIG.SLA`**, GM **operative** create/delete, embedded **weapon** items, and roll-data integration — GM-only steps skip unless **`FOUNDRY_USER`** is a Gamemaster. All E2E require a running Foundry instance and **`FOUNDRY_USER`**.
 
 ### Changed
-* Declared **Foundry VTT v14** compatibility in `system.json` (`compatibility.minimum` **14**, `verified` **14.359**).
-* Updated system/package metadata version to `2.4.3` and release `download` URL in `system.json`.
-* **Token ruler (combat):** When a combatant has already used movement this turn, ruler segments render as over-limit to reflect that movement is no longer available as an action.
-* **Combat movement lock setting:** Added world setting **Enable Combat Movement Lock** to toggle one-move-per-turn enforcement on or off.
-* World migration version is **`2.1.1`** in `module/migration.mjs` (was `2.1.0`); worlds at `2.1.0` without the drug cleanup step run migration once more.
+
+- Declared **Foundry VTT v14** compatibility in `system.json` (`compatibility.minimum` **14**, `verified` **14.359**).
+- Updated system/package metadata version to `2.4.3` and release `download` URL in `system.json`.
+- **Token ruler (combat):** When a combatant has already used movement this turn, ruler segments render as over-limit to reflect that movement is no longer available as an action.
+- **Combat movement lock setting:** Added world setting **Enable Combat Movement Lock** to toggle one-move-per-turn enforcement on or off.
+- World migration version is **`2.1.1`** in `module/migration.mjs` (was `2.1.0`); worlds at `2.1.0` without the drug cleanup step run migration once more.
 
 ### Fixed
-* **World migration — drug items:** Restored **`migrateTo210`** (strip legacy `system.mods` / `system.damageReduction` from drug items) so upgrades from pre-`2.1.0` and worlds stuck at `2.1.0` without that step are cleaned up; it runs after **`migrateTo200`** as before.
-* **Single movement action enforcement:** In combat, the active combatant can only move once per turn; a second movement attempt in the same turn is blocked with a warning.
-* **Movement undo support:** Undoing token movement (Ctrl+Z / undo update flags) now clears the per-turn movement lock so the combatant can move again that turn.
-* **Explosive throw targeting preview:** Before confirming throw placement, the canvas now shows a live dashed blast preview (outer and inner rings) to assist target selection.
-* **Explosive templates:** Final placed blast regions now use non-grid-based circles so templates remain visually round.
-* **Explosive wall blocking:** Initial throw path and deviation path now clamp to the nearest movement-blocking wall collision using v14 movement polygon collision checks with fallback handling.
-* **Foundry v14 deprecation cleanup:** Replaced deprecated `CONST.ACTIVE_EFFECT_MODES` lookup with `CONST.ACTIVE_EFFECT_CHANGE_TYPES` in actor derived-data effect summation.
+
+- **World migration — drug items:** Restored **`migrateTo210`** (strip legacy `system.mods` / `system.damageReduction` from drug items) so upgrades from pre-`2.1.0` and worlds stuck at `2.1.0` without that step are cleaned up; it runs after **`migrateTo200`** as before.
+- **Single movement action enforcement:** In combat, the active combatant can only move once per turn; a second movement attempt in the same turn is blocked with a warning.
+- **Movement undo support:** Undoing token movement (Ctrl+Z / undo update flags) now clears the per-turn movement lock so the combatant can move again that turn.
+- **Explosive throw targeting preview:** Before confirming throw placement, the canvas now shows a live dashed blast preview (outer and inner rings) to assist target selection.
+- **Explosive templates:** Final placed blast regions now use non-grid-based circles so templates remain visually round.
+- **Explosive wall blocking:** Initial throw path and deviation path now clamp to the nearest movement-blocking wall collision using v14 movement polygon collision checks with fallback handling.
+- **Foundry v14 deprecation cleanup:** Replaced deprecated `CONST.ACTIVE_EFFECT_MODES` lookup with `CONST.ACTIVE_EFFECT_CHANGE_TYPES` in actor derived-data effect summation.
 
 ## [2.4.2] - 2026-04-05
 
 ### Changed
-* Updated system `version` and release `download` URL in `system.json` to `2.4.2`.
+
+- Updated system `version` and release `download` URL in `system.json` to `2.4.2`.
 
 ## [2.4.0] - 2026-04-05
 
 ### Added
-* **Item sheet — header toggle menu:** **View Item Artwork** opens the item image in Foundry’s **Image Popout**; the popout’s own toggle menu includes **Show Players** (core `shareImage`) so GMs can share the artwork with connected players.
+
+- **Item sheet — header toggle menu:** **View Item Artwork** opens the item image in Foundry’s **Image Popout**; the popout’s own toggle menu includes **Show Players** (core `shareImage`) so GMs can share the artwork with connected players.
 
 ## [2.3.0] - 2026-04-04
 
 ### Added
-* **Stackable inventory drops:** Dragging **gear** (`item`), **explosives**, **magazines**, or **drugs** onto an actor sheet **merges** into an existing row when the system considers it the same item: **`_stats.compendiumSource`** or **`flags.core.sourceId`** when present, otherwise same **type** + **name** (case-insensitive), and for **magazines** also the same **`ammoType`** and **`ammoCapacity`**. The first row gets an explicit **quantity** (default **1**); further drops **add** the incoming quantity (invalid or missing quantity on the payload is treated as **1**). **Weapons**, **armor**, and other types are unchanged (including NPC auto-equip and vehicle weapon drops).
+
+- **Stackable inventory drops:** Dragging **gear** (`item`), **explosives**, **magazines**, or **drugs** onto an actor sheet **merges** into an existing row when the system considers it the same item: **`_stats.compendiumSource`** or **`flags.core.sourceId`** when present, otherwise same **type** + **name** (case-insensitive), and for **magazines** also the same **`ammoType`** and **`ammoCapacity`**. The first row gets an explicit **quantity** (default **1**); further drops **add** the incoming quantity (invalid or missing quantity on the payload is treated as **1**). **Weapons**, **armor**, and other types are unchanged (including NPC auto-equip and vehicle weapon drops).
 
 ### Changed
-* **World migration version** is **`2.3.0`**. **`migrateTo230`** runs after earlier steps: on each actor it **consolidates** duplicate stackable rows using the same identity rules, **summing** quantities (each row contributes **`max(1, floor(quantity))`** or **1** if missing/invalid). Rows are **not** merged if **any** duplicate in the group has **embedded Active Effects** on the Item (a warning is logged so worlds can be cleaned manually).
+
+- **World migration version** is **`2.3.0`**. **`migrateTo230`** runs after earlier steps: on each actor it **consolidates** duplicate stackable rows using the same identity rules, **summing** quantities (each row contributes **`max(1, floor(quantity))`** or **1** if missing/invalid). Rows are **not** merged if **any** duplicate in the group has **embedded Active Effects** on the Item (a warning is logged so worlds can be cleaned manually).
 
 ## [2.2.1] - 2026-04-04
 
 ### Changed
-* **World migration version** is **`2.2.1`**. Worlds older than that still run the usual migration pass (including **2.0.0** HTML defaults and **2.1.0** drug field cleanup when needed); this release adds no new document transforms.
+
+- **World migration version** is **`2.2.1`**. Worlds older than that still run the usual migration pass (including **2.0.0** HTML defaults and **2.1.0** drug field cleanup when needed); this release adds no new document transforms.
 
 ### Fixed
-* **Item sheet — Description tab (weapon, armor, explosive):** The rich text editor (`<prose-mirror>`) could appear missing because the active tab used `display: block` while the editor is laid out as a flex item; the description tab is now a **flex column** with a **minimum height** so the editor stays visible and usable.
+
+- **Item sheet — Description tab (weapon, armor, explosive):** The rich text editor (`<prose-mirror>`) could appear missing because the active tab used `display: block` while the editor is laid out as a flex item; the description tab is now a **flex column** with a **minimum height** so the editor stays visible and usable.
 
 ## [2.2.0] - 2026-04-04
 
 ### Added
-* **Combat loadout — roll damage:** On the **Combat** tab, each weapon and explosive row has a **blood drop** control to roll **weapon damage** without using the attack chat card first. The result uses the same damage chat card as the attack flow (minimum damage, AD, apply to target/selected). The formula includes **melee STR damage steps**, **loaded magazine ammo modifiers** (when applicable), and **powersuit AD** rules where relevant; current **targeted tokens** are passed for the apply buttons.
-* **Combat loadout — column headers:** **Weapons** lists **Item**, **Damage**, and **Ammo / Qty** above the stat columns; **Armor** lists **Item**, **PV**, and **Resistance**.
+
+- **Combat loadout — roll damage:** On the **Combat** tab, each weapon and explosive row has a **blood drop** control to roll **weapon damage** without using the attack chat card first. The result uses the same damage chat card as the attack flow (minimum damage, AD, apply to target/selected). The formula includes **melee STR damage steps**, **loaded magazine ammo modifiers** (when applicable), and **powersuit AD** rules where relevant; current **targeted tokens** are passed for the apply buttons.
+- **Combat loadout — column headers:** **Weapons** lists **Item**, **Damage**, and **Ammo / Qty** above the stat columns; **Armor** lists **Item**, **PV**, and **Resistance**.
 
 ### Changed
-* **Combat loadout layout:** **Weapons** and **armor** rows use a shared **CSS grid** so **damage** aligns with **PV**, and **ammo / quantity** aligns with **resistance**. Action icons use a **fixed four-slot** strip so **attack**, **damage roll**, **reload** (when shown), and **equip** line up across rows.
-* **Combat loadout — reload:** **Load / reload** is shown only for **ranged** weapons (`attackType === "ranged"`), never for melee or unarmed-style entries, even if the skill field would otherwise mark the item reloadable.
-* **Damage rolls:** Chat and sheet both use **`SLAChat.executeStandardDamageRoll`**, which evaluates rolls with **`actor` / item roll data** so `@`-style formula data resolves consistently.
-* **World migration version** is **`2.2.0`**. Worlds older than that still run the usual migration pass (including **2.0.0** HTML defaults and **2.1.0** drug field cleanup when needed); this release adds no new document transforms.
+
+- **Combat loadout layout:** **Weapons** and **armor** rows use a shared **CSS grid** so **damage** aligns with **PV**, and **ammo / quantity** aligns with **resistance**. Action icons use a **fixed four-slot** strip so **attack**, **damage roll**, **reload** (when shown), and **equip** line up across rows.
+- **Combat loadout — reload:** **Load / reload** is shown only for **ranged** weapons (`attackType === "ranged"`), never for melee or unarmed-style entries, even if the skill field would otherwise mark the item reloadable.
+- **Damage rolls:** Chat and sheet both use **`SLAChat.executeStandardDamageRoll`**, which evaluates rolls with **`actor` / item roll data** so `@`-style formula data resolves consistently.
+- **World migration version** is **`2.2.0`**. Worlds older than that still run the usual migration pass (including **2.0.0** HTML defaults and **2.1.0** drug field cleanup when needed); this release adds no new document transforms.
 
 ## [2.1.0] - 2026-04-03
 
 ### Added
-* **Toxicant** item type: **infection rating**, **vector**, **progression**, **treatment**, **treatment rating**, and description. Characters track toxicants under **Bio & Traits → Infections** with an **infection test** action (Success Die + STR vs infection rating, chat card via `toxicant-infection` template). On success, the actor is **immune for the current encounter scope** (active **combat** id when a fight is running, otherwise the **current scene**); on failure, **embedded Active Effects** on the toxicant transfer to the actor.
-* **Effects** tab on **operative and threat** actor sheets to manage **Active Effects** during play.
-* **Drug** and **toxicant** item sheets use a **Details** + **Effects** tab layout so **embedded Active Effects** can be authored on the item (for syringe / toggle-active drugs and for infection outcomes).
-* **Hotbar / `rollOwnedItem`:** Actor-owned **toxicant** items run the **infection test** the same way as the sheet control.
+
+- **Toxicant** item type: **infection rating**, **vector**, **progression**, **treatment**, **treatment rating**, and description. Characters track toxicants under **Bio & Traits → Infections** with an **infection test** action (Success Die + STR vs infection rating, chat card via `toxicant-infection` template). On success, the actor is **immune for the current encounter scope** (active **combat** id when a fight is running, otherwise the **current scene**); on failure, **embedded Active Effects** on the toxicant transfer to the actor.
+- **Effects** tab on **operative and threat** actor sheets to manage **Active Effects** during play.
+- **Drug** and **toxicant** item sheets use a **Details** + **Effects** tab layout so **embedded Active Effects** can be authored on the item (for syringe / toggle-active drugs and for infection outcomes).
+- **Hotbar / `rollOwnedItem`:** Actor-owned **toxicant** items run the **infection test** the same way as the sheet control.
 
 ### Changed
-* **Combat drugs:** Removed built-in Mod 1 / Mod 2 (**`system.mods`**) and **damage reduction while active** (**`system.damageReduction`**) from the drug schema and UI. Stat changes and DR must be modeled with **embedded Active Effects**; **toggle active** and syringe use still apply or remove those effects on the actor.
-* **World migration `2.1.0`:** When `systemMigrationVersion` is older than the bundled version, **`migrateTo210`** strips `system.mods` and `system.damageReduction` from existing **drug** items (world items and actor-embedded items) using persisted `_source` so legacy keys are cleared after the schema change.
+
+- **Combat drugs:** Removed built-in Mod 1 / Mod 2 (**`system.mods`**) and **damage reduction while active** (**`system.damageReduction`**) from the drug schema and UI. Stat changes and DR must be modeled with **embedded Active Effects**; **toggle active** and syringe use still apply or remove those effects on the actor.
+- **World migration `2.1.0`:** When `systemMigrationVersion` is older than the bundled version, **`migrateTo210`** strips `system.mods` and `system.damageReduction` from existing **drug** items (world items and actor-embedded items) using persisted `_source` so legacy keys are cleared after the schema change.
 
 ## [2.0.1] - 2026-04-02
 
 ### Changed
-* Updated system and package metadata version to `2.0.1`.
+
+- Updated system and package metadata version to `2.0.1`.
 
 ### Fixed
-* **Item sheet remove chips:** Species **granted skills**, weapon and explosive **required skill**, Ebb formula **discipline** link, and magazine **linked weapon** unlink controls now use **`<button type="button">`** instead of **`<a href="#">`**, with matching SCSS/CSS resets. Clicks on the × icon (including on the Font Awesome glyph) no longer trigger unwanted browser navigation (e.g. join page or a new tab).
+
+- **Item sheet remove chips:** Species **granted skills**, weapon and explosive **required skill**, Ebb formula **discipline** link, and magazine **linked weapon** unlink controls now use **`<button type="button">`** instead of **`<a href="#">`**, with matching SCSS/CSS resets. Clicks on the × icon (including on the Font Awesome glyph) no longer trigger unwanted browser navigation (e.g. join page or a new tab).
 
 ## [2.0.0] - 2026-04-01
 
 ### Added
-* Combat hook: combatants with the **Stunned** status effect have initiative clamped to the current lowest value in the encounter after initiative updates (active GM only), supporting the “lowest initiative” stunned rule.
-* **Hotbar macros for embedded actor items:** Drag an item from a character, threat, or vehicle sheet onto the macro bar (embedded UUID `Actor.*.Item.*`), or **right-click** any item row with **`data-item-id`** (inventory, combat loadout, ebb list, etc.) and choose **Add to hotbar** to use the first empty slot. The script macro calls **`game.sla.rollOwnedItem`** and matches sheet behavior: weapons and explosives open attack/throw dialogs, ebb formulas roll and spend flux, drugs consume a dose, other items open the item sheet.
-* **`game.sla` API** for macros and scripting: **`rollOwnedItem(itemUuid)`** and **`addActorItemToHotbar(item)`**.
-* **`SlaActorSheet.triggerItemRoll`** (and **`_useDrugItem`**) centralize item actions shared by the sheet and hotbar helpers.
-* **Skill hotbar behavior:** Macros created from actor-owned **Skill** items now execute the same skill roll flow as clicking the skill’s roll control on the sheet, instead of opening the item sheet.
-* **World migration `2.0.0`:** **`migrateTo200`** runs when **`systemMigrationVersion`** is older than the bundled version — sets missing HTML fields to empty strings on actors (**biography**, **appearance**, **notes** where applicable) and on items (**system.description**) so ProseMirror-backed Application V2 sheets bind and save reliably.
-* **Portrait / header image picker:** Clicking **`data-edit="img"`** on operative portrait, threat logo, vehicle portrait, or item header art opens Foundry’s **FilePicker**; pointer cursor on those elements in CSS.
+
+- Combat hook: combatants with the **Stunned** status effect have initiative clamped to the current lowest value in the encounter after initiative updates (active GM only), supporting the “lowest initiative” stunned rule.
+- **Hotbar macros for embedded actor items:** Drag an item from a character, threat, or vehicle sheet onto the macro bar (embedded UUID `Actor.*.Item.*`), or **right-click** any item row with **`data-item-id`** (inventory, combat loadout, ebb list, etc.) and choose **Add to hotbar** to use the first empty slot. The script macro calls **`game.sla.rollOwnedItem`** and matches sheet behavior: weapons and explosives open attack/throw dialogs, ebb formulas roll and spend flux, drugs consume a dose, other items open the item sheet.
+- **`game.sla` API** for macros and scripting: **`rollOwnedItem(itemUuid)`** and **`addActorItemToHotbar(item)`**.
+- **`SlaActorSheet.triggerItemRoll`** (and **`_useDrugItem`**) centralize item actions shared by the sheet and hotbar helpers.
+- **Skill hotbar behavior:** Macros created from actor-owned **Skill** items now execute the same skill roll flow as clicking the skill’s roll control on the sheet, instead of opening the item sheet.
+- **World migration `2.0.0`:** **`migrateTo200`** runs when **`systemMigrationVersion`** is older than the bundled version — sets missing HTML fields to empty strings on actors (**biography**, **appearance**, **notes** where applicable) and on items (**system.description**) so ProseMirror-backed Application V2 sheets bind and save reliably.
+- **Portrait / header image picker:** Clicking **`data-edit="img"`** on operative portrait, threat logo, vehicle portrait, or item header art opens Foundry’s **FilePicker**; pointer cursor on those elements in CSS.
 
 ### Changed
-* Migrated document sheets and custom windows to **Foundry Application V2** (`ApplicationV2` + `HandlebarsApplicationMixin`) for Foundry v13 compatibility and alignment with the current application API.
-* **Actor sheets** (operative, threat/NPC, vehicle): `ActorSheetV2` with `static PARTS`, `static TABS`, `DEFAULT_OPTIONS`, async `_prepareContext`, and `_onRender` using native DOM and delegated events instead of `activateListeners` and jQuery. New templates `actor-sheet-v2.hbs`, `actor-npc-sheet-v2.hbs`, and `actor-vehicle-sheet-v2.hbs` (root `div` inside the sheet form; tab nav uses `_prepareTabs` / `data-group` / `data-tab`).
-* **Item sheet**: `ItemSheetV2` with `PARTS`, `_prepareContext`, `actions` for unlink/remove controls, drop zones bound in `_onRender` with `AbortController`, and `item-sheet-v2.hbs`. Item partials updated with `data-action` on link controls. Drop helpers use a unified `DataTransfer` resolver for native and legacy events.
-* **Luck dialog**: `ApplicationV2` + mixin; template actions `rerollSd`, `addMod`, `rerollSkill`; outer markup adjusted for V2.
-* **XP dialog**: `ApplicationV2` + mixin; context from `_prepareContext`; footer buttons `xpCommit` / `xpCancel`; player/GM interactions wired in `_onRender` without jQuery; `xp-dialog.hbs` outer wrapper changed from `form` to `div`.
-* **Inline modals** (magazine reload picker, weapon attack, explosive throw, and item `roll()`): `SlaSimpleContentDialog` (`simple-content-dialog.hbs`) replaces `new Dialog(...)`.
-* Template preload list extended for the new sheet and dialog templates.
+
+- Migrated document sheets and custom windows to **Foundry Application V2** (`ApplicationV2` + `HandlebarsApplicationMixin`) for Foundry v13 compatibility and alignment with the current application API.
+- **Actor sheets** (operative, threat/NPC, vehicle): `ActorSheetV2` with `static PARTS`, `static TABS`, `DEFAULT_OPTIONS`, async `_prepareContext`, and `_onRender` using native DOM and delegated events instead of `activateListeners` and jQuery. New templates `actor-sheet-v2.hbs`, `actor-npc-sheet-v2.hbs`, and `actor-vehicle-sheet-v2.hbs` (root `div` inside the sheet form; tab nav uses `_prepareTabs` / `data-group` / `data-tab`).
+- **Item sheet**: `ItemSheetV2` with `PARTS`, `_prepareContext`, `actions` for unlink/remove controls, drop zones bound in `_onRender` with `AbortController`, and `item-sheet-v2.hbs`. Item partials updated with `data-action` on link controls. Drop helpers use a unified `DataTransfer` resolver for native and legacy events.
+- **Luck dialog**: `ApplicationV2` + mixin; template actions `rerollSd`, `addMod`, `rerollSkill`; outer markup adjusted for V2.
+- **XP dialog**: `ApplicationV2` + mixin; context from `_prepareContext`; footer buttons `xpCommit` / `xpCancel`; player/GM interactions wired in `_onRender` without jQuery; `xp-dialog.hbs` outer wrapper changed from `form` to `div`.
+- **Inline modals** (magazine reload picker, weapon attack, explosive throw, and item `roll()`): `SlaSimpleContentDialog` (`simple-content-dialog.hbs`) replaces `new Dialog(...)`.
+- Template preload list extended for the new sheet and dialog templates.
 
 ### Fixed
-* **Application V2 rich text:** Replaced legacy `{{editor}}` blocks with Foundry’s **`<prose-mirror>`** custom element on operative **Notes** (Bio & Traits), threat/vehicle **Notes**, and item **Description** tabs — the V2 sheet framework does not wire the old editor toggle ([Foundry #12989](https://github.com/foundryvtt/foundryvtt/issues/12989)). Added layout/CSS so the edit control stays compact instead of stretching full width.
-* **ProseMirror saves:** Actor and item V2 sheets now use **`tag: "form"`** with **`form.submitOnChange: true`** so `<prose-mirror>` values are included in document updates; without a top-level form, edits could stay in the UI but not persist, so the collapsed notes view showed stale `enriched` HTML.
-* **Item sheet:** The main template part sets **`root: true`** so the item body renders as children of that top-level `<form>`; without it, description `<prose-mirror>` could sit outside the form and never submit to the Item document.
-* **Item description:** `SlaItemSheet` persists `<prose-mirror name="system.description">` on **`save` / `close` / `change`**, reads **`this.form`** when present (vs only `this.element`), defers binding with **`queueMicrotask`**, and on **`_preClose`** calls **`save()`** when **`isDirty()`** so closing the window still flushes text Item V2 form handling often misses.
-* **Actor sheet (V2):** Delegated `change` handler now resolves **wound checkboxes** and **inline quantity edits** via `event.target.closest(...)` instead of `event.currentTarget` (the sheet root), so wound ticks persist, trigger bleeding/stun/immobile logic, and no longer appear to clear when toggling status icons after a re-render.
-* **Wounds / death:** Six marked wounds force **Hit Points to 0** and ensure the **dead** status when needed; **dead** from HP updates now also applies when wound count is 6 even if HP is above zero.
-* **Bleeding:** Matches wound rules — re-applies after manual condition toggles; **Frother** species suppresses automatic **Bleeding** only while exactly **one** wound is marked (two or more behave normally).
-* **Critical** condition in derived data now uses **half of projected max HP** (species base + current STR total), matching the critical Active Effect threshold, instead of a flat HP &lt; 6 check.
-* **Movement:** **Stunned** characters cap **rushing** to **closing**, same as **critical**, per the movement restriction for stunned operatives.
-* **Hotbar context menu (v13):** Item row menu uses **`ContextMenu`** with **`jQuery: false`** and a **`callback`** menu entry (not `onClick` alone) so core does not throw when activating **Add to hotbar**.
-* **Hotbar macro delegate:** Sheet classes are loaded with **dynamic `import()`** to avoid a circular dependency (`actor-sheet` → `sla-hotbar` → `actor-npc-sheet` → `actor-sheet`). The off-screen delegate uses **`Object.defineProperties`** for **`actor`** and **`document`** because **`ActorSheetV2`** defines those as read-only getters on the prototype.
-* **Context menu teardown:** Actor-sheet close now disposes the item context menu with animation disabled and awaited cleanup, preventing `getBoundingClientRect` errors when a menu target is detached during window close.
-* **Context menu text:** Hotbar menu entry key and displayed label now both read **`add to hotbar`** to avoid inconsistent UI text on Foundry v13 menu paths.
-* **Actor-sheet header controls:** `_getHeaderControls()` now filters by action/context (`configureToken` and `showTokenArtwork` only with token context) and deduplicates by `action + label`, removing duplicate menu entries and preventing null-sheet token configuration errors.
-* **Legacy confirm dialogs:** Species/package removal and item delete confirmations on actor sheets now use `SlaSimpleContentDialog` instead of `Dialog.confirm`, removing remaining V1 application warnings from those actions.
+
+- **Application V2 rich text:** Replaced legacy `{{editor}}` blocks with Foundry’s **`<prose-mirror>`** custom element on operative **Notes** (Bio & Traits), threat/vehicle **Notes**, and item **Description** tabs — the V2 sheet framework does not wire the old editor toggle ([Foundry #12989](https://github.com/foundryvtt/foundryvtt/issues/12989)). Added layout/CSS so the edit control stays compact instead of stretching full width.
+- **ProseMirror saves:** Actor and item V2 sheets now use **`tag: "form"`** with **`form.submitOnChange: true`** so `<prose-mirror>` values are included in document updates; without a top-level form, edits could stay in the UI but not persist, so the collapsed notes view showed stale `enriched` HTML.
+- **Item sheet:** The main template part sets **`root: true`** so the item body renders as children of that top-level `<form>`; without it, description `<prose-mirror>` could sit outside the form and never submit to the Item document.
+- **Item description:** `SlaItemSheet` persists `<prose-mirror name="system.description">` on **`save` / `close` / `change`**, reads **`this.form`** when present (vs only `this.element`), defers binding with **`queueMicrotask`**, and on **`_preClose`** calls **`save()`** when **`isDirty()`** so closing the window still flushes text Item V2 form handling often misses.
+- **Actor sheet (V2):** Delegated `change` handler now resolves **wound checkboxes** and **inline quantity edits** via `event.target.closest(...)` instead of `event.currentTarget` (the sheet root), so wound ticks persist, trigger bleeding/stun/immobile logic, and no longer appear to clear when toggling status icons after a re-render.
+- **Wounds / death:** Six marked wounds force **Hit Points to 0** and ensure the **dead** status when needed; **dead** from HP updates now also applies when wound count is 6 even if HP is above zero.
+- **Bleeding:** Matches wound rules — re-applies after manual condition toggles; **Frother** species suppresses automatic **Bleeding** only while exactly **one** wound is marked (two or more behave normally).
+- **Critical** condition in derived data now uses **half of projected max HP** (species base + current STR total), matching the critical Active Effect threshold, instead of a flat HP &lt; 6 check.
+- **Movement:** **Stunned** characters cap **rushing** to **closing**, same as **critical**, per the movement restriction for stunned operatives.
+- **Hotbar context menu (v13):** Item row menu uses **`ContextMenu`** with **`jQuery: false`** and a **`callback`** menu entry (not `onClick` alone) so core does not throw when activating **Add to hotbar**.
+- **Hotbar macro delegate:** Sheet classes are loaded with **dynamic `import()`** to avoid a circular dependency (`actor-sheet` → `sla-hotbar` → `actor-npc-sheet` → `actor-sheet`). The off-screen delegate uses **`Object.defineProperties`** for **`actor`** and **`document`** because **`ActorSheetV2`** defines those as read-only getters on the prototype.
+- **Context menu teardown:** Actor-sheet close now disposes the item context menu with animation disabled and awaited cleanup, preventing `getBoundingClientRect` errors when a menu target is detached during window close.
+- **Context menu text:** Hotbar menu entry key and displayed label now both read **`add to hotbar`** to avoid inconsistent UI text on Foundry v13 menu paths.
+- **Actor-sheet header controls:** `_getHeaderControls()` now filters by action/context (`configureToken` and `showTokenArtwork` only with token context) and deduplicates by `action + label`, removing duplicate menu entries and preventing null-sheet token configuration errors.
+- **Legacy confirm dialogs:** Species/package removal and item delete confirmations on actor sheets now use `SlaSimpleContentDialog` instead of `Dialog.confirm`, removing remaining V1 application warnings from those actions.
 
 ### Notes
-* Core **unregister** for default sheets still references `foundry.appv1.sheets.ActorSheet` / `ItemSheet` because core defaults remain V1.
+
+- Core **unregister** for default sheets still references `foundry.appv1.sheets.ActorSheet` / `ItemSheet` because core defaults remain V1.
 
 ## [1.3.2] - 2026-04-01
 
 ### Changed
-* Updated system and package metadata version to `1.3.2`.
+
+- Updated system and package metadata version to `1.3.2`.
 
 ### Fixed
-* Prevented duplicate `Punch/Kick` natural weapons when character or threat actors are imported from or exported to compendiums by enforcing a single-instance guard during actor pre-create (issue 210).
-* Updated natural weapon migration cleanup to remove duplicate `Punch/Kick` entries on existing character and threat actors while still ensuring one valid instance remains.
-* Fixed chat damage button labels to display resolved non-dice damage values and clamp negative resolved display values to `0`.
+
+- Prevented duplicate `Punch/Kick` natural weapons when character or threat actors are imported from or exported to compendiums by enforcing a single-instance guard during actor pre-create (issue 210).
+- Updated natural weapon migration cleanup to remove duplicate `Punch/Kick` entries on existing character and threat actors while still ensuring one valid instance remains.
+- Fixed chat damage button labels to display resolved non-dice damage values and clamp negative resolved display values to `0`.
 
 ## [1.3.1] - 2026-04-01
 
 ### Changed
-* Updated system and package metadata version to `1.3.1`.
+
+- Updated system and package metadata version to `1.3.1`.
 
 ## [1.3.0] - 2026-04-01
 
 ### Added
-* Explosive throws now respect wall collisions on the initial throw path; when blocked, the impact point is clamped to the first wall hit.
-* Explosive deviation now respects wall collisions and cannot cross blocking walls when determining detonation position.
-* Added user notifications when a projectile path is interrupted by a wall during the throw or deviation step.
+
+- Explosive throws now respect wall collisions on the initial throw path; when blocked, the impact point is clamped to the first wall hit.
+- Explosive deviation now respects wall collisions and cannot cross blocking walls when determining detonation position.
+- Added user notifications when a projectile path is interrupted by a wall during the throw or deviation step.
 
 ### Changed
-* Updated system and package metadata version to `1.3.0`.
+
+- Updated system and package metadata version to `1.3.0`.
 
 ## [1.2.1] - 2026-03-31
 
 ### Changed
-* Updated system and package metadata version to `1.2.1`.
-* Refactored actor roll handling for readability and maintainability in `module/sheets/actor-sheet.mjs`:
-  * Weapon roll flow split into focused helpers for eligibility, setup, MOS, damage, ROF rerolls, and chat payload assembly.
-  * Explosive roll flow split into focused helpers for form parsing, context setup, deviation resolution, template placement, and chat payload assembly.
-  * Ebb roll flow split into focused helpers for discipline resolution, modifier/roll setup, outcome text, damage mapping, and chat payload assembly.
-* Introduced shared actor-sheet helper methods to reduce duplication:
-  * Shared skill-dice result shaping across weapon, explosive, and ebb rolls.
-  * Shared success-die outcome and success-through-experience evaluation.
-  * Shared `flags.sla` roll payload base builder.
-* Refactored item preparation for performance and clarity in `module/helpers/items.mjs`:
-  * Reworked `prepareItems` into focused internal helpers.
-  * Replaced discipline/formula nesting scans with map-based lookup.
-  * Reduced render-path allocations and avoided no-op sort work.
-  * Preserved template-facing output contracts.
-* Refactored chat damage application in `module/helpers/chat.mjs` to centralize duplicated victim/armor/HP/report logic while preserving behavior.
-* Refactored actor drop-item workflow into focused handlers for species/package/auto-equip flows while preserving existing side effects and notifications.
+
+- Updated system and package metadata version to `1.2.1`.
+- Refactored actor roll handling for readability and maintainability in `module/sheets/actor-sheet.mjs`:
+    - Weapon roll flow split into focused helpers for eligibility, setup, MOS, damage, ROF rerolls, and chat payload assembly.
+    - Explosive roll flow split into focused helpers for form parsing, context setup, deviation resolution, template placement, and chat payload assembly.
+    - Ebb roll flow split into focused helpers for discipline resolution, modifier/roll setup, outcome text, damage mapping, and chat payload assembly.
+- Introduced shared actor-sheet helper methods to reduce duplication:
+    - Shared skill-dice result shaping across weapon, explosive, and ebb rolls.
+    - Shared success-die outcome and success-through-experience evaluation.
+    - Shared `flags.sla` roll payload base builder.
+- Refactored item preparation for performance and clarity in `module/helpers/items.mjs`:
+    - Reworked `prepareItems` into focused internal helpers.
+    - Replaced discipline/formula nesting scans with map-based lookup.
+    - Reduced render-path allocations and avoided no-op sort work.
+    - Preserved template-facing output contracts.
+- Refactored chat damage application in `module/helpers/chat.mjs` to centralize duplicated victim/armor/HP/report logic while preserving behavior.
+- Refactored actor drop-item workflow into focused handlers for species/package/auto-equip flows while preserving existing side effects and notifications.
 
 ## [1.2.0] - 2026-03-31
 
 ### Added
-* Powersuit content pack entries: `Powersuit`, `Dustman Modular System, Sluggish`, `Kanner Valiant IV`, and `Mechanised Punch`.
-* New powersuit automation fields on items and item sheets:
-  * Armor: `Is Powersuit`, `DEX Cap`, `Init Bonus`.
-  * Weapon: `Powersuit Attack Rules`, `Attack Penalty`, and `AD = STR - X`.
-* New `Vehicle` actor type with dedicated schema, localization, registration, and actor sheet UI.
-* New Vehicles compendium entries for `Growler` and `Darknight Venture`.
-* Vehicle sheet weapons section with drag-and-drop weapon equipping.
+
+- Powersuit content pack entries: `Powersuit`, `Dustman Modular System, Sluggish`, `Kanner Valiant IV`, and `Mechanised Punch`.
+- New powersuit automation fields on items and item sheets:
+    - Armor: `Is Powersuit`, `DEX Cap`, `Init Bonus`.
+    - Weapon: `Powersuit Attack Rules`, `Attack Penalty`, and `AD = STR - X`.
+- New `Vehicle` actor type with dedicated schema, localization, registration, and actor sheet UI.
+- New Vehicles compendium entries for `Growler` and `Darknight Venture`.
+- Vehicle sheet weapons section with drag-and-drop weapon equipping.
 
 ### Changed
-* Updated system and package metadata version to `1.2.0`.
-* Powersuit rules are now handled directly by derived/roll logic:
-  * Active powersuits replace STR with suit STR.
-  * Active powersuits enforce DEX caps and initiative bonuses.
-  * Mechanised Punch applies built-in attack penalty and dynamic AD from STR.
-* Powersuit entries and examples now explicitly use no required piloting skill.
-* Vehicles are implemented as actors (targetable with HP and movement) instead of item documents.
-* Vehicle movement ruler is now green up to vehicle move, then red beyond that.
+
+- Updated system and package metadata version to `1.2.0`.
+- Powersuit rules are now handled directly by derived/roll logic:
+    - Active powersuits replace STR with suit STR.
+    - Active powersuits enforce DEX caps and initiative bonuses.
+    - Mechanised Punch applies built-in attack penalty and dynamic AD from STR.
+- Powersuit entries and examples now explicitly use no required piloting skill.
+- Vehicles are implemented as actors (targetable with HP and movement) instead of item documents.
+- Vehicle movement ruler is now green up to vehicle move, then red beyond that.
 
 ### Fixed
-* Vehicle sheet and token tracking expose HP, Armor/Resistance, and Move as first-class actor data.
+
+- Vehicle sheet and token tracking expose HP, Armor/Resistance, and Move as first-class actor data.
 
 ## [1.1.0] - 2026-03-30
 
 ### Added
-* Operative (character) weapon attack rolls require the weapon to be equipped; attempting an attack while it is stowed shows a random in-character reminder instead of opening the attack dialog (issue 212). Threat (NPC) sheets are unchanged.
+
+- Operative (character) weapon attack rolls require the weapon to be equipped; attempting an attack while it is stowed shows a random in-character reminder instead of opening the attack dialog (issue 212). Threat (NPC) sheets are unchanged.
 
 ### Changed
-* Updated system version to `1.1.0`.
+
+- Updated system version to `1.1.0`.
 
 ## [1.0.4] - 2026-03-30
 
 ### Changed
-* Updated system version to `1.0.4`.
+
+- Updated system version to `1.0.4`.
 
 ### Fixed
-* Actor sheet portrait fills the center column again: scoped shared header image rules so they no longer shrink nested portraits to 100×100px (issue 214).
+
+- Actor sheet portrait fills the center column again: scoped shared header image rules so they no longer shrink nested portraits to 100×100px (issue 214).
 
 ## [1.0.3] - 2026-03-30
 
 ### Changed
-* Updated system version to `1.0.3`.
+
+- Updated system version to `1.0.3`.
 
 ### Fixed
-* Improved Threat sheet Notes editor toolbar contrast so controls are visible in the light Notes panel.
-* Fixed Threat sheet Notes persistence by binding the editor to `system.notes` and adding NPC HTML fields used by the editor.
+
+- Improved Threat sheet Notes editor toolbar contrast so controls are visible in the light Notes panel.
+- Fixed Threat sheet Notes persistence by binding the editor to `system.notes` and adding NPC HTML fields used by the editor.
 
 ## [1.0.2] - 2026-03-30
 
 ### Fixed
-* Fixed Threat sheet armor resistance value inputs being too light grey to read (issue 211).
+
+- Fixed Threat sheet armor resistance value inputs being too light grey to read (issue 211).
 
 ## [1.0.1] - 2026-01-16
 
 ### Changed
-* Updated system metadata for the `1.0.1` release in `system.json`, including the release download URL.
-* Refined dialog and chat styling in SCSS to improve UI consistency and readability.
-* Renamed project display metadata to align with SLA Industries naming.
+
+- Updated system metadata for the `1.0.1` release in `system.json`, including the release download URL.
+- Refined dialog and chat styling in SCSS to improve UI consistency and readability.
+- Renamed project display metadata to align with SLA Industries naming.
 
 ### Removed
-* Removed obsolete files as part of release cleanup.
+
+- Removed obsolete files as part of release cleanup.
 
 ## [1.0.0] - 2026-01-13
 
 ### Changed
-* Updated system version and release download URL in `system.json` for the `1.0.0` release.
+
+- Updated system version and release download URL in `system.json` for the `1.0.0` release.
 
 ### Removed
-* Removed the outdated `packages.db` file from the project.
+
+- Removed the outdated `packages.db` file from the project.
 
 ## [0.24.0]
 
 ### Added
-* Optional long range feature setting to toggle long range penalties.
-* Optional target-required feature setting to allow attacks without selecting a target.
-* Optional automatic ammo consumption setting.
-* Optional low ammo validation setting.
-* Optional automatic wound penalties setting.
-* Optional NPC wound tracking setting, including NPC sheet visibility behavior.
+
+- Optional long range feature setting to toggle long range penalties.
+- Optional target-required feature setting to allow attacks without selecting a target.
+- Optional automatic ammo consumption setting.
+- Optional low ammo validation setting.
+- Optional automatic wound penalties setting.
+- Optional NPC wound tracking setting, including NPC sheet visibility behavior.
 
 ## [0.20.1]
 
 ### Fixed
-* Melee weapon roll calculations now use STR instead of always using DEX.
-* Double-application of Combat Defense and Acrobatic Defense penalties in melee attacks.
+
+- Melee weapon roll calculations now use STR instead of always using DEX.
+- Double-application of Combat Defense and Acrobatic Defense penalties in melee attacks.
 
 ## [0.20.0]
 
 ### Added
-* Clickable Species, Package, and Skills headers on actor sheets for direct Compendium navigation.
+
+- Clickable Species, Package, and Skills headers on actor sheets for direct Compendium navigation.
 
 ### Fixed
-* Migration version synchronization.
+
+- Migration version synchronization.
 
 ## [0.19.2]
 
 ### Added
-* GM-visible Skill Check chat card buttons to adjust TN after rolls.
-* Quick-roll "bolt" icon for Ebb Formulas on actor sheets.
+
+- GM-visible Skill Check chat card buttons to adjust TN after rolls.
+- Quick-roll "bolt" icon for Ebb Formulas on actor sheets.
 
 ### Changed
-* Button styling and hover behavior for target number adjustment controls.
-* Default global target number changed from `11` to `10`.
-* Roll UI logic now restricts tactical/difficulty controls to appropriate roll types.
+
+- Button styling and hover behavior for target number adjustment controls.
+- Default global target number changed from `11` to `10`.
+- Roll UI logic now restricts tactical/difficulty controls to appropriate roll types.
 
 ### Fixed
-* Ebb modifier string concatenation issue in Ebb rolls.
-* Ebb formula nesting under Disciplines.
-* Combat defense modifier application in the Melee Attack Dialog.
-* Migration version synchronization.
+
+- Ebb modifier string concatenation issue in Ebb rolls.
+- Ebb formula nesting under Disciplines.
+- Combat defense modifier application in the Melee Attack Dialog.
+- Migration version synchronization.
 
 ## [0.19.0]
 
 ### Added
-* Functional melee defense inputs for Target Combat Defense, Acrobatic Defense, and Prone status.
-* GM-visible post-roll Target Number adjustment buttons for Weapon/Skill chat cards.
+
+- Functional melee defense inputs for Target Combat Defense, Acrobatic Defense, and Prone status.
+- GM-visible post-roll Target Number adjustment buttons for Weapon/Skill chat cards.
 
 ### Fixed
-* System-wide target number corrected from `11` to `10`.
+
+- System-wide target number corrected from `11` to `10`.
 
 ## [0.14.2]
 
 ### Added
-* Calculated weapon damage display on Threat sheets, matching Character sheet behavior.
-* Automatic startup migration for legacy natural weapons.
+
+- Calculated weapon damage display on Threat sheets, matching Character sheet behavior.
+- Automatic startup migration for legacy natural weapons.
 
 ## [0.14.1]
 
 ### Added
-* Automatic minimum damage enforcement for weapon rolls.
-* Calculated combat loadout damage display instead of raw formulas.
-* Migration for legacy natural weapon formulas (`1d10` to STR-based formulas).
+
+- Automatic minimum damage enforcement for weapon rolls.
+- Calculated combat loadout damage display instead of raw formulas.
+- Migration for legacy natural weapon formulas (`1d10` to STR-based formulas).
 
 ## [0.14.0]
 
 ### Added
-* Quick Start Gear compendium pack.
-* World item sync mechanism for SLA Species folder data consistency.
+
+- Quick Start Gear compendium pack.
+- World item sync mechanism for SLA Species folder data consistency.
 
 ### Changed
-* Ebb Disciplines configuration updated to match the official discipline list.
+
+- Ebb Disciplines configuration updated to match the official discipline list.
 
 ### Removed
-* Legacy `speciesStats` and `species` helper lists from `config.mjs`.
+
+- Legacy `speciesStats` and `species` helper lists from `config.mjs`.
 
 ### Fixed
-* Syntax error in `config.mjs` blocking character sheets.
-* Missing Human species item creation.
-* Syntax error in `actor.mjs` caused by a missing brace.
-* `.gitignore` handling for local LevelDB cache folders in `packs/`.
+
+- Syntax error in `config.mjs` blocking character sheets.
+- Missing Human species item creation.
+- Syntax error in `actor.mjs` caused by a missing brace.
+- `.gitignore` handling for local LevelDB cache folders in `packs/`.
 
 ## [0.13.2-alpha]
 
 ### Fixed
-* Crash when applying encumbrance penalties to Threat actors missing required data structures.
-* Threat derived-stat calculation failure when `ratings` data was missing.
-* Threat sheet Armor PV display to show calculated effective value.
+
+- Crash when applying encumbrance penalties to Threat actors missing required data structures.
+- Threat derived-stat calculation failure when `ratings` data was missing.
+- Threat sheet Armor PV display to show calculated effective value.
 
 ## [0.13.1-alpha]
 
 ### Fixed
-* Unclickable firing mode "Enable" toggle in item sheets.
-* Threat PV derivation from equipped armor with degradation rules.
-* Threat movement speeds resetting to `0` on update.
+
+- Unclickable firing mode "Enable" toggle in item sheets.
+- Threat PV derivation from equipped armor with degradation rules.
+- Threat movement speeds resetting to `0` on update.
 
 ## [0.13.0-alpha]
 
 ### Added
-* Major in-universe item sheet theming (Catalogue, Textbook, Spectral, Dossier).
-* Dedicated visual identity for Threat sheets.
-* Streamlined single-view layouts for singular items.
-* Specialized grid layouts for Drugs and Ebb Formulas.
-* Reorganized powered armor and firing modes into dedicated lower panels.
-* Explosive refinement with dual-template support (Kill Zone and Max Blast) and auto-delete on empty quantity.
+
+- Major in-universe item sheet theming (Catalogue, Textbook, Spectral, Dossier).
+- Dedicated visual identity for Threat sheets.
+- Streamlined single-view layouts for singular items.
+- Specialized grid layouts for Drugs and Ebb Formulas.
+- Reorganized powered armor and firing modes into dedicated lower panels.
+- Explosive refinement with dual-template support (Kill Zone and Max Blast) and auto-delete on empty quantity.
 
 ## [0.12.0-alpha]
 
 ### Added
-* Full explosives system with grenade automation, deviation, and template placement.
-* Dedicated Explosive item type with blast radius, damage, AD, and cost fields.
-* Canvas target-point auto-aim for grenades.
-* Automatic deviation and fumble behavior for grenade throws.
-* Dual measured templates for kill and max blast zones.
-* Explosive quantity tracking in the Combat tab.
-* Auto-deletion of explosive items when quantity reaches zero.
+
+- Full explosives system with grenade automation, deviation, and template placement.
+- Dedicated Explosive item type with blast radius, damage, AD, and cost fields.
+- Canvas target-point auto-aim for grenades.
+- Automatic deviation and fumble behavior for grenade throws.
+- Dual measured templates for kill and max blast zones.
+- Explosive quantity tracking in the Combat tab.
+- Auto-deletion of explosive items when quantity reaches zero.
 
 ### Fixed
-* `Ray` global deprecation warning compatibility for Foundry V13+.
-* Range calculation failure when actor token resolution was incorrect.
+
+- `Ray` global deprecation warning compatibility for Foundry V13+.
+- Range calculation failure when actor token resolution was incorrect.
 
 ## [0.10.3-alpha]
 
 ### Added
-* Powered armor support with STR/DEX/Movement modifiers.
-* Powered armor dead weight rule when resistance is destroyed.
-* Automatic "Dead" overlay application/removal based on HP.
+
+- Powered armor support with STR/DEX/Movement modifiers.
+- Powered armor dead weight rule when resistance is destroyed.
+- Automatic "Dead" overlay application/removal based on HP.
 
 ### Changed
-* Armor Damage handling now applies AD reduction before PV is calculated.
+
+- Armor Damage handling now applies AD reduction before PV is calculated.
 
 ### Fixed
-* Migration added to initialize new armor fields for existing items.
+
+- Migration added to initialize new armor fields for existing items.
 
 ## [0.10.0-alpha]
 
 ### Added
-* Character and Threat sheet visual overhaul for improved contrast and readability.
-* Dossier theme styling for Species and Package item sheets.
-* Dark-theme chat styling for damage result cards.
+
+- Character and Threat sheet visual overhaul for improved contrast and readability.
+- Dossier theme styling for Species and Package item sheets.
+- Dark-theme chat styling for damage result cards.
 
 ### Fixed
-* Invisible ProseMirror editor controls on dark backgrounds.
-* Threat sheet notes minimum height behavior.
-* Missing CSS classes in item sheet template partials.
+
+- Invisible ProseMirror editor controls on dark backgrounds.
+- Threat sheet notes minimum height behavior.
+- Missing CSS classes in item sheet template partials.
 
 ## [0.9.3-alpha]
 
 ### Added
-* `SlaActorSheet` with expanded character management and roll tooling.
-* Wound and condition tracking with derived penalty automation.
-* SCSS-based styling system migration.
+
+- `SlaActorSheet` with expanded character management and roll tooling.
+- Wound and condition tracking with derived penalty automation.
+- SCSS-based styling system migration.
 
 ### Fixed
-* Deprecation warnings for `renderTemplate` and `Hooks.on("renderChatMessage")`.
-* Condition penalty behavior restoration.
-* Damage button failure after Luck usage.
+
+- Deprecation warnings for `renderTemplate` and `Hooks.on("renderChatMessage")`.
+- Condition penalty behavior restoration.
+- Damage button failure after Luck usage.
 
 ### Changed
-* Default stats initialization changed from `10` to `1`.
-* Formatting updates to `template.json`.
+
+- Default stats initialization changed from `10` to `1`.
+- Formatting updates to `template.json`.
 
 ## [0.8.3-alpha]
 
 ### Added
-* Luck dialog for rerolls and modifier application.
-* Initial character sheet styling.
+
+- Luck dialog for rerolls and modifier application.
+- Initial character sheet styling.
 
 ## [0.7.3-alpha]
 
 ### Added
-* Roll icons for Threat attributes and related roll entry points.
-* Weapon attack type support with migration logic.
+
+- Roll icons for Threat attributes and related roll entry points.
+- Weapon attack type support with migration logic.
 
 ### Fixed
-* Ammo handling bug.
+
+- Ammo handling bug.
 
 ## [0.4.4-alpha]
 
 ### Added
-* Reserved dice option in melee attack dialog.
-* Drug consumption feature and corresponding drug item field updates.
+
+- Reserved dice option in melee attack dialog.
+- Drug consumption feature and corresponding drug item field updates.
 
 ## [0.4.2-alpha]
 
 ### Added
-* Weapon reload logic and ammo type selector.
-* Threat sheet theme and NPC sheet layout improvements.
+
+- Weapon reload logic and ammo type selector.
+- Threat sheet theme and NPC sheet layout improvements.
 
 ## [0.3.1-alpha]
 
 ### Added
-* Ebb discipline linking.
-* Combat loadout refactor into partial templates.
-* Dark theme updates.
+
+- Ebb discipline linking.
+- Combat loadout refactor into partial templates.
+- Dark theme updates.
 
 ## [0.2.5-alpha]
 
 ### Added
-* Office Dossier theme for Species and Package items.
-* Combat fields for Ebb Formula item sheets.
+
+- Office Dossier theme for Species and Package items.
+- Combat fields for Ebb Formula item sheets.
 
 ## [0.2.3-alpha]
 
 ### Fixed
-* (#18) Ratings points issue.
+
+- (#18) Ratings points issue.
 
 ## [0.2.2-alpha]
 
 ### Fixed
-* (#13) Skill drops not working.
-* (#10) Roll dialog options/readability issues.
-* (#8) Damage modifier review and corrections.
+
+- (#13) Skill drops not working.
+- (#10) Roll dialog options/readability issues.
+- (#8) Damage modifier review and corrections.
 
 ## [0.1.0-alpha]
 
 ### Added
-* Droppable Species and Package items for initial character setup.
-* Initial attributes and skills assignment from dropped setup items.
-* Skill rank increment when granted by both Species and Package.
-* Hidden cost display for skills and non-gear items.
-* Skill maximum cap (rank 4).
-* Skill-drop areas for Species and Package items instead of plain text fields.
+
+- Droppable Species and Package items for initial character setup.
+- Initial attributes and skills assignment from dropped setup items.
+- Skill rank increment when granted by both Species and Package.
+- Hidden cost display for skills and non-gear items.
+- Skill maximum cap (rank 4).
+- Skill-drop areas for Species and Package items instead of plain text fields.
 
 ### Fixed
-* Ranged weapon attack modifier regression.
-* Stunned status toggle getting stuck.
-* Damage application targeting both selected token and target.
-* Degree of success display regression on weapon attacks.
+
+- Ranged weapon attack modifier regression.
+- Stunned status toggle getting stuck.
+- Damage application targeting both selected token and target.
+- Degree of success display regression on weapon attacks.
 
 [Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.5.4...HEAD
 [2.5.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.4

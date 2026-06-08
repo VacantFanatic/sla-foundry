@@ -1,27 +1,27 @@
 name: Foundry Website Update
 
 on:
-  release:
-    types:
-      - published
+    release:
+        types:
+            - published
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  update_foundry_website_post_release:
-    runs-on: ubuntu-latest
-    name: Foundry Website Update
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.event.release.tag_name }}
+    update_foundry_website_post_release:
+        runs-on: ubuntu-latest
+        name: Foundry Website Update
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  ref: ${{ github.event.release.tag_name }}
 
-      - name: Foundry Website Update
-        id: foundry-website-update
-        env:
-          FOUNDRY_PACKAGE_RELEASE_TOKEN: ${{ secrets.FOUNDRY_PACKAGE_RELEASE_TOKEN }}
-          FOUNDRY_DRY_RUN: "false"
-        run: node scripts/update-foundry-release.mjs
+            - name: Foundry Website Update
+              id: foundry-website-update
+              env:
+                  FOUNDRY_PACKAGE_RELEASE_TOKEN: ${{ secrets.FOUNDRY_PACKAGE_RELEASE_TOKEN }}
+                  FOUNDRY_DRY_RUN: 'false'
+              run: node scripts/update-foundry-release.mjs

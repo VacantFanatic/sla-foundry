@@ -1,17 +1,16 @@
-import { SlaSimpleContentDialog } from "../apps/sla-simple-dialog.mjs";
-import { createSLARoll } from "../helpers/dice.mjs";
+import { SlaSimpleContentDialog } from '../apps/sla-simple-dialog.mjs';
+import { createSLARoll } from '../helpers/dice.mjs';
 import {
     getSlaEncounterScopeId,
     isToxicantImmuneThisEncounter,
     setToxicantImmunityThisEncounter
-} from "../helpers/toxicant-scope.mjs";
+} from '../helpers/toxicant-scope.mjs';
 
 /**
  * Extend the basic Item with some very simple modifications.
  * @extends {Item}
  */
 export class BoilerplateItem extends Item {
-
     prepareDerivedData() {
         super.prepareDerivedData();
     }
@@ -39,14 +38,14 @@ export class BoilerplateItem extends Item {
         // 1. Initialize Base Stats (Change these property names to match your schema)
         let baseDamage = system.damage || 0;
         let baseAD = system.attackDice || 0; // Attack Dice
-        let modifiers = { damage: 0, ad: 0, pv: 0, name: "Standard" };
+        let modifiers = { damage: 0, ad: 0, pv: 0, name: 'Standard' };
 
         // 2. Find Loaded Magazine
         if (system.magazineId) {
             const magazine = actor.items.get(system.magazineId);
 
             if (magazine) {
-                const ammoType = magazine.system.ammoType || "standard";
+                const ammoType = magazine.system.ammoType || 'standard';
                 const configMods = CONFIG.SLA.ammoModifiers[ammoType];
 
                 if (configMods) {
@@ -61,19 +60,22 @@ export class BoilerplateItem extends Item {
         const finalDamage = baseDamage + modifiers.damage;
         const finalAD = baseAD + modifiers.ad;
 
-        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/roll-dialog.hbs", {
-            item: item,
-            stats: { damage: finalDamage, ad: finalAD },
-            ammoName: modifiers.name
-        });
+        const content = await foundry.applications.handlebars.renderTemplate(
+            'systems/sla-industries/templates/chat/roll-dialog.hbs',
+            {
+                item: item,
+                stats: { damage: finalDamage, ad: finalAD },
+                ammoName: modifiers.name
+            }
+        );
 
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             const dlg = new SlaSimpleContentDialog({
                 title: `${item.name}: Attack Roll`,
                 contentHtml: content,
                 width: 400,
-                classes: ["sla-dialog", "sla-sheet"],
-                actionLabel: "Roll",
+                classes: ['sla-dialog', 'sla-sheet'],
+                actionLabel: 'Roll',
                 onConfirm: () => {
                     const rollFormula = `${finalAD}d10 + @skills.guns.value`;
                     const roll = new Roll(rollFormula, actor.getRollData());
@@ -106,11 +108,11 @@ export class BoilerplateItem extends Item {
     _getDurationSeconds(str) {
         if (!str) return null;
         const s = String(str).toLowerCase();
-        const n = parseInt(s.match(/\d+/)?.[0] ?? "", 10);
+        const n = parseInt(s.match(/\d+/)?.[0] ?? '', 10);
         if (Number.isNaN(n)) return null;
-        if (s.includes("hour")) return n * 3600;
-        if (s.includes("min")) return n * 60;
-        if (s.includes("day")) return n * 86400;
+        if (s.includes('hour')) return n * 3600;
+        if (s.includes('min')) return n * 60;
+        if (s.includes('day')) return n * 86400;
         return null;
     }
 
@@ -120,8 +122,8 @@ export class BoilerplateItem extends Item {
      * @param {string} originUuid
      */
     async _removeEffectsByOrigin(actor, originUuid) {
-        const ids = actor.effects.filter(e => e.origin === originUuid).map(e => e.id);
-        if (ids.length) await actor.deleteEmbeddedDocuments("ActiveEffect", ids);
+        const ids = actor.effects.filter((e) => e.origin === originUuid).map((e) => e.id);
+        if (ids.length) await actor.deleteEmbeddedDocuments('ActiveEffect', ids);
     }
 
     /**
@@ -135,9 +137,8 @@ export class BoilerplateItem extends Item {
         const origin = this.uuid;
         await this._removeEffectsByOrigin(actor, origin);
 
-        const durationSeconds = opts.durationSeconds !== undefined
-            ? opts.durationSeconds
-            : this._getDurationSeconds(this.system.duration);
+        const durationSeconds =
+            opts.durationSeconds !== undefined ? opts.durationSeconds : this._getDurationSeconds(this.system.duration);
 
         if (this.effects?.size > 0) {
             const payloads = [];
@@ -151,7 +152,7 @@ export class BoilerplateItem extends Item {
                 }
                 payloads.push(data);
             }
-            if (payloads.length) await actor.createEmbeddedDocuments("ActiveEffect", payloads);
+            if (payloads.length) await actor.createEmbeddedDocuments('ActiveEffect', payloads);
         }
     }
 
@@ -160,7 +161,7 @@ export class BoilerplateItem extends Item {
      */
     async toggleActive() {
         const newState = !this.system.active;
-        await this.update({ "system.active": newState });
+        await this.update({ 'system.active': newState });
 
         if (!this.actor) return;
 
@@ -179,17 +180,17 @@ export class BoilerplateItem extends Item {
      * Infection test: Success Die + STR vs Infection Rating. On success, immunity for this encounter scope; on failure, apply embedded effects.
      */
     async rollInfectionTest() {
-        if (this.type !== "toxicant") return;
+        if (this.type !== 'toxicant') return;
         const actor = this.actor;
         if (!actor) {
-            ui.notifications.warn("Toxicant must be on an actor sheet to test infection.");
+            ui.notifications.warn('Toxicant must be on an actor sheet to test infection.');
             return;
         }
 
         const itemUuid = this.uuid;
         if (isToxicantImmuneThisEncounter(actor, itemUuid)) {
             const content = await foundry.applications.handlebars.renderTemplate(
-                "systems/sla-industries/templates/chat/toxicant-infection.hbs",
+                'systems/sla-industries/templates/chat/toxicant-infection.hbs',
                 {
                     itemName: this.name,
                     actorName: actor.name,
@@ -206,7 +207,7 @@ export class BoilerplateItem extends Item {
 
         const ir = Number(this.system.infectionRating) || 10;
         const strVal = Number(actor.system.stats?.str?.total ?? actor.system.stats?.str?.value ?? 0);
-        const roll = createSLARoll("1d10");
+        const roll = createSLARoll('1d10');
         await roll.evaluate();
 
         const firstTerm = roll.terms?.[0];
@@ -215,7 +216,7 @@ export class BoilerplateItem extends Item {
         const success = total >= ir;
 
         const content = await foundry.applications.handlebars.renderTemplate(
-            "systems/sla-industries/templates/chat/toxicant-infection.hbs",
+            'systems/sla-industries/templates/chat/toxicant-infection.hbs',
             {
                 itemName: this.name,
                 actorName: actor.name,
@@ -247,13 +248,13 @@ export class BoilerplateItem extends Item {
     async _preUpdate(changed, options, user) {
         await super._preUpdate(changed, options, user);
 
-        if ((this.type === "skill" || this.type === "discipline") && changed.system) {
+        if ((this.type === 'skill' || this.type === 'discipline') && changed.system) {
             if (changed.system.rank !== undefined) {
                 const newRank = changed.system.rank;
                 const maxRank = 4;
                 if (newRank > maxRank) {
                     changed.system.rank = maxRank;
-                    if (typeof ui !== "undefined") {
+                    if (typeof ui !== 'undefined') {
                         ui.notifications.warn(`${this.name} Rank capped at ${maxRank}.`);
                     }
                 }

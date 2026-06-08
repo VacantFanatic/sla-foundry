@@ -6,12 +6,11 @@
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
 export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
-
     /** @override */
     static PARTS = {
         body: {
-            template: "systems/sla-industries/templates/dialogs/xp-dialog.hbs",
-            scrollable: [""]
+            template: 'systems/sla-industries/templates/dialogs/xp-dialog.hbs',
+            scrollable: ['']
         }
     };
 
@@ -25,14 +24,18 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /** @override */
-    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-        tag: "div",
-        classes: ["sla-dialog", "sla-sheet", "xp-dialog-window"],
-        actions: {
-            xpCommit: XPDialog.xpCommit,
-            xpCancel: XPDialog.xpCancel
-        }
-    }, { inplace: false });
+    static DEFAULT_OPTIONS = foundry.utils.mergeObject(
+        super.DEFAULT_OPTIONS,
+        {
+            tag: 'div',
+            classes: ['sla-dialog', 'sla-sheet', 'xp-dialog-window'],
+            actions: {
+                xpCommit: XPDialog.xpCommit,
+                xpCancel: XPDialog.xpCancel
+            }
+        },
+        { inplace: false }
+    );
 
     /** @type {AbortController | null} */
     #uiAbort = null;
@@ -76,43 +79,55 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         const el = this.element;
 
         if (this.isGM) {
-            for (const name of ["xpChange", "xpReason"]) {
-                el.querySelector(`input[name='${name}']`)?.addEventListener("keydown", (ev) => {
-                    if (ev.key === "Enter") {
-                        ev.preventDefault();
-                        el.querySelector("[data-action='xpCommit']")?.click();
-                    }
-                }, { signal });
+            for (const name of ['xpChange', 'xpReason']) {
+                el.querySelector(`input[name='${name}']`)?.addEventListener(
+                    'keydown',
+                    (ev) => {
+                        if (ev.key === 'Enter') {
+                            ev.preventDefault();
+                            el.querySelector("[data-action='xpCommit']")?.click();
+                        }
+                    },
+                    { signal }
+                );
             }
         } else {
-            el.addEventListener("click", (ev) => {
-                const inc = ev.target.closest("button[data-action='increase-stat']");
-                if (inc) {
-                    ev.preventDefault();
-                    this._increaseStat({ currentTarget: inc });
-                    return;
-                }
-                const dec = ev.target.closest("button[data-action='decrease-stat']");
-                if (dec) {
-                    ev.preventDefault();
-                    this._decreaseStat({ currentTarget: dec });
-                    return;
-                }
-                const rem = ev.target.closest("button[data-action='remove-upgrade']");
-                if (rem) {
-                    ev.preventDefault();
-                    this._removeUpgrade({ currentTarget: rem });
-                }
-            }, { signal });
+            el.addEventListener(
+                'click',
+                (ev) => {
+                    const inc = ev.target.closest("button[data-action='increase-stat']");
+                    if (inc) {
+                        ev.preventDefault();
+                        this._increaseStat({ currentTarget: inc });
+                        return;
+                    }
+                    const dec = ev.target.closest("button[data-action='decrease-stat']");
+                    if (dec) {
+                        ev.preventDefault();
+                        this._decreaseStat({ currentTarget: dec });
+                        return;
+                    }
+                    const rem = ev.target.closest("button[data-action='remove-upgrade']");
+                    if (rem) {
+                        ev.preventDefault();
+                        this._removeUpgrade({ currentTarget: rem });
+                    }
+                },
+                { signal }
+            );
 
-            el.addEventListener("change", (ev) => {
-                const sel = ev.target;
-                if (!(sel instanceof HTMLSelectElement)) return;
-                if (sel.name === "skill-upgrade") this._selectSkillUpgrade(ev);
-                else if (sel.name === "discipline-upgrade") this._selectDisciplineUpgrade(ev);
-                else if (sel.name === "new-skill") this._selectNewSkill(ev);
-                else if (sel.name === "new-discipline") this._selectNewDiscipline(ev);
-            }, { signal });
+            el.addEventListener(
+                'change',
+                (ev) => {
+                    const sel = ev.target;
+                    if (!(sel instanceof HTMLSelectElement)) return;
+                    if (sel.name === 'skill-upgrade') this._selectSkillUpgrade(ev);
+                    else if (sel.name === 'discipline-upgrade') this._selectDisciplineUpgrade(ev);
+                    else if (sel.name === 'new-skill') this._selectNewSkill(ev);
+                    else if (sel.name === 'new-discipline') this._selectNewDiscipline(ev);
+                },
+                { signal }
+            );
         }
 
         this._updateCosts(el);
@@ -126,39 +141,52 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         const currentXP = actor.system.xp.value || 0;
         const currentCredits = actor.system.finance?.credits || 0;
 
-        const skills = actor.items.filter(i => i.type === 'skill').sort((a, b) => a.name.localeCompare(b.name)).map(skill => {
-            const currentRank = parseInt(skill.system.rank) || 0;
-            const upgradeOptions = [];
-            for (let rank = currentRank + 1; rank <= 4; rank++) {
-                upgradeOptions.push({ rank, label: `Increase to Rank ${rank}` });
-            }
-            return { ...skill, upgradeOptions, currentRank };
-        });
+        const skills = actor.items
+            .filter((i) => i.type === 'skill')
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((skill) => {
+                const currentRank = parseInt(skill.system.rank) || 0;
+                const upgradeOptions = [];
+                for (let rank = currentRank + 1; rank <= 4; rank++) {
+                    upgradeOptions.push({ rank, label: `Increase to Rank ${rank}` });
+                }
+                return { ...skill, upgradeOptions, currentRank };
+            });
 
-        const disciplines = actor.items.filter(i => i.type === 'discipline').sort((a, b) => a.name.localeCompare(b.name)).map(discipline => {
-            const currentRank = parseInt(discipline.system.rank) || 0;
-            const upgradeOptions = [];
-            for (let rank = currentRank + 1; rank <= 4; rank++) {
-                upgradeOptions.push({ rank, label: `Increase to Rank ${rank}` });
-            }
-            return { ...discipline, upgradeOptions, currentRank };
-        });
+        const disciplines = actor.items
+            .filter((i) => i.type === 'discipline')
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((discipline) => {
+                const currentRank = parseInt(discipline.system.rank) || 0;
+                const upgradeOptions = [];
+                for (let rank = currentRank + 1; rank <= 4; rank++) {
+                    upgradeOptions.push({ rank, label: `Increase to Rank ${rank}` });
+                }
+                return { ...discipline, upgradeOptions, currentRank };
+            });
 
-        const skillCompendium = game.packs.get("sla-industries.skills");
-        const availableSkills = skillCompendium ? (await skillCompendium.getDocuments()).sort((a, b) => a.name.localeCompare(b.name)) : [];
+        const skillCompendium = game.packs.get('sla-industries.skills');
+        const availableSkills = skillCompendium
+            ? (await skillCompendium.getDocuments()).sort((a, b) => a.name.localeCompare(b.name))
+            : [];
 
-        const disciplineCompendium = game.packs.get("sla-industries.disciplines");
-        const availableDisciplines = disciplineCompendium ? (await disciplineCompendium.getDocuments()).sort((a, b) => a.name.localeCompare(b.name)) : [];
+        const disciplineCompendium = game.packs.get('sla-industries.disciplines');
+        const availableDisciplines = disciplineCompendium
+            ? (await disciplineCompendium.getDocuments()).sort((a, b) => a.name.localeCompare(b.name))
+            : [];
 
         const ledger = actor.system.xpLedger || [];
         const ledgerEntries = ledger
             .slice()
             .reverse()
-            .map(entry => {
+            .map((entry) => {
                 const date = new Date(entry.timestamp);
                 return {
                     ...entry,
-                    dateFormatted: date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    dateFormatted:
+                        date.toLocaleDateString() +
+                        ' ' +
+                        date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 };
             });
 
@@ -167,15 +195,20 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
             currentXP,
             currentCredits,
             ledgerEntries: ledgerEntries.length > 0 ? ledgerEntries : null,
-            stats: ["str", "dex", "know", "conc", "cha", "cool"].map(key => ({
+            stats: ['str', 'dex', 'know', 'conc', 'cha', 'cool'].map((key) => ({
                 key,
                 name: CONFIG.SLA?.stats?.[key] || key.toUpperCase(),
                 currentValue: actor.system.stats[key]?.value || 0
             })),
             skills,
             disciplines,
-            availableSkills: availableSkills.filter(s => !actor.items.find(i => i.type === 'skill' && i.name.toLowerCase() === s.name.toLowerCase())),
-            availableDisciplines: availableDisciplines.filter(d => !actor.items.find(i => i.type === 'discipline' && i.name.toLowerCase() === d.name.toLowerCase())),
+            availableSkills: availableSkills.filter(
+                (s) => !actor.items.find((i) => i.type === 'skill' && i.name.toLowerCase() === s.name.toLowerCase())
+            ),
+            availableDisciplines: availableDisciplines.filter(
+                (d) =>
+                    !actor.items.find((i) => i.type === 'discipline' && i.name.toLowerCase() === d.name.toLowerCase())
+            ),
             pendingUpgrades: {
                 stats: {},
                 skills: {},
@@ -185,11 +218,15 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
             totalCostCredits: 0
         };
 
-        const dlg = new XPDialog(actor, {
-            window: { title: isGM ? "Manage Experience Points" : "Spend Experience Points" },
-            position: { width: 650, height: isGM ? 500 : 650 },
-            classes: ["sla-dialog", "sla-sheet", "xp-dialog-window"]
-        }, templateData);
+        const dlg = new XPDialog(
+            actor,
+            {
+                window: { title: isGM ? 'Manage Experience Points' : 'Spend Experience Points' },
+                position: { width: 650, height: isGM ? 500 : 650 },
+                classes: ['sla-dialog', 'sla-sheet', 'xp-dialog-window']
+            },
+            templateData
+        );
 
         await dlg.render(true);
         return dlg;
@@ -198,7 +235,7 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     _increaseStat(event) {
         const statKey = event.currentTarget.dataset.stat;
         if (this.pendingUpgrades.stats[statKey] && this.pendingUpgrades.stats[statKey] >= 1) {
-            ui.notifications.warn("Each stat can only be improved by 1 rank per downtime period.");
+            ui.notifications.warn('Each stat can only be improved by 1 rank per downtime period.');
             return;
         }
         this.pendingUpgrades.stats[statKey] = 1;
@@ -300,14 +337,14 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         for (const [statKey, increase] of Object.entries(this.pendingUpgrades.stats)) {
             if (increase > 0) {
                 const statDisplay = root.querySelector(`.pending-stat-${statKey}`);
-                if (statDisplay) statDisplay.style.display = "";
-                const val = statDisplay?.querySelector(".pending-stat-value");
+                if (statDisplay) statDisplay.style.display = '';
+                const val = statDisplay?.querySelector('.pending-stat-value');
                 if (val) val.textContent = String(increase);
                 const decBtn = root.querySelector(`button[data-action='decrease-stat'][data-stat='${statKey}']`);
                 if (decBtn) decBtn.disabled = false;
             } else {
                 const statDisplay = root.querySelector(`.pending-stat-${statKey}`);
-                if (statDisplay) statDisplay.style.display = "none";
+                if (statDisplay) statDisplay.style.display = 'none';
                 const decBtn = root.querySelector(`button[data-action='decrease-stat'][data-stat='${statKey}']`);
                 if (decBtn) decBtn.disabled = true;
             }
@@ -321,8 +358,8 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         if (this.isGM) return;
 
         const { totalXP, totalCredits } = this._calculateCosts();
-        const xpEl = root.querySelector(".total-cost-xp");
-        const crEl = root.querySelector(".total-cost-credits");
+        const xpEl = root.querySelector('.total-cost-xp');
+        const crEl = root.querySelector('.total-cost-credits');
         if (xpEl) xpEl.textContent = String(totalXP);
         if (crEl) crEl.textContent = String(totalCredits);
 
@@ -333,27 +370,27 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         const commitBtn = root.querySelector("[data-action='xpCommit']");
         if (commitBtn) commitBtn.disabled = !canAfford;
 
-        const warn = root.querySelector(".cost-warning");
-        const warnXp = root.querySelector(".cost-warning-xp");
-        const warnCr = root.querySelector(".cost-warning-credits");
+        const warn = root.querySelector('.cost-warning');
+        const warnXp = root.querySelector('.cost-warning-xp');
+        const warnCr = root.querySelector('.cost-warning-credits');
 
         if (!canAfford) {
-            if (warn) warn.style.display = "";
+            if (warn) warn.style.display = '';
             if (currentXP < totalXP) {
                 if (warnXp) {
-                    warnXp.style.display = "";
+                    warnXp.style.display = '';
                     warnXp.textContent = `Need ${totalXP - currentXP} more XP`;
                 }
-            } else if (warnXp) warnXp.style.display = "none";
+            } else if (warnXp) warnXp.style.display = 'none';
 
             if (currentCredits < totalCredits) {
                 if (warnCr) {
-                    warnCr.style.display = "";
+                    warnCr.style.display = '';
                     warnCr.textContent = `Need ${totalCredits - currentCredits} more credits`;
                 }
-            } else if (warnCr) warnCr.style.display = "none";
+            } else if (warnCr) warnCr.style.display = 'none';
         } else {
-            if (warn) warn.style.display = "none";
+            if (warn) warn.style.display = 'none';
         }
     }
 
@@ -379,7 +416,7 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
                     const currentRank = parseInt(skill.system.rank) || 0;
                     const newRank = data.newRank;
                     if (newRank > currentRank) {
-                        totalXP += 2 + (3 * currentRank);
+                        totalXP += 2 + 3 * currentRank;
                         if (newRank === 4) {
                             totalCredits += 500;
                         }
@@ -397,7 +434,7 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
                     const currentRank = parseInt(discipline.system.rank) || 0;
                     const newRank = data.newRank;
                     if (newRank > currentRank) {
-                        totalXP += 2 + (3 * currentRank);
+                        totalXP += 2 + 3 * currentRank;
                         if (newRank === 4) {
                             totalXP += 3;
                         }
@@ -415,10 +452,10 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     async _commitChanges(root) {
         if (this.isGM) {
             const xpChange = parseInt(root.querySelector("input[name='xpChange']")?.value) || 0;
-            const reason = root.querySelector("input[name='xpReason']")?.value || "GM Adjustment";
+            const reason = root.querySelector("input[name='xpReason']")?.value || 'GM Adjustment';
 
             if (xpChange === 0) {
-                ui.notifications.warn("No XP change specified.");
+                ui.notifications.warn('No XP change specified.');
                 return false;
             }
 
@@ -432,7 +469,7 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
             const ledgerEntry = {
                 timestamp: Date.now(),
-                type: actualChange > 0 ? "add" : (actualChange < 0 ? "remove" : "none"),
+                type: actualChange > 0 ? 'add' : actualChange < 0 ? 'remove' : 'none',
                 description: reason,
                 xpChange: actualChange,
                 creditChange: 0
@@ -440,12 +477,14 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
             const currentLedger = this.actor.system.xpLedger || [];
             await this.actor.update({
-                "system.xp.value": newXP,
-                "system.xpLedger": [...currentLedger, ledgerEntry]
+                'system.xp.value': newXP,
+                'system.xpLedger': [...currentLedger, ledgerEntry]
             });
 
             if (actualChange !== 0) {
-                ui.notifications.info(`${actualChange > 0 ? 'Added' : 'Removed'} ${Math.abs(actualChange)} XP. ${reason}`);
+                ui.notifications.info(
+                    `${actualChange > 0 ? 'Added' : 'Removed'} ${Math.abs(actualChange)} XP. ${reason}`
+                );
             }
             return true;
         }
@@ -453,7 +492,7 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         const { totalXP, totalCredits } = this._calculateCosts();
 
         if (totalXP === 0 && totalCredits === 0) {
-            ui.notifications.warn("No upgrades selected.");
+            ui.notifications.warn('No upgrades selected.');
             return false;
         }
 
@@ -461,7 +500,7 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         const currentCredits = this.actor.system.finance?.credits || 0;
 
         if (currentXP < totalXP || currentCredits < totalCredits) {
-            ui.notifications.error("Insufficient XP or credits.");
+            ui.notifications.error('Insufficient XP or credits.');
             return false;
         }
 
@@ -482,7 +521,7 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
 
                 ledgerEntries.push({
                     timestamp: Date.now(),
-                    type: "stat",
+                    type: 'stat',
                     description: `${CONFIG.SLA?.stats?.[statKey] || statKey.toUpperCase()} increased from ${currentValue} to ${newValue}`,
                     xpChange: -statCost,
                     creditChange: 0,
@@ -492,8 +531,8 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (statKey === 'str') {
                     const currentHP = this.actor.system.hp.value || 0;
                     const currentMaxHP = this.actor.system.hp.max || 0;
-                    updates["system.hp.value"] = currentHP + increase;
-                    updates["system.hp.max"] = currentMaxHP + increase;
+                    updates['system.hp.value'] = currentHP + increase;
+                    updates['system.hp.max'] = currentMaxHP + increase;
                 }
             }
         }
@@ -507,17 +546,17 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
                     const currentRank = parseInt(skill.system.rank) || 0;
                     const newRank = data.newRank;
                     if (newRank > currentRank) {
-                        const costXP = 2 + (3 * currentRank);
+                        const costXP = 2 + 3 * currentRank;
                         const costCredits = newRank === 4 ? 500 : 0;
 
                         itemUpdates.push({
                             item: skill,
-                            update: { "system.rank": String(newRank) }
+                            update: { 'system.rank': String(newRank) }
                         });
 
                         ledgerEntries.push({
                             timestamp: Date.now(),
-                            type: "skill",
+                            type: 'skill',
                             description: `${skill.name} increased from rank ${currentRank} to ${newRank}`,
                             xpChange: -costXP,
                             creditChange: -costCredits,
@@ -537,20 +576,25 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
                     const currentRank = parseInt(discipline.system.rank) || 0;
                     const newRank = data.newRank;
                     if (newRank > currentRank) {
-                        const costXP = 2 + (3 * currentRank) + (newRank === 4 ? 3 : 0);
+                        const costXP = 2 + 3 * currentRank + (newRank === 4 ? 3 : 0);
 
                         itemUpdates.push({
                             item: discipline,
-                            update: { "system.rank": String(newRank) }
+                            update: { 'system.rank': String(newRank) }
                         });
 
                         ledgerEntries.push({
                             timestamp: Date.now(),
-                            type: "discipline",
+                            type: 'discipline',
                             description: `${discipline.name} increased from rank ${currentRank} to ${newRank}`,
                             xpChange: -costXP,
                             creditChange: 0,
-                            details: { disciplineId: disciplineId, disciplineName: discipline.name, oldRank: currentRank, newRank: newRank }
+                            details: {
+                                disciplineId: disciplineId,
+                                disciplineName: discipline.name,
+                                oldRank: currentRank,
+                                newRank: newRank
+                            }
                         });
                     }
                 }
@@ -558,17 +602,17 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         const newXP = Math.max(0, currentXP - totalXP);
-        if (newXP !== (currentXP - totalXP)) {
-            ui.notifications.error("Cannot spend more XP than available. XP cannot go below zero.");
+        if (newXP !== currentXP - totalXP) {
+            ui.notifications.error('Cannot spend more XP than available. XP cannot go below zero.');
             return false;
         }
-        updates["system.xp.value"] = newXP;
+        updates['system.xp.value'] = newXP;
         if (totalCredits > 0) {
-            updates["system.finance.credits"] = Math.max(0, currentCredits - totalCredits);
+            updates['system.finance.credits'] = Math.max(0, currentCredits - totalCredits);
         }
 
         const currentLedger = this.actor.system.xpLedger || [];
-        updates["system.xpLedger"] = [...currentLedger, ...ledgerEntries];
+        updates['system.xpLedger'] = [...currentLedger, ...ledgerEntries];
 
         await this.actor.update(updates);
 
@@ -576,7 +620,9 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
             await item.update(update);
         }
 
-        ui.notifications.info(`Upgrades committed! Spent ${totalXP} XP${totalCredits > 0 ? ` and ${totalCredits} credits` : ''}.`);
+        ui.notifications.info(
+            `Upgrades committed! Spent ${totalXP} XP${totalCredits > 0 ? ` and ${totalCredits} credits` : ''}.`
+        );
         return true;
     }
 }

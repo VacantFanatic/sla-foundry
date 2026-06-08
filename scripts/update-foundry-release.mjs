@@ -2,12 +2,12 @@
 /**
  * Notify Foundry's package API about a newly published GitHub release.
  */
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const foundryReleaseApi = "https://api.foundryvtt.com/_api/packages/release_version/";
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const foundryReleaseApi = 'https://api.foundryvtt.com/_api/packages/release_version/';
 
 /**
  * @param {string} value
@@ -22,7 +22,7 @@ function encodePathSegment(value) {
  * @returns {Record<string, any>}
  */
 export function readJsonFile(filePath) {
-    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
 /**
@@ -52,29 +52,27 @@ function releaseAssetUrl(event, assetName) {
  * @param {{ dryRun?: boolean, manifestFileName?: string }} [options]
  */
 export function buildFoundryReleasePayload(manifest, event, options = {}) {
-    const manifestFileName = options.manifestFileName ?? "system.json";
+    const manifestFileName = options.manifestFileName ?? 'system.json';
     const repository = event.repository?.full_name;
     const tagName = event.release?.tag_name ?? manifest.version;
 
     if (!manifest.id) {
-        throw new Error("system.json must define an id for the Foundry package release");
+        throw new Error('system.json must define an id for the Foundry package release');
     }
     if (!manifest.version) {
-        throw new Error("system.json must define a version for the Foundry package release");
+        throw new Error('system.json must define a version for the Foundry package release');
     }
     if (!repository) {
-        throw new Error("GitHub release event must include repository.full_name");
+        throw new Error('GitHub release event must include repository.full_name');
     }
 
     const manifestUrl =
         releaseAssetUrl(event, manifestFileName) ??
-        `https://github.com/${repository}/releases/download/${encodePathSegment(
-            tagName
-        )}/${manifestFileName}`;
+        `https://github.com/${repository}/releases/download/${encodePathSegment(tagName)}/${manifestFileName}`;
 
     return {
         id: manifest.id,
-        "dry-run": options.dryRun ?? false,
+        'dry-run': options.dryRun ?? false,
         release: {
             version: manifest.version,
             manifest: manifestUrl,
@@ -91,47 +89,43 @@ export function buildFoundryReleasePayload(manifest, event, options = {}) {
  * @returns {boolean}
  */
 function envFlag(value) {
-    return value.toLowerCase() === "true";
+    return value.toLowerCase() === 'true';
 }
 
 async function runCli() {
     const token = process.env.FOUNDRY_PACKAGE_RELEASE_TOKEN;
     const eventPath = process.env.GITHUB_EVENT_PATH;
-    const dryRun = envFlag(process.env.FOUNDRY_DRY_RUN ?? "false");
+    const dryRun = envFlag(process.env.FOUNDRY_DRY_RUN ?? 'false');
 
     if (!token) {
-        throw new Error("FOUNDRY_PACKAGE_RELEASE_TOKEN is required");
+        throw new Error('FOUNDRY_PACKAGE_RELEASE_TOKEN is required');
     }
     if (!eventPath) {
-        throw new Error("GITHUB_EVENT_PATH is required");
+        throw new Error('GITHUB_EVENT_PATH is required');
     }
 
-    const manifest = readJsonFile(path.join(root, "system.json"));
+    const manifest = readJsonFile(path.join(root, 'system.json'));
     const event = readJsonFile(eventPath);
     const payload = buildFoundryReleasePayload(manifest, event, { dryRun });
 
     const response = await fetch(foundryReleaseApi, {
         headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
             Authorization: token
         },
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
         const body = await response.text();
-        throw new Error(
-            `Foundry release update failed (${response.status} ${response.statusText}): ${body}`
-        );
+        throw new Error(`Foundry release update failed (${response.status} ${response.statusText}): ${body}`);
     }
 
     console.log(`Foundry package release updated for ${payload.id} ${payload.release.version}`);
 }
 
-const isMain =
-    process.argv[1] &&
-    path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 
 if (isMain) {
     runCli().catch((error) => {
