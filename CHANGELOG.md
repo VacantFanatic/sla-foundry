@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Derived data helpers:** Pure encumbrance, wound, and penalty calculators in `module/documents/derived/` with unit tests; `BoilerplateActor` delegates to these modules.
 - **Actor roll modules:** `module/sheets/actor/roll-math.mjs` (pure weapon/skill roll math) and `skill-rolls.mjs` (skill roll execution); unit tests for roll math.
 - **Weapon roll extraction:** `module/sheets/actor/weapon-rolls.mjs` handles attack dialog and weapon roll orchestration; additional pure helpers in `roll-math.mjs`.
+- **Explosive and Ebb roll extraction:** `module/sheets/actor/explosive-rolls.mjs` and `ebb-rolls.mjs` handle throw and Ebb formula orchestration; explosive/Ebb pure helpers in `roll-math.mjs` with unit tests.
 
 ### Changed
 
@@ -22,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Foundry cloud bootstrap:** `foundry-bootstrap.mjs` confirms world data migration and pre-migration backup dialogs so E2E can launch `sla-test-world` after system version bumps.
 - **Compiled CSS:** `css/sla-industries.css` is no longer committed; run `npm run build:css` or `npm run build` before local Foundry dev (CI and `cloud-foundry.sh` already build CSS).
 - **Unit tests:** `npm run test:unit` discovers all `tests/unit/*.test.mjs` files via glob.
+- **Actor sheet:** Explosive throw and Ebb formula roll paths delegate to `explosive-rolls.mjs` and `ebb-rolls.mjs` (~870 lines removed from `actor-sheet.mjs`).
 
 ### Fixed
 
