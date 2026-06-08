@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Weapon roll extraction:** `module/sheets/actor/weapon-rolls.mjs` handles attack dialog and weapon roll orchestration; additional pure helpers in `roll-math.mjs`.
 - **Explosive and Ebb roll extraction:** `module/sheets/actor/explosive-rolls.mjs` and `ebb-rolls.mjs` handle throw and Ebb formula orchestration; explosive/Ebb pure helpers in `roll-math.mjs` with unit tests.
 - **Chat module split:** `module/helpers/chat/` (`pure.mjs`, `dom.mjs`, `damage.mjs`, `handlers.mjs`) with unit tests for pure damage/wound helpers; native `document.body` click delegation replaces jQuery listeners.
+- **Actor sheet modules (PR9):** `reload.mjs`, `item-actions.mjs`, `weapon-gates.mjs`, `actor-drops.mjs`, and `sheet-helpers.mjs` with pure drop helpers in `actor-drops-pure.mjs` (unit tested).
 
 ### Changed
 
@@ -26,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Unit tests:** `npm run test:unit` discovers all `tests/unit/*.test.mjs` files via glob.
 - **Actor sheet:** Explosive throw and Ebb formula roll paths delegate to `explosive-rolls.mjs` and `ebb-rolls.mjs` (~870 lines removed from `actor-sheet.mjs`).
 - **Chat:** `SLAChat` is a thin facade over split modules; chat card buttons use native DOM APIs instead of jQuery.
+- **Actor sheet:** Reload, item actions, drop handling, weapon gates, and shared roll helpers extracted from `actor-sheet.mjs` (~480 lines removed).
 
 ### Fixed
 

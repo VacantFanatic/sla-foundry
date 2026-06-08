@@ -47,7 +47,13 @@ sla-industries/
 │       │   ├── skill-rolls.mjs # Skill roll execution extracted from actor sheet
 │       │   ├── weapon-rolls.mjs # Weapon attack dialog and roll orchestration
 │       │   ├── explosive-rolls.mjs # Explosive throw dialog and roll orchestration
-│       │   └── ebb-rolls.mjs   # Ebb formula roll orchestration
+│       │   ├── ebb-rolls.mjs   # Ebb formula roll orchestration
+│       │   ├── reload.mjs      # Weapon magazine reload
+│       │   ├── item-actions.mjs # Drug use and hotbar triggerItemRoll
+│       │   ├── weapon-gates.mjs # Equipped/target checks and combat loadout damage
+│       │   ├── actor-drops.mjs # Species/package/vehicle drop handling
+│       │   ├── actor-drops-pure.mjs # Pure drop validation helpers (unit tested)
+│       │   └── sheet-helpers.mjs # Shared tooltip, flags, and roll helpers
 │       ├── actor-sheet.mjs     # SlaActorSheet (operative/character, ApplicationV2)
 │       ├── actor-npc-sheet.mjs # SlaNPCSheet (threat/NPC, ApplicationV2)
 │       ├── actor-vehicle-sheet.mjs  # SlaVehicleSheet (vehicle, ApplicationV2)
