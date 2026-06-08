@@ -5,7 +5,6 @@
     font-variant-numeric: tabular-nums;
 }
 
-
 /* ==========================================
    3. HEADER LAYOUT
    ========================================== */
@@ -94,13 +93,13 @@
     font-weight: 700;
 }
 
-.scl-wrapper input[type="text"] {
+.scl-wrapper input[type='text'] {
     width: 50px !important;
     text-align: center;
 }
 
 /* Operative name: no field chrome until editing (plain title look) */
-.sla-sheet .header-left h1.charname input[type="text"] {
+.sla-sheet .header-left h1.charname input[type='text'] {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -108,7 +107,7 @@
     color: #fff;
 }
 
-.sla-sheet .header-left h1.charname input[type="text"]:focus {
+.sla-sheet .header-left h1.charname input[type='text']:focus {
     background: #0a0a0a !important;
     border: 1px solid var(--sla-border) !important;
     border-radius: var(--sla-radius);
@@ -116,9 +115,9 @@
 }
 
 /* Checkboxes: clear bounding box when unchecked (native control fades on dark UI) */
-.sla-sheet input[type="checkbox"],
-.sla-item-root input[type="checkbox"],
-.sla-dialog-window.dialog input[type="checkbox"] {
+.sla-sheet input[type='checkbox'],
+.sla-item-root input[type='checkbox'],
+.sla-dialog-window.dialog input[type='checkbox'] {
     width: 18px;
     height: 18px;
     min-width: 18px;
@@ -129,9 +128,9 @@
     flex-shrink: 0;
 }
 
-.sla-sheet input[type="checkbox"]:not(:checked),
-.sla-item-root input[type="checkbox"]:not(:checked),
-.sla-dialog-window.dialog input[type="checkbox"]:not(:checked) {
+.sla-sheet input[type='checkbox']:not(:checked),
+.sla-item-root input[type='checkbox']:not(:checked),
+.sla-dialog-window.dialog input[type='checkbox']:not(:checked) {
     outline: 2px solid rgba(255, 255, 255, 0.55);
     outline-offset: 1px;
     border-radius: 2px;
@@ -161,8 +160,8 @@
     display: block;
 }
 
-.portrait-container .profile-img[data-edit="img"],
-.threat-logo[data-edit="img"] {
+.portrait-container .profile-img[data-edit='img'],
+.threat-logo[data-edit='img'] {
     cursor: pointer;
 }
 
@@ -228,7 +227,6 @@
     font-weight: bold;
     flex: 1;
 }
-
 
 .chip-delete {
     color: #d00;
@@ -349,7 +347,10 @@
     left: calc(50% + 1px);
 }
 
-.window-app .window-header .sla-header-stat-switch:not(.sla-header-stat-switch--static):hover .sla-header-stat-switch-track {
+.window-app
+    .window-header
+    .sla-header-stat-switch:not(.sla-header-stat-switch--static):hover
+    .sla-header-stat-switch-track {
     border-color: rgba(255, 255, 255, 0.38);
 }
 
@@ -432,7 +433,7 @@
     border-radius: var(--sla-radius);
 
     &::after {
-        content: "";
+        content: '';
         position: absolute;
         bottom: 2px;
         left: 5px;
@@ -1009,8 +1010,8 @@
 }
 
 /* ICON CONTENT (SVG, I, PATHS) */
-.sla-sheet .prosemirror-menu button>*,
-.prosemirror-menu button>*,
+.sla-sheet .prosemirror-menu button > *,
+.prosemirror-menu button > *,
 .sla-sheet .prosemirror-menu button i,
 .prosemirror-menu button i,
 .sla-sheet .prosemirror-menu button svg,
@@ -1034,8 +1035,8 @@
     color: #fff !important;
 }
 
-.sla-sheet .prosemirror-menu button:hover>*,
-.prosemirror-menu button:hover>*,
+.sla-sheet .prosemirror-menu button:hover > *,
+.prosemirror-menu button:hover > *,
 .sla-sheet .prosemirror-menu button:hover i,
 .prosemirror-menu button:hover i,
 .sla-sheet .prosemirror-menu button:hover svg path,
@@ -1053,8 +1054,8 @@
     color: #000 !important;
 }
 
-.sla-sheet .prosemirror-menu button.active>*,
-.prosemirror-menu button.active>*,
+.sla-sheet .prosemirror-menu button.active > *,
+.prosemirror-menu button.active > *,
 .sla-sheet .prosemirror-menu button.active i,
 .prosemirror-menu button.active i,
 .sla-sheet .prosemirror-menu button.active svg path,
@@ -1069,7 +1070,7 @@
    Target [data-action] elements which ProseMirror usually uses.
 */
 .editor button,
-.editor .prosemirror-menu>*,
+.editor .prosemirror-menu > *,
 .prosemirror-menu [data-action] {
     color: #e0e0e0 !important;
     fill: #e0e0e0 !important;
@@ -1242,37 +1243,37 @@
         box-shadow: 0 0 8px var(--sla-accent-faint);
     }
 
-    &[data-condition="bleeding"].active {
+    &[data-condition='bleeding'].active {
         color: #ff4444;
         border-color: #ff4444;
         text-shadow: 0 0 5px #ff4444;
     }
 
-    &[data-condition="burning"].active {
+    &[data-condition='burning'].active {
         color: #ffaa00;
         border-color: #ffaa00;
         text-shadow: 0 0 5px #ffaa00;
     }
 
-    &[data-condition="stunned"].active {
+    &[data-condition='stunned'].active {
         color: #ffff00;
         border-color: #ffff00;
         text-shadow: 0 0 5px #ffff00;
     }
 
-    &[data-condition="immobile"].active {
+    &[data-condition='immobile'].active {
         color: #00ccff;
         border-color: #00ccff;
         text-shadow: 0 0 5px #00ccff;
     }
 
-    &[data-condition="prone"].active {
+    &[data-condition='prone'].active {
         color: #39ff14;
         border-color: #39ff14;
         text-shadow: 0 0 5px #39ff14;
     }
 
-    &[data-condition="critical"].active,
+    &[data-condition='critical'].active,
     &.condition-automatic.active {
         color: #ff0000;
         border-color: #ff0000;
@@ -1340,7 +1341,7 @@
         }
     }
 
-    input[type="number"] {
+    input[type='number'] {
         height: 22px !important;
         width: 100% !important;
         font-size: 0.9em;
@@ -1563,12 +1564,11 @@
 
 /* Threat equipment: .sla-sheet number inputs use --sla-text-light on dark backgrounds; armor
    resistance fields use a light panel via inline background, which made values illegible. */
-.sla-sheet.threat-sheet .threat-content-box input.inline-edit[type="number"] {
+.sla-sheet.threat-sheet .threat-content-box input.inline-edit[type='number'] {
     color: #111 !important;
     background: #fff !important;
     border-color: #888 !important;
 }
-
 
 /* ==========================================
    14. STATS MATRIX (Body/Brains/Bravado)
@@ -1715,7 +1715,6 @@
         line-height: 1.2;
     }
 }
-
 
 .sla-input-mini {
     width: 45px !important;
@@ -1906,7 +1905,7 @@
         min-height: 0;
     }
 
-    &.sla-actor-layout .threat-tabbed-area>.sheet-body {
+    &.sla-actor-layout .threat-tabbed-area > .sheet-body {
         background: transparent;
     }
 
@@ -2008,12 +2007,12 @@
     }
 
     .sla-combat-loadout .sla-combat-actions .sla-combat-action,
-    .sla-combat-loadout .sla-combat-actions>a {
+    .sla-combat-loadout .sla-combat-actions > a {
         color: #800000 !important;
     }
 
     .sla-combat-loadout .sla-combat-actions .sla-combat-action:hover,
-    .sla-combat-loadout .sla-combat-actions>a:hover {
+    .sla-combat-loadout .sla-combat-actions > a:hover {
         color: #a24848 !important;
     }
 

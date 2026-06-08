@@ -28,9 +28,9 @@ form.application.sla-industries.item .sheet-header h1.charname {
     line-height: 1.2;
 }
 
-.sla-industries.sheet.item .sla-item-root h1.charname input[type="text"],
-form.application.sla-industries.item .sla-item-root h1.charname input[type="text"],
-form.application.sla-industries.item h1.charname input[type="text"] {
+.sla-industries.sheet.item .sla-item-root h1.charname input[type='text'],
+form.application.sla-industries.item .sla-item-root h1.charname input[type='text'],
+form.application.sla-industries.item h1.charname input[type='text'] {
     @include font-header;
     font-family: var(--sla-font-header) !important;
     font-size: 1rem;
@@ -49,9 +49,9 @@ form.application.sla-industries.item h1.charname input[type="text"] {
     color: #fff;
 }
 
-.sla-industries.sheet.item .sla-item-root h1.charname input[type="text"]:focus,
-form.application.sla-industries.item .sla-item-root h1.charname input[type="text"]:focus,
-form.application.sla-industries.item h1.charname input[type="text"]:focus {
+.sla-industries.sheet.item .sla-item-root h1.charname input[type='text']:focus,
+form.application.sla-industries.item .sla-item-root h1.charname input[type='text']:focus,
+form.application.sla-industries.item h1.charname input[type='text']:focus {
     background: #0a0a0a !important;
     border: 1px solid var(--sla-type-frame, var(--sla-border)) !important;
     border-radius: var(--sla-radius);
@@ -60,7 +60,7 @@ form.application.sla-industries.item h1.charname input[type="text"]:focus {
 }
 
 /* Body inputs – always-visible baseline, focus glow uses the type accent */
-form.application.sla-industries.item input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]),
+form.application.sla-industries.item input:not([type='checkbox']):not([type='hidden']):not([type='radio']),
 form.application.sla-industries.item select,
 form.application.sla-industries.item textarea {
     font-family: var(--sla-font-mono) !important;
@@ -76,7 +76,7 @@ form.application.sla-industries.item textarea {
     resize: vertical;
 }
 
-form.application.sla-industries.item input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]):focus,
+form.application.sla-industries.item input:not([type='checkbox']):not([type='hidden']):not([type='radio']):focus,
 form.application.sla-industries.item select:focus,
 form.application.sla-industries.item textarea:focus {
     background: #0a0a0a !important;
@@ -86,7 +86,7 @@ form.application.sla-industries.item textarea:focus {
 }
 
 /* Catalogue tile inputs render on a light card and must remain dark text */
-form.application.sla-industries.item .item-catalogue input:not([type="checkbox"]),
+form.application.sla-industries.item .item-catalogue input:not([type='checkbox']),
 form.application.sla-industries.item .item-catalogue select {
     color: #000;
     background: transparent !important;
@@ -96,8 +96,8 @@ form.application.sla-industries.item .item-catalogue select {
 }
 
 /* Native checkboxes: stay visible on dark themes, beat the input-baseline rules */
-form.application.sla-industries.sheet.item input[type="checkbox"],
-form.application.sla-industries.item input[type="checkbox"] {
+form.application.sla-industries.sheet.item input[type='checkbox'],
+form.application.sla-industries.item input[type='checkbox'] {
     width: 18px !important;
     height: 18px !important;
     min-width: 18px !important;
@@ -113,8 +113,8 @@ form.application.sla-industries.item input[type="checkbox"] {
     text-shadow: none !important;
 }
 
-form.application.sla-industries.sheet.item input[type="checkbox"]:not(:checked),
-form.application.sla-industries.item input[type="checkbox"]:not(:checked) {
+form.application.sla-industries.sheet.item input[type='checkbox']:not(:checked),
+form.application.sla-industries.item input[type='checkbox']:not(:checked) {
     outline: 2px solid rgba(255, 255, 255, 0.55) !important;
     outline-offset: 1px;
     border-radius: 2px;
@@ -168,7 +168,7 @@ form.application.sla-industries.item .sla-field {
             flex: 1;
         }
 
-        > input[type="checkbox"] {
+        > input[type='checkbox'] {
             flex: 0 0 auto;
         }
     }

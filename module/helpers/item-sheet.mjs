@@ -9,7 +9,7 @@
  */
 export function prepareFiringModes(itemSystem) {
     const firingModes = {};
-    const knownModes = ["single", "burst", "auto", "suppressive"];
+    const knownModes = ['single', 'burst', 'auto', 'suppressive'];
     const sourceModes = itemSystem.toObject().firingModes || {};
 
     for (const key of knownModes) {
@@ -31,15 +31,14 @@ export function prepareFiringModes(itemSystem) {
  */
 export function getLinkedDisciplineImage(item) {
     if (!item.actor || !item.system.discipline) {
-        return "icons/svg/item-bag.svg";
+        return 'icons/svg/item-bag.svg';
     }
 
-    const disciplineItem = item.actor.items.find(i =>
-        i.type === "discipline" &&
-        i.name.toLowerCase() === item.system.discipline.toLowerCase()
+    const disciplineItem = item.actor.items.find(
+        (i) => i.type === 'discipline' && i.name.toLowerCase() === item.system.discipline.toLowerCase()
     );
 
-    return disciplineItem ? disciplineItem.img : "icons/svg/item-bag.svg";
+    return disciplineItem ? disciplineItem.img : 'icons/svg/item-bag.svg';
 }
 
 /**
@@ -48,10 +47,9 @@ export function getLinkedDisciplineImage(item) {
  * @returns {Promise<string>} Enriched HTML string.
  */
 export async function enrichItemDescription(item) {
-    const raw = item.system?.description ?? "";
+    const raw = item.system?.description ?? '';
     return await foundry.applications.ux.TextEditor.enrichHTML(raw, {
         async: true,
         relativeTo: item
     });
 }
-

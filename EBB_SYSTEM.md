@@ -31,17 +31,17 @@ The **Success Die** (`1d10`) determines pass/fail against the **Formula Rating**
 
 ## Formula Item Fields
 
-| Field | Schema key | Notes |
-|---|---|---|
-| Formula Rating (TN) | `system.formulaRating` | Default 7. The target number for the Success Die. |
-| Flux Cost | `system.cost` | Default 1. Spent from `system.stats.flux.value` before rolling. |
-| Discipline | `system.discipline` | String key matching a Discipline item on the same actor. |
-| Effect | `system.ebbEffect` | `damage` / `heal` / `effect`. Controls MOS bonus and apply behavior. |
-| Target | `system.ebbTarget` | `enemy` / `ally` / `self`. Controls apply button visibility. |
-| Wounds to Remove | `system.removeWounds` | Integer 0–6. Wound locations cleared on success (fixed order: head, torso, arms, legs). |
-| Heal/Wound Mode | `system.ebbHealWoundMode` | Heal formulas only: `and` = single apply for both; `or` = separate actions. |
-| Damage / Min Damage | `system.damage`, `system.minDamage` | Roll formula and minimum damage floor. |
-| AD | `system.ad` | Armor Damage value passed to damage rolls. |
+| Field               | Schema key                          | Notes                                                                                   |
+| ------------------- | ----------------------------------- | --------------------------------------------------------------------------------------- |
+| Formula Rating (TN) | `system.formulaRating`              | Default 7. The target number for the Success Die.                                       |
+| Flux Cost           | `system.cost`                       | Default 1. Spent from `system.stats.flux.value` before rolling.                         |
+| Discipline          | `system.discipline`                 | String key matching a Discipline item on the same actor.                                |
+| Effect              | `system.ebbEffect`                  | `damage` / `heal` / `effect`. Controls MOS bonus and apply behavior.                    |
+| Target              | `system.ebbTarget`                  | `enemy` / `ally` / `self`. Controls apply button visibility.                            |
+| Wounds to Remove    | `system.removeWounds`               | Integer 0–6. Wound locations cleared on success (fixed order: head, torso, arms, legs). |
+| Heal/Wound Mode     | `system.ebbHealWoundMode`           | Heal formulas only: `and` = single apply for both; `or` = separate actions.             |
+| Damage / Min Damage | `system.damage`, `system.minDamage` | Roll formula and minimum damage floor.                                                  |
+| AD                  | `system.ad`                         | Armor Damage value passed to damage rolls.                                              |
 
 ---
 
@@ -51,12 +51,12 @@ The Skill Dice are compared against the Formula Rating. Each skill die that meet
 
 ### Damage formulas (ebbEffect = "damage")
 
-| Skill successes | Bonus |
-|---|---|
-| 0–1 | +0 |
-| 2 | +1 damage |
-| 3 | +2 damage |
-| 4+ | +4 damage |
+| Skill successes | Bonus     |
+| --------------- | --------- |
+| 0–1             | +0        |
+| 2               | +1 damage |
+| 3               | +2 damage |
+| 4+              | +4 damage |
 
 Source: `module/helpers/ebb-mos.mjs → getEbbMosDamageBonus`
 
@@ -84,11 +84,11 @@ Source: `module/helpers/ebb-flux.mjs → syncEbbCriticalFlux`
 
 The **Target** field controls where the result is applied:
 
-| Target | Behavior |
-|---|---|
-| `enemy` | GM sees **Apply to target** button on the chat card. |
-| `ally` | GM sees **Apply to selected** button on the chat card. |
-| `self` | No apply buttons shown. Damage/heal (and optional wound removal) are applied directly to the **caster** immediately after the roll. The GM does not need to click anything. |
+| Target  | Behavior                                                                                                                                                                    |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `enemy` | GM sees **Apply to target** button on the chat card.                                                                                                                        |
+| `ally`  | GM sees **Apply to selected** button on the chat card.                                                                                                                      |
+| `self`  | No apply buttons shown. Damage/heal (and optional wound removal) are applied directly to the **caster** immediately after the roll. The GM does not need to click anything. |
 
 Self-target formulas that fail the roll do not auto-apply.
 
@@ -101,8 +101,8 @@ When **Wounds to Remove** is greater than 0 and the roll succeeds:
 - **Damage formulas:** Wound removal is bundled with the damage apply (both happen on one GM button click).
 - **Effect formulas (no HP change):** A **Remove wounds** button appears on the chat card. The target is the **selected** token (ally) or **targeted** token (enemy), following the formula's Target setting.
 - **Heal formulas:** Behavior depends on **Heal/Wound Mode**:
-  - `and` — Both HP healing and wound removal happen on a single **Apply** click.
-  - `or` — A **Remove wounds** button appears alongside the heal button. Once one is used, the other is disabled for all connected clients (state stored on the chat message via `flags.sla.ebbHealWoundPathUsed`).
+    - `and` — Both HP healing and wound removal happen on a single **Apply** click.
+    - `or` — A **Remove wounds** button appears alongside the heal button. Once one is used, the other is disabled for all connected clients (state stored on the chat message via `flags.sla.ebbHealWoundPathUsed`).
 
 Wounds are cleared in a fixed anatomical order: **head → torso → left arm → right arm → left leg → right leg**. Only locations that are currently wounded are cleared; the count is consumed until exhausted.
 
@@ -134,26 +134,26 @@ The Luck dialog supports rerolling Ebb formula rolls. It reads the **Formula Rat
 
 ### Key files
 
-| File | Purpose |
-|---|---|
-| `module/helpers/ebb-mos.mjs` | `getEbbMosDamageBonus` — pure function for MOS damage bonus |
-| `module/helpers/ebb-flux.mjs` | `syncEbbCriticalFlux` — flux regain/revoke on success/failure |
-| `module/helpers/items.mjs` | `normalizeEbbEffect`, `normalizeEbbHealWoundMode` — canonical value normalization |
-| `module/helpers/chat.mjs` | `SLAChat` — all chat card rendering and button handlers for Ebb |
-| `module/data/item.mjs` | `SlaEbbFormulaData`, `SlaDisciplineData` — schema definitions |
-| `module/sheets/actor-sheet.mjs` | Ebb roll initiation, flux deduction, roll result dispatch |
+| File                            | Purpose                                                                           |
+| ------------------------------- | --------------------------------------------------------------------------------- |
+| `module/helpers/ebb-mos.mjs`    | `getEbbMosDamageBonus` — pure function for MOS damage bonus                       |
+| `module/helpers/ebb-flux.mjs`   | `syncEbbCriticalFlux` — flux regain/revoke on success/failure                     |
+| `module/helpers/items.mjs`      | `normalizeEbbEffect`, `normalizeEbbHealWoundMode` — canonical value normalization |
+| `module/helpers/chat.mjs`       | `SLAChat` — all chat card rendering and button handlers for Ebb                   |
+| `module/data/item.mjs`          | `SlaEbbFormulaData`, `SlaDisciplineData` — schema definitions                     |
+| `module/sheets/actor-sheet.mjs` | Ebb roll initiation, flux deduction, roll result dispatch                         |
 
 ### Chat message flags (`flags.sla`)
 
 Key flags written to Ebb roll messages:
 
-| Flag | Type | Purpose |
-|---|---|---|
-| `isEbb` | boolean | Identifies this as an Ebb roll |
-| `ebbEffect` | string | Normalized effect type (`damage`/`heal`/`effect`) |
-| `ebbTarget` | string | `self`/`ally`/`enemy` |
-| `ebbFluxRegainApplied` | boolean | Whether the critical flux +1 has been applied |
-| `ebbHealWoundMutualExclude` | boolean | Whether heal and wound removal are exclusive (`or` mode) |
-| `ebbHealWoundPathUsed` | `"heal"\|"wounds"\|null` | Which path was used in `or` mode |
-| `tn` | number | Formula Rating used for the roll (read by Luck dialog) |
-| `removeWoundsCount` | number | Wound locations to clear on the apply path |
+| Flag                        | Type                     | Purpose                                                  |
+| --------------------------- | ------------------------ | -------------------------------------------------------- |
+| `isEbb`                     | boolean                  | Identifies this as an Ebb roll                           |
+| `ebbEffect`                 | string                   | Normalized effect type (`damage`/`heal`/`effect`)        |
+| `ebbTarget`                 | string                   | `self`/`ally`/`enemy`                                    |
+| `ebbFluxRegainApplied`      | boolean                  | Whether the critical flux +1 has been applied            |
+| `ebbHealWoundMutualExclude` | boolean                  | Whether heal and wound removal are exclusive (`or` mode) |
+| `ebbHealWoundPathUsed`      | `"heal"\|"wounds"\|null` | Which path was used in `or` mode                         |
+| `tn`                        | number                   | Formula Rating used for the roll (read by Luck dialog)   |
+| `removeWoundsCount`         | number                   | Wound locations to clear on the apply path               |

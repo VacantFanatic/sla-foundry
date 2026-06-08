@@ -38,7 +38,7 @@
         height: 28px;
         padding: 1px $padding-sm;
         font-family: var(--sla-font-mono);
-        
+
         &:focus {
             box-shadow: 0 0 5px var(--sla-accent);
             background: #111;
@@ -123,7 +123,7 @@
             }
         }
 
-        &[data-button="cancel"] {
+        &[data-button='cancel'] {
             background: #2a0000 !important;
             border-color: #ff5555 !important;
             color: #ff5555 !important;
@@ -135,7 +135,7 @@
             }
         }
 
-        &[data-button="commit"] {
+        &[data-button='commit'] {
             background: #002a00 !important;
             border-color: #39ff14 !important;
             color: #39ff14 !important;

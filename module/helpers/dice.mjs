@@ -21,7 +21,7 @@ export function calculateRollResult(roll, baseModifier, tn = 10, options = {}) {
 
     const firstTerm = roll.terms[0];
     // Handle case where term might not have results yet (shouldn't happen if evaluated)
-    const sdRaw = (firstTerm.results && firstTerm.results.length > 0) ? firstTerm.results[0].result : 0;
+    const sdRaw = firstTerm.results && firstTerm.results.length > 0 ? firstTerm.results[0].result : 0;
 
     // Total calculation
     const sdTotal = sdRaw + baseModifier + luckBonus + successDieModifier;
@@ -32,7 +32,7 @@ export function calculateRollResult(roll, baseModifier, tn = 10, options = {}) {
     let skillDiceData = [];
 
     if (roll.terms.length > 2 && roll.terms[2].results) {
-        roll.terms[2].results.forEach(r => {
+        roll.terms[2].results.forEach((r) => {
             let val = r.result + baseModifier;
             let isHit = val >= tn;
             if (isHit) skillHits++;
@@ -40,8 +40,8 @@ export function calculateRollResult(roll, baseModifier, tn = 10, options = {}) {
             skillDiceData.push({
                 raw: r.result,
                 total: val,
-                borderColor: isHit ? "#39ff14" : "#555",
-                textColor: isHit ? "#39ff14" : "#ccc"
+                borderColor: isHit ? '#39ff14' : '#555',
+                textColor: isHit ? '#39ff14' : '#ccc'
             });
         });
     }
@@ -75,25 +75,25 @@ export function getMOS(result) {
     const { isSuccess, skillHits, successThroughExperience } = result;
 
     let mosDamageBonus = 0;
-    let mosEffectText = isSuccess ? "Standard Hit" : "Failed";
-    let mosChoiceData = { hasChoice: false, choiceType: "", choiceDmg: 0 };
+    let mosEffectText = isSuccess ? 'Standard Hit' : 'Failed';
+    let mosChoiceData = { hasChoice: false, choiceType: '', choiceDmg: 0 };
 
     if (isSuccess && !successThroughExperience) {
         if (skillHits === 1) {
             mosDamageBonus = 1;
-            mosEffectText = "+1 Damage";
+            mosEffectText = '+1 Damage';
         } else if (skillHits === 2) {
-            mosEffectText = "MOS 2: Choose Effect";
-            mosChoiceData = { hasChoice: true, choiceType: "arm", choiceDmg: 2 };
+            mosEffectText = 'MOS 2: Choose Effect';
+            mosChoiceData = { hasChoice: true, choiceType: 'arm', choiceDmg: 2 };
         } else if (skillHits === 3) {
-            mosEffectText = "MOS 3: Choose Effect";
-            mosChoiceData = { hasChoice: true, choiceType: "leg", choiceDmg: 4 };
+            mosEffectText = 'MOS 3: Choose Effect';
+            mosChoiceData = { hasChoice: true, choiceType: 'leg', choiceDmg: 4 };
         } else if (skillHits >= 4) {
             mosDamageBonus = 6;
             mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)";
         }
     } else if (successThroughExperience) {
-        mosEffectText = "Success Through Experience";
+        mosEffectText = 'Success Through Experience';
     }
 
     return {
@@ -112,7 +112,7 @@ export function getMOS(result) {
  * @returns {string} HTML string.
  */
 export function generateDiceTooltip(roll, baseModifier, luckBonus = 0, successDieMod = 0) {
-    const sdRaw = (roll.terms[0] && roll.terms[0].results[0]) ? roll.terms[0].results[0].result : 0;
+    const sdRaw = roll.terms[0] && roll.terms[0].results[0] ? roll.terms[0].results[0].result : 0;
     const sdTotal = sdRaw + baseModifier + luckBonus + successDieMod;
 
     let html = `<div class="dice-tooltip" style="display:none; margin-top:10px; padding-top:5px; border-top:1px solid #444; font-size:0.8em; color:#ccc;">`;
@@ -121,13 +121,14 @@ export function generateDiceTooltip(roll, baseModifier, luckBonus = 0, successDi
     if (successDieMod !== 0) html += ` + Mod ${successDieMod}`;
     html += ` = <strong>${sdTotal}</strong></div>`;
 
-    if ((roll.terms.length > 2 && roll.terms[2].results) || (roll.autoSkillSuccesses > 0)) { // Check for auto hits too
+    if ((roll.terms.length > 2 && roll.terms[2].results) || roll.autoSkillSuccesses > 0) {
+        // Check for auto hits too
         html += `<div style="border-top:1px dashed #444; margin-top:2px;"><strong>Skill Dice (Base ${baseModifier}):</strong></div>`;
         html += `<div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:2px;">`;
 
         // Render Rolled Dice
         if (roll.terms.length > 2 && roll.terms[2].results) {
-            roll.terms[2].results.forEach(r => {
+            roll.terms[2].results.forEach((r) => {
                 html += `<span style="background:#222; border:1px solid #555; padding:1px 4px;">${r.result} + ${baseModifier} = <strong>${r.result + baseModifier}</strong></span>`;
             });
         }
@@ -154,11 +155,14 @@ export function createSLARoll(formula) {
 
     // --- DICE SO NICE: FORCE BLACK SUCCESS DIE ---
     // Target the first term (1d10)
-    if (roll.terms.length > 0 && (roll.terms[0] instanceof foundry.dice.terms.Die || roll.terms[0].constructor.name === "Die")) {
+    if (
+        roll.terms.length > 0 &&
+        (roll.terms[0] instanceof foundry.dice.terms.Die || roll.terms[0].constructor.name === 'Die')
+    ) {
         roll.terms[0].options.appearance = {
-            foreground: "#FFFFFF", // White Text
-            background: "#000000", // Black Body
-            edge: "#333333"        // Dark Grey Outline
+            foreground: '#FFFFFF', // White Text
+            background: '#000000', // Black Body
+            edge: '#333333' // Dark Grey Outline
         };
     }
     return roll;

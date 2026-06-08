@@ -1,62 +1,62 @@
 export const NATURAL_WEAPONS = {
     punchKick: {
-        name: "Punch/Kick",
-        type: "weapon",
-        img: "icons/svg/paw.svg",
+        name: 'Punch/Kick',
+        type: 'weapon',
+        img: 'icons/svg/paw.svg',
         system: {
-            damage: "@stats.str.total - 2",
-            minDamage: "0",
+            damage: '@stats.str.total - 2',
+            minDamage: '0',
             ad: 0,
-            attackType: "melee",
+            attackType: 'melee',
             firingModes: {
-                single: { label: "Single", active: true, rounds: 1, recoil: 0 },
+                single: { label: 'Single', active: true, rounds: 1, recoil: 0 }
             },
-            range: "1.5m",
-            skill: "unarmed",
+            range: '1.5m',
+            skill: 'unarmed',
             weight: 0,
             price: 0,
             equipped: true,
-            description: "<p>Natural unarmed attack.</p>"
+            description: '<p>Natural unarmed attack.</p>'
         }
     },
     teethClaws: {
-        name: "Teeth/Claws (Stormer)",
-        type: "weapon",
-        img: "icons/svg/paw.svg",
+        name: 'Teeth/Claws (Stormer)',
+        type: 'weapon',
+        img: 'icons/svg/paw.svg',
         system: {
-            damage: "@stats.str.total - 1",
-            minDamage: "2",
+            damage: '@stats.str.total - 1',
+            minDamage: '2',
             ad: 1,
-            attackType: "melee",
+            attackType: 'melee',
             firingModes: {
-                single: { label: "Single", active: true, rounds: 1, recoil: 0 },
+                single: { label: 'Single', active: true, rounds: 1, recoil: 0 }
             },
-            range: "1.5m",
-            skill: "unarmed",
+            range: '1.5m',
+            skill: 'unarmed',
             weight: 0,
             price: 0,
             equipped: true,
-            description: "<p>Natural weapons for Stormers.</p>"
+            description: '<p>Natural weapons for Stormers.</p>'
         }
     },
     beak: {
-        name: "Beak (Neophron)",
-        type: "weapon",
-        img: "icons/svg/paw.svg",
+        name: 'Beak (Neophron)',
+        type: 'weapon',
+        img: 'icons/svg/paw.svg',
         system: {
-            damage: "@stats.str.total - 1",
-            minDamage: "2",
+            damage: '@stats.str.total - 1',
+            minDamage: '2',
             ad: 0,
-            attackType: "melee",
+            attackType: 'melee',
             firingModes: {
-                single: { label: "Single", active: true, rounds: 1, recoil: 0 },
+                single: { label: 'Single', active: true, rounds: 1, recoil: 0 }
             },
-            range: "1.5m",
-            skill: "unarmed",
+            range: '1.5m',
+            skill: 'unarmed',
             weight: 0,
             price: 0,
             equipped: true,
-            description: "<p>Natural weapon for Neophrons.</p>"
+            description: '<p>Natural weapon for Neophrons.</p>'
         }
     }
 };

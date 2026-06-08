@@ -61,7 +61,7 @@ sla-industries/
 - **Foundry VTT v14** (minimum 14, verified 14.360)
 - **Application V2** (`ApplicationV2` + `HandlebarsApplicationMixin`) for all sheets and dialogs.
 - **TypeDataModel** (`foundry.abstract.TypeDataModel`) for all actor and item data schemas.
-- **SCSS** compiled to `css/sla-industries.css` via `npm run build:css` (or `npm run watch`). `npm run build` also assembles **`dist/`** (Foundry-installable runtime files). `npm run package` produces `sla-industries.zip` for releases.
+- **SCSS** compiled to `css/sla-industries.css` via `npm run build:css` (or `npm run watch`). Compiled CSS is a **build artifact** (not committed); run `npm run build:css` or `npm run build` before local Foundry testing. `npm run build` also assembles **`dist/`** (Foundry-installable runtime files). `npm run package` produces `sla-industries.zip` for releases.
 - **Node.js test runner** for unit tests; **Playwright** for end-to-end tests.
 
 ---
@@ -72,29 +72,29 @@ All schema definitions live in `module/data/actor.mjs` and `module/data/item.mjs
 
 ### Actor types
 
-| Type | Data class | Notes |
-|---|---|---|
-| `character` | `SlaCharacterData` | Operative; has biography, appearance, stats, xpLedger |
-| `npc` | `SlaNPCData` | Threat; similar to character but with NPC-specific fields |
-| `vehicle` | `SlaVehicleData` | Vehicle actor; HP, armor, move, mounted weapons |
+| Type        | Data class         | Notes                                                     |
+| ----------- | ------------------ | --------------------------------------------------------- |
+| `character` | `SlaCharacterData` | Operative; has biography, appearance, stats, xpLedger     |
+| `npc`       | `SlaNPCData`       | Threat; similar to character but with NPC-specific fields |
+| `vehicle`   | `SlaVehicleData`   | Vehicle actor; HP, armor, move, mounted weapons           |
 
 ### Item types
 
-| Type | Data class | Key fields |
-|---|---|---|
-| `weapon` | `SlaWeaponData` | damage, firingModes, attackType, skill, powersuitAttack |
-| `armor` | `SlaArmorData` | pv, resistance, powered, powersuit, dexCap, initBonus, mods |
-| `explosive` | `SlaExplosiveData` | damage, blastRadiusInner, blastRadiusOuter, skill |
-| `magazine` | `SlaMagazineData` | ammoType, ammoCapacity, linkedWeapon |
-| `skill` | `SlaSkillData` | rank, stat |
-| `trait` | `SlaTraitData` | rank, type |
-| `ebbFormula` | `SlaEbbFormulaData` | cost, formulaRating, ebbEffect, ebbTarget, removeWounds, ebbHealWoundMode |
-| `discipline` | `SlaDisciplineData` | rank, cost |
-| `drug` | `SlaDrugData` | active, addiction, quantity; no built-in stat mods — use Active Effects |
-| `toxicant` | `SlaToxicantData` | infectionRating, vector, progression, treatment, treatmentRating |
-| `species` | `SlaSpeciesData` | hp, luck, flux, move, stats (min/max per stat), skills |
-| `package` | `SlaPackageData` | requirements (stat min values), skills |
-| `item` (gear) | `SlaItemData` | weight, price, quantity, equipped |
+| Type          | Data class          | Key fields                                                                |
+| ------------- | ------------------- | ------------------------------------------------------------------------- |
+| `weapon`      | `SlaWeaponData`     | damage, firingModes, attackType, skill, powersuitAttack                   |
+| `armor`       | `SlaArmorData`      | pv, resistance, powered, powersuit, dexCap, initBonus, mods               |
+| `explosive`   | `SlaExplosiveData`  | damage, blastRadiusInner, blastRadiusOuter, skill                         |
+| `magazine`    | `SlaMagazineData`   | ammoType, ammoCapacity, linkedWeapon                                      |
+| `skill`       | `SlaSkillData`      | rank, stat                                                                |
+| `trait`       | `SlaTraitData`      | rank, type                                                                |
+| `ebbFormula`  | `SlaEbbFormulaData` | cost, formulaRating, ebbEffect, ebbTarget, removeWounds, ebbHealWoundMode |
+| `discipline`  | `SlaDisciplineData` | rank, cost                                                                |
+| `drug`        | `SlaDrugData`       | active, addiction, quantity; no built-in stat mods — use Active Effects   |
+| `toxicant`    | `SlaToxicantData`   | infectionRating, vector, progression, treatment, treatmentRating          |
+| `species`     | `SlaSpeciesData`    | hp, luck, flux, move, stats (min/max per stat), skills                    |
+| `package`     | `SlaPackageData`    | requirements (stat min values), skills                                    |
+| `item` (gear) | `SlaItemData`       | weight, price, quantity, equipped                                         |
 
 ### Active Effects and stats
 
@@ -129,27 +129,29 @@ The Success Die is always a black d10 (styled for Dice So Nice via `options.appe
 Source: `module/helpers/dice.mjs`
 
 Takes an evaluated `Roll` object and returns:
+
 ```js
 {
-  isSuccess,           // boolean
-  total,               // Success Die total (sdRaw + modifier + luck + successDieMod)
-  sdRaw,               // Raw Success Die result
-  skillHits,           // Number of skill dice ≥ TN (+ autoSkillSuccesses)
-  skillDiceData,       // Array of { raw, total, borderColor, textColor }
-  successThroughExperience  // boolean: failed SD but 4+ skill hits
+    (isSuccess, // boolean
+        total, // Success Die total (sdRaw + modifier + luck + successDieMod)
+        sdRaw, // Raw Success Die result
+        skillHits, // Number of skill dice ≥ TN (+ autoSkillSuccesses)
+        skillDiceData, // Array of { raw, total, borderColor, textColor }
+        successThroughExperience); // boolean: failed SD but 4+ skill hits
 }
 ```
 
 ### `getMOS(result)`
 
 Converts `calculateRollResult` output into tactical choices:
+
 ```js
 {
-  effect,       // Display text (e.g. "MOS 2: Choose Effect")
-  damageBonus,  // Flat bonus added to the damage roll
-  hasChoice,    // boolean: player chooses wound vs damage
-  choiceType,   // "arm" | "leg" | ""
-  choiceDmg     // Damage value for the choice path
+    (effect, // Display text (e.g. "MOS 2: Choose Effect")
+        damageBonus, // Flat bonus added to the damage roll
+        hasChoice, // boolean: player chooses wound vs damage
+        choiceType, // "arm" | "leg" | ""
+        choiceDmg); // Damage value for the choice path
 }
 ```
 
@@ -204,9 +206,9 @@ Source: `module/migration.mjs`
 1. `migrateTo200` — normalize missing HTML fields to `""` on actors/items (required for ProseMirror / ApplicationV2 sheets).
 2. `migrateTo210` — strip legacy drug `system.mods` and `system.damageReduction` keys.
 3. **Per-document loop:**
-   - World items: weapon attackType/firingModes, armor powered fields, species stats, ebbFormula schema changes.
-   - Actor embedded items: same per type.
-   - Actor data: armor resist schema, xpLedger init, NPC wound/condition fields, vehicle fields, luck/flux max init.
+    - World items: weapon attackType/firingModes, armor powered fields, species stats, ebbFormula schema changes.
+    - Actor embedded items: same per type.
+    - Actor data: armor resist schema, xpLedger init, NPC wound/condition fields, vehicle fields, luck/flux max init.
 4. External script: `migrateNaturalWeapons` (deduplicates Punch/Kick embedded items).
 5. Updates `systemMigrationVersion` setting so the migration does not run again.
 
@@ -221,18 +223,18 @@ Source: `module/migration.mjs`
 
 ## Hooks Used
 
-| Hook | Where | Purpose |
-|---|---|---|
-| `init` | `sla-industries.mjs` | Register data models, sheets, settings, Handlebars helpers |
-| `ready` | `sla-industries.mjs` | Run migration, init chat listeners, register hotbar hook |
-| `updateCombat` | `sla-industries.mjs` | Reset per-turn movement state on turn/round change |
-| `deleteCombat` | `sla-industries.mjs` | Prune movement state map for the deleted combat |
-| `preUpdateToken` | `sla-industries.mjs` | Block movement if lock is active and action is used |
-| `updateToken` | `sla-industries.mjs` | Mark movement used, or undo if options flag is set |
-| `updateCombatant` | `sla-industries.mjs` | Clamp stunned combatant initiative to current minimum |
-| `hotbarDrop` | `sla-hotbar.mjs` | Create macros from embedded actor item drops |
-| `renderChatMessage` | `chat.mjs` | Apply heal/wound mutual-exclusion lock state to re-rendered cards |
-| `renderChatMessageHTML` | `sla-industries.mjs` | Delegate to `SLAChat.onRenderChatMessage` |
+| Hook                    | Where                | Purpose                                                           |
+| ----------------------- | -------------------- | ----------------------------------------------------------------- |
+| `init`                  | `sla-industries.mjs` | Register data models, sheets, settings, Handlebars helpers        |
+| `ready`                 | `sla-industries.mjs` | Run migration, init chat listeners, register hotbar hook          |
+| `updateCombat`          | `sla-industries.mjs` | Reset per-turn movement state on turn/round change                |
+| `deleteCombat`          | `sla-industries.mjs` | Prune movement state map for the deleted combat                   |
+| `preUpdateToken`        | `sla-industries.mjs` | Block movement if lock is active and action is used               |
+| `updateToken`           | `sla-industries.mjs` | Mark movement used, or undo if options flag is set                |
+| `updateCombatant`       | `sla-industries.mjs` | Clamp stunned combatant initiative to current minimum             |
+| `hotbarDrop`            | `sla-hotbar.mjs`     | Create macros from embedded actor item drops                      |
+| `renderChatMessage`     | `chat.mjs`           | Apply heal/wound mutual-exclusion lock state to re-rendered cards |
+| `renderChatMessageHTML` | `sla-industries.mjs` | Delegate to `SLAChat.onRenderChatMessage`                         |
 
 ---
 
@@ -245,6 +247,7 @@ npm run test:unit
 ```
 
 Covers:
+
 - `inventory-stack.mjs` — stackKey identity, merge logic, consolidation.
 - `dice.mjs` — `calculateRollResult`, `getMOS`.
 - `ebb-mos.mjs` — `getEbbMosDamageBonus`.
@@ -259,6 +262,7 @@ npm run test:e2e:operators    # Operative CRUD, weapon items, roll integration
 ```
 
 E2E tests require:
+
 - A running Foundry VTT instance accessible at the configured URL.
 - `FOUNDRY_USER` environment variable set to the username.
 - GM-only steps skip automatically if the user is not a Gamemaster.
@@ -266,7 +270,7 @@ E2E tests require:
 ### SCSS compilation
 
 ```bash
-npm run build:css   # SCSS → css/ (local Foundry dev)
+npm run build:css   # SCSS → css/sla-industries.css (required for local Foundry dev)
 npm run build       # css + dist/ (release tree)
 npm run package     # dist/ → sla-industries.zip
 npm run validate:dist    # assert dist/ matches system.json
@@ -307,14 +311,14 @@ Clicking the roll icon on a weapon in the Combat tab (or via `game.sla.rollOwned
 
 `getMOS(result)` maps skill hit count to a tactical outcome:
 
-| Skill dice hits | MOS outcome |
-|---|---|
-| 0 | Fail |
-| Success Die only | Standard Hit |
-| 1 | +1 Damage |
-| 2 | MOS 2 — choose: +2 Damage **or** Arm Wound |
-| 3 | MOS 3 — choose: +4 Damage **or** Leg Wound |
-| 4+ | Head Shot (+6 Damage) — auto-applied, no choice |
+| Skill dice hits  | MOS outcome                                     |
+| ---------------- | ----------------------------------------------- |
+| 0                | Fail                                            |
+| Success Die only | Standard Hit                                    |
+| 1                | +1 Damage                                       |
+| 2                | MOS 2 — choose: +2 Damage **or** Arm Wound      |
+| 3                | MOS 3 — choose: +4 Damage **or** Leg Wound      |
+| 4+               | Head Shot (+6 Damage) — auto-applied, no choice |
 
 "Success Through Experience" fires when the Success Die fails but 4+ skill dice hit; no MOS bonus, just a standard hit.
 
@@ -330,14 +334,14 @@ Clicking the roll icon on a weapon in the Combat tab (or via `game.sla.rollOwned
 
 Chat state is persisted on `ChatMessage.flags.sla`:
 
-| Flag | Type | Purpose |
-|---|---|---|
-| `targets` | `string[]` | Token UUIDs for apply-damage buttons |
-| `autoApply` | `boolean` | Auto-apply wound on head-shot |
-| `isEbb` | `boolean` | Identifies Ebb roll cards |
-| `ebbRollSuccess` | `boolean` | Guards damage/heal buttons on failed Ebb rolls |
-| `ebbHealWoundMutualExclude` | `boolean` | Heal and wound buttons are mutually exclusive |
-| `ebbHealWoundPathUsed` | `"heal"\|"wounds"` | Which Ebb path was already used |
+| Flag                        | Type               | Purpose                                        |
+| --------------------------- | ------------------ | ---------------------------------------------- |
+| `targets`                   | `string[]`         | Token UUIDs for apply-damage buttons           |
+| `autoApply`                 | `boolean`          | Auto-apply wound on head-shot                  |
+| `isEbb`                     | `boolean`          | Identifies Ebb roll cards                      |
+| `ebbRollSuccess`            | `boolean`          | Guards damage/heal buttons on failed Ebb rolls |
+| `ebbHealWoundMutualExclude` | `boolean`          | Heal and wound buttons are mutually exclusive  |
+| `ebbHealWoundPathUsed`      | `"heal"\|"wounds"` | Which Ebb path was already used                |
 
 ### Step 4 — Damage application
 
@@ -383,12 +387,12 @@ max = max(8, STR_total × 3)
 
 ### Penalty thresholds
 
-| Remaining capacity (`max − value`) | Penalty |
-|---|---|
-| ≥ 2 | None |
-| 1 | −1 DEX; Rushing capped at 1 |
-| 0 | −2 DEX; Rushing capped at 1 |
-| < 0 (over limit) | Immobile |
+| Remaining capacity (`max − value`) | Penalty                     |
+| ---------------------------------- | --------------------------- |
+| ≥ 2                                | None                        |
+| 1                                  | −1 DEX; Rushing capped at 1 |
+| 0                                  | −2 DEX; Rushing capped at 1 |
+| < 0 (over limit)                   | Immobile                    |
 
 Encumbrance penalty is applied to DEX in `_applyPenalties` after stat totals are computed. The Rushing cap is enforced in `_calculateDerived`.
 
@@ -410,13 +414,13 @@ Players spend XP to purchase upgrades during downtime. Changes are queued as pen
 
 **Cost formulas (from source):**
 
-| Upgrade | XP cost | Credit cost |
-|---|---|---|
-| New skill (rank 1) | 2 | — |
-| Skill rank increase | `2 + (3 × current_rank)` | +500 at rank 4 |
-| New discipline (rank 1) | 2 | — |
-| Discipline rank increase | `2 + (3 × current_rank)` | — (+3 XP at rank 4) |
-| Stat increase (+1) | `5 + current_value` per rank | — |
+| Upgrade                  | XP cost                      | Credit cost         |
+| ------------------------ | ---------------------------- | ------------------- |
+| New skill (rank 1)       | 2                            | —                   |
+| Skill rank increase      | `2 + (3 × current_rank)`     | +500 at rank 4      |
+| New discipline (rank 1)  | 2                            | —                   |
+| Discipline rank increase | `2 + (3 × current_rank)`     | — (+3 XP at rank 4) |
+| Stat increase (+1)       | `5 + current_value` per rank | —                   |
 
 Each stat can increase by at most **1 rank per downtime period**. When STR increases, HP value and max are both incremented immediately to account for the new hit point.
 
@@ -443,13 +447,13 @@ The ledger is displayed (newest-first) in the XP dialog and is purely a historic
 
 Source: `module/config.mjs` (`SLA.ammoTypes`, `SLA.ammoModifiers`)
 
-| Key | Label | Damage mod | AD mod | PV mod |
-|---|---|---|---|---|
-| `standard` | Standard | 0 | 0 | 0 |
-| `he` | High Explosive (HE) | +1 | +1 | 0 |
-| `ap` | Armour Piercing (AP) | 0 | 0 | −2 (at target) |
-| `shotgun_std` | Shotgun Shot (Standard) | 0 | 0 | 0 |
-| `shotgun_slug` | Shotgun Slug | +1 | −1 | 0 |
+| Key            | Label                   | Damage mod | AD mod | PV mod         |
+| -------------- | ----------------------- | ---------- | ------ | -------------- |
+| `standard`     | Standard                | 0          | 0      | 0              |
+| `he`           | High Explosive (HE)     | +1         | +1     | 0              |
+| `ap`           | Armour Piercing (AP)    | 0          | 0      | −2 (at target) |
+| `shotgun_std`  | Shotgun Shot (Standard) | 0          | 0      | 0              |
+| `shotgun_slug` | Shotgun Slug            | +1         | −1     | 0              |
 
 `AD` (Armour Damage) reduces the target's armor resistance on hit. The AP −2 PV modifier is applied during damage resolution in `_applyDamageToTarget`, not pre-roll.
 
@@ -469,13 +473,13 @@ If an actor has multiple equipped powered armor items flagged as `powersuit`, th
 
 ### Effects of the active powersuit
 
-| Field | Effect |
-|---|---|
-| `mods.str` | **Replaces** the actor's STR total entirely (not additive) |
-| `mods.dex` | **Added** to DEX total |
-| `dexCap` | Caps DEX total to this value (applied after `mods.dex`) |
-| `initBonus` | Added to the initiative bonus accumulator |
-| `mods.move.closing` / `mods.move.rushing` | Added to base movement from species item |
+| Field                                     | Effect                                                     |
+| ----------------------------------------- | ---------------------------------------------------------- |
+| `mods.str`                                | **Replaces** the actor's STR total entirely (not additive) |
+| `mods.dex`                                | **Added** to DEX total                                     |
+| `dexCap`                                  | Caps DEX total to this value (applied after `mods.dex`)    |
+| `initBonus`                               | Added to the initiative bonus accumulator                  |
+| `mods.move.closing` / `mods.move.rushing` | Added to base movement from species item                   |
 
 ### Non-powersuit powered armor
 
@@ -495,18 +499,18 @@ The `SLATokenRuler` colors the movement ruler in real-time as a token is dragged
 
 ### Characters and NPCs
 
-| Color | Meaning |
-|---|---|
-| Green (`#39ff14`) | Within Closing speed |
-| Yellow | Between Closing and Rushing speed |
-| Red | Exceeds Rushing speed |
+| Color             | Meaning                           |
+| ----------------- | --------------------------------- |
+| Green (`#39ff14`) | Within Closing speed              |
+| Yellow            | Between Closing and Rushing speed |
+| Red               | Exceeds Rushing speed             |
 
 ### Vehicles
 
-| Color | Meaning |
-|---|---|
-| Green (`#39ff14`) | Within `move.value` |
-| Red | Exceeds `move.value` |
+| Color             | Meaning              |
+| ----------------- | -------------------- |
+| Green (`#39ff14`) | Within `move.value`  |
+| Red               | Exceeds `move.value` |
 
 ### Combat movement lock
 
@@ -521,4 +525,4 @@ If the **Enable Combat Movement Lock** world setting is active and the actor has
 - **Active Effects targeting:** Target `system.stats.<key>.bonus` (mode Add), never `.value`, so base stats are not overwritten by effects.
 - **Foundry v14 constants:** Use `CONST.ACTIVE_EFFECT_CHANGE_TYPES` (not deprecated `ACTIVE_EFFECT_MODES`).
 - **Circular dependencies:** Sheet classes are loaded via dynamic `import()` in `sla-hotbar.mjs` to break the `actor-sheet → sla-hotbar → actor-npc-sheet → actor-sheet` cycle.
-- **Prettify:** All new code must pass project formatting (Prettier). Run your formatter before committing.
+- **Prettify:** All new code must pass Prettier (`npm run format:check`). Run `npm run format` before committing. Handlebars templates under `templates/` are excluded.

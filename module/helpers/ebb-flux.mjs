@@ -15,7 +15,7 @@ export async function syncEbbCriticalFlux(message, actor, flags, isSuccess, skil
     const applied = Boolean(flags.ebbFluxRegainApplied);
     if (shouldHave === applied) return;
 
-    const canModify = actor.testUserPermission(game.user, "OWNER") || game.user.isGM;
+    const canModify = actor.testUserPermission(game.user, 'OWNER') || game.user.isGM;
     if (!canModify) return;
 
     const max = Number(actor.system?.stats?.flux?.max) || 0;
@@ -23,14 +23,14 @@ export async function syncEbbCriticalFlux(message, actor, flags, isSuccess, skil
 
     if (shouldHave && !applied) {
         const next = Math.min(max, cur + 1);
-        await actor.update({ "system.stats.flux.value": next });
-        await message.update({ "flags.sla.ebbFluxRegainApplied": true });
+        await actor.update({ 'system.stats.flux.value': next });
+        await message.update({ 'flags.sla.ebbFluxRegainApplied': true });
         if (next > cur) {
-            ui.notifications.info(game.i18n.format("SLA.EbbCriticalFluxRegained", { name: actor.name }));
+            ui.notifications.info(game.i18n.format('SLA.EbbCriticalFluxRegained', { name: actor.name }));
         }
     } else if (!shouldHave && applied) {
-        await actor.update({ "system.stats.flux.value": Math.max(0, cur - 1) });
-        await message.update({ "flags.sla.ebbFluxRegainApplied": false });
-        ui.notifications.info(game.i18n.format("SLA.EbbCriticalFluxRevoked", { name: actor.name }));
+        await actor.update({ 'system.stats.flux.value': Math.max(0, cur - 1) });
+        await message.update({ 'flags.sla.ebbFluxRegainApplied': false });
+        ui.notifications.info(game.i18n.format('SLA.EbbCriticalFluxRevoked', { name: actor.name }));
     }
 }

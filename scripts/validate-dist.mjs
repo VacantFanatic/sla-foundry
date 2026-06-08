@@ -2,25 +2,25 @@
 /**
  * Validate dist/ (and optionally sla-industries.zip) against system.json manifest paths.
  */
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { execFileSync } from "node:child_process";
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const distDir = path.join(root, "dist");
-const zipPath = path.join(root, "sla-industries.zip");
-const systemId = "sla-industries";
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const distDir = path.join(root, 'dist');
+const zipPath = path.join(root, 'sla-industries.zip');
+const systemId = 'sla-industries';
 
 /**
  * @param {string} [rootDir]
  */
 export function loadManifest(rootDir = root) {
-    const manifestPath = path.join(rootDir, "system.json");
+    const manifestPath = path.join(rootDir, 'system.json');
     if (!fs.existsSync(manifestPath)) {
         throw new Error(`Missing system.json at ${manifestPath}`);
     }
-    return JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    return JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 }
 
 /**
@@ -44,7 +44,7 @@ export function manifestAssetPaths(manifest) {
         if (pack?.path) paths.push(String(pack.path));
     }
 
-    paths.push("system.json");
+    paths.push('system.json');
 
     return [...new Set(paths)];
 }
@@ -58,19 +58,17 @@ export function validateDist(baseDir, manifest) {
         throw new Error(`dist directory not found: ${baseDir}`);
     }
 
-    const distManifestPath = path.join(baseDir, "system.json");
+    const distManifestPath = path.join(baseDir, 'system.json');
     if (!fs.existsSync(distManifestPath)) {
-        throw new Error("dist/system.json not found — run npm run build");
+        throw new Error('dist/system.json not found — run npm run build');
     }
 
-    const distManifest = JSON.parse(fs.readFileSync(distManifestPath, "utf8"));
+    const distManifest = JSON.parse(fs.readFileSync(distManifestPath, 'utf8'));
     if (distManifest.id !== manifest.id) {
         throw new Error(`dist system id mismatch: ${distManifest.id} !== ${manifest.id}`);
     }
     if (distManifest.version !== manifest.version) {
-        throw new Error(
-            `dist version mismatch: ${distManifest.version} !== ${manifest.version}`
-        );
+        throw new Error(`dist version mismatch: ${distManifest.version} !== ${manifest.version}`);
     }
 
     const missing = [];
@@ -82,7 +80,7 @@ export function validateDist(baseDir, manifest) {
     }
 
     if (missing.length) {
-        throw new Error(`dist is missing manifest paths:\n  - ${missing.join("\n  - ")}`);
+        throw new Error(`dist is missing manifest paths:\n  - ${missing.join('\n  - ')}`);
     }
 
     return { ok: true, pathCount: manifestAssetPaths(manifest).length };
@@ -98,13 +96,13 @@ export function validateZip(zipFile = zipPath) {
 
     let listing;
     try {
-        listing = execFileSync("unzip", ["-Z1", zipFile], { encoding: "utf8" });
+        listing = execFileSync('unzip', ['-Z1', zipFile], { encoding: 'utf8' });
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         throw new Error(`failed to list zip: ${message}`);
     }
 
-    const entries = listing.trim().split("\n").filter(Boolean);
+    const entries = listing.trim().split('\n').filter(Boolean);
     const prefix = `${systemId}/`;
     const hasRootFolder = entries.some((e) => e.startsWith(prefix));
     if (!hasRootFolder) {
@@ -125,7 +123,7 @@ export function validateZip(zipFile = zipPath) {
     ];
     const leaked = entries.filter((e) => devPatterns.some((re) => re.test(e)));
     if (leaked.length) {
-        throw new Error(`zip contains dev artifacts:\n  - ${leaked.join("\n  - ")}`);
+        throw new Error(`zip contains dev artifacts:\n  - ${leaked.join('\n  - ')}`);
     }
 
     return { ok: true, entryCount: entries.length };
@@ -135,22 +133,20 @@ export function validateZip(zipFile = zipPath) {
  * @param {string} rootDir
  */
 export function assertVersionSync(rootDir = root) {
-    const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf8"));
+    const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
     const manifest = loadManifest(rootDir);
     if (pkg.version !== manifest.version) {
-        throw new Error(
-            `version mismatch: package.json=${pkg.version}, system.json=${manifest.version}`
-        );
+        throw new Error(`version mismatch: package.json=${pkg.version}, system.json=${manifest.version}`);
     }
 }
 
 function runCli() {
-    const syncOnly = process.argv.includes("--sync-only");
-    const checkZip = process.argv.includes("--zip");
+    const syncOnly = process.argv.includes('--sync-only');
+    const checkZip = process.argv.includes('--zip');
 
     assertVersionSync(root);
     if (syncOnly) {
-        console.log("version sync OK");
+        console.log('version sync OK');
         return;
     }
 
@@ -164,9 +160,7 @@ function runCli() {
     }
 }
 
-const isMain =
-    process.argv[1] &&
-    path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
 
 if (isMain) {
     runCli();
