@@ -1,36 +1,35 @@
 /**
  * SLA actor sheet (Application V2).
  */
-import { LuckDialog } from "../apps/luck-dialog.mjs";
-import { XPDialog } from "../apps/xp-dialog.mjs";
-import { SlaSimpleContentDialog } from "../apps/sla-simple-dialog.mjs";
-import { calculateRollResult, generateDiceTooltip, createSLARoll } from "../helpers/dice.mjs";
-import { prepareItems, normalizeEbbEffect, normalizeEbbHealWoundMode, incrementSkillRank } from "../helpers/items.mjs";
-import { getEbbMosDamageBonus } from "../helpers/ebb-mos.mjs";
-import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from "../helpers/modifiers.mjs";
-import { addActorItemToHotbar } from "../helpers/sla-hotbar.mjs";
-import { SLAChat } from "../helpers/chat.mjs";
-import { syncEbbCriticalFlux } from "../helpers/ebb-flux.mjs";
-import { shouldShowMosWoundChoice } from "../helpers/wound-visibility.mjs";
-import { handleStackableActorItemDrop } from "../helpers/inventory-stack.mjs";
+import { LuckDialog } from '../apps/luck-dialog.mjs';
+import { XPDialog } from '../apps/xp-dialog.mjs';
+import { SlaSimpleContentDialog } from '../apps/sla-simple-dialog.mjs';
+import { calculateRollResult, generateDiceTooltip, createSLARoll } from '../helpers/dice.mjs';
+import { prepareItems, normalizeEbbEffect, normalizeEbbHealWoundMode, incrementSkillRank } from '../helpers/items.mjs';
+import { getEbbMosDamageBonus } from '../helpers/ebb-mos.mjs';
+import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from '../helpers/modifiers.mjs';
+import { addActorItemToHotbar } from '../helpers/sla-hotbar.mjs';
+import { SLAChat } from '../helpers/chat.mjs';
+import { syncEbbCriticalFlux } from '../helpers/ebb-flux.mjs';
+import { shouldShowMosWoundChoice } from '../helpers/wound-visibility.mjs';
+import { handleStackableActorItemDrop } from '../helpers/inventory-stack.mjs';
 import {
     buildWeaponDamageFormula,
     buildWeaponRollMods,
     readWeaponRollFormState,
     resolveWeaponMosOutcome
-} from "./actor/roll-math.mjs";
-import { executeSkillRollFromItem } from "./actor/skill-rolls.mjs";
+} from './actor/roll-math.mjs';
+import { executeSkillRollFromItem } from './actor/skill-rolls.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
 
 export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
-
     /** @override */
     static PARTS = {
         sheet: {
-            template: "systems/sla-industries/templates/actor/actor-sheet-v2.hbs",
-            scrollable: [""]
+            template: 'systems/sla-industries/templates/actor/actor-sheet-v2.hbs',
+            scrollable: ['']
         }
     };
 
@@ -38,42 +37,46 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     static TABS = {
         primary: {
             tabs: [
-                { id: "main", label: "Main", icon: "fa-id-card" },
-                { id: "combat", label: "Combat", icon: "fa-crosshairs" },
-                { id: "ebb", label: "Ebb", icon: "fa-magic" },
-                { id: "inventory", label: "Inventory", icon: "fa-box-open" },
-                { id: "biography", label: "Bio & Traits", icon: "fa-book" },
-                { id: "effects", label: "Effects", icon: "fa-bolt" }
+                { id: 'main', label: 'Main', icon: 'fa-id-card' },
+                { id: 'combat', label: 'Combat', icon: 'fa-crosshairs' },
+                { id: 'ebb', label: 'Ebb', icon: 'fa-magic' },
+                { id: 'inventory', label: 'Inventory', icon: 'fa-box-open' },
+                { id: 'biography', label: 'Bio & Traits', icon: 'fa-book' },
+                { id: 'effects', label: 'Effects', icon: 'fa-bolt' }
             ],
-            initial: "main"
+            initial: 'main'
         }
     };
 
     /** @override */
-    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-        // Required for <prose-mirror> and other form-associated controls to submit into document updates (App V2).
-        tag: "form",
-        form: {
-            ...(super.DEFAULT_OPTIONS.form ?? {}),
-            submitOnChange: true,
-            closeOnSubmit: false
+    static DEFAULT_OPTIONS = foundry.utils.mergeObject(
+        super.DEFAULT_OPTIONS,
+        {
+            // Required for <prose-mirror> and other form-associated controls to submit into document updates (App V2).
+            tag: 'form',
+            form: {
+                ...(super.DEFAULT_OPTIONS.form ?? {}),
+                submitOnChange: true,
+                closeOnSubmit: false
+            },
+            classes: ['sla-industries', 'sheet', 'actor'],
+            position: {
+                width: 850,
+                height: 850
+            },
+            window: {
+                frame: true,
+                resizable: true,
+                minimizable: true
+            }
         },
-        classes: ["sla-industries", "sheet", "actor"],
-        position: {
-            width: 850,
-            height: 850
-        },
-        window: {
-            frame: true,
-            resizable: true,
-            minimizable: true
-        }
-    }, { inplace: false });
+        { inplace: false }
+    );
 
     /** @returns {boolean} */
     #actorIsEbonite() {
-        const species = this.actor.items.find((i) => i.type === "species");
-        return Boolean(species?.name?.toLowerCase().includes("ebonite"));
+        const species = this.actor.items.find((i) => i.type === 'species');
+        return Boolean(species?.name?.toLowerCase().includes('ebonite'));
     }
 
     /**
@@ -81,8 +84,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      * from before the combat tab was renamed to `combat`.
      */
     changeTab(tab, group, options) {
-        if (group === "primary" && tab === "ebb" && !this.#actorIsEbonite()) {
-            tab = "combat";
+        if (group === 'primary' && tab === 'ebb' && !this.#actorIsEbonite()) {
+            tab = 'combat';
         }
         return super.changeTab(tab, group, options);
     }
@@ -98,27 +101,27 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      * @param {AbortSignal} signal
      */
     #injectStatSheetHeaderToggle(signal) {
-        if (this.actor.type !== "character") return;
+        if (this.actor.type !== 'character') return;
         const form = this.element instanceof HTMLElement ? this.element : null;
-        const win = form?.closest(".window-app") ?? form?.closest(".application");
-        const header = win?.querySelector(".window-header");
+        const win = form?.closest('.window-app') ?? form?.closest('.application');
+        const header = win?.querySelector('.window-header');
         if (!header) return;
 
-        header.querySelector(".sla-stat-sheet-header-mode")?.remove();
+        header.querySelector('.sla-stat-sheet-header-mode')?.remove();
 
-        const mode = this.actor.getFlag("sla-industries", "statSheetMode") ?? "play";
-        const wrap = document.createElement("div");
-        wrap.className = "sla-stat-sheet-header-mode";
-        wrap.setAttribute("role", "group");
-        wrap.setAttribute("aria-label", game.i18n.localize("SLA.StatSheetMode.GroupLabel"));
+        const mode = this.actor.getFlag('sla-industries', 'statSheetMode') ?? 'play';
+        const wrap = document.createElement('div');
+        wrap.className = 'sla-stat-sheet-header-mode';
+        wrap.setAttribute('role', 'group');
+        wrap.setAttribute('aria-label', game.i18n.localize('SLA.StatSheetMode.GroupLabel'));
 
-        const isPlay = mode === "play";
+        const isPlay = mode === 'play';
         if (!this.actor.isOwner) {
             wrap.appendChild(this.#createHeaderStatModeSwitch(isPlay, false));
         } else {
             const sw = this.#createHeaderStatModeSwitch(isPlay, true);
             wrap.appendChild(sw);
-            sw.addEventListener("click", this.#onHeaderStatSwitchClick, { signal });
+            sw.addEventListener('click', this.#onHeaderStatSwitchClick, { signal });
         }
 
         // Place left of the header "toggle controls" button (App V2 `window.controls`), not only `.window-controls`
@@ -127,7 +130,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (toggleControls instanceof HTMLElement && toggleControls.parentNode instanceof HTMLElement) {
             toggleControls.parentNode.insertBefore(wrap, toggleControls);
         } else {
-            const controls = header.querySelector(".window-controls");
+            const controls = header.querySelector('.window-controls');
             if (controls instanceof HTMLElement) header.insertBefore(wrap, controls);
             else header.appendChild(wrap);
         }
@@ -142,75 +145,75 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      * @param {boolean} isPlay
      */
     #applyHeaderStatSwitchInlineLayout(track, thumb, labL, labR, isPlay) {
-        const accent = getComputedStyle(document.documentElement).getPropertyValue("--sla-accent").trim() || "#d05e1a";
-        track.style.setProperty("display", "grid");
-        track.style.setProperty("grid-template-columns", "1fr 1fr");
-        track.style.setProperty("align-items", "stretch");
-        track.style.setProperty("position", "relative");
-        track.style.setProperty("box-sizing", "border-box");
-        track.style.setProperty("width", "3.75rem");
-        track.style.setProperty("min-width", "3.75rem");
-        track.style.setProperty("height", "1.25rem");
-        track.style.setProperty("min-height", "1.25rem");
-        track.style.setProperty("background", "#3a3a48");
-        track.style.setProperty("border", "1px solid rgba(208, 94, 26, 0.55)");
-        track.style.setProperty("border-radius", "999px");
-        track.style.setProperty("overflow", "hidden");
-        track.style.setProperty("box-shadow", "inset 0 1px 3px rgba(0, 0, 0, 0.45)");
+        const accent = getComputedStyle(document.documentElement).getPropertyValue('--sla-accent').trim() || '#d05e1a';
+        track.style.setProperty('display', 'grid');
+        track.style.setProperty('grid-template-columns', '1fr 1fr');
+        track.style.setProperty('align-items', 'stretch');
+        track.style.setProperty('position', 'relative');
+        track.style.setProperty('box-sizing', 'border-box');
+        track.style.setProperty('width', '3.75rem');
+        track.style.setProperty('min-width', '3.75rem');
+        track.style.setProperty('height', '1.25rem');
+        track.style.setProperty('min-height', '1.25rem');
+        track.style.setProperty('background', '#3a3a48');
+        track.style.setProperty('border', '1px solid rgba(208, 94, 26, 0.55)');
+        track.style.setProperty('border-radius', '999px');
+        track.style.setProperty('overflow', 'hidden');
+        track.style.setProperty('box-shadow', 'inset 0 1px 3px rgba(0, 0, 0, 0.45)');
 
         for (const lab of [labL, labR]) {
-            lab.style.setProperty("display", "flex");
-            lab.style.setProperty("align-items", "center");
-            lab.style.setProperty("justify-content", "center");
-            lab.style.setProperty("position", "relative");
-            lab.style.setProperty("z-index", "2");
-            lab.style.setProperty("min-width", "0");
-            lab.style.setProperty("font-family", "monospace");
-            lab.style.setProperty("font-size", "0.62rem");
-            lab.style.setProperty("font-weight", "800");
-            lab.style.setProperty("pointer-events", "none");
-            lab.style.setProperty("user-select", "none");
+            lab.style.setProperty('display', 'flex');
+            lab.style.setProperty('align-items', 'center');
+            lab.style.setProperty('justify-content', 'center');
+            lab.style.setProperty('position', 'relative');
+            lab.style.setProperty('z-index', '2');
+            lab.style.setProperty('min-width', '0');
+            lab.style.setProperty('font-family', 'monospace');
+            lab.style.setProperty('font-size', '0.62rem');
+            lab.style.setProperty('font-weight', '800');
+            lab.style.setProperty('pointer-events', 'none');
+            lab.style.setProperty('user-select', 'none');
         }
         if (isPlay) {
-            labL.style.setProperty("color", "rgba(255, 255, 255, 0.45)");
-            labR.style.setProperty("color", "#0a0a0a");
+            labL.style.setProperty('color', 'rgba(255, 255, 255, 0.45)');
+            labR.style.setProperty('color', '#0a0a0a');
         } else {
-            labL.style.setProperty("color", "#0a0a0a");
-            labR.style.setProperty("color", "rgba(255, 255, 255, 0.45)");
+            labL.style.setProperty('color', '#0a0a0a');
+            labR.style.setProperty('color', 'rgba(255, 255, 255, 0.45)');
         }
 
-        thumb.style.setProperty("position", "absolute");
-        thumb.style.setProperty("top", "2px");
-        thumb.style.setProperty("bottom", "2px");
-        thumb.style.setProperty("left", isPlay ? "calc(50% + 1px)" : "2px");
-        thumb.style.setProperty("width", "calc(50% - 3px)");
-        thumb.style.setProperty("border-radius", "999px");
-        thumb.style.setProperty("background", accent);
-        thumb.style.setProperty("box-shadow", "0 1px 4px rgba(0, 0, 0, 0.55)");
-        thumb.style.setProperty("z-index", "1");
-        thumb.style.setProperty("transition", "left 0.22s ease");
-        thumb.style.setProperty("pointer-events", "none");
+        thumb.style.setProperty('position', 'absolute');
+        thumb.style.setProperty('top', '2px');
+        thumb.style.setProperty('bottom', '2px');
+        thumb.style.setProperty('left', isPlay ? 'calc(50% + 1px)' : '2px');
+        thumb.style.setProperty('width', 'calc(50% - 3px)');
+        thumb.style.setProperty('border-radius', '999px');
+        thumb.style.setProperty('background', accent);
+        thumb.style.setProperty('box-shadow', '0 1px 4px rgba(0, 0, 0, 0.55)');
+        thumb.style.setProperty('z-index', '1');
+        thumb.style.setProperty('transition', 'left 0.22s ease');
+        thumb.style.setProperty('pointer-events', 'none');
     }
 
     /** @param {HTMLElement} el */
     #applyHeaderStatSwitchHostInlineLayout(el) {
-        el.style.setProperty("display", "inline-flex");
-        el.style.setProperty("align-items", "center");
-        el.style.setProperty("justify-content", "center");
-        el.style.setProperty("width", "auto");
-        el.style.setProperty("min-width", "3.75rem");
-        el.style.setProperty("max-width", "none");
-        el.style.setProperty("height", "auto");
-        el.style.setProperty("min-height", "1.25rem");
-        el.style.setProperty("max-height", "none");
-        el.style.setProperty("padding", "0");
-        el.style.setProperty("margin", "0");
-        el.style.setProperty("border", "none");
-        el.style.setProperty("background", "transparent");
-        el.style.setProperty("overflow", "visible");
-        el.style.setProperty("line-height", "1");
-        el.style.setProperty("flex", "0 0 auto");
-        el.style.setProperty("box-shadow", "none");
+        el.style.setProperty('display', 'inline-flex');
+        el.style.setProperty('align-items', 'center');
+        el.style.setProperty('justify-content', 'center');
+        el.style.setProperty('width', 'auto');
+        el.style.setProperty('min-width', '3.75rem');
+        el.style.setProperty('max-width', 'none');
+        el.style.setProperty('height', 'auto');
+        el.style.setProperty('min-height', '1.25rem');
+        el.style.setProperty('max-height', 'none');
+        el.style.setProperty('padding', '0');
+        el.style.setProperty('margin', '0');
+        el.style.setProperty('border', 'none');
+        el.style.setProperty('background', 'transparent');
+        el.style.setProperty('overflow', 'visible');
+        el.style.setProperty('line-height', '1');
+        el.style.setProperty('flex', '0 0 auto');
+        el.style.setProperty('box-shadow', 'none');
     }
 
     /**
@@ -220,39 +223,39 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      * @returns {HTMLElement}
      */
     #createHeaderStatModeSwitch(isPlay, interactive) {
-        const track = document.createElement("span");
-        track.className = "sla-header-stat-switch-track";
+        const track = document.createElement('span');
+        track.className = 'sla-header-stat-switch-track';
 
-        const labL = document.createElement("span");
-        labL.className = "sla-header-stat-switch-label sla-header-stat-switch-label--left";
-        labL.textContent = game.i18n.localize("SLA.StatSheetMode.EditShort");
+        const labL = document.createElement('span');
+        labL.className = 'sla-header-stat-switch-label sla-header-stat-switch-label--left';
+        labL.textContent = game.i18n.localize('SLA.StatSheetMode.EditShort');
 
-        const labR = document.createElement("span");
-        labR.className = "sla-header-stat-switch-label sla-header-stat-switch-label--right";
-        labR.textContent = game.i18n.localize("SLA.StatSheetMode.PlayShort");
+        const labR = document.createElement('span');
+        labR.className = 'sla-header-stat-switch-label sla-header-stat-switch-label--right';
+        labR.textContent = game.i18n.localize('SLA.StatSheetMode.PlayShort');
 
-        const thumb = document.createElement("span");
-        thumb.className = "sla-header-stat-switch-thumb";
-        thumb.setAttribute("aria-hidden", "true");
+        const thumb = document.createElement('span');
+        thumb.className = 'sla-header-stat-switch-thumb';
+        thumb.setAttribute('aria-hidden', 'true');
 
         track.append(labL, labR, thumb);
         this.#applyHeaderStatSwitchInlineLayout(track, thumb, labL, labR, isPlay);
 
-        const cls = `sla-header-stat-switch ${isPlay ? "is-play" : "is-edit"}${interactive ? "" : " sla-header-stat-switch--static"}`;
+        const cls = `sla-header-stat-switch ${isPlay ? 'is-play' : 'is-edit'}${interactive ? '' : ' sla-header-stat-switch--static'}`;
         if (interactive) {
-            const b = document.createElement("button");
-            b.type = "button";
+            const b = document.createElement('button');
+            b.type = 'button';
             b.className = cls;
-            b.setAttribute("role", "switch");
-            b.setAttribute("aria-checked", isPlay ? "true" : "false");
-            b.title = game.i18n.localize("SLA.StatSheetMode.SwitchTitle");
+            b.setAttribute('role', 'switch');
+            b.setAttribute('aria-checked', isPlay ? 'true' : 'false');
+            b.title = game.i18n.localize('SLA.StatSheetMode.SwitchTitle');
             this.#applyHeaderStatSwitchHostInlineLayout(b);
             b.appendChild(track);
             return b;
         }
-        const d = document.createElement("div");
+        const d = document.createElement('div');
         d.className = cls;
-        d.title = game.i18n.localize(isPlay ? "SLA.StatSheetMode.PlayTitle" : "SLA.StatSheetMode.EditTitle");
+        d.title = game.i18n.localize(isPlay ? 'SLA.StatSheetMode.PlayTitle' : 'SLA.StatSheetMode.EditTitle');
         this.#applyHeaderStatSwitchHostInlineLayout(d);
         d.appendChild(track);
         return d;
@@ -262,12 +265,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     #onHeaderStatSwitchClick = async (event) => {
         if (!this.actor.isOwner) return;
         const t = event.currentTarget;
-        if (!(t instanceof HTMLButtonElement) || !t.classList.contains("sla-header-stat-switch")) return;
+        if (!(t instanceof HTMLButtonElement) || !t.classList.contains('sla-header-stat-switch')) return;
         event.preventDefault();
         event.stopPropagation();
-        const cur = this.actor.getFlag("sla-industries", "statSheetMode") ?? "play";
-        const next = cur === "play" ? "edit" : "play";
-        await this.actor.setFlag("sla-industries", "statSheetMode", next);
+        const cur = this.actor.getFlag('sla-industries', 'statSheetMode') ?? 'play';
+        const next = cur === 'play' ? 'edit' : 'play';
+        await this.actor.setFlag('sla-industries', 'statSheetMode', next);
         this.render(false);
     };
 
@@ -278,8 +281,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // Keep instance-token controls only when this sheet has a token context.
         const hasTokenContext = !!this.token;
         const filtered = controls.filter((c) => {
-            const action = String(c?.action ?? "");
-            if (action === "configureToken" || action === "showTokenArtwork") {
+            const action = String(c?.action ?? '');
+            if (action === 'configureToken' || action === 'showTokenArtwork') {
                 return hasTokenContext;
             }
             return true;
@@ -288,7 +291,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // Deduplicate by action+label (not just label) to avoid keeping a wrong variant.
         const seen = new Set();
         return filtered.filter((c) => {
-            const key = `${String(c?.action ?? "")}|${String(c?.label ?? "")}`;
+            const key = `${String(c?.action ?? '')}|${String(c?.label ?? '')}`;
             if (seen.has(key)) return false;
             seen.add(key);
             return true;
@@ -305,12 +308,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         context.actor = this.actor;
         const primaryTabs = this.constructor.TABS?.primary?.tabs ?? [];
 
-        if (this.actor.type === "character") {
-            context.statSheetMode = this.actor.getFlag("sla-industries", "statSheetMode") ?? "play";
+        if (this.actor.type === 'character') {
+            context.statSheetMode = this.actor.getFlag('sla-industries', 'statSheetMode') ?? 'play';
         }
 
         if (primaryTabs.length) {
-            context.tabs = this._prepareTabs("primary");
+            context.tabs = this._prepareTabs('primary');
             for (const t of primaryTabs) {
                 const tab = context.tabs[t.id];
                 if (tab) {
@@ -320,7 +323,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                     tab.label = loc !== lk ? loc : t.label;
                 }
             }
-            if (primaryTabs.some((t) => t.id === "effects")) {
+            if (primaryTabs.some((t) => t.id === 'effects')) {
                 context.effectsList = this._prepareEffectsList();
             }
         }
@@ -332,11 +335,11 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         context.flags = this.actor.flags;
 
         // Base stat scores from document source (ignore active-effect overlays on .value so inputs stay true base)
-        if (this.actor.type === "character" || this.actor.type === "npc") {
-            const core = ["str", "dex", "know", "conc", "cha", "cool"];
-            const srcStats = foundry.utils.getProperty(this.actor._source, "system.stats") || {};
+        if (this.actor.type === 'character' || this.actor.type === 'npc') {
+            const core = ['str', 'dex', 'know', 'conc', 'cha', 'cool'];
+            const srcStats = foundry.utils.getProperty(this.actor._source, 'system.stats') || {};
             context.statInputs = Object.fromEntries(
-                core.map((k) => [k, Number(foundry.utils.getProperty(srcStats[k], "value")) || 0])
+                core.map((k) => [k, Number(foundry.utils.getProperty(srcStats[k], 'value')) || 0])
             );
         }
 
@@ -352,10 +355,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // ======================================================
         // Sync togglable conditions from Active Effects so sheet buttons match the token.
         // Critical is excluded: it is derived from HP in prepareDerivedData (not user-toggled).
-        const conditionIds = ["bleeding", "burning", "stunned", "prone", "immobile"];
+        const conditionIds = ['bleeding', 'burning', 'stunned', 'prone', 'immobile'];
 
         for (const statusId of conditionIds) {
-            const hasEffect = this.actor.effects.some(e => e.statuses.has(statusId));
+            const hasEffect = this.actor.effects.some((e) => e.statuses.has(statusId));
             context.system.conditions[statusId] = hasEffect;
         }
         // ======================================================
@@ -370,19 +373,28 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         // ... (Keep existing speciesList logic) ...
 
-        context.speciesItem = this.actor.items.find(i => i.type === "species");
-        context.packageItem = this.actor.items.find(i => i.type === "package");
+        context.speciesItem = this.actor.items.find((i) => i.type === 'species');
+        context.packageItem = this.actor.items.find((i) => i.type === 'package');
 
         // --- CHECK IF EBONITE ---
         if (context.speciesItem && context.speciesItem.name) {
-            context.isEbonite = context.speciesItem.name.toLowerCase().includes("ebonite");
+            context.isEbonite = context.speciesItem.name.toLowerCase().includes('ebonite');
         } else {
             context.isEbonite = false;
         }
 
-        context.enrichedBiography = await foundry.applications.ux.TextEditor.enrichHTML(this.actor.system.biography, { async: true, relativeTo: this.actor });
-        context.enrichedAppearance = await foundry.applications.ux.TextEditor.enrichHTML(this.actor.system.appearance, { async: true, relativeTo: this.actor });
-        context.enrichedNotes = await foundry.applications.ux.TextEditor.enrichHTML(this.actor.system.notes, { async: true, relativeTo: this.actor });
+        context.enrichedBiography = await foundry.applications.ux.TextEditor.enrichHTML(this.actor.system.biography, {
+            async: true,
+            relativeTo: this.actor
+        });
+        context.enrichedAppearance = await foundry.applications.ux.TextEditor.enrichHTML(this.actor.system.appearance, {
+            async: true,
+            relativeTo: this.actor
+        });
+        context.enrichedNotes = await foundry.applications.ux.TextEditor.enrichHTML(this.actor.system.notes, {
+            async: true,
+            relativeTo: this.actor
+        });
 
         return context;
     }
@@ -398,12 +410,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      */
     _prepareEffectsList() {
         return Array.from(this.actor.effects).map((e) => {
-            let durationLabel = "";
+            let durationLabel = '';
             try {
                 const d = e.updateDuration?.() ?? e.duration;
-                durationLabel = d?.label || "";
+                durationLabel = d?.label || '';
             } catch {
-                durationLabel = "";
+                durationLabel = '';
             }
             return {
                 id: e.id,
@@ -420,11 +432,11 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     async #openActorImagePicker() {
         const Picker = foundry.applications.apps?.FilePicker ?? globalThis.FilePicker;
         if (!Picker) {
-            ui.notifications?.error?.("FilePicker is unavailable.");
+            ui.notifications?.error?.('FilePicker is unavailable.');
             return;
         }
         const fp = new Picker({
-            type: "image",
+            type: 'image',
             current: this.actor.img,
             callback: (path) => {
                 if (path) void this.actor.update({ img: path });
@@ -440,14 +452,16 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      * @param {() => Promise<void> | void} onConfirm
      * @param {string} [actionLabel]
      */
-    async #confirmAction(title, contentHtml, onConfirm, actionLabel = "Confirm") {
+    async #confirmAction(title, contentHtml, onConfirm, actionLabel = 'Confirm') {
         await new SlaSimpleContentDialog({
             title,
             contentHtml,
             width: 420,
-            classes: ["sla-dialog", "sla-sheet"],
+            classes: ['sla-dialog', 'sla-sheet'],
             actionLabel,
-            onConfirm: async () => { await onConfirm(); }
+            onConfirm: async () => {
+                await onConfirm();
+            }
         }).render(true);
     }
 
@@ -486,20 +500,20 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // Operative tabs: App V2's default tab binding expects a `.content` wrapper; we use `.sheet-body`.
         // Also register even when !isEditable so observers can switch tabs.
         if (primaryTabs.length) {
-            root.addEventListener("click", this.#onTabNavClick, { signal, capture: true });
+            root.addEventListener('click', this.#onTabNavClick, { signal, capture: true });
         }
-        const fxSearch = root.querySelector(".sla-effect-search");
+        const fxSearch = root.querySelector('.sla-effect-search');
         if (fxSearch instanceof HTMLInputElement) {
-            fxSearch.addEventListener("input", this.#onActorEffectSearchInput, { signal });
+            fxSearch.addEventListener('input', this.#onActorEffectSearchInput, { signal });
         }
-        if (this.actor.type === "character") {
+        if (this.actor.type === 'character') {
             this.#injectStatSheetHeaderToggle(signal);
         }
 
         // Clicks: rolls / compendium / conditions must work even when the sheet is not editable (v13 often uses !isEditable for "play" sheets).
-        root.addEventListener("click", this.#onSheetClick, { signal });
+        root.addEventListener('click', this.#onSheetClick, { signal });
         // Wound checkboxes use change events; same visibility as rolls for owners.
-        root.addEventListener("change", this.#onSheetChange, { signal });
+        root.addEventListener('change', this.#onSheetChange, { signal });
 
         // Hotbar macro from item row: must work when the sheet is not editable (player default).
         if (this.actor.isOwner) {
@@ -508,10 +522,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         if (!this.isEditable) return;
 
-        if (this.actor.type === "vehicle") {
-            const dropZone = root.querySelector(".vehicle-weapon-drop");
-            dropZone?.addEventListener("dragover", (e) => e.preventDefault(), { signal });
-            dropZone?.addEventListener("drop", (e) => void this._onDropVehicleWeapon(e), { signal });
+        if (this.actor.type === 'vehicle') {
+            const dropZone = root.querySelector('.vehicle-weapon-drop');
+            dropZone?.addEventListener('dragover', (e) => e.preventDefault(), { signal });
+            dropZone?.addEventListener('drop', (e) => void this._onDropVehicleWeapon(e), { signal });
         }
     }
 
@@ -522,25 +536,30 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     async #bindSheetItemContextMenu(root) {
         await this.#disposeSheetItemContextMenu();
 
-        const ContextMenuCls = foundry.applications.ux.ContextMenu.implementation
-            ?? foundry.applications.ux.ContextMenu;
+        const ContextMenuCls =
+            foundry.applications.ux.ContextMenu.implementation ?? foundry.applications.ux.ContextMenu;
         if (!ContextMenuCls) return;
 
         // v13: pass jQuery:false so callbacks receive HTMLElement; core still reads `callback`, not `onClick`.
-        this.#sheetItemContextMenu = new ContextMenuCls(root, ".item[data-item-id]", [
-            {
-                name: "add to hotbar",
-                label: "add to hotbar",
-                icon: '<i class="fas fa-th-large"></i>',
-                callback: (target) => {
-                    const el = target instanceof HTMLElement ? target : target?.[0];
-                    const row = el?.closest?.(".item[data-item-id]") ?? el;
-                    const id = row?.dataset?.itemId;
-                    const item = id ? this.actor.items.get(id) : null;
-                    if (item) void addActorItemToHotbar(item);
+        this.#sheetItemContextMenu = new ContextMenuCls(
+            root,
+            '.item[data-item-id]',
+            [
+                {
+                    name: 'add to hotbar',
+                    label: 'add to hotbar',
+                    icon: '<i class="fas fa-th-large"></i>',
+                    callback: (target) => {
+                        const el = target instanceof HTMLElement ? target : target?.[0];
+                        const row = el?.closest?.('.item[data-item-id]') ?? el;
+                        const id = row?.dataset?.itemId;
+                        const item = id ? this.actor.items.get(id) : null;
+                        if (item) void addActorItemToHotbar(item);
+                    }
                 }
-            }
-        ], { fixed: true, relative: "cursor", jQuery: false });
+            ],
+            { fixed: true, relative: 'cursor', jQuery: false }
+        );
     }
 
     /** @param {Event} event */
@@ -550,10 +569,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const root = this.element;
         if (!(root instanceof HTMLElement)) return;
         const q = el.value.toLowerCase().trim();
-        for (const row of root.querySelectorAll(".sla-effect-row")) {
+        for (const row of root.querySelectorAll('.sla-effect-row')) {
             if (!(row instanceof HTMLElement)) continue;
-            const n = (row.dataset.effectName || "").toLowerCase();
-            row.classList.toggle("sla-effect-filtered", Boolean(q) && !n.includes(q));
+            const n = (row.dataset.effectName || '').toLowerCase();
+            row.classList.toggle('sla-effect-filtered', Boolean(q) && !n.includes(q));
         }
     };
 
@@ -564,7 +583,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     #onTabNavClick = (event) => {
         const raw = event.target;
         const el = raw instanceof Element ? raw : raw?.parentElement;
-        const tabNavLink = el?.closest?.("nav.sheet-tabs.tabs [data-tab]");
+        const tabNavLink = el?.closest?.('nav.sheet-tabs.tabs [data-tab]');
         if (!tabNavLink?.dataset?.tab || !tabNavLink.dataset?.group) return;
         event.preventDefault();
         event.stopPropagation();
@@ -575,30 +594,30 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const t = event.target;
         if (!(t instanceof Element)) return;
 
-        const cond = t.closest(".condition-toggle");
+        const cond = t.closest('.condition-toggle');
         if (cond) {
             event.preventDefault();
-            if (cond.classList.contains("condition-automatic")) return;
+            if (cond.classList.contains('condition-automatic')) return;
             const conditionId = cond.dataset.condition;
             if (conditionId) await this.actor.toggleStatusEffect(conditionId);
             return;
         }
 
-        const damageRoll = t.closest(".item-roll-damage");
+        const damageRoll = t.closest('.item-roll-damage');
         if (damageRoll) {
             event.preventDefault();
             await this._onCombatLoadoutDamageRoll(damageRoll);
             return;
         }
 
-        const rollable = t.closest(".item-rollable") || t.closest(".rollable");
+        const rollable = t.closest('.item-rollable') || t.closest('.rollable');
         if (rollable) {
             event.preventDefault();
             await this._onRoll(event, rollable);
             return;
         }
 
-        const comp = t.closest(".open-compendium");
+        const comp = t.closest('.open-compendium');
         if (comp) {
             event.preventDefault();
             const compendiumId = comp.dataset.compendium;
@@ -608,8 +627,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             return;
         }
 
-        const dataEdit = t.closest("[data-edit]");
-        if (dataEdit instanceof HTMLElement && this.isEditable && dataEdit.dataset.edit === "img") {
+        const dataEdit = t.closest('[data-edit]');
+        if (dataEdit instanceof HTMLElement && this.isEditable && dataEdit.dataset.edit === 'img') {
             event.preventDefault();
             event.stopPropagation();
             await this.#openActorImagePicker();
@@ -618,29 +637,29 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         if (!this.isEditable) return;
 
-        const drugBtn = t.closest(".item-use-drug");
+        const drugBtn = t.closest('.item-use-drug');
         if (drugBtn) {
             event.preventDefault();
-            const li = drugBtn.closest(".item");
+            const li = drugBtn.closest('.item');
             const itemId = li?.dataset.itemId;
             const item = itemId ? this.actor.items.get(itemId) : null;
-            if (!item || item.type !== "drug") return;
+            if (!item || item.type !== 'drug') return;
             await this._useDrugItem(item);
             return;
         }
 
-        const toxicantBtn = t.closest(".item-use-toxicant");
+        const toxicantBtn = t.closest('.item-use-toxicant');
         if (toxicantBtn) {
             event.preventDefault();
-            const li = toxicantBtn.closest(".item");
+            const li = toxicantBtn.closest('.item');
             const itemId = li?.dataset.itemId;
             const item = itemId ? this.actor.items.get(itemId) : null;
-            if (!item || item.type !== "toxicant") return;
+            if (!item || item.type !== 'toxicant') return;
             await item.rollInfectionTest();
             return;
         }
 
-        const effToggle = t.closest(".sla-effect-toggle");
+        const effToggle = t.closest('.sla-effect-toggle');
         if (effToggle && this.actor.isOwner) {
             event.preventDefault();
             const id = effToggle.dataset.effectId;
@@ -649,7 +668,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             this.render(false);
             return;
         }
-        const effEdit = t.closest(".sla-effect-edit");
+        const effEdit = t.closest('.sla-effect-edit');
         if (effEdit && this.actor.isOwner) {
             event.preventDefault();
             const id = effEdit.dataset.effectId;
@@ -657,7 +676,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             effect?.sheet?.render(true);
             return;
         }
-        const effDel = t.closest(".sla-effect-delete");
+        const effDel = t.closest('.sla-effect-delete');
         if (effDel && this.actor.isOwner) {
             event.preventDefault();
             const id = effDel.dataset.effectId;
@@ -666,14 +685,16 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             this.render(false);
             return;
         }
-        const effAdd = t.closest(".sla-effect-create");
+        const effAdd = t.closest('.sla-effect-create');
         if (effAdd && this.actor.isOwner && this.isEditable) {
             event.preventDefault();
-            await this.actor.createEmbeddedDocuments("ActiveEffect", [{
-                name: game.i18n.localize("DOCUMENT.ActiveEffect"),
-                img: "icons/svg/aura.svg",
-                disabled: false
-            }]);
+            await this.actor.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: game.i18n.localize('DOCUMENT.ActiveEffect'),
+                    img: 'icons/svg/aura.svg',
+                    disabled: false
+                }
+            ]);
             this.render(false);
             return;
         }
@@ -682,21 +703,25 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (chipSpecies) {
             event.preventDefault();
             event.stopPropagation();
-            const speciesItem = this.actor.items.find(i => i.type === "species");
+            const speciesItem = this.actor.items.find((i) => i.type === 'species');
             if (!speciesItem) return;
             await this.#confirmAction(
-                "Remove Species?",
+                'Remove Species?',
                 `<p>Remove <strong>${speciesItem.name}</strong>?</p>`,
                 async () => {
                     const skillsToDelete = this.actor.items
-                        .filter(i => i.getFlag("sla-industries", "fromSpecies"))
-                        .map(i => i.id);
-                    await this.actor.deleteEmbeddedDocuments("Item", [speciesItem.id, ...skillsToDelete], { render: false });
-                    const resets = { "system.bio.species": "" };
-                    ["str", "dex", "know", "conc", "cha", "cool"].forEach(k => resets[`system.stats.${k}.value`] = 1);
+                        .filter((i) => i.getFlag('sla-industries', 'fromSpecies'))
+                        .map((i) => i.id);
+                    await this.actor.deleteEmbeddedDocuments('Item', [speciesItem.id, ...skillsToDelete], {
+                        render: false
+                    });
+                    const resets = { 'system.bio.species': '' };
+                    ['str', 'dex', 'know', 'conc', 'cha', 'cool'].forEach(
+                        (k) => (resets[`system.stats.${k}.value`] = 1)
+                    );
                     await this.actor.update(resets);
                 },
-                "Remove"
+                'Remove'
             );
             return;
         }
@@ -705,75 +730,77 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (chipPackage) {
             event.preventDefault();
             event.stopPropagation();
-            const packageItem = this.actor.items.find(i => i.type === "package");
+            const packageItem = this.actor.items.find((i) => i.type === 'package');
             if (!packageItem) return;
             await this.#confirmAction(
-                "Remove Package?",
+                'Remove Package?',
                 `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
                 async () => {
                     const skillsToDelete = this.actor.items
-                        .filter(i => i.getFlag("sla-industries", "fromPackage"))
-                        .map(i => i.id);
-                    await this.actor.deleteEmbeddedDocuments("Item", [packageItem.id, ...skillsToDelete], { render: false });
-                    await this.actor.update({ "system.bio.package": "" });
+                        .filter((i) => i.getFlag('sla-industries', 'fromPackage'))
+                        .map((i) => i.id);
+                    await this.actor.deleteEmbeddedDocuments('Item', [packageItem.id, ...skillsToDelete], {
+                        render: false
+                    });
+                    await this.actor.update({ 'system.bio.package': '' });
                 },
-                "Remove"
+                'Remove'
             );
             return;
         }
 
-        const itemEdit = t.closest(".item-edit");
+        const itemEdit = t.closest('.item-edit');
         if (itemEdit) {
             event.preventDefault();
-            const li = itemEdit.closest(".item");
+            const li = itemEdit.closest('.item');
             const item = li?.dataset.itemId ? this.actor.items.get(li.dataset.itemId) : null;
             if (item) item.sheet.render(true);
             return;
         }
 
-        const itemDelete = t.closest(".item-delete");
+        const itemDelete = t.closest('.item-delete');
         if (itemDelete) {
             event.preventDefault();
-            const li = itemDelete.closest(".item");
+            const li = itemDelete.closest('.item');
             const item = li?.dataset.itemId ? this.actor.items.get(li.dataset.itemId) : null;
             if (item) {
                 await this.#confirmAction(
-                    "Delete Item?",
-                    "<p>Are you sure?</p>",
+                    'Delete Item?',
+                    '<p>Are you sure?</p>',
                     async () => {
                         await item.delete();
                         this.render(false);
                     },
-                    "Delete"
+                    'Delete'
                 );
             }
             return;
         }
 
-        const itemToggle = t.closest(".item-toggle");
+        const itemToggle = t.closest('.item-toggle');
         if (itemToggle) {
             event.preventDefault();
-            const li = itemToggle.closest(".item");
+            const li = itemToggle.closest('.item');
             const item = li?.dataset.itemId ? this.actor.items.get(li.dataset.itemId) : null;
             if (!item) return;
-            if (item.type === "drug") await item.toggleActive();
-            else await item.update({ "system.equipped": !item.system.equipped });
+            if (item.type === 'drug') await item.toggleActive();
+            else await item.update({ 'system.equipped': !item.system.equipped });
             return;
         }
 
-        const itemReload = t.closest(".item-reload");
+        const itemReload = t.closest('.item-reload');
         if (itemReload) {
             await this._onReloadWeapon(event, itemReload);
             return;
         }
 
-        const itemCreate = t.closest(".item-create");
+        const itemCreate = t.closest('.item-create');
         if (itemCreate) {
             await this._onItemCreate(event, itemCreate);
             return;
         }
 
-        const xpBtn = t.closest(".xp-button");
+        const xpBtn = t.closest('.xp-button');
         if (xpBtn) {
             event.preventDefault();
             await XPDialog.create(this.actor);
@@ -787,12 +814,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const el = event.target instanceof Element ? event.target : null;
         if (!el) return;
 
-        const inlineInput = el.closest(".inline-edit");
+        const inlineInput = el.closest('.inline-edit');
         if (inlineInput) {
             if (!this.isEditable) return;
             event.preventDefault();
             const input = inlineInput;
-            const row = input.closest(".item");
+            const row = input.closest('.item');
             const itemId = input.dataset.itemId || row?.dataset.itemId;
             if (!itemId) return;
             const item = this.actor.items.get(itemId);
@@ -801,12 +828,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             return;
         }
 
-        const woundCb = el.closest(".wound-checkbox");
+        const woundCb = el.closest('.wound-checkbox');
         if (woundCb) {
             const field = woundCb.name;
             const isChecked = woundCb.checked;
-            if (this.actor.type === "npc") {
-                const systemPath = field.replace("system.", "");
+            if (this.actor.type === 'npc') {
+                const systemPath = field.replace('system.', '');
                 const currentValue = foundry.utils.getProperty(this.actor.system, systemPath);
                 if (currentValue === isChecked) return;
             }
@@ -814,7 +841,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             try {
                 await this.actor.update(updateData);
             } catch (error) {
-                console.error("SLA Industries | Error updating actor:", error);
+                console.error('SLA Industries | Error updating actor:', error);
                 woundCb.checked = !isChecked;
             }
         }
@@ -823,16 +850,14 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     // --- RELOAD LOGIC (Match by Linked Weapon Name) ---
     async _onReloadWeapon(event, reloadEl) {
         event.preventDefault();
-        const li = (reloadEl ?? event.currentTarget).closest(".item");
+        const li = (reloadEl ?? event.currentTarget).closest('.item');
         const weapon = li?.dataset.itemId ? this.actor.items.get(li.dataset.itemId) : null;
         if (!weapon) return;
         const weaponName = weapon.name;
 
         // Find all magazines that claim to link to this weapon
-        const candidates = this.actor.items.filter(i =>
-            i.type === "magazine" &&
-            i.system.linkedWeapon === weaponName &&
-            (i.system.quantity > 0)
+        const candidates = this.actor.items.filter(
+            (i) => i.type === 'magazine' && i.system.linkedWeapon === weaponName && i.system.quantity > 0
         );
 
         if (candidates.length === 0) {
@@ -845,25 +870,27 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
 
         // If multiple matches, Prompt User
-        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/reload-dialog.hbs", {
-            weaponName: weaponName,
-            candidates: candidates
-        });
+        const content = await foundry.applications.handlebars.renderTemplate(
+            'systems/sla-industries/templates/dialogs/reload-dialog.hbs',
+            {
+                weaponName: weaponName,
+                candidates: candidates
+            }
+        );
 
         await new SlaSimpleContentDialog({
-            title: "Select Ammunition",
+            title: 'Select Ammunition',
             contentHtml: content,
             width: 420,
-            classes: ["sla-dialog", "sla-sheet"],
-            actionLabel: "Load Magazine",
+            classes: ['sla-dialog', 'sla-sheet'],
+            actionLabel: 'Load Magazine',
             onConfirm: (root) => {
-                const magId = root.querySelector("#magazine-select")?.value;
+                const magId = root.querySelector('#magazine-select')?.value;
                 const mag = magId ? this.actor.items.get(magId) : null;
                 if (mag) void this._performReload(weapon, mag);
             }
         }).render(true);
     }
-
 
     async _performReload(weapon, magazine) {
         // 1. Determine Capacity from Magazine
@@ -871,8 +898,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         // 2. Update Weapon Ammo AND Max Ammo (so we know the clip size)
         await weapon.update({
-            "system.ammo": capacity,
-            "system.maxAmmo": capacity
+            'system.ammo': capacity,
+            'system.maxAmmo': capacity
         });
 
         // 3. Consume Magazine
@@ -882,7 +909,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (magazineDepleted) {
             await magazine.delete();
         } else {
-            await magazine.update({ "system.quantity": newQty });
+            await magazine.update({ 'system.quantity': newQty });
         }
 
         // 4. Post Chat Message
@@ -896,7 +923,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         };
 
         const content = await foundry.applications.handlebars.renderTemplate(
-            "systems/sla-industries/templates/chat/reload.hbs",
+            'systems/sla-industries/templates/chat/reload.hbs',
             templateData
         );
 
@@ -915,7 +942,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      * @param {Item} item
      */
     async _useDrugItem(item) {
-        if (!item || item.type !== "drug" || item.actor?.id !== this.actor.id) return;
+        if (!item || item.type !== 'drug' || item.actor?.id !== this.actor.id) return;
         const currentQty = item.system.quantity || 0;
         if (currentQty <= 0) {
             await item.delete();
@@ -925,10 +952,13 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const templateData = {
             itemName: item.name.toUpperCase(),
             actorName: this.actor.name,
-            duration: item.system.duration || "Unknown",
+            duration: item.system.duration || 'Unknown',
             remaining: newQty
         };
-        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/drug-use.hbs", templateData);
+        const content = await foundry.applications.handlebars.renderTemplate(
+            'systems/sla-industries/templates/chat/drug-use.hbs',
+            templateData
+        );
         await ChatMessage.create({
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: content
@@ -939,7 +969,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             await item.delete();
             ui.notifications.info(`Used the last dose of ${item.name}.`);
         } else {
-            await item.update({ "system.quantity": newQty });
+            await item.update({ 'system.quantity': newQty });
         }
     }
 
@@ -951,20 +981,20 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     async triggerItemRoll(item) {
         if (!item || item.actor?.id !== this.actor.id) return;
 
-        if (item.type === "weapon") {
-            const attackType = item.system.attackType || "melee";
-            const isMelee = attackType === "melee";
+        if (item.type === 'weapon') {
+            const attackType = item.system.attackType || 'melee';
+            const isMelee = attackType === 'melee';
             if (!this._canProceedWithWeaponAttack(item, { requireTarget: true })) return;
             await this._renderAttackDialog(item, isMelee);
-        } else if (item.type === "explosive") {
+        } else if (item.type === 'explosive') {
             await this._renderExplosiveDialog(item);
-        } else if (item.type === "ebbFormula") {
+        } else if (item.type === 'ebbFormula') {
             await this._executeEbbRoll(item);
-        } else         if (item.type === "drug") {
+        } else if (item.type === 'drug') {
             await this._useDrugItem(item);
-        } else if (item.type === "toxicant") {
+        } else if (item.type === 'toxicant') {
             await item.rollInfectionTest();
-        } else if (item.type === "skill") {
+        } else if (item.type === 'skill') {
             await this._executeSkillRollFromItem(item);
         } else {
             item.sheet?.render(true);
@@ -983,7 +1013,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         // Handle Item Rolls (triggered by your crosshairs icon)
         if (dataset.rollType === 'item') {
-            const itemId = element.closest(".item")?.dataset.itemId;
+            const itemId = element.closest('.item')?.dataset.itemId;
             const item = itemId ? this.actor.items.get(itemId) : null;
             if (item) await this.triggerItemRoll(item);
         }
@@ -998,9 +1028,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             const statLabel = statKey.toUpperCase();
             const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
             const penalty = this.actor.system.wounds.penalty || 0;
-            const finalMod = statValue - (game.settings.get("sla-industries", "enableAutomaticWoundPenalties") ? penalty : 0) + globalMod;
+            const finalMod =
+                statValue -
+                (game.settings.get('sla-industries', 'enableAutomaticWoundPenalties') ? penalty : 0) +
+                globalMod;
 
-            let roll = createSLARoll("1d10");
+            let roll = createSLARoll('1d10');
             // ---------------------------------------------
             await roll.evaluate();
 
@@ -1021,7 +1054,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 successTotal: finalTotal,
                 tooltip: tooltipHtml,
                 skillDice: [],
-                notes: "",
+                notes: '',
                 showDamageButton: false,
                 // Luck Data
                 canUseLuck: this.actor.system.stats.luck.value > 0,
@@ -1030,11 +1063,14 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 mos: {
                     isSuccess: isSuccess,
                     hits: 0,
-                    effect: isSuccess ? "Success" : "Failure"
+                    effect: isSuccess ? 'Success' : 'Failure'
                 }
             };
 
-            const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+            const chatContent = await foundry.applications.handlebars.renderTemplate(
+                'systems/sla-industries/templates/chat/chat-weapon-rolls.hbs',
+                templateData
+            );
 
             roll.toMessage({
                 speaker: ChatMessage.getSpeaker({ actor: this.actor }),
@@ -1043,7 +1079,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                     sla: this._buildSlaRollFlags({
                         baseModifier: finalMod,
                         itemName: `${statLabel} CHECK`,
-                        notes: "",
+                        notes: '',
                         tn: 10
                     })
                 }
@@ -1064,13 +1100,13 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      * @returns {boolean}
      */
     _requiresWeaponEquippedForAttack() {
-        return this.actor.type === "character";
+        return this.actor.type === 'character';
     }
 
     /** @returns {void} */
     _notifyUnequippedWeaponHumor() {
         const lines = [
-            "That hardware is still stowed—you need it in hand, not in inventory. Equip it first, operative.",
+            'That hardware is still stowed—you need it in hand, not in inventory. Equip it first, operative.',
             "You can't mug a Carrien with pocket lint. Equip the weapon, then we'll talk dice.",
             "Bane's watching, and even he expects the barrel to leave the holster before you roll. Equip it.",
             "Nice commitment to the bit, but mime combat doesn't bypass armor. Toggle that weapon to equipped."
@@ -1091,10 +1127,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             return false;
         }
 
-        if (requireTarget
-            && game.settings.get("sla-industries", "enableTargetRequiredFeatures")
-            && game.user.targets.size === 0) {
-            ui.notifications.warn("You must select a target to attack.");
+        if (
+            requireTarget &&
+            game.settings.get('sla-industries', 'enableTargetRequiredFeatures') &&
+            game.user.targets.size === 0
+        ) {
+            ui.notifications.warn('You must select a target to attack.');
             return false;
         }
 
@@ -1110,7 +1148,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (!item?.system?.magazineId || !this.actor) return 0;
         const magazine = this.actor.items.get(item.system.magazineId);
         if (!magazine) return 0;
-        const ammoType = magazine.system.ammoType || "standard";
+        const ammoType = magazine.system.ammoType || 'standard';
         const configMods = CONFIG.SLA?.ammoModifiers?.[ammoType];
         return configMods ? Number(configMods.damage) || 0 : 0;
     }
@@ -1137,12 +1175,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
      * @param {HTMLElement} anchor  `.item-roll-damage` inside a `.item[data-item-id]` row
      */
     async _onCombatLoadoutDamageRoll(anchor) {
-        const row = anchor.closest(".item");
+        const row = anchor.closest('.item');
         const itemId = row?.dataset?.itemId;
         const item = itemId ? this.actor.items.get(itemId) : null;
-        if (!item || (item.type !== "weapon" && item.type !== "explosive")) return;
+        if (!item || (item.type !== 'weapon' && item.type !== 'explosive')) return;
         if (!this.actor.isOwner) {
-            ui.notifications.warn("You do not own this actor.");
+            ui.notifications.warn('You do not own this actor.');
             return;
         }
         if (!this._canProceedWithWeaponAttack(item, { requireTarget: false })) return;
@@ -1150,8 +1188,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0);
         let damageMod = 0;
 
-        if (item.type === "weapon") {
-            const isMelee = (item.system.attackType || "melee") === "melee";
+        if (item.type === 'weapon') {
+            const isMelee = (item.system.attackType || 'melee') === 'melee';
             if (isMelee) {
                 if (strValue >= 7) damageMod += 4;
                 else if (strValue === 6) damageMod += 2;
@@ -1160,19 +1198,19 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             damageMod += this._getAmmoDamageModifierForWeapon(item);
         }
 
-        const rawBase = item.system.damage || item.system.dmg || "0";
+        const rawBase = item.system.damage || item.system.dmg || '0';
         const rollFormula = buildWeaponDamageFormula(String(rawBase), damageMod);
         const minDamage = Number(item.system.minDamage) || 0;
-        const adValue = item.type === "explosive"
-            ? (Number(item.system.ad) || 0)
-            : this._resolveWeaponAdForDamageRoll(item);
+        const adValue =
+            item.type === 'explosive' ? Number(item.system.ad) || 0 : this._resolveWeaponAdForDamageRoll(item);
 
-        const flavorText = item.type === "explosive"
-            ? `<span style="color:#D05E1A">${item.name}</span> — Explosive damage`
-            : `<span style="color:#D05E1A">${item.name}</span> — Standard Damage Roll`;
+        const flavorText =
+            item.type === 'explosive'
+                ? `<span style="color:#D05E1A">${item.name}</span> — Explosive damage`
+                : `<span style="color:#D05E1A">${item.name}</span> — Standard Damage Roll`;
 
-        const parentTargets = Array.from(game.user.targets).map(t => t.document.uuid);
-        const rollData = typeof item.getRollData === "function" ? item.getRollData() : this.actor.getRollData();
+        const parentTargets = Array.from(game.user.targets).map((t) => t.document.uuid);
+        const rollData = typeof item.getRollData === 'function' ? item.getRollData() : this.actor.getRollData();
 
         try {
             await SLAChat.executeStandardDamageRoll({
@@ -1185,18 +1223,26 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 parentTargets
             });
         } catch (err) {
-            console.error("SLA | Combat loadout damage roll failed:", err);
-            ui.notifications.error("SLA | Failed to roll damage. See console for details.");
+            console.error('SLA | Combat loadout damage roll failed:', err);
+            ui.notifications.error('SLA | Failed to roll damage. See console for details.');
         }
     }
 
     _getActorTokenForRangeCheck() {
-        return this.actor.token?.object || this.token || (this.actor.getActiveTokens().length > 0 ? this.actor.getActiveTokens()[0] : null);
+        return (
+            this.actor.token?.object ||
+            this.token ||
+            (this.actor.getActiveTokens().length > 0 ? this.actor.getActiveTokens()[0] : null)
+        );
     }
 
     _resolveRangedAttackContext(item, isMelee) {
-        const context = { isLongRange: false, rangePenaltyMsg: "" };
-        if (isMelee || !game.settings.get("sla-industries", "enableTargetRequiredFeatures") || game.user.targets.size === 0) {
+        const context = { isLongRange: false, rangePenaltyMsg: '' };
+        if (
+            isMelee ||
+            !game.settings.get('sla-industries', 'enableTargetRequiredFeatures') ||
+            game.user.targets.size === 0
+        ) {
             return context;
         }
 
@@ -1204,7 +1250,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (!token) return context;
 
         const target = game.user.targets.first();
-        const maxRange = parseInt(item.system.range || "10") || 10;
+        const maxRange = parseInt(item.system.range || '10') || 10;
         const rangeData = calculateRangePenalty(token, target, maxRange);
 
         context.isLongRange = rangeData.isLongRange;
@@ -1218,7 +1264,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         // 1. Prepare Firing Modes (Ranged Only)
         let validModes = {};
-        let defaultModeKey = "";
+        let defaultModeKey = '';
 
         if (!isMelee && item.system.firingModes) {
             // Filter down to only active modes
@@ -1231,7 +1277,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
             // Safety Fallback: If no modes active, default to Single
             if (Object.keys(validModes).length === 0) {
-                validModes["single"] = { label: "Single", active: true, rounds: 1, recoil: 0 };
+                validModes['single'] = { label: 'Single', active: true, rounds: 1, recoil: 0 };
             }
 
             // Pick the first valid mode as the default selection
@@ -1253,34 +1299,34 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             // BUT simpler to just reconstruct it in _processWeaponRoll since we enforce target selection now.
 
             // Melee uses item recoil (usually 0), Ranged uses the recoil of the default mode
-            recoil: isMelee
-                ? (item.system.recoil || 0)
-                : (validModes[defaultModeKey]?.recoil || 0),
+            recoil: isMelee ? item.system.recoil || 0 : validModes[defaultModeKey]?.recoil || 0,
 
             // AIM DATA
-            canAim: ["pistol", "rifle"].includes((item.system.skill || "").toLowerCase()),
+            canAim: ['pistol', 'rifle'].includes((item.system.skill || '').toLowerCase()),
             aimLimit: (() => {
-                const sKey = (item.system.skill || "").toLowerCase();
-                const sItem = this.actor.items.find(i => i.type === 'skill' && i.name.toLowerCase() === sKey);
-                return sItem ? (sItem.system.rank || 0) : 0;
+                const sKey = (item.system.skill || '').toLowerCase();
+                const sItem = this.actor.items.find((i) => i.type === 'skill' && i.name.toLowerCase() === sKey);
+                return sItem ? sItem.system.rank || 0 : 0;
             })()
         };
 
-
-        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/attack-dialog.hbs", templateData);
+        const content = await foundry.applications.handlebars.renderTemplate(
+            'systems/sla-industries/templates/dialogs/attack-dialog.hbs',
+            templateData
+        );
 
         await new SlaSimpleContentDialog({
             title: `Attack: ${item.name} ${rangePenaltyMsg}`,
             contentHtml: content,
             width: 520,
-            classes: ["sla-dialog-window", "dialog"],
-            actionLabel: "ROLL",
+            classes: ['sla-dialog-window', 'dialog'],
+            actionLabel: 'ROLL',
             onConfirm: (root) => void this._processWeaponRoll(item, root, isMelee)
         }).render(true);
     }
 
     async _executeSkillRoll(element) {
-        const itemId = element.closest(".item")?.dataset.itemId;
+        const itemId = element.closest('.item')?.dataset.itemId;
         const item = itemId ? this.actor.items.get(itemId) : null;
         if (!item) return;
         await this._executeSkillRollFromItem(item);
@@ -1296,7 +1342,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return generateDiceTooltip(roll, baseModifier, 0, successDieMod);
     }
 
-    _buildSlaRollFlags({ baseModifier, itemName, notes = "", tn = 10, extra = {} }) {
+    _buildSlaRollFlags({ baseModifier, itemName, notes = '', tn = 10, extra = {} }) {
         return {
             baseModifier,
             itemName,
@@ -1311,10 +1357,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         const combatSkills = CONFIG.SLA?.combatSkills || {};
         const resolvedSkillName = combatSkills[skillInput] || skillInput;
-        const skillItem = this.actor.items.find(i =>
-            i.type === "skill" && i.name.trim().toLowerCase() === resolvedSkillName.trim().toLowerCase()
+        const skillItem = this.actor.items.find(
+            (i) => i.type === 'skill' && i.name.trim().toLowerCase() === resolvedSkillName.trim().toLowerCase()
         );
-        return skillItem ? (Number(skillItem.system.rank) || 0) : 0;
+        return skillItem ? Number(skillItem.system.rank) || 0 : 0;
     }
 
     async _applyHeadshotSideEffect(notes) {
@@ -1323,15 +1369,15 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const target = game.user.targets.first();
         const targetActor = target?.actor;
         if (targetActor && !targetActor.system.wounds.head) {
-            await targetActor.update({ "system.wounds.head": true });
+            await targetActor.update({ 'system.wounds.head': true });
             notes.push(`<span style="color:#ff5555">Head Wound Applied!</span>`);
         }
     }
 
     _resolveDamageDisplay(formula) {
-        const formulaStr = String(formula ?? "0").trim();
-        if (!formulaStr || formulaStr === "0") return "0";
-        if (formulaStr.includes("d")) return formulaStr;
+        const formulaStr = String(formula ?? '0').trim();
+        if (!formulaStr || formulaStr === '0') return '0';
+        if (formulaStr.includes('d')) return formulaStr;
 
         try {
             const replaced = Roll.replaceFormulaData(formulaStr, this.actor.getRollData());
@@ -1366,7 +1412,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const showWoundChoice = shouldShowMosWoundChoice({
             hasChoice: Boolean(mosChoiceData?.hasChoice),
             targetActorType,
-            enableNpcWoundTracking: game.settings.get("sla-industries", "enableNPCWoundTracking")
+            enableNpcWoundTracking: game.settings.get('sla-industries', 'enableNPCWoundTracking')
         });
 
         return {
@@ -1400,7 +1446,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     async _rerollDieKeepHighest(currentResult) {
-        const newRoll = createSLARoll("1d10");
+        const newRoll = createSLARoll('1d10');
         await newRoll.evaluate();
         const newResult = newRoll.terms[0].results[0].result;
         if (newResult > currentResult) {
@@ -1477,8 +1523,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 const dieData = {
                     raw: result.result,
                     total: total,
-                    borderColor: isHit ? "#39ff14" : "#555",
-                    textColor: isHit ? "#39ff14" : "#ccc"
+                    borderColor: isHit ? '#39ff14' : '#555',
+                    textColor: isHit ? '#39ff14' : '#ccc'
                 };
                 if (includeRerollFlag) {
                     dieData.isReroll = rerollIndexSet.has(index);
@@ -1489,7 +1535,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         skillSuccessCount += autoSuccesses;
         for (let i = 0; i < autoSuccesses; i++) {
-            skillDiceData.push({ raw: "-", total: "Auto", borderColor: "#39ff14", textColor: "#39ff14" });
+            skillDiceData.push({ raw: '-', total: 'Auto', borderColor: '#39ff14', textColor: '#39ff14' });
         }
 
         return { skillDiceData, skillSuccessCount };
@@ -1510,7 +1556,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             isSuccess = true;
             successThroughExperience = true;
             if (notes) {
-                notes.push("<strong>Success Through Experience</strong> (4+ Skill Dice hit).");
+                notes.push('<strong>Success Through Experience</strong> (4+ Skill Dice hit).');
             }
         }
 
@@ -1519,7 +1565,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     async _processWeaponRoll(item, html, isMelee) {
         const root = html?.jquery ? html[0] : html;
-        const form = root instanceof HTMLFormElement ? root : root?.querySelector?.("form");
+        const form = root instanceof HTMLFormElement ? root : root?.querySelector?.('form');
         if (!form) return;
 
         const weapon = this.actor.items.get(item.id) ?? item;
@@ -1528,7 +1574,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         // 1. SETUP
         // Melee weapons use STR, ranged weapons use DEX.
-        const statKey = isMelee ? "str" : "dex";
+        const statKey = isMelee ? 'str' : 'dex';
         const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
         const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0);
         const rank = this._resolveCombatSkillRank(item.system.skill);
@@ -1578,14 +1624,15 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
             // Clamp reserved dice to available rank.
             if (mods.reservedDice > rank) {
-                ui.notifications.warn(`Cannot reserve more dice (${mods.reservedDice}) than Skill Rank (${rank}). Reduced to ${rank}.`);
+                ui.notifications.warn(
+                    `Cannot reserve more dice (${mods.reservedDice}) than Skill Rank (${rank}). Reduced to ${rank}.`
+                );
                 mods.reservedDice = rank;
             }
             if (mods.reservedDice > 0) {
                 notes.push(`Reserved ${mods.reservedDice} Dice.`);
             }
             // -------------------------------------------
-
         } else {
             // Check for false return to stop execution
             const canFire = await this._applyRangedModifiers(item, form, mods, notes, flags, {
@@ -1595,7 +1642,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
 
         const penalty = this.actor.system.wounds.penalty || 0;
-        if (game.settings.get("sla-industries", "enableAutomaticWoundPenalties")) {
+        if (game.settings.get('sla-industries', 'enableAutomaticWoundPenalties')) {
             mods.allDice -= penalty;
         }
 
@@ -1661,7 +1708,6 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // Update Result Color if it became a success
         const resultColor = isSuccess ? '#39ff14' : '#f55';
 
-
         const { mosDamageBonus, mosEffectText, mosChoiceData, shouldApplyHeadWound } = resolveWeaponMosOutcome({
             isSuccess,
             successThroughExperience,
@@ -1673,7 +1719,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         // Damage Calculation
         // Note: If user has a choice, we DO NOT add the bonus yet. They must click the button.
-        let rawBase = item.system.damage || item.system.dmg || "0";
+        let rawBase = item.system.damage || item.system.dmg || '0';
         let baseDmg = String(rawBase);
         let totalMod = mods.damage + mosDamageBonus;
 
@@ -1686,7 +1732,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             resolvedPreview = null;
         }
 
-        let showButton = isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
+        let showButton = isSuccess && finalDmgFormula && finalDmgFormula !== '0';
 
         // 1. CAPTURE AD VALUE (Ensure it's a number)
         let adValue = Number(item.system.ad) || 0;
@@ -1697,7 +1743,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             }
         }
 
-        const notesText = notes.join(" ");
+        const notesText = notes.join(' ');
         const templateData = this._buildWeaponRollTemplateData({
             item,
             roll,
@@ -1717,7 +1763,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             mosChoiceData
         });
 
-        const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+        const chatContent = await foundry.applications.handlebars.renderTemplate(
+            'systems/sla-industries/templates/chat/chat-weapon-rolls.hbs',
+            templateData
+        );
 
         roll.toMessage({
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
@@ -1731,7 +1780,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                     extra: {
                         rofRerollSD: rofRerollSD,
                         rofRerollSkills: rofRerollSkills,
-                        targets: Array.from(game.user.targets).map(t => t.document.uuid),
+                        targets: Array.from(game.user.targets).map((t) => t.document.uuid),
                         damageBase: baseDmg,
                         damageMod: mods.damage,
                         adValue: adValue,
@@ -1750,19 +1799,22 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const templateData = {
             item: item,
             isMelee: false, // It's ranged/thrown usually
-            validModes: { "single": { label: "Single", active: true, rounds: 1, recoil: 0 } }, // Dummy structure
-            selectedMode: "single",
+            validModes: { single: { label: 'Single', active: true, rounds: 1, recoil: 0 } }, // Dummy structure
+            selectedMode: 'single',
             recoil: 0
         };
 
-        const content = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/dialogs/attack-dialog.hbs", templateData);
+        const content = await foundry.applications.handlebars.renderTemplate(
+            'systems/sla-industries/templates/dialogs/attack-dialog.hbs',
+            templateData
+        );
 
         await new SlaSimpleContentDialog({
             title: `Throw: ${item.name}`,
             contentHtml: content,
             width: 520,
-            classes: ["sla-dialog-window", "dialog"],
-            actionLabel: "THROW",
+            classes: ['sla-dialog-window', 'dialog'],
+            actionLabel: 'THROW',
             onConfirm: (root) => void this._processExplosiveRoll(item, root)
         }).render(true);
     }
@@ -1771,7 +1823,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return {
             mod: Number(form.modifier?.value) || 0,
             cover: Number(form.cover?.value) || 0,
-            aiming: form.aiming?.value || "none",
+            aiming: form.aiming?.value || 'none',
             blind: form.blind?.checked || false
         };
     }
@@ -1784,15 +1836,15 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     _resolveExplosiveSkillContext(item) {
-        const skillName = item.system.skill || "throw";
+        const skillName = item.system.skill || 'throw';
         const combatSkills = CONFIG.SLA?.combatSkills || {};
         const resolvedSkillName = combatSkills[skillName] || skillName;
 
         let rank = 0;
         let skillItemForStat = null;
         if (resolvedSkillName) {
-            const skillItem = this.actor.items.find(i =>
-                i.type === "skill" && i.name.trim().toLowerCase() === resolvedSkillName.trim().toLowerCase()
+            const skillItem = this.actor.items.find(
+                (i) => i.type === 'skill' && i.name.trim().toLowerCase() === resolvedSkillName.trim().toLowerCase()
             );
             if (skillItem) {
                 rank = Number(skillItem.system.rank) || 0;
@@ -1800,7 +1852,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             }
         }
 
-        const statKey = skillItemForStat?.system?.stat || "dex";
+        const statKey = skillItemForStat?.system?.stat || 'dex';
         const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
         const strValue = this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0;
         return { rank, statValue, strValue };
@@ -1820,13 +1872,13 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (this.actor.system.conditions?.prone) mods.allDice -= 1;
         if (this.actor.system.conditions?.stunned) mods.allDice -= 1;
         const penalty = this.actor.system.wounds.penalty || 0;
-        if (game.settings.get("sla-industries", "enableAutomaticWoundPenalties")) {
+        if (game.settings.get('sla-industries', 'enableAutomaticWoundPenalties')) {
             mods.allDice -= penalty;
         }
 
         mods.successDie += rollData.cover;
-        if (rollData.aiming === "sd") mods.successDie += 1;
-        if (rollData.aiming === "skill") mods.autoSkillSuccesses += 1;
+        if (rollData.aiming === 'sd') mods.successDie += 1;
+        if (rollData.aiming === 'skill') mods.autoSkillSuccesses += 1;
     }
 
     _getActorTokenForExplosiveRange() {
@@ -1835,13 +1887,14 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     _appendExplosiveRangeNotes(notes, item, strValue, target, token) {
         if (item.system.blastRadiusInner || item.system.blastRadiusOuter) {
-            const txt = item.system.blastRadiusInner > 0
-                ? `${item.system.blastRadiusInner}/${item.system.blastRadiusOuter}m`
-                : `${item.system.blastRadiusOuter}m`;
+            const txt =
+                item.system.blastRadiusInner > 0
+                    ? `${item.system.blastRadiusInner}/${item.system.blastRadiusOuter}m`
+                    : `${item.system.blastRadiusOuter}m`;
             notes.push(`<strong>Blast:</strong> ${txt}`);
         }
 
-        const effectiveRange = 15 + (Math.min(Math.max(0, strValue), 5) * 5);
+        const effectiveRange = 15 + Math.min(Math.max(0, strValue), 5) * 5;
         notes.push(`<strong>Max Range:</strong> ${effectiveRange}m`);
 
         if (!token || target == null) return;
@@ -1870,9 +1923,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const resolveImpact = (collision) => {
             if (!collision) return null;
             if (Array.isArray(collision)) {
-                const impacts = collision
-                    .map(extractImpact)
-                    .filter((p) => p?.x != null && p?.y != null);
+                const impacts = collision.map(extractImpact).filter((p) => p?.x != null && p?.y != null);
                 if (!impacts.length) return null;
                 impacts.sort((a, b) => distanceFromStart(a) - distanceFromStart(b));
                 return resolveImpact(impacts[0]);
@@ -1887,8 +1938,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             const safeDistance = Math.max(0, impactDistance - epsilon);
             const t = safeDistance / (impactDistance || 1);
             return {
-                x: start.x + ((impact.x - start.x) * t),
-                y: start.y + ((impact.y - start.y) * t),
+                x: start.x + (impact.x - start.x) * t,
+                y: start.y + (impact.y - start.y) * t,
                 blocked: true
             };
         };
@@ -1896,7 +1947,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         try {
             const backend = CONFIG?.Canvas?.polygonBackends?.move;
             const backendClosest = backend?.testCollision
-                ? backend.testCollision(start, end, { type: "move", mode: "closest", source })
+                ? backend.testCollision(start, end, { type: 'move', mode: 'closest', source })
                 : null;
             const resolvedBackendClosest = resolveImpact(backendClosest);
             if (resolvedBackendClosest) return resolvedBackendClosest;
@@ -1905,7 +1956,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
 
         try {
-            const closest = canvas.walls.checkCollision(ray, { type: "move", mode: "closest", source });
+            const closest = canvas.walls.checkCollision(ray, { type: 'move', mode: 'closest', source });
             const resolvedClosest = resolveImpact(closest);
             if (resolvedClosest) return resolvedClosest;
         } catch (_err) {
@@ -1913,9 +1964,9 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
 
         try {
-            const any = canvas.walls.checkCollision(ray, { type: "move", mode: "any", source });
+            const any = canvas.walls.checkCollision(ray, { type: 'move', mode: 'any', source });
             if (any === true) {
-                const collisions = canvas.walls.checkCollision(ray, { type: "move", mode: "all", source });
+                const collisions = canvas.walls.checkCollision(ray, { type: 'move', mode: 'all', source });
                 const resolvedAll = resolveImpact(collisions);
                 if (resolvedAll) return resolvedAll;
             }
@@ -1928,17 +1979,17 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     _resolveExplosiveDeviation({ isBaseSuccess, skillSuccessCount, target, token }) {
         const noCanvasTarget = target == null;
-        let outcomeText = "";
-        let resultColor = "#f55";
+        let outcomeText = '';
+        let resultColor = '#f55';
         let isSuccess = false;
         let finalX = noCanvasTarget ? 0 : target.x;
         let finalY = noCanvasTarget ? 0 : target.y;
         let wallBlocked = false;
 
-        const allDiceFailed = (!isBaseSuccess) && (skillSuccessCount === 0);
+        const allDiceFailed = !isBaseSuccess && skillSuccessCount === 0;
         if (allDiceFailed) {
             outcomeText = "<strong style='color:#ff0000; font-size:1.1em;'>FUMBLE: Detonates on Thrower!</strong>";
-            resultColor = "#ff0000";
+            resultColor = '#ff0000';
             if (token) {
                 finalX = token.center.x;
                 finalY = token.center.y;
@@ -1950,7 +2001,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             outcomeText = noCanvasTarget
                 ? "<strong style='color:#39ff14'>SUCCESS</strong>"
                 : "<strong style='color:#39ff14'>LANDS ON TARGET</strong>";
-            resultColor = "#39ff14";
+            resultColor = '#39ff14';
             isSuccess = true;
             if (noCanvasTarget) {
                 finalX = 0;
@@ -1963,7 +2014,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         outcomeText = isBaseSuccess
             ? "<strong style='color:#ffa500'>DEVIATION: 5m</strong>"
             : "<strong style='color:#ff5555'>DEVIATION: 10m</strong>";
-        resultColor = isBaseSuccess ? "#ffa500" : "#ff5555";
+        resultColor = isBaseSuccess ? '#ffa500' : '#ff5555';
 
         if (noCanvasTarget) {
             const originX = token?.center?.x ?? 0;
@@ -1986,7 +2037,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         finalX = target.x + Math.cos(angle) * devPixels;
         finalY = target.y + Math.sin(angle) * devPixels;
 
-        const wallCollision = this._resolveDeviationWallCollision(target, { x: finalX, y: finalY }, 2, token?.document ?? null);
+        const wallCollision = this._resolveDeviationWallCollision(
+            target,
+            { x: finalX, y: finalY },
+            2,
+            token?.document ?? null
+        );
         finalX = wallCollision.x;
         finalY = wallCollision.y;
         wallBlocked = wallCollision.blocked;
@@ -1996,11 +2052,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     async _placeExplosiveTemplates({ item, blastRadius, innerDist, finalX, finalY, isSuccess }) {
         try {
-            const distancePixels = canvas?.dimensions?.distancePixels ?? (canvas.scene.grid.size / canvas.scene.grid.distance);
-            const visMode = game.settings.get("sla-industries", "blastRegionVisibility") ?? "observer";
-            const visibility = visMode === "always"
-                ? CONST.REGION_VISIBILITY.ALWAYS
-                : CONST.REGION_VISIBILITY.OBSERVER;
+            const distancePixels =
+                canvas?.dimensions?.distancePixels ?? canvas.scene.grid.size / canvas.scene.grid.distance;
+            const visMode = game.settings.get('sla-industries', 'blastRegionVisibility') ?? 'observer';
+            const visibility = visMode === 'always' ? CONST.REGION_VISIBILITY.ALWAYS : CONST.REGION_VISIBILITY.OBSERVER;
             const baseRegionData = {
                 color: game.user.color,
                 displayMeasurements: true,
@@ -2008,51 +2063,57 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 ownership: { [game.user.id]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER },
                 ...(canvas.level?.id ? { levels: [canvas.level.id] } : {})
             };
-            const regions = [{
-                ...baseRegionData,
-                name: `${item.name} (Outer)`,
-                flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "outer" } },
-                shapes: [{
-                    type: "circle",
-                    x: finalX,
-                    y: finalY,
-                    radius: blastRadius * distancePixels,
-                    gridBased: false
-                }]
-            }];
+            const regions = [
+                {
+                    ...baseRegionData,
+                    name: `${item.name} (Outer)`,
+                    flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: 'outer' } },
+                    shapes: [
+                        {
+                            type: 'circle',
+                            x: finalX,
+                            y: finalY,
+                            radius: blastRadius * distancePixels,
+                            gridBased: false
+                        }
+                    ]
+                }
+            ];
 
             if (innerDist > 0 && innerDist < blastRadius) {
                 regions.push({
                     ...baseRegionData,
                     name: `${item.name} (Inner)`,
-                    flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: "inner" } },
-                    shapes: [{
-                        type: "circle",
-                        x: finalX,
-                        y: finalY,
-                        radius: innerDist * distancePixels,
-                        gridBased: false
-                    }]
+                    flags: { sla: { itemId: item.id, isDeviation: !isSuccess, type: 'inner' } },
+                    shapes: [
+                        {
+                            type: 'circle',
+                            x: finalX,
+                            y: finalY,
+                            radius: innerDist * distancePixels,
+                            gridBased: false
+                        }
+                    ]
                 });
             }
 
-            await canvas.scene.createEmbeddedDocuments("Region", regions);
+            await canvas.scene.createEmbeddedDocuments('Region', regions);
         } catch (err) {
-            console.error("SLA | Template Creation Failed:", err);
+            console.error('SLA | Template Creation Failed:', err);
         }
     }
 
     async _processExplosiveRoll(item, html) {
         const root = html?.jquery ? html[0] : html;
-        const form = root instanceof HTMLFormElement ? root : root?.querySelector?.("form");
+        const form = root instanceof HTMLFormElement ? root : root?.querySelector?.('form');
         if (!form) return;
 
         const rollData = this._readExplosiveRollForm(form);
         const { innerDist, outerDist } = this._resolveExplosiveBlastData(item);
-        const automateThrow = game.settings.get("sla-industries", "enableExplosiveThrowAutomation");
+        const automateThrow = game.settings.get('sla-industries', 'enableExplosiveThrowAutomation');
         let target = null;
         if (automateThrow) {
-            ui.notifications.info("Select target position...");
+            ui.notifications.info('Select target position...');
             target = await this._waitForCanvasClick({ outerDist, innerDist });
             if (!target) return;
         }
@@ -2068,7 +2129,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const dashStep = Math.max(1, Math.floor(segmentCount * (dashLength / segmentLength)));
 
         graphics.lineStyle(thickness, color, 1);
-        for (let i = 0; i < segmentCount; i += (dashStep * 2)) {
+        for (let i = 0; i < segmentCount; i += dashStep * 2) {
             for (let j = 0; j < dashStep; j++) {
                 const idx = i + j;
                 if (idx >= segmentCount) break;
@@ -2092,11 +2153,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 return;
             }
 
-            const distancePixels = canvas?.dimensions?.distancePixels ?? (canvas?.scene?.grid?.size / canvas?.scene?.grid?.distance);
+            const distancePixels =
+                canvas?.dimensions?.distancePixels ?? canvas?.scene?.grid?.size / canvas?.scene?.grid?.distance;
             const outerRadiusPx = Math.max(0, Number(outerDist) || 0) * (distancePixels || 0);
             const innerRadiusPx = Math.max(0, Number(innerDist) || 0) * (distancePixels || 0);
             const preview = new PIXI.Graphics();
-            preview.eventMode = "none";
+            preview.eventMode = 'none';
             preview.zIndex = 9999;
             stage.addChild(preview);
 
@@ -2120,9 +2182,9 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             };
 
             const cleanup = () => {
-                stage.off("click", clickHandler);
-                stage.off("pointermove", moveHandler);
-                stage.off("rightdown", cancelHandler);
+                stage.off('click', clickHandler);
+                stage.off('pointermove', moveHandler);
+                stage.off('rightdown', cancelHandler);
                 if (preview.parent) preview.parent.removeChild(preview);
                 preview.destroy();
             };
@@ -2138,7 +2200,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 redrawPreview(canvas.mousePosition.x, canvas.mousePosition.y);
             }
 
-            stage.on("pointermove", moveHandler);
+            stage.on('pointermove', moveHandler);
 
             const clickHandler = (event) => {
                 event.stopPropagation();
@@ -2147,7 +2209,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 cleanup();
                 resolve({ x: pos.x, y: pos.y });
             };
-            stage.on("click", clickHandler);
+            stage.on('click', clickHandler);
 
             // Allow cancelling with Right Click
             const cancelHandler = (event) => {
@@ -2155,7 +2217,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                 cleanup();
                 resolve(null);
             };
-            stage.on("rightdown", cancelHandler);
+            stage.on('rightdown', cancelHandler);
         });
     }
 
@@ -2169,7 +2231,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (newQty === 0) {
             await item.delete();
         } else {
-            await item.update({ "system.quantity": newQty });
+            await item.update({ 'system.quantity': newQty });
         }
 
         const { rank, statValue, strValue } = this._resolveExplosiveSkillContext(item);
@@ -2181,7 +2243,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             const throwCollision = this._resolveDeviationWallCollision(token.center, target, 2, token.document ?? null);
             if (throwCollision.blocked) {
                 resolvedTarget = { x: throwCollision.x, y: throwCollision.y };
-                notes.push("<strong>Throw:</strong> Stopped by wall.");
+                notes.push('<strong>Throw:</strong> Stopped by wall.');
                 ui.notifications.info(`${item.name} hit a wall before reaching the target point.`);
             }
         }
@@ -2219,7 +2281,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const { outcomeText, resultColor, isSuccess, finalX, finalY, wallBlocked } = deviationData;
 
         if (wallBlocked) {
-            notes.push("<strong>Deviation:</strong> Stopped by wall.");
+            notes.push('<strong>Deviation:</strong> Stopped by wall.');
             ui.notifications.info(`${item.name} deviation hit a wall.`);
         }
 
@@ -2227,14 +2289,14 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             notes.push(`<br/><strong>Kill Zone (< ${innerDist}m):</strong> +2 Damage`);
         }
 
-        if (game.settings.get("sla-industries", "enableExplosiveThrowAutomation") && target != null) {
+        if (game.settings.get('sla-industries', 'enableExplosiveThrowAutomation') && target != null) {
             await this._placeExplosiveTemplates({ item, blastRadius, innerDist, finalX, finalY, isSuccess });
         }
 
-        let baseDmg = item.system.damage || "0";
+        let baseDmg = item.system.damage || '0';
         const adValue = Number(item.system.ad) || 0;
 
-        const notesText = notes.join(" ");
+        const notesText = notes.join(' ');
         const templateData = {
             actorUuid: this.actor.uuid,
             borderColor: resultColor,
@@ -2260,7 +2322,10 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             isEbb: true // Legacy chat template flag for this non-weapon card path.
         };
 
-        const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+        const chatContent = await foundry.applications.handlebars.renderTemplate(
+            'systems/sla-industries/templates/chat/chat-weapon-rolls.hbs',
+            templateData
+        );
 
         roll.toMessage({
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
@@ -2272,7 +2337,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                     notes: notesText,
                     tn: 10,
                     extra: {
-                        targets: Array.from(game.user.targets).map(t => t.document.uuid),
+                        targets: Array.from(game.user.targets).map((t) => t.document.uuid),
                         damageBase: baseDmg,
                         adValue: adValue
                     }
@@ -2299,21 +2364,21 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const fluxCost = Math.max(0, Number(item.system.cost) || 1);
         const disciplineName = item.system.discipline;
         const resolvedDisciplineName = this._resolveEbbDisciplineName(disciplineName);
-        const disciplineItem = this.actor.items.find(i =>
-            i.type === "discipline" && i.name.toLowerCase() === resolvedDisciplineName.toLowerCase()
+        const disciplineItem = this.actor.items.find(
+            (i) => i.type === 'discipline' && i.name.toLowerCase() === resolvedDisciplineName.toLowerCase()
         );
 
         return { formulaRating, currentFlux, fluxCost, resolvedDisciplineName, disciplineItem };
     }
 
     _calculateEbbModifier(rank) {
-        const statKey = "conc";
+        const statKey = 'conc';
         const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
         let globalMod = 0;
         if (this.actor.system.conditions?.prone) globalMod -= 1;
         if (this.actor.system.conditions?.stunned) globalMod -= 1;
         const penalty = this.actor.system.wounds.penalty || 0;
-        const woundPenalty = game.settings.get("sla-industries", "enableAutomaticWoundPenalties") ? penalty : 0;
+        const woundPenalty = game.settings.get('sla-industries', 'enableAutomaticWoundPenalties') ? penalty : 0;
         return statValue + rank - woundPenalty + globalMod;
     }
 
@@ -2322,11 +2387,11 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const rollFormula = `1d10 + ${skillDiceCount}d10`;
         let roll = new Roll(rollFormula);
 
-        if (roll.terms.length > 0 && roll.terms[0].constructor.name === "Die") {
+        if (roll.terms.length > 0 && roll.terms[0].constructor.name === 'Die') {
             roll.terms[0].options.appearance = {
-                foreground: "#FFFFFF",
-                background: "#000000",
-                edge: "#333333"
+                foreground: '#FFFFFF',
+                background: '#000000',
+                edge: '#333333'
             };
         }
 
@@ -2344,22 +2409,22 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     _resolveEbbOutcomeText(isBaseSuccess, skillSuccesses, ebbEffectRaw) {
-        const allDiceFailed = (!isBaseSuccess) && (skillSuccesses === 0);
+        const allDiceFailed = !isBaseSuccess && skillSuccesses === 0;
         // Formula succeeds only when the success die hits the rating; skill dice alone must not unlock damage/heal/wounds/effects.
         const isSuccessful = isBaseSuccess;
         const ebbEffect = normalizeEbbEffect(ebbEffectRaw);
-        const attackMos = ebbEffect === "damage";
+        const attackMos = ebbEffect === 'damage';
 
-        let mosEffectText = "Standard Success";
-        let failureConsequence = "Failed";
+        let mosEffectText = 'Standard Success';
+        let failureConsequence = 'Failed';
 
         if (isSuccessful) {
             if (skillSuccesses === 2) {
-                mosEffectText = attackMos ? "+1 Damage / Effect" : "Standard Success";
+                mosEffectText = attackMos ? '+1 Damage / Effect' : 'Standard Success';
             } else if (skillSuccesses === 3) {
                 mosEffectText = attackMos
-                    ? "+2 Damage / Repeat Ability"
-                    : "May use the same Ebb ability again within 5 minutes (-3 FLUX)";
+                    ? '+2 Damage / Repeat Ability'
+                    : 'May use the same Ebb ability again within 5 minutes (-3 FLUX)';
             } else if (skillSuccesses >= 4) {
                 mosEffectText = attackMos
                     ? "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX"
@@ -2373,35 +2438,30 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     _buildEbbDamageFormula(item, isSuccessful, skillSuccesses) {
-        const rawBase = item.system.dmg || item.system.damage || "0";
+        const rawBase = item.system.dmg || item.system.damage || '0';
         const baseDmg = String(rawBase);
         const ebbEffect = normalizeEbbEffect(item.system.ebbEffect);
         const mosDamageBonus = getEbbMosDamageBonus(isSuccessful, skillSuccesses, item.system.ebbEffect);
 
         let finalDmgFormula = baseDmg;
-        if (baseDmg !== "0" && baseDmg !== "" && mosDamageBonus > 0) {
+        if (baseDmg !== '0' && baseDmg !== '' && mosDamageBonus > 0) {
             finalDmgFormula = `${baseDmg} + ${mosDamageBonus}`;
         }
 
-        const hasHpFormula = finalDmgFormula && finalDmgFormula !== "0" && String(finalDmgFormula).trim() !== "";
+        const hasHpFormula = finalDmgFormula && finalDmgFormula !== '0' && String(finalDmgFormula).trim() !== '';
         const showHpRollButton = Boolean(
-            isSuccessful && (ebbEffect === "damage" || ebbEffect === "heal") && hasHpFormula
+            isSuccessful && (ebbEffect === 'damage' || ebbEffect === 'heal') && hasHpFormula
         );
         const removeWoundsCount = Math.max(0, Math.min(6, Math.floor(Number(item.system.removeWounds) || 0)));
-        const isHealEffect = ebbEffect === "heal";
+        const isHealEffect = ebbEffect === 'heal';
         const healWoundMode = normalizeEbbHealWoundMode(item.system.ebbHealWoundMode);
         const showRemoveWoundsOnly = Boolean(
-            isSuccessful
-            && removeWoundsCount > 0
-            && (
-                (ebbEffect === "effect" && !hasHpFormula)
-                || (isHealEffect && healWoundMode === "or" && hasHpFormula)
-            )
+            isSuccessful &&
+            removeWoundsCount > 0 &&
+            ((ebbEffect === 'effect' && !hasHpFormula) || (isHealEffect && healWoundMode === 'or' && hasHpFormula))
         );
         const removeWoundsBundledWithHpRoll = Boolean(
-            showHpRollButton
-            && removeWoundsCount > 0
-            && !(isHealEffect && healWoundMode === "or")
+            showHpRollButton && removeWoundsCount > 0 && !(isHealEffect && healWoundMode === 'or')
         )
             ? removeWoundsCount
             : 0;
@@ -2414,7 +2474,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             removeWoundsBundledWithHpRoll,
             healWoundMode,
             ebbEffect,
-            isHealRoll: ebbEffect === "heal"
+            isHealRoll: ebbEffect === 'heal'
         };
     }
 
@@ -2439,19 +2499,20 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         ebbEffect
     }) {
         const effectCount = item.effects?.size ?? 0;
-        const ebbTarget = item.system.ebbTarget || "enemy";
+        const ebbTarget = item.system.ebbTarget || 'enemy';
         const minDamageRaw = item.system.minDamage;
-        const minDamage = minDamageRaw !== undefined && minDamageRaw !== null && String(minDamageRaw).trim() !== ""
-            ? minDamageRaw
-            : "0";
+        const minDamage =
+            minDamageRaw !== undefined && minDamageRaw !== null && String(minDamageRaw).trim() !== ''
+                ? minDamageRaw
+                : '0';
         const i18n = (k) => game.i18n?.localize(k) ?? k;
         const targetLabel = i18n(`SLA.EbbTarget.${ebbTarget}`);
-        const effectLabel = i18n(`SLA.EbbEffect.${ebbEffect || "damage"}`);
-        const ebbHealWoundModeLabel = i18n(`SLA.EbbHealWoundMode.${healWoundMode === "or" ? "orHint" : "andHint"}`);
+        const effectLabel = i18n(`SLA.EbbEffect.${ebbEffect || 'damage'}`);
+        const ebbHealWoundModeLabel = i18n(`SLA.EbbHealWoundMode.${healWoundMode === 'or' ? 'orHint' : 'andHint'}`);
         const showEbbHealWoundModeHint = Boolean(
-            isHealRoll
-            && showDamageButton
-            && Math.max(0, Math.min(6, Math.floor(Number(item.system.removeWounds) || 0))) > 0
+            isHealRoll &&
+            showDamageButton &&
+            Math.max(0, Math.min(6, Math.floor(Number(item.system.removeWounds) || 0))) > 0
         );
         return {
             borderColor: resultColor,
@@ -2478,7 +2539,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             ebbFormulaRoll: true,
             isHealRoll: Boolean(isHealRoll),
             ebbTarget,
-            ebbEffect: ebbEffect || "damage",
+            ebbEffect: ebbEffect || 'damage',
             ebbTargetLabel: targetLabel,
             ebbEffectLabel: effectLabel,
             removeWoundsCount: Math.max(0, Math.min(6, Math.floor(Number(item.system.removeWounds) || 0))),
@@ -2486,18 +2547,19 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             ebbHealWoundMode: healWoundMode,
             ebbHealWoundModeLabel,
             showEbbHealWoundModeHint,
-            showEbbEffectButtons: Boolean(isSuccessful && effectCount > 0 && ebbTarget !== "self"),
-            showEbbEffectSelfButton: Boolean(isSuccessful && effectCount > 0 && ebbTarget === "self")
+            showEbbEffectButtons: Boolean(isSuccessful && effectCount > 0 && ebbTarget !== 'self'),
+            showEbbEffectSelfButton: Boolean(isSuccessful && effectCount > 0 && ebbTarget === 'self')
         };
     }
 
     async _executeEbbRoll(item) {
-        const { formulaRating, currentFlux, fluxCost, resolvedDisciplineName, disciplineItem } = this._resolveEbbContext(item);
+        const { formulaRating, currentFlux, fluxCost, resolvedDisciplineName, disciplineItem } =
+            this._resolveEbbContext(item);
         if (currentFlux < fluxCost) {
-            ui.notifications.error("Insufficient FLUX.");
+            ui.notifications.error('Insufficient FLUX.');
             return;
         }
-        await this.actor.update({ "system.stats.flux.value": Math.max(0, currentFlux - fluxCost) });
+        await this.actor.update({ 'system.stats.flux.value': Math.max(0, currentFlux - fluxCost) });
 
         if (!disciplineItem) {
             ui.notifications.warn(`Missing Discipline Item: ${resolvedDisciplineName}`);
@@ -2552,16 +2614,19 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             ebbEffect
         });
 
-        const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+        const chatContent = await foundry.applications.handlebars.renderTemplate(
+            'systems/sla-industries/templates/chat/chat-weapon-rolls.hbs',
+            templateData
+        );
 
         const ebbEffectCount = item.effects?.size ?? 0;
         const ebbRemoveWoundsCount = Math.max(0, Math.min(6, Math.floor(Number(item.system.removeWounds) || 0)));
         const ebbHealWoundMutualExclude = Boolean(
-            isSuccessful
-            && normalizeEbbEffect(item.system.ebbEffect) === "heal"
-            && normalizeEbbHealWoundMode(item.system.ebbHealWoundMode) === "or"
-            && ebbRemoveWoundsCount > 0
-            && showDamageButton
+            isSuccessful &&
+            normalizeEbbEffect(item.system.ebbEffect) === 'heal' &&
+            normalizeEbbHealWoundMode(item.system.ebbHealWoundMode) === 'or' &&
+            ebbRemoveWoundsCount > 0 &&
+            showDamageButton
         );
         const message = await roll.toMessage({
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
@@ -2578,7 +2643,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                         itemUuid: item.uuid,
                         ebbHasEffects: ebbEffectCount > 0,
                         ebbRollSuccess: isSuccessful,
-                        ebbTarget: item.system.ebbTarget || "enemy",
+                        ebbTarget: item.system.ebbTarget || 'enemy',
                         ebbEffect: normalizeEbbEffect(item.system.ebbEffect),
                         actorUuid: this.actor.uuid,
                         ebbRemoveWoundsCount: ebbRemoveWoundsCount,
@@ -2605,32 +2670,33 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         for (const skillData of skillsArray) {
             if (!skillData || !skillData.name) continue;
 
-            const existingSkill = this.actor.items.find(i =>
-                i.type === "skill" && i.name.toLowerCase() === skillData.name.toLowerCase()
+            const existingSkill = this.actor.items.find(
+                (i) => i.type === 'skill' && i.name.toLowerCase() === skillData.name.toLowerCase()
             );
 
             if (existingSkill) {
                 const currentRank = Number(existingSkill.system?.rank) || 0;
                 const newRank = incrementSkillRank(currentRank);
-                toUpdate.push({ _id: existingSkill.id, "system.rank": newRank });
+                toUpdate.push({ _id: existingSkill.id, 'system.rank': newRank });
                 ui.notifications.info(`Upgraded ${existingSkill.name} to Rank ${newRank}`);
                 continue;
             }
 
             toCreate.push({
                 name: skillData.name,
-                type: "skill",
-                img: skillData.img || "icons/svg/book.svg",
+                type: 'skill',
+                img: skillData.img || 'icons/svg/book.svg',
                 system: {
-                    rank: "1",
-                    stat: CONFIG.SLA?.skillStats?.[skillData.name.toLowerCase()]
-                        || skillData.stat
-                        || skillData.system?.stat
-                        || "dex",
-                    description: skillData.system?.description || ""
+                    rank: '1',
+                    stat:
+                        CONFIG.SLA?.skillStats?.[skillData.name.toLowerCase()] ||
+                        skillData.stat ||
+                        skillData.system?.stat ||
+                        'dex',
+                    description: skillData.system?.description || ''
                 },
                 flags: {
-                    "sla-industries": {
+                    'sla-industries': {
                         [sourceFlag]: true
                     }
                 }
@@ -2638,20 +2704,20 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
 
         if (toCreate.length > 0) {
-            await this.actor.createEmbeddedDocuments("Item", toCreate);
+            await this.actor.createEmbeddedDocuments('Item', toCreate);
         }
         if (toUpdate.length > 0) {
-            await this.actor.updateEmbeddedDocuments("Item", toUpdate);
+            await this.actor.updateEmbeddedDocuments('Item', toUpdate);
         }
     }
 
     async _replaceSingletonItemAndLinkedSkills(itemType, linkedSkillFlag) {
-        const existing = this.actor.items.find(i => i.type === itemType);
+        const existing = this.actor.items.find((i) => i.type === itemType);
         if (!existing) return;
 
-        const linkedSkills = this.actor.items.filter(i => i.getFlag("sla-industries", linkedSkillFlag));
-        const idsToDelete = [existing.id, ...linkedSkills.map(i => i.id)];
-        await this.actor.deleteEmbeddedDocuments("Item", idsToDelete);
+        const linkedSkills = this.actor.items.filter((i) => i.getFlag('sla-industries', linkedSkillFlag));
+        const idsToDelete = [existing.id, ...linkedSkills.map((i) => i.id)];
+        await this.actor.deleteEmbeddedDocuments('Item', idsToDelete);
     }
 
     _validatePackageRequirements(packageData) {
@@ -2667,39 +2733,41 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     async _handleSpeciesDrop(itemData) {
-        await this._replaceSingletonItemAndLinkedSkills("species", "fromSpecies");
-        await this.actor.createEmbeddedDocuments("Item", [itemData]);
-        await this.actor.update({ "system.bio.species": itemData.name });
+        await this._replaceSingletonItemAndLinkedSkills('species', 'fromSpecies');
+        await this.actor.createEmbeddedDocuments('Item', [itemData]);
+        await this.actor.update({ 'system.bio.species': itemData.name });
 
         if (itemData.system.stats) {
             const updates = {};
             for (const [key, val] of Object.entries(itemData.system.stats)) {
-                const valueToSet = (typeof val === "object" && val.min !== undefined) ? val.min : val;
+                const valueToSet = typeof val === 'object' && val.min !== undefined ? val.min : val;
                 updates[`system.stats.${key}.value`] = valueToSet;
             }
             await this.actor.update(updates);
         }
 
-        await this._processDroppedSkills(itemData.system.skills, "fromSpecies");
+        await this._processDroppedSkills(itemData.system.skills, 'fromSpecies');
     }
 
     async _handlePackageDrop(itemData) {
         if (!this._validatePackageRequirements(itemData)) return;
 
-        await this._replaceSingletonItemAndLinkedSkills("package", "fromPackage");
-        await this.actor.createEmbeddedDocuments("Item", [itemData]);
-        await this.actor.update({ "system.bio.package": itemData.name });
-        await this._processDroppedSkills(itemData.system.skills, "fromPackage");
+        await this._replaceSingletonItemAndLinkedSkills('package', 'fromPackage');
+        await this.actor.createEmbeddedDocuments('Item', [itemData]);
+        await this.actor.update({ 'system.bio.package': itemData.name });
+        await this._processDroppedSkills(itemData.system.skills, 'fromPackage');
     }
 
     _shouldAutoEquipDroppedItem(itemData) {
-        return (this.actor.type === "npc" && ["weapon", "armor"].includes(itemData.type))
-            || (this.actor.type === "vehicle" && itemData.type === "weapon");
+        return (
+            (this.actor.type === 'npc' && ['weapon', 'armor'].includes(itemData.type)) ||
+            (this.actor.type === 'vehicle' && itemData.type === 'weapon')
+        );
     }
 
     async _createEquippedItem(itemData) {
-        foundry.utils.setProperty(itemData, "system.equipped", true);
-        return this.actor.createEmbeddedDocuments("Item", [itemData]);
+        foundry.utils.setProperty(itemData, 'system.equipped', true);
+        return this.actor.createEmbeddedDocuments('Item', [itemData]);
     }
 
     async _onDropItem(event, data) {
@@ -2708,12 +2776,12 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         if (!item) return false;
         const itemData = item.toObject();
 
-        if (itemData.type === "species") {
+        if (itemData.type === 'species') {
             await this._handleSpeciesDrop(itemData);
             return;
         }
 
-        if (itemData.type === "package") {
+        if (itemData.type === 'package') {
             await this._handlePackageDrop(itemData);
             return;
         }
@@ -2730,20 +2798,20 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     async _onDropVehicleWeapon(event) {
         event.preventDefault();
-        if (!this.actor.isOwner || this.actor.type !== "vehicle") return false;
+        if (!this.actor.isOwner || this.actor.type !== 'vehicle') return false;
 
         let dropped;
         try {
             const dt = event.dataTransfer ?? event.originalEvent?.dataTransfer;
-            dropped = JSON.parse(dt?.getData("text/plain") ?? "{}");
+            dropped = JSON.parse(dt?.getData('text/plain') ?? '{}');
         } catch (_err) {
             return false;
         }
-        if (!dropped || dropped.type !== "Item") return false;
+        if (!dropped || dropped.type !== 'Item') return false;
 
         const item = await Item.implementation.fromDropData(dropped);
-        if (!item || item.type !== "weapon") {
-            ui.notifications.warn("Only weapon items can be dropped into vehicle weapons.");
+        if (!item || item.type !== 'weapon') {
+            ui.notifications.warn('Only weapon items can be dropped into vehicle weapons.');
             return false;
         }
 

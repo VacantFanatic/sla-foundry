@@ -1,4 +1,4 @@
-import { normalizeEbbEffect } from "./items.mjs";
+import { normalizeEbbEffect } from './items.mjs';
 
 /**
  * MOS damage increment for Ebb attack formulas only (+1 / +2 / +4 at 2 / 3 / 4+ skill successes).
@@ -11,7 +11,7 @@ import { normalizeEbbEffect } from "./items.mjs";
  */
 export function getEbbMosDamageBonus(isSuccessful, skillSuccessCount, ebbEffectRaw) {
     if (!isSuccessful) return 0;
-    if (normalizeEbbEffect(ebbEffectRaw) !== "damage") return 0;
+    if (normalizeEbbEffect(ebbEffectRaw) !== 'damage') return 0;
     const n = Math.max(0, Math.floor(Number(skillSuccessCount) || 0));
     if (n >= 4) return 4;
     if (n === 3) return 2;

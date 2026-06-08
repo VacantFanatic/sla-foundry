@@ -15,14 +15,7 @@ export function buildSkillRollFormula(rank) {
  * @param {{ statValue: number, rank: number, prone: boolean, stunned: boolean, woundPenalty: number, applyWoundPenalties: boolean }} params
  * @returns {number}
  */
-export function computeSkillRollModifier({
-    statValue,
-    rank,
-    prone,
-    stunned,
-    woundPenalty,
-    applyWoundPenalties
-}) {
+export function computeSkillRollModifier({ statValue, rank, prone, stunned, woundPenalty, applyWoundPenalties }) {
     let globalMod = 0;
     if (prone) globalMod -= 1;
     if (stunned) globalMod -= 1;
@@ -37,8 +30,8 @@ export function computeSkillRollModifier({
  */
 export function buildWeaponDamageFormula(baseDamage, totalModifier) {
     if (totalModifier === 0) return baseDamage;
-    if (baseDamage === "0" || baseDamage === "") return String(totalModifier);
-    return `${baseDamage} ${totalModifier > 0 ? "+" : ""} ${totalModifier}`;
+    if (baseDamage === '0' || baseDamage === '') return String(totalModifier);
+    return `${baseDamage} ${totalModifier > 0 ? '+' : ''} ${totalModifier}`;
 }
 
 /**
@@ -79,20 +72,20 @@ export function buildWeaponRollMods(formState) {
  */
 export function resolveWeaponMosOutcome({ isSuccess, successThroughExperience, skillSuccessCount }) {
     let mosDamageBonus = 0;
-    let mosEffectText = isSuccess ? "Standard Hit" : "Failed";
-    let mosChoiceData = { hasChoice: false, choiceType: "", choiceDmg: 0 };
+    let mosEffectText = isSuccess ? 'Standard Hit' : 'Failed';
+    let mosChoiceData = { hasChoice: false, choiceType: '', choiceDmg: 0 };
     let shouldApplyHeadWound = false;
 
     if (isSuccess && !successThroughExperience) {
         if (skillSuccessCount === 1) {
             mosDamageBonus = 1;
-            mosEffectText = "+1 Damage";
+            mosEffectText = '+1 Damage';
         } else if (skillSuccessCount === 2) {
-            mosEffectText = "MOS 2: Choose Effect";
-            mosChoiceData = { hasChoice: true, choiceType: "arm", choiceDmg: 2 };
+            mosEffectText = 'MOS 2: Choose Effect';
+            mosChoiceData = { hasChoice: true, choiceType: 'arm', choiceDmg: 2 };
         } else if (skillSuccessCount === 3) {
-            mosEffectText = "MOS 3: Choose Effect";
-            mosChoiceData = { hasChoice: true, choiceType: "leg", choiceDmg: 4 };
+            mosEffectText = 'MOS 3: Choose Effect';
+            mosChoiceData = { hasChoice: true, choiceType: 'leg', choiceDmg: 4 };
         } else if (skillSuccessCount >= 4) {
             mosDamageBonus = 6;
             mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)";

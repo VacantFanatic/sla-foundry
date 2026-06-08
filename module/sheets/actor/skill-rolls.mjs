@@ -1,5 +1,5 @@
-import { calculateRollResult, generateDiceTooltip, createSLARoll } from "../../helpers/dice.mjs";
-import { buildSkillRollFormula, computeSkillRollModifier } from "./roll-math.mjs";
+import { calculateRollResult, generateDiceTooltip, createSLARoll } from '../../helpers/dice.mjs';
+import { buildSkillRollFormula, computeSkillRollModifier } from './roll-math.mjs';
 
 /**
  * Execute a skill roll from an embedded skill item (shared by sheet and hotbar flows).
@@ -7,10 +7,10 @@ import { buildSkillRollFormula, computeSkillRollModifier } from "./roll-math.mjs
  * @param {Item} item
  */
 export async function executeSkillRollFromItem(sheet, item) {
-    if (!item || item.type !== "skill") return;
+    if (!item || item.type !== 'skill') return;
 
     const actor = sheet.actor;
-    const statKey = item.system.stat || "dex";
+    const statKey = item.system.stat || 'dex';
     const statValue = actor.system.stats[statKey]?.total ?? actor.system.stats[statKey]?.value ?? 0;
     const rank = Number(item.system.rank) || 0;
 
@@ -20,7 +20,7 @@ export async function executeSkillRollFromItem(sheet, item) {
         prone: Boolean(actor.system.conditions?.prone),
         stunned: Boolean(actor.system.conditions?.stunned),
         woundPenalty: actor.system.wounds.penalty || 0,
-        applyWoundPenalties: game.settings.get("sla-industries", "enableAutomaticWoundPenalties")
+        applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties')
     });
 
     const rollFormula = buildSkillRollFormula(rank);
@@ -28,7 +28,7 @@ export async function executeSkillRollFromItem(sheet, item) {
     await roll.evaluate();
 
     const result = calculateRollResult(roll, baseModifier);
-    const resultColor = result.isSuccess ? "#39ff14" : "#f55";
+    const resultColor = result.isSuccess ? '#39ff14' : '#f55';
 
     const templateData = {
         borderColor: resultColor,
@@ -39,7 +39,7 @@ export async function executeSkillRollFromItem(sheet, item) {
         successTotal: result.total,
         tooltip: generateDiceTooltip(roll, baseModifier),
         skillDice: result.skillDiceData,
-        notes: "",
+        notes: '',
         showDamageButton: false,
         canUseLuck: actor.system.stats.luck.value > 0,
         luckValue: actor.system.stats.luck.value,
@@ -47,12 +47,12 @@ export async function executeSkillRollFromItem(sheet, item) {
         mos: {
             isSuccess: result.isSuccess,
             hits: result.skillHits,
-            effect: result.isSuccess ? `Margin of Success: ${result.skillHits}` : "Failed"
+            effect: result.isSuccess ? `Margin of Success: ${result.skillHits}` : 'Failed'
         }
     };
 
     const chatContent = await foundry.applications.handlebars.renderTemplate(
-        "systems/sla-industries/templates/chat/chat-weapon-rolls.hbs",
+        'systems/sla-industries/templates/chat/chat-weapon-rolls.hbs',
         templateData
     );
 
@@ -63,7 +63,7 @@ export async function executeSkillRollFromItem(sheet, item) {
             sla: sheet._buildSlaRollFlags({
                 baseModifier,
                 itemName: item.name.toUpperCase(),
-                notes: "",
+                notes: '',
                 tn: 10,
                 extra: {
                     rofRerollSD: false,

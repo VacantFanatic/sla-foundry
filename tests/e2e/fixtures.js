@@ -4,11 +4,11 @@
  */
 async function joinGame(page) {
     const user = process.env.FOUNDRY_USER;
-    if (!user) throw new Error("FOUNDRY_USER is required");
-    await page.goto("/join");
-    await page.getByRole("combobox").selectOption({ label: user });
-    await page.getByRole("textbox", { name: /password/i }).fill(process.env.FOUNDRY_PASSWORD ?? "");
-    await page.getByRole("button", { name: /join game session/i }).click();
+    if (!user) throw new Error('FOUNDRY_USER is required');
+    await page.goto('/join');
+    await page.getByRole('combobox').selectOption({ label: user });
+    await page.getByRole('textbox', { name: /password/i }).fill(process.env.FOUNDRY_PASSWORD ?? '');
+    await page.getByRole('button', { name: /join game session/i }).click();
     await page.waitForURL(/\/game/, { timeout: 60_000 });
 }
 
@@ -23,7 +23,7 @@ async function waitForSLASystem(page) {
         () =>
             globalThis.game?.ready === true &&
             globalThis.game?.user != null &&
-            globalThis.game?.system?.id === "sla-industries",
+            globalThis.game?.system?.id === 'sla-industries',
         null,
         { timeout: 90_000 }
     );
@@ -36,17 +36,19 @@ async function waitForSLASystem(page) {
  * @param {import('@playwright/test').Page} page
  */
 async function dismissFoundryNotifications(page) {
-    const closeIn = page.locator("#notifications li").locator("a.close, .close, .notification-close, [data-action='close']");
+    const closeIn = page
+        .locator('#notifications li')
+        .locator("a.close, .close, .notification-close, [data-action='close']");
     for (let i = 0; i < 12; i++) {
-        const n = await page.locator("#notifications li").count();
+        const n = await page.locator('#notifications li').count();
         if (n === 0) break;
         const firstClose = closeIn.first();
         if (!(await firstClose.isVisible().catch(() => false))) break;
         await firstClose.click({ timeout: 3000 });
     }
-    if ((await page.locator("#notifications li").count()) > 0) {
+    if ((await page.locator('#notifications li').count()) > 0) {
         await page.evaluate(() => {
-            document.querySelector("#notifications")?.replaceChildren();
+            document.querySelector('#notifications')?.replaceChildren();
         });
     }
 }
@@ -87,8 +89,8 @@ async function openItemSheet(page, itemId) {
         await item.sheet.render(true);
     }, itemId);
 
-    const sheet = page.locator("form.application.sla-industries.item").last();
-    await sheet.waitFor({ state: "visible", timeout: 15_000 });
+    const sheet = page.locator('form.application.sla-industries.item').last();
+    await sheet.waitFor({ state: 'visible', timeout: 15_000 });
     return sheet;
 }
 
@@ -106,12 +108,14 @@ async function clickItemSheetTab(sheet, tabId) {
  * @param {import('@playwright/test').Page} page
  */
 async function closeApplicationWindows(page) {
-    await page.evaluate(() => {
-        for (const app of globalThis.ui?.applications?.values?.() ?? []) {
-            app.close?.();
-        }
-    }).catch(() => {});
-    await page.keyboard.press("Escape").catch(() => {});
+    await page
+        .evaluate(() => {
+            for (const app of globalThis.ui?.applications?.values?.() ?? []) {
+                app.close?.();
+            }
+        })
+        .catch(() => {});
+    await page.keyboard.press('Escape').catch(() => {});
 }
 
 module.exports = {

@@ -8,11 +8,11 @@ This repository is a **Foundry VTT v14 game system** (SLA Industries 2nd Edition
 
 Cloud agents can develop and verify this repo **without** Foundry license secrets using the commands below. E2E and in-browser testing stay optional until you run your own Foundry instance locally or add credentials.
 
-| Task | Command |
-|------|---------|
-| Install JS deps | `npm ci` |
-| Compile SCSS | `npm run build` (or `npm run watch` while editing styles) |
-| Unit tests | `npm run test:unit` (Node built-in test runner; no Foundry required) |
+| Task            | Command                                                              |
+| --------------- | -------------------------------------------------------------------- |
+| Install JS deps | `npm ci`                                                             |
+| Compile SCSS    | `npm run build` (or `npm run watch` while editing styles)            |
+| Unit tests      | `npm run test:unit` (Node built-in test runner; no Foundry required) |
 
 There is **no** `npm run lint` script or ESLint config; format with Prettier locally if needed (`DEVELOPER.md`).
 
@@ -34,14 +34,14 @@ This repo includes `.cursor/environment.json` so new agents run `scripts/cloud-f
 
 Configure these in **Cloud Agents → Secrets** (one download method is enough):
 
-| Secret | Purpose |
-|--------|---------|
-| `FOUNDRY_RELEASE_URL` | Timed **Node.js** download URL from [foundryvtt.com/me/licenses](https://foundryvtt.com/me/licenses) (Operating System → Node.js → Timed URL) |
-| `FOUNDRY_LICENSE_KEY` | License key `AAAA-BBBB-...` (optional if using account login; Docker can auto-fetch) |
-| `FOUNDRY_USERNAME` | foundryvtt.com email (alternative to `FOUNDRY_RELEASE_URL`) |
-| `FOUNDRY_ACCOUNT_PASSWORD` | foundryvtt.com password (only with `FOUNDRY_USERNAME`; do not confuse with join-page password) |
-| `FOUNDRY_USER` | Display name on `/join` for Playwright E2E |
-| `FOUNDRY_PASSWORD` | Optional password for that **game** user on `/join` |
+| Secret                     | Purpose                                                                                                                                       |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FOUNDRY_RELEASE_URL`      | Timed **Node.js** download URL from [foundryvtt.com/me/licenses](https://foundryvtt.com/me/licenses) (Operating System → Node.js → Timed URL) |
+| `FOUNDRY_LICENSE_KEY`      | License key `AAAA-BBBB-...` (optional if using account login; Docker can auto-fetch)                                                          |
+| `FOUNDRY_USERNAME`         | foundryvtt.com email (alternative to `FOUNDRY_RELEASE_URL`)                                                                                   |
+| `FOUNDRY_ACCOUNT_PASSWORD` | foundryvtt.com password (only with `FOUNDRY_USERNAME`; do not confuse with join-page password)                                                |
+| `FOUNDRY_USER`             | Display name on `/join` for Playwright E2E                                                                                                    |
+| `FOUNDRY_PASSWORD`         | Optional password for that **game** user on `/join`                                                                                           |
 
 Start server after secrets are set:
 
@@ -55,11 +55,11 @@ npm run test:env                      # build + unit + E2E when /join is ready (
 
 Foundry runs in Docker via `scripts/start-foundry.sh` with data bind-mounted to **`/home/ubuntu/foundry-data`** (survives agent sessions on the same VM):
 
-| Path | Purpose |
-|------|---------|
-| `/home/ubuntu/foundry-data/Data/` | Worlds, systems, users |
-| `/home/ubuntu/foundry-data/container_cache/foundryvtt-*.zip` | One-time Foundry download (reused after first install) |
-| `/home/ubuntu/foundry-data/Config/` | Server options (preserved with `CONTAINER_PRESERVE_CONFIG=true`) |
+| Path                                                         | Purpose                                                          |
+| ------------------------------------------------------------ | ---------------------------------------------------------------- |
+| `/home/ubuntu/foundry-data/Data/`                            | Worlds, systems, users                                           |
+| `/home/ubuntu/foundry-data/container_cache/foundryvtt-*.zip` | One-time Foundry download (reused after first install)           |
+| `/home/ubuntu/foundry-data/Config/`                          | Server options (preserved with `CONTAINER_PRESERVE_CONFIG=true`) |
 
 The container uses `--restart unless-stopped` and a stable `--hostname foundry-server` (license binding). **Timed `FOUNDRY_RELEASE_URL` values expire in minutes** — refresh at [foundryvtt.com/me/licenses](https://foundryvtt.com/me/licenses) if startup fails with HTTP 403, or add `FOUNDRY_USERNAME` + `FOUNDRY_ACCOUNT_PASSWORD` instead. After the first successful download, the zip in `container_cache/` makes the timed URL unnecessary.
 
@@ -71,9 +71,9 @@ If cloud secrets are not configured, export the same variables in your shell (or
 2. **Link this repo** into Foundry data as `Data/systems/sla-industries` (folder name must match `system.json` `id`). On this VM the symlink is already at `/home/ubuntu/foundry-data/Data/systems/sla-industries` → `/workspace`.
 3. **Create a world** using game system **SLA Industries 2nd Edition** and at least one user for `/join`.
 4. **Environment variables for Playwright** (see `playwright.config.js`):
-   - `FOUNDRY_URL` — default `http://127.0.0.1:30000`
-   - `FOUNDRY_USER` — display name on the join page (required for authenticated E2E)
-   - `FOUNDRY_PASSWORD` — if the user has a password
+    - `FOUNDRY_URL` — default `http://127.0.0.1:30000`
+    - `FOUNDRY_USER` — display name on the join page (required for authenticated E2E)
+    - `FOUNDRY_PASSWORD` — if the user has a password
 5. GM-only operator tests (`npm run test:e2e:operators`) need `FOUNDRY_USER` to be a Gamemaster.
 
 Example Docker start (after setting secrets in the environment):

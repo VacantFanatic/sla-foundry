@@ -17,9 +17,9 @@ export function applyMeleeModifiers(form, strValue, mods) {
 
     // Checkboxes (Hand-to-Hand Attack Modifiers)
     // Charging: -1 to Success Die and +1 Skill Die success
-    if (form.charging?.checked) { 
-        mods.successDie -= 1; 
-        mods.autoSkillSuccesses += 1; 
+    if (form.charging?.checked) {
+        mods.successDie -= 1;
+        mods.autoSkillSuccesses += 1;
     }
     // Target charged you OR moved more than Closing speed: -1 to Success Die
     if (form.targetCharged?.checked) mods.successDie -= 1;
@@ -37,9 +37,9 @@ export function applyMeleeModifiers(form, strValue, mods) {
 
     // Defense Inputs
     // Combat Defence: -1 to all dice per rank
-    mods.allDice -= (Number(form.combatDef?.value) || 0);
+    mods.allDice -= Number(form.combatDef?.value) || 0;
     // Acrobatic Defence: -2 to all dice per rank
-    mods.allDice -= ((Number(form.acroDef?.value) || 0) * 2);
+    mods.allDice -= (Number(form.acroDef?.value) || 0) * 2;
 }
 
 /**
@@ -55,53 +55,55 @@ export function applyMeleeModifiers(form, strValue, mods) {
  */
 export async function applyRangedModifiers(item, form, mods, notes, flags, options = {}) {
     const modeSelect = $(form).find('#fire-mode').find(':selected');
-    const modeKey = modeSelect.val() || "single";
+    const modeKey = modeSelect.val() || 'single';
 
-    const roundsUsed = parseInt(modeSelect.data("rounds")) || 1;
-    const recoilPenalty = parseInt(modeSelect.data("recoil")) || 0;
+    const roundsUsed = parseInt(modeSelect.data('rounds')) || 1;
+    const recoilPenalty = parseInt(modeSelect.data('recoil')) || 0;
 
     // Read 'ammo' directly as a number
     const currentAmmo = Number(item.system.ammo) || 0;
 
     // 1. VALIDATE AMMO RULES
-    if (game.settings.get("sla-industries", "enableLowAmmoValidation")) {
-        const activeModes = Object.values(item.system.firingModes || {}).filter(m => m.active);
+    if (game.settings.get('sla-industries', 'enableLowAmmoValidation')) {
+        const activeModes = Object.values(item.system.firingModes || {}).filter((m) => m.active);
         const minDeviceRounds = activeModes.reduce((min, m) => Math.min(min, m.rounds), 999);
 
         // Rule A: Not enough ammo
         if (currentAmmo < roundsUsed) {
             // Rule B: Only allow if this is the lowest mode
             if (roundsUsed > minDeviceRounds) {
-                ui.notifications.error(`Not enough ammo for ${modeSelect.text().split('(')[0].trim()}. Switch to a lower mode.`);
+                ui.notifications.error(
+                    `Not enough ammo for ${modeSelect.text().split('(')[0].trim()}. Switch to a lower mode.`
+                );
                 return false; // STOP THE ROLL
             }
 
             // Rule C: Lowest mode penalty
             mods.damage -= 2;
-            notes.push("Low Ammo (-2 DMG).");
+            notes.push('Low Ammo (-2 DMG).');
 
-            const minDmg = item.system.minDamage || "0";
-            if (minDmg !== "0") notes.push(`(Min DMG ${minDmg} applies)`);
+            const minDmg = item.system.minDamage || '0';
+            if (minDmg !== '0') notes.push(`(Min DMG ${minDmg} applies)`);
         }
     }
 
     // 2. APPLY MODE BONUSES
     switch (modeKey) {
-        case "burst":
+        case 'burst':
             mods.damage += 2;
-            notes.push("Burst (+2 Dmg).");
+            notes.push('Burst (+2 Dmg).');
             flags.rerollSD = true;
             break;
-        case "auto":
+        case 'auto':
             mods.damage += 4;
-            notes.push("Full Auto (+4 Dmg).");
+            notes.push('Full Auto (+4 Dmg).');
             flags.rerollAll = true;
             break;
-        case "suppressive":
-        case "suppress":
+        case 'suppressive':
+        case 'suppress':
             mods.autoSkillSuccesses += 2;
             mods.damage += 4;
-            notes.push("Suppressive (+4 Dmg, +2 Auto Hits).");
+            notes.push('Suppressive (+4 Dmg, +2 Auto Hits).');
             flags.rerollAll = true;
             break;
     }
@@ -114,31 +116,31 @@ export async function applyRangedModifiers(item, form, mods, notes, flags, optio
     }
 
     // 4. CONSUME AMMO
-    if (game.settings.get("sla-industries", "enableAutomaticAmmoConsumption")) {
+    if (game.settings.get('sla-industries', 'enableAutomaticAmmoConsumption')) {
         const actualCost = Math.min(currentAmmo, roundsUsed);
         if (actualCost > 0) {
-            await item.update({ "system.ammo": currentAmmo - actualCost });
+            await item.update({ 'system.ammo': currentAmmo - actualCost });
         }
     }
 
     // 5. OTHER INPUTS (Cover, Aiming, etc.)
-    mods.successDie += (Number(form.cover?.value) || 0);
-    mods.successDie += (Number(form.dual?.value) || 0);
+    mods.successDie += Number(form.cover?.value) || 0;
+    mods.successDie += Number(form.dual?.value) || 0;
 
     if (form.targetMoved?.checked) mods.successDie -= 1;
     if (form.blind?.checked) mods.allDice -= 1;
     if (form.prone?.checked) mods.successDie += 1;
 
-    if (options.forceLongRange && game.settings.get("sla-industries", "enableLongRangeFeature")) {
+    if (options.forceLongRange && game.settings.get('sla-industries', 'enableLongRangeFeature')) {
         // Rulebook: "-1 Skill Die" (reducing rank by 1 reduces skill dice by 1)
         mods.rank -= 1;
-        notes.push("Long Range (-1 Skill Die).");
+        notes.push('Long Range (-1 Skill Die).');
     }
 
-    if (modeKey !== "suppressive" && modeKey !== "suppress") {
+    if (modeKey !== 'suppressive' && modeKey !== 'suppress') {
         const aimVal = form.aiming?.value;
-        if (aimVal === "sd") mods.successDie += 1;
-        if (aimVal === "skill") mods.autoSkillSuccesses += 1;
+        if (aimVal === 'sd') mods.successDie += 1;
+        if (aimVal === 'skill') mods.autoSkillSuccesses += 1;
     }
 
     return true;
@@ -153,15 +155,14 @@ export async function applyRangedModifiers(item, form, mods, notes, flags, optio
  */
 export function calculateRangePenalty(token, target, maxRange) {
     if (!token || !target) {
-        return { isLongRange: false, penaltyMsg: "" };
+        return { isLongRange: false, penaltyMsg: '' };
     }
 
     const dist = canvas.grid.measurePath([token, target]).distance;
-    const isLongRange = dist > (maxRange / 2);
-    
+    const isLongRange = dist > maxRange / 2;
+
     return {
         isLongRange,
-        penaltyMsg: isLongRange ? "Long Range (-1 Skill Die)" : ""
+        penaltyMsg: isLongRange ? 'Long Range (-1 Skill Die)' : ''
     };
 }
-

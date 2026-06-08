@@ -9,6 +9,6 @@
  */
 export function shouldShowMosWoundChoice({ hasChoice, targetActorType, enableNpcWoundTracking }) {
     if (!hasChoice) return false;
-    if (targetActorType === "npc" && !enableNpcWoundTracking) return false;
+    if (targetActorType === 'npc' && !enableNpcWoundTracking) return false;
     return true;
 }

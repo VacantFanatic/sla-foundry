@@ -29,7 +29,7 @@
     color: #555;
 }
 
-.item-catalogue input:not([type="checkbox"]) {
+.item-catalogue input:not([type='checkbox']) {
     background: transparent;
     border: none;
     font-weight: bold;
@@ -39,7 +39,7 @@
 
 /* Powersuit / firing-mode toggle inputs that live inside the form root keep
    the original brushed look – aliased here for compatibility with PR 1. */
-form.application.sla-industries.item .firing-mode-row input[type="number"] {
+form.application.sla-industries.item .firing-mode-row input[type='number'] {
     background: rgba(0, 0, 0, 0.5) !important;
     border: 1px solid #444 !important;
     color: #fff !important;
@@ -50,6 +50,6 @@ form.application.sla-industries.item .firing-mode-row input[type="number"] {
     box-shadow: none !important;
 }
 
-form.application.sla-industries.item .firing-mode-row input[type="number"]:focus {
+form.application.sla-industries.item .firing-mode-row input[type='number']:focus {
     box-shadow: 0 0 0 1px var(--sla-type-accent, var(--sla-accent)) !important;
 }

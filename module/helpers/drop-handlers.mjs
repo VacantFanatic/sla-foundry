@@ -20,12 +20,12 @@ async function parseDropData(event) {
         const dataTransfer = getDataTransfer(event);
         if (!dataTransfer) return null;
         const data = JSON.parse(dataTransfer.getData('text/plain'));
-        
-        if (data.type !== "Item") return null;
-        
+
+        if (data.type !== 'Item') return null;
+
         return await Item.implementation.fromDropData(data);
     } catch (err) {
-        console.error("SLA | Drop Data Parse Failed:", err);
+        console.error('SLA | Drop Data Parse Failed:', err);
         return null;
     }
 }
@@ -38,14 +38,14 @@ async function parseDropData(event) {
  */
 export async function handleWeaponDrop(event, targetItem) {
     event.preventDefault();
-    
+
     const item = await parseDropData(event);
-    if (!item || item.type !== "weapon") {
-        ui.notifications.warn("Only Weapons can be linked to a Magazine.");
+    if (!item || item.type !== 'weapon') {
+        ui.notifications.warn('Only Weapons can be linked to a Magazine.');
         return false;
     }
 
-    await targetItem.update({ "system.linkedWeapon": item.name });
+    await targetItem.update({ 'system.linkedWeapon': item.name });
     ui.notifications.info(`Linked Magazine to: ${item.name}`);
     return true;
 }
@@ -58,14 +58,14 @@ export async function handleWeaponDrop(event, targetItem) {
  */
 export async function handleWeaponSkillDrop(event, targetItem) {
     event.preventDefault();
-    
+
     const item = await parseDropData(event);
-    if (!item || item.type !== "skill") {
+    if (!item || item.type !== 'skill') {
         ui.notifications.warn("Only 'Skill' items can be linked.");
         return false;
     }
 
-    await targetItem.update({ "system.skill": item.name });
+    await targetItem.update({ 'system.skill': item.name });
     return true;
 }
 
@@ -78,14 +78,14 @@ export async function handleWeaponSkillDrop(event, targetItem) {
 export async function handleDisciplineDrop(event, targetItem) {
     event.preventDefault();
     event.stopPropagation();
-    
+
     const item = await parseDropData(event);
-    if (!item || item.type !== "discipline") {
+    if (!item || item.type !== 'discipline') {
         ui.notifications.warn("Only 'Discipline' items can be linked here.");
         return false;
     }
 
-    await targetItem.update({ "system.discipline": item.name });
+    await targetItem.update({ 'system.discipline': item.name });
     return true;
 }
 
@@ -99,17 +99,17 @@ function normalizeSkills(skills) {
         return [];
     }
 
-    return skills.map(s => {
-        if (typeof s === "string") {
+    return skills.map((s) => {
+        if (typeof s === 'string') {
             return {
                 name: s,
                 rank: 1,
-                img: "icons/svg/item-bag.svg",
-                stat: "dex"
+                img: 'icons/svg/item-bag.svg',
+                stat: 'dex'
             };
         }
         // Ensure existing objects have stat
-        if (!s.stat) s.stat = "dex";
+        if (!s.stat) s.stat = 'dex';
         return s;
     });
 }
@@ -122,10 +122,10 @@ function normalizeSkills(skills) {
  */
 export async function handleSkillDrop(event, targetItem) {
     event.preventDefault();
-    
+
     const item = await parseDropData(event);
-    if (!item || item.type !== "skill") {
-        ui.notifications.warn("Only Skills can be added to this list.");
+    if (!item || item.type !== 'skill') {
+        ui.notifications.warn('Only Skills can be added to this list.');
         return false;
     }
 
@@ -137,19 +137,19 @@ export async function handleSkillDrop(event, targetItem) {
     const newSkill = {
         name: item.name,
         rank: item.system.rank || 1,
-        img: item.img || "icons/svg/item-bag.svg",
-        stat: item.system.stat || "dex"
+        img: item.img || 'icons/svg/item-bag.svg',
+        stat: item.system.stat || 'dex'
     };
 
     // Check for duplicates
-    if (cleanSkills.some(s => s.name === newSkill.name)) {
+    if (cleanSkills.some((s) => s.name === newSkill.name)) {
         ui.notifications.warn(`${newSkill.name} is already in the list.`);
         return false;
     }
 
     // Update the item
     const newArray = [...cleanSkills, newSkill];
-    await targetItem.update({ "system.skills": newArray });
+    await targetItem.update({ 'system.skills': newArray });
     return true;
 }
 
@@ -161,17 +161,16 @@ export async function handleSkillDrop(event, targetItem) {
  */
 export async function handleSkillDelete(index, targetItem) {
     const currentSkills = targetItem.system.skills || [];
-    
+
     // Filter out the specific index and normalize remainder
     const newArray = currentSkills
         .filter((_, i) => i !== index)
-        .map(s => {
-            if (typeof s === "string") {
-                return { name: s, rank: 1, img: "icons/svg/item-bag.svg" };
+        .map((s) => {
+            if (typeof s === 'string') {
+                return { name: s, rank: 1, img: 'icons/svg/item-bag.svg' };
             }
             return s;
         });
 
-    await targetItem.update({ "system.skills": newArray });
+    await targetItem.update({ 'system.skills': newArray });
 }
-

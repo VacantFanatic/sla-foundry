@@ -2,9 +2,15 @@
  * SLA item sheet (Application V2).
  * @extends {HandlebarsApplicationMixin(ItemSheetV2)}
  */
-import { prepareFiringModes, getLinkedDisciplineImage, enrichItemDescription } from "../helpers/item-sheet.mjs";
-import { normalizeEbbEffect } from "../helpers/items.mjs";
-import { handleWeaponDrop, handleWeaponSkillDrop, handleDisciplineDrop, handleSkillDrop, handleSkillDelete } from "../helpers/drop-handlers.mjs";
+import { prepareFiringModes, getLinkedDisciplineImage, enrichItemDescription } from '../helpers/item-sheet.mjs';
+import { normalizeEbbEffect } from '../helpers/items.mjs';
+import {
+    handleWeaponDrop,
+    handleWeaponSkillDrop,
+    handleDisciplineDrop,
+    handleSkillDrop,
+    handleSkillDelete
+} from '../helpers/drop-handlers.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
@@ -17,29 +23,20 @@ const { ItemSheetV2 } = foundry.applications.sheets;
  * - CATALOGUE_PART_TYPES are the types whose Details tab uses the catalogue
  *   partial (physical inventory items).
  */
-const TWO_TAB_TYPES = new Set(["skill", "trait", "discipline"]);
-const CATALOGUE_PART_TYPES = new Set([
-    "item",
-    "weapon",
-    "armor",
-    "explosive",
-    "magazine",
-    "drug",
-    "toxicant"
-]);
+const TWO_TAB_TYPES = new Set(['skill', 'trait', 'discipline']);
+const CATALOGUE_PART_TYPES = new Set(['item', 'weapon', 'armor', 'explosive', 'magazine', 'drug', 'toxicant']);
 
 /** Visual drag feedback — every item-sheet drop target carries `.sla-drop`. */
-const DROP_ZONE_SELECTOR = ".sla-drop";
+const DROP_ZONE_SELECTOR = '.sla-drop';
 
 export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
-
     /** @override */
     static PARTS = {
         body: {
-            template: "systems/sla-industries/templates/item/item-sheet-v2.hbs",
+            template: 'systems/sla-industries/templates/item/item-sheet-v2.hbs',
             // Mount inside the application root <form> (tag: "form"); otherwise fields can render outside it and <prose-mirror> will not persist.
             root: true,
-            scrollable: [""]
+            scrollable: ['']
         }
     };
 
@@ -47,11 +44,11 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     static TABS = {
         primary: {
             tabs: [
-                { id: "attributes", label: "SLA.ItemSheet.Tab.Details" },
-                { id: "description", label: "SLA.ItemSheet.Tab.Description" },
-                { id: "effects", label: "SLA.ItemSheet.Tab.Effects" }
+                { id: 'attributes', label: 'SLA.ItemSheet.Tab.Details' },
+                { id: 'description', label: 'SLA.ItemSheet.Tab.Description' },
+                { id: 'effects', label: 'SLA.ItemSheet.Tab.Effects' }
             ],
-            initial: "attributes"
+            initial: 'attributes'
         }
     };
 
@@ -61,7 +58,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
      */
     static async removeWeaponLink(event, target) {
         event.preventDefault();
-        await this.item.update({ "system.linkedWeapon": "" });
+        await this.item.update({ 'system.linkedWeapon': '' });
     }
 
     /**
@@ -70,7 +67,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
      */
     static async removeSkillLink(event, target) {
         event.preventDefault();
-        await this.item.update({ "system.skill": "" });
+        await this.item.update({ 'system.skill': '' });
     }
 
     /**
@@ -79,7 +76,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
      */
     static async removeDisciplineLink(event, target) {
         event.preventDefault();
-        await this.item.update({ "system.discipline": "" });
+        await this.item.update({ 'system.discipline': '' });
     }
 
     /**
@@ -88,7 +85,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
      */
     static async deleteSkillGrant(event, target) {
         event.preventDefault();
-        const el = target.closest("[data-index]");
+        const el = target.closest('[data-index]');
         const index = Number(el?.dataset.index);
         if (Number.isNaN(index)) return;
         await handleSkillDelete(index, this.item);
@@ -105,12 +102,12 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         if (!item) return;
         const src = item.img;
         if (!src) {
-            ui.notifications?.warn?.(game.i18n.localize("SLA.ItemSheet.NoImage"));
+            ui.notifications?.warn?.(game.i18n.localize('SLA.ItemSheet.NoImage'));
             return;
         }
         const ImagePopout = foundry.applications.apps?.ImagePopout ?? globalThis.ImagePopout;
         if (!ImagePopout) {
-            ui.notifications?.error?.("ImagePopout is unavailable.");
+            ui.notifications?.error?.('ImagePopout is unavailable.');
             return;
         }
         const popout = new ImagePopout({
@@ -122,45 +119,49 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     }
 
     /** @override */
-    static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
-        tag: "form",
-        form: {
-            ...(super.DEFAULT_OPTIONS.form ?? {}),
-            submitOnChange: true,
-            closeOnSubmit: false
+    static DEFAULT_OPTIONS = foundry.utils.mergeObject(
+        super.DEFAULT_OPTIONS,
+        {
+            tag: 'form',
+            form: {
+                ...(super.DEFAULT_OPTIONS.form ?? {}),
+                submitOnChange: true,
+                closeOnSubmit: false
+            },
+            classes: ['sla-industries', 'sheet', 'item'],
+            position: {
+                width: 550,
+                height: 600
+            },
+            window: {
+                frame: true,
+                resizable: true,
+                minimizable: true
+            },
+            actions: {
+                removeWeaponLink: SlaItemSheet.removeWeaponLink,
+                removeSkillLink: SlaItemSheet.removeSkillLink,
+                removeDisciplineLink: SlaItemSheet.removeDisciplineLink,
+                deleteSkillGrant: SlaItemSheet.deleteSkillGrant,
+                showItemArtwork: SlaItemSheet.showItemArtwork
+            }
         },
-        classes: ["sla-industries", "sheet", "item"],
-        position: {
-            width: 550,
-            height: 600
-        },
-        window: {
-            frame: true,
-            resizable: true,
-            minimizable: true
-        },
-        actions: {
-            removeWeaponLink: SlaItemSheet.removeWeaponLink,
-            removeSkillLink: SlaItemSheet.removeSkillLink,
-            removeDisciplineLink: SlaItemSheet.removeDisciplineLink,
-            deleteSkillGrant: SlaItemSheet.deleteSkillGrant,
-            showItemArtwork: SlaItemSheet.showItemArtwork
-        }
-    }, { inplace: false });
+        { inplace: false }
+    );
 
     /** @override */
     _getHeaderControls() {
         const controls = super._getHeaderControls();
-        const artworkActions = new Set(["showArtwork", "showPortrait", "showItemArtwork"]);
-        if (controls.some((c) => artworkActions.has(String(c?.action ?? "")))) {
+        const artworkActions = new Set(['showArtwork', 'showPortrait', 'showItemArtwork']);
+        if (controls.some((c) => artworkActions.has(String(c?.action ?? '')))) {
             return controls;
         }
         return [
             ...controls,
             {
-                icon: "fa-solid fa-image",
-                label: game.i18n.localize("SLA.ItemSheet.ViewArtwork"),
-                action: "showItemArtwork",
+                icon: 'fa-solid fa-image',
+                label: game.i18n.localize('SLA.ItemSheet.ViewArtwork'),
+                action: 'showItemArtwork',
                 ownership: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER
             }
         ];
@@ -193,7 +194,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
         context.useTwoTabs = TWO_TAB_TYPES.has(item.type);
         context.useCataloguePart = CATALOGUE_PART_TYPES.has(item.type);
-        context.tabs = this._prepareTabs("primary");
+        context.tabs = this._prepareTabs('primary');
         if (!context.useTwoTabs) {
             context.itemEffects = Array.from(item.effects).map((e) => ({
                 id: e.id,
@@ -204,17 +205,17 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
         context.enrichedDescription = await enrichItemDescription(item);
 
-        if (item.type === "weapon") {
+        if (item.type === 'weapon') {
             context.firingModes = prepareFiringModes(item.system);
         }
 
-        if (item.type === "armor") {
+        if (item.type === 'armor') {
             const max = Number(item.system.resistance?.max) || 0;
             const cur = Number(item.system.resistance?.value) || 0;
             context.resistGaugePct = max > 0 ? Math.min(100, Math.round((cur / max) * 100)) : 0;
         }
 
-        if (item.type === "ebbFormula") {
+        if (item.type === 'ebbFormula') {
             context.linkedDisciplineImg = getLinkedDisciplineImage(item);
             context.normalizedEbbEffect = normalizeEbbEffect(item.system.ebbEffect);
         }
@@ -227,10 +228,10 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
      * @param {object} data
      */
     #coerceMagazineAmmoTypeOnSubmit(data) {
-        if (this.item?.type !== "magazine" || !data || typeof data !== "object") return;
-        const raw = foundry.utils.getProperty(data, "system.ammoType");
-        if (raw === "" || raw === null || raw === undefined) {
-            foundry.utils.setProperty(data, "system.ammoType", "std");
+        if (this.item?.type !== 'magazine' || !data || typeof data !== 'object') return;
+        const raw = foundry.utils.getProperty(data, 'system.ammoType');
+        if (raw === '' || raw === null || raw === undefined) {
+            foundry.utils.setProperty(data, 'system.ammoType', 'std');
         }
     }
 
@@ -244,12 +245,12 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         const el = form.querySelector('prose-mirror[name="system.description"]');
         if (!el) return data;
         try {
-            if (typeof el.isDirty === "function" && el.isDirty() && typeof el.save === "function") el.save();
+            if (typeof el.isDirty === 'function' && el.isDirty() && typeof el.save === 'function') el.save();
         } catch {
             /* ignore */
         }
-        const html = typeof el.value === "string" ? el.value : "";
-        foundry.utils.setProperty(data, "system.description", html);
+        const html = typeof el.value === 'string' ? el.value : '';
+        foundry.utils.setProperty(data, 'system.description', html);
         this.#coerceMagazineAmmoTypeOnSubmit(data);
         return data;
     }
@@ -291,17 +292,17 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         const { signal } = this.#scrollLayoutAbort;
 
         const root = this.#formFieldRoot();
-        const sheetBody = root?.querySelector?.(".sheet-body");
+        const sheetBody = root?.querySelector?.('.sheet-body');
         if (!(sheetBody instanceof HTMLElement)) return;
 
         const resolveHost = () => {
-            let el = this.element?.closest?.(".window-content");
+            let el = this.element?.closest?.('.window-content');
             if (el instanceof HTMLElement) return el;
-            el = this.element?.closest?.(".application__body");
+            el = this.element?.closest?.('.application__body');
             if (el instanceof HTMLElement) return el;
             let walk = this.element instanceof HTMLElement ? this.element : null;
             for (let i = 0; i < 15 && walk instanceof HTMLElement; i++, walk = walk.parentElement) {
-                const cls = typeof walk.className === "string" ? walk.className : "";
+                const cls = typeof walk.className === 'string' ? walk.className : '';
                 if (/\bwindow-content\b/.test(cls)) return walk;
             }
             return this.element instanceof HTMLElement ? this.element.parentElement : null;
@@ -322,7 +323,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
             if (!Number.isFinite(maxH) || maxH > 2400 || maxH < 40) {
                 if (Number.isFinite(ph) && ph > 100) {
                     let chrome = 48;
-                    for (const sel of [".sheet-header", ".sheet-tabs", ".sla-item-tab-nav"]) {
+                    for (const sel of ['.sheet-header', '.sheet-tabs', '.sla-item-tab-nav']) {
                         const e = root.querySelector(sel);
                         if (e instanceof HTMLElement) chrome += e.getBoundingClientRect().height;
                     }
@@ -335,8 +336,8 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
             if (Number.isFinite(viewportCap) && viewportCap > 100) maxH = Math.min(maxH, viewportCap);
 
             sheetBody.style.maxHeight = `${maxH}px`;
-            sheetBody.style.overflowY = "auto";
-            sheetBody.style.minHeight = "0";
+            sheetBody.style.overflowY = 'auto';
+            sheetBody.style.minHeight = '0';
         };
 
         queueMicrotask(() => {
@@ -352,30 +353,30 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
             this.#itemSheetScrollObserver = new ResizeObserver(() => apply());
             this.#itemSheetScrollObserver.observe(host);
         }
-        globalThis.addEventListener?.("resize", apply, { signal });
+        globalThis.addEventListener?.('resize', apply, { signal });
     }
 
     /** Read HTML from a prose-mirror; optional CustomEvent may carry detail. */
     #readProseMirrorDescriptionValue(el, event) {
-        if (typeof el.value === "string") return el.value;
+        if (typeof el.value === 'string') return el.value;
         if (event instanceof CustomEvent && event.detail != null) {
             const d = event.detail;
-            if (typeof d === "string") return d;
-            if (typeof d?.html === "string") return d.html;
-            if (typeof d?.value === "string") return d.value;
+            if (typeof d === 'string') return d;
+            if (typeof d?.html === 'string') return d.html;
+            if (typeof d?.value === 'string') return d.value;
         }
-        return "";
+        return '';
     }
 
     /** App V2: no default `[data-edit]` wiring for item art. */
     async #openItemImagePicker() {
         const Picker = foundry.applications.apps?.FilePicker ?? globalThis.FilePicker;
         if (!Picker) {
-            ui.notifications?.error?.("FilePicker is unavailable.");
+            ui.notifications?.error?.('FilePicker is unavailable.');
             return;
         }
         const fp = new Picker({
-            type: "image",
+            type: 'image',
             current: this.item.img,
             callback: (path) => {
                 if (path) void this.item.update({ img: path });
@@ -389,7 +390,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         const el = this.#formFieldRoot().querySelector?.('prose-mirror[name="system.description"]');
         if (!el) return;
         try {
-            if (typeof el.isDirty === "function" && el.isDirty() && typeof el.save === "function") el.save();
+            if (typeof el.isDirty === 'function' && el.isDirty() && typeof el.save === 'function') el.save();
         } catch {
             /* ignore */
         }
@@ -398,15 +399,15 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
     /** @param {HTMLElement} el @param {Event | null} event */
     async #persistItemDescriptionFromElement(el, event) {
-        if (!el || el.getAttribute("name") !== "system.description") return;
+        if (!el || el.getAttribute('name') !== 'system.description') return;
         let next = this.#readProseMirrorDescriptionValue(el, event);
-        if (event?.type === "close" && next === (this.item.system.description ?? "")) {
+        if (event?.type === 'close' && next === (this.item.system.description ?? '')) {
             await Promise.resolve();
             next = this.#readProseMirrorDescriptionValue(el, null);
         }
-        const cur = this.item.system.description ?? "";
+        const cur = this.item.system.description ?? '';
         if (next === cur) return;
-        await this.item.update({ "system.description": next });
+        await this.item.update({ 'system.description': next });
     }
 
     /** ProseMirror is not a native form control; submitOnChange often never runs for description-only edits. */
@@ -421,7 +422,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     #onItemTabNavClick = (event) => {
         const raw = event.target;
         const el = raw instanceof Element ? raw : raw?.parentElement;
-        const tabNavLink = el?.closest?.("nav.sheet-tabs.tabs [data-tab]");
+        const tabNavLink = el?.closest?.('nav.sheet-tabs.tabs [data-tab]');
         if (!tabNavLink?.dataset?.tab || !tabNavLink.dataset?.group) return;
         event.preventDefault();
         event.stopPropagation();
@@ -432,19 +433,21 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     #onItemEffectUiClick = async (event) => {
         const t = event.target;
         if (!(t instanceof Element)) return;
-        if (t.closest(".sla-item-effect-create")) {
+        if (t.closest('.sla-item-effect-create')) {
             event.preventDefault();
             if (!this.isEditable) return;
-            await this.item.createEmbeddedDocuments("ActiveEffect", [{
-                name: game.i18n.localize("DOCUMENT.ActiveEffect"),
-                img: this.item.img || "icons/svg/aura.svg",
-                disabled: false,
-                transfer: true
-            }]);
+            await this.item.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: game.i18n.localize('DOCUMENT.ActiveEffect'),
+                    img: this.item.img || 'icons/svg/aura.svg',
+                    disabled: false,
+                    transfer: true
+                }
+            ]);
             this.render(false);
             return;
         }
-        const editBtn = t.closest(".sla-item-effect-edit");
+        const editBtn = t.closest('.sla-item-effect-edit');
         if (editBtn) {
             event.preventDefault();
             const id = editBtn.dataset.effectId;
@@ -452,7 +455,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
             effect?.sheet?.render(true);
             return;
         }
-        const delBtn = t.closest(".sla-item-effect-delete");
+        const delBtn = t.closest('.sla-item-effect-delete');
         if (delBtn) {
             event.preventDefault();
             if (!this.isEditable) return;
@@ -469,10 +472,10 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         if (!(el instanceof HTMLInputElement)) return;
         const root = this.#formFieldRoot();
         const q = el.value.toLowerCase().trim();
-        for (const row of root.querySelectorAll(".sla-item-effect-row")) {
+        for (const row of root.querySelectorAll('.sla-item-effect-row')) {
             if (!(row instanceof HTMLElement)) continue;
-            const n = (row.dataset.effectName || "").toLowerCase();
-            row.classList.toggle("sla-effect-filtered", Boolean(q) && !n.includes(q));
+            const n = (row.dataset.effectName || '').toLowerCase();
+            row.classList.toggle('sla-effect-filtered', Boolean(q) && !n.includes(q));
         }
     };
 
@@ -487,14 +490,14 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         const root = this.#formFieldRoot();
 
         if (root.querySelector?.('nav.sheet-tabs.tabs[data-group="primary"]')) {
-            root.addEventListener("click", this.#onItemTabNavClick, { signal, capture: true });
+            root.addEventListener('click', this.#onItemTabNavClick, { signal, capture: true });
         }
 
-        root.addEventListener("click", this.#onItemEffectUiClick, { signal });
+        root.addEventListener('click', this.#onItemEffectUiClick, { signal });
 
-        const itemFxSearch = root.querySelector(".sla-item-effect-search");
+        const itemFxSearch = root.querySelector('.sla-item-effect-search');
         if (itemFxSearch instanceof HTMLInputElement) {
-            itemFxSearch.addEventListener("input", this.#onItemEffectSearchInput, { signal });
+            itemFxSearch.addEventListener('input', this.#onItemEffectSearchInput, { signal });
         }
 
         if (!this.isEditable) return;
@@ -502,7 +505,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         const portrait = root.querySelector('.profile-img[data-edit="img"]');
         if (portrait instanceof HTMLElement) {
             portrait.addEventListener(
-                "click",
+                'click',
                 (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -517,9 +520,9 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
         const bindProseMirror = () => {
             for (const el of root.querySelectorAll('prose-mirror[name="system.description"]')) {
-                el.addEventListener("save", this.#persistItemDescriptionHtml, { signal });
-                el.addEventListener("close", this.#persistItemDescriptionHtml, { signal });
-                el.addEventListener("change", this.#persistItemDescriptionHtml, { signal });
+                el.addEventListener('save', this.#persistItemDescriptionHtml, { signal });
+                el.addEventListener('close', this.#persistItemDescriptionHtml, { signal });
+                el.addEventListener('change', this.#persistItemDescriptionHtml, { signal });
             }
         };
         queueMicrotask(bindProseMirror);
@@ -530,24 +533,24 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
      * @param {AbortSignal} signal
      */
     #bindDropZoneHandlers(root, signal) {
-        for (const weaponLink of root.querySelectorAll(".weapon-link")) {
-            weaponLink.addEventListener("drop", this.#onDropWeapon, { signal });
-            weaponLink.addEventListener("dragover", SlaItemSheet.#onDragOver, { signal });
+        for (const weaponLink of root.querySelectorAll('.weapon-link')) {
+            weaponLink.addEventListener('drop', this.#onDropWeapon, { signal });
+            weaponLink.addEventListener('dragover', SlaItemSheet.#onDragOver, { signal });
         }
 
-        for (const skillLinkBox of root.querySelectorAll(".skill-link-box")) {
-            skillLinkBox.addEventListener("dragover", SlaItemSheet.#onDragOver, { signal });
-            skillLinkBox.addEventListener("drop", this.#onDropWeaponSkill, { signal });
+        for (const skillLinkBox of root.querySelectorAll('.skill-link-box')) {
+            skillLinkBox.addEventListener('dragover', SlaItemSheet.#onDragOver, { signal });
+            skillLinkBox.addEventListener('drop', this.#onDropWeaponSkill, { signal });
         }
 
-        for (const disciplineZone of root.querySelectorAll(".discipline-drop-zone")) {
-            disciplineZone.addEventListener("drop", this.#onDropDiscipline, { signal });
-            disciplineZone.addEventListener("dragover", SlaItemSheet.#onDisciplineDragOver, { signal });
+        for (const disciplineZone of root.querySelectorAll('.discipline-drop-zone')) {
+            disciplineZone.addEventListener('drop', this.#onDropDiscipline, { signal });
+            disciplineZone.addEventListener('dragover', SlaItemSheet.#onDisciplineDragOver, { signal });
         }
 
-        for (const skillGrant of root.querySelectorAll(".skill-grant-area")) {
-            skillGrant.addEventListener("dragover", SlaItemSheet.#onDragOver, { signal });
-            skillGrant.addEventListener("drop", this.#onDropSkill, { signal });
+        for (const skillGrant of root.querySelectorAll('.skill-grant-area')) {
+            skillGrant.addEventListener('dragover', SlaItemSheet.#onDragOver, { signal });
+            skillGrant.addEventListener('drop', this.#onDropSkill, { signal });
         }
     }
 
@@ -557,32 +560,42 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
      * @param {AbortSignal} signal
      */
     #bindDropZoneDragFeedback(root, signal) {
-        const zones = [...root.querySelectorAll(DROP_ZONE_SELECTOR)].filter(
-            (zone) => zone instanceof HTMLElement
-        );
+        const zones = [...root.querySelectorAll(DROP_ZONE_SELECTOR)].filter((zone) => zone instanceof HTMLElement);
         if (!zones.length) return;
 
         for (const zone of zones) {
-            zone.addEventListener("dragenter", (event) => {
-                event.preventDefault();
-                zone.classList.add("is-drag-over");
-            }, { signal });
+            zone.addEventListener(
+                'dragenter',
+                (event) => {
+                    event.preventDefault();
+                    zone.classList.add('is-drag-over');
+                },
+                { signal }
+            );
 
-            zone.addEventListener("dragleave", (event) => {
-                const related = event.relatedTarget;
-                if (related instanceof Node && zone.contains(related)) return;
-                zone.classList.remove("is-drag-over");
-            }, { signal });
+            zone.addEventListener(
+                'dragleave',
+                (event) => {
+                    const related = event.relatedTarget;
+                    if (related instanceof Node && zone.contains(related)) return;
+                    zone.classList.remove('is-drag-over');
+                },
+                { signal }
+            );
 
-            zone.addEventListener("drop", () => {
-                zone.classList.remove("is-drag-over");
-            }, { signal });
+            zone.addEventListener(
+                'drop',
+                () => {
+                    zone.classList.remove('is-drag-over');
+                },
+                { signal }
+            );
         }
 
         const clearAll = () => {
-            for (const zone of zones) zone.classList.remove("is-drag-over");
+            for (const zone of zones) zone.classList.remove('is-drag-over');
         };
-        globalThis.addEventListener("dragend", clearAll, { signal });
+        globalThis.addEventListener('dragend', clearAll, { signal });
     }
 
     static #onDragOver(event) {
@@ -591,7 +604,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
     static #onDisciplineDragOver(event) {
         event.preventDefault();
-        event.dataTransfer.dropEffect = "copy";
+        event.dataTransfer.dropEffect = 'copy';
     }
 
     #onDropWeapon = async (event) => {

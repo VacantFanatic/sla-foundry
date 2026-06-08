@@ -6,30 +6,30 @@ Key Features
 
 ### Character Sheet
 
-- **Custom UI:** A "Dark/Orange" high-contrast theme (`#1a1a25` background) designed to match the *SLA Industries* aesthetic.
+- **Custom UI:** A "Dark/Orange" high-contrast theme (`#1a1a25` background) designed to match the _SLA Industries_ aesthetic.
 - **Tabbed Navigation:** Organized sections for Stats, Skills, Combat, Inventory, and Biography.
 - **Rich Text Editors:** Full support for HTML/Text editing in Biographies, Notes, and Item descriptions.
 
 ### Automation & Mechanics
 
 - **Species & Packages:**
-  - Drag-and-drop a **Species** item (e.g., *Shaktar*, *Ebonite*) to automatically set Base Stats, Movement Rates, HP, and starting Skills.
-  - Drag-and-drop a **Package** to apply training package requirements and bonus skills.
+    - Drag-and-drop a **Species** item (e.g., _Shaktar_, _Ebonite_) to automatically set Base Stats, Movement Rates, HP, and starting Skills.
+    - Drag-and-drop a **Package** to apply training package requirements and bonus skills.
 - **Combat & Weaponry:**
-  - **Firing Modes:** Weapons support specific modes (Single, Burst, Full-Auto, Suppressive).
-  - **Ammo & Recoil:** The system automatically tracks ammo usage per mode and applies the correct Recoil penalty to the dice pool.
-  - **Low Ammo Logic:** Prevents firing high-cost modes if ammo is insufficient, or applies a **-2 Damage** penalty if emptying the clip on the lowest mode.
-  - **Melee Combat:**
-    - **Reserve Dice:** Players can manually reserve combat dice to lower their attack pool for later defense (Combat/Acrobatic Defense).
-    - **Target Defense:** Input fields to subtract target's Combat Defense (-1/point) or Acrobatics (-2/rank) from the attacker's pool.
+    - **Firing Modes:** Weapons support specific modes (Single, Burst, Full-Auto, Suppressive).
+    - **Ammo & Recoil:** The system automatically tracks ammo usage per mode and applies the correct Recoil penalty to the dice pool.
+    - **Low Ammo Logic:** Prevents firing high-cost modes if ammo is insufficient, or applies a **-2 Damage** penalty if emptying the clip on the lowest mode.
+    - **Melee Combat:**
+        - **Reserve Dice:** Players can manually reserve combat dice to lower their attack pool for later defense (Combat/Acrobatic Defense).
+        - **Target Defense:** Input fields to subtract target's Combat Defense (-1/point) or Acrobatics (-2/rank) from the attacker's pool.
 - **Inventory Management:**
-  - **Drugs:** Dedicated "Consume" button  in the inventory that reduces quantity and posts an effect card to chat.
-  - **Reloading:** Context-aware reload button that checks your inventory for matching magazines.
+    - **Drugs:** Dedicated "Consume" button in the inventory that reduces quantity and posts an effect card to chat.
+    - **Reloading:** Context-aware reload button that checks your inventory for matching magazines.
 - **The Ebb:**
-  - Support for **Flux** tracking.
-  - Discipline and Formula rolls calculate Success Die + Skill Dice automatically.
+    - Support for **Flux** tracking.
+    - Discipline and Formula rolls calculate Success Die + Skill Dice automatically.
 - **Active Effects:**
-  - Operatives have an **Effects** tab and support Foundry **Active Effects** for temporary modifiers (e.g. drugs, poison, stance). See the wiki for setup details.
+    - Operatives have an **Effects** tab and support Foundry **Active Effects** for temporary modifiers (e.g. drugs, poison, stance). See the wiki for setup details.
 
 ### What stays manual at the table
 
@@ -64,10 +64,9 @@ If you are working directly from this repository, the source markdown for those 
 
 - [`.docs/wiki/`](.docs/wiki/)
 
-##  License & Credits
+## License & Credits
 
 This system is an unofficial fan creation.
 
-- **Game System:** Based on *SLA Industries 2nd Edition* by Nightfall Games.
+- **Game System:** Based on _SLA Industries 2nd Edition_ by Nightfall Games.
 - **Code:** Built on the Foundry VTT Boilerplate system.
-

@@ -1,4 +1,4 @@
-const { defineConfig, devices } = require("@playwright/test");
+const { defineConfig, devices } = require('@playwright/test');
 
 /**
  * E2E tests against a running Foundry instance (not started by Playwright).
@@ -13,23 +13,23 @@ const { defineConfig, devices } = require("@playwright/test");
  * Operators / dice / GM API: npm run test:e2e:operators (GM tests need a GM user)
  */
 module.exports = defineConfig({
-    testDir: "./tests/e2e",
+    testDir: './tests/e2e',
     fullyParallel: false,
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     workers: 1,
-    reporter: [["list"], ["html", { open: "never" }]],
+    reporter: [['list'], ['html', { open: 'never' }]],
     use: {
-        baseURL: process.env.FOUNDRY_URL || "http://127.0.0.1:30000",
+        baseURL: process.env.FOUNDRY_URL || 'http://127.0.0.1:30000',
         viewport: { width: 1920, height: 1080 },
-        trace: "on-first-retry",
-        screenshot: "only-on-failure",
-        video: "retain-on-failure"
+        trace: 'on-first-retry',
+        screenshot: 'only-on-failure',
+        video: 'retain-on-failure'
     },
     projects: [
         {
-            name: "chromium",
-            use: { ...devices["Desktop Chrome"] }
+            name: 'chromium',
+            use: { ...devices['Desktop Chrome'] }
         }
     ]
 });

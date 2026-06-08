@@ -1,7 +1,7 @@
-import { LuckDialog } from "../apps/luck-dialog.mjs";
-import { calculateRollResult } from "./dice.mjs";
-import { syncEbbCriticalFlux } from "./ebb-flux.mjs";
-import { normalizeEbbEffect } from "./items.mjs";
+import { LuckDialog } from '../apps/luck-dialog.mjs';
+import { calculateRollResult } from './dice.mjs';
+import { syncEbbCriticalFlux } from './ebb-flux.mjs';
+import { normalizeEbbEffect } from './items.mjs';
 
 export class SLAChat {
     /**
@@ -13,7 +13,7 @@ export class SLAChat {
         if (!sla?.ebbHealWoundMutualExclude) return;
         const used = sla.ebbHealWoundPathUsed;
         if (!used) return;
-        const $card = html.find(".sla-chat-card");
+        const $card = html.find('.sla-chat-card');
         if (!$card.length) return;
         this._applyEbbHealWoundOrLockToCard($card, used);
     }
@@ -23,18 +23,18 @@ export class SLAChat {
      * @param {"heal"|"wounds"} pathUsed
      */
     static _applyEbbHealWoundOrLockToCard($card, pathUsed) {
-        const healLocksWounds = game.i18n.localize("SLA.EbbHealWoundLockedOtherUsedHeal");
-        const woundsLocksHeal = game.i18n.localize("SLA.EbbHealWoundLockedOtherUsedWounds");
-        const healAlreadyUsed = game.i18n.localize("SLA.EbbHealWoundHealAlreadyUsed");
-        const woundsAlreadyUsed = game.i18n.localize("SLA.EbbHealWoundWoundsAlreadyUsed");
-        const $heal = $card.find(".damage-roll");
-        const $wound = $card.find(".sla-ebb-remove-wounds-btn");
-        if (pathUsed === "heal") {
-            $heal.prop("disabled", true).attr("title", healAlreadyUsed);
-            $wound.prop("disabled", true).attr("title", healLocksWounds);
-        } else if (pathUsed === "wounds") {
-            $heal.prop("disabled", true).attr("title", woundsLocksHeal);
-            $wound.prop("disabled", true).attr("title", woundsAlreadyUsed);
+        const healLocksWounds = game.i18n.localize('SLA.EbbHealWoundLockedOtherUsedHeal');
+        const woundsLocksHeal = game.i18n.localize('SLA.EbbHealWoundLockedOtherUsedWounds');
+        const healAlreadyUsed = game.i18n.localize('SLA.EbbHealWoundHealAlreadyUsed');
+        const woundsAlreadyUsed = game.i18n.localize('SLA.EbbHealWoundWoundsAlreadyUsed');
+        const $heal = $card.find('.damage-roll');
+        const $wound = $card.find('.sla-ebb-remove-wounds-btn');
+        if (pathUsed === 'heal') {
+            $heal.prop('disabled', true).attr('title', healAlreadyUsed);
+            $wound.prop('disabled', true).attr('title', healLocksWounds);
+        } else if (pathUsed === 'wounds') {
+            $heal.prop('disabled', true).attr('title', woundsLocksHeal);
+            $wound.prop('disabled', true).attr('title', woundsAlreadyUsed);
         }
     }
 
@@ -43,9 +43,9 @@ export class SLAChat {
     }
 
     static _resolveDamageDisplay(formula, actor = null) {
-        const formulaStr = String(formula ?? "0").trim();
-        if (!formulaStr || formulaStr === "0") return "0";
-        if (formulaStr.includes("d")) return formulaStr;
+        const formulaStr = String(formula ?? '0').trim();
+        if (!formulaStr || formulaStr === '0') return '0';
+        if (formulaStr.includes('d')) return formulaStr;
 
         try {
             const rollData = actor?.getRollData?.() ?? {};
@@ -59,25 +59,25 @@ export class SLAChat {
 
     static init() {
         // FIX: Remove existing listeners before adding new ones
-        $(document.body).off("click", ".chat-btn-wound, .chat-btn-damage, .damage-roll");
-        $(document.body).off("click", ".apply-damage-btn");
-        $(document.body).off("click", ".roll-toggle");
-        $(document.body).off("click", ".chat-btn-luck");
-        $(document.body).off("click", ".diff-btn");
-        $(document.body).off("click", ".sla-ebb-apply-effect-btn");
-        $(document.body).off("click", ".sla-ebb-remove-wounds-btn");
+        $(document.body).off('click', '.chat-btn-wound, .chat-btn-damage, .damage-roll');
+        $(document.body).off('click', '.apply-damage-btn');
+        $(document.body).off('click', '.roll-toggle');
+        $(document.body).off('click', '.chat-btn-luck');
+        $(document.body).off('click', '.diff-btn');
+        $(document.body).off('click', '.sla-ebb-apply-effect-btn');
+        $(document.body).off('click', '.sla-ebb-remove-wounds-btn');
 
         // Register Listeners
-        $(document.body).on("click", ".chat-btn-wound, .chat-btn-damage, .damage-roll", this._onRollDamage.bind(this));
-        $(document.body).on("click", ".apply-damage-btn", this._onApplyDamage.bind(this));
-        $(document.body).on("click", ".sla-ebb-apply-effect-btn", this._onApplyEbbEffects.bind(this));
-        $(document.body).on("click", ".sla-ebb-remove-wounds-btn", this._onRemoveEbbWounds.bind(this));
-        $(document.body).on("click", ".roll-toggle", this._onToggleRoll.bind(this));
-        $(document.body).on("click", ".chat-btn-luck", this._onLuck.bind(this));
-        $(document.body).on("click", ".diff-btn", this._onChangeDifficulty.bind(this));
+        $(document.body).on('click', '.chat-btn-wound, .chat-btn-damage, .damage-roll', this._onRollDamage.bind(this));
+        $(document.body).on('click', '.apply-damage-btn', this._onApplyDamage.bind(this));
+        $(document.body).on('click', '.sla-ebb-apply-effect-btn', this._onApplyEbbEffects.bind(this));
+        $(document.body).on('click', '.sla-ebb-remove-wounds-btn', this._onRemoveEbbWounds.bind(this));
+        $(document.body).on('click', '.roll-toggle', this._onToggleRoll.bind(this));
+        $(document.body).on('click', '.chat-btn-luck', this._onLuck.bind(this));
+        $(document.body).on('click', '.diff-btn', this._onChangeDifficulty.bind(this));
 
-        Hooks.off("renderChatMessage", SLAChat._ebbHealWoundRenderHook);
-        Hooks.on("renderChatMessage", SLAChat._ebbHealWoundRenderHook);
+        Hooks.off('renderChatMessage', SLAChat._ebbHealWoundRenderHook);
+        Hooks.on('renderChatMessage', SLAChat._ebbHealWoundRenderHook);
     }
 
     /**
@@ -103,25 +103,25 @@ export class SLAChat {
         rollData = null,
         adValue = 0,
         minDamage = 0,
-        flavorText = "Standard Damage Roll",
+        flavorText = 'Standard Damage Roll',
         parentTargets = [],
         autoApplyWound = false,
         isHeal = false,
         removeWoundsCount = 0,
-        ebbTarget = "enemy"
+        ebbTarget = 'enemy'
     }) {
         if (!actor) {
-            ui.notifications.error("SLA | Actor not found.");
+            ui.notifications.error('SLA | Actor not found.');
             return;
         }
         if (!actor.isOwner) {
-            ui.notifications.warn("You do not own this actor.");
+            ui.notifications.warn('You do not own this actor.');
             return;
         }
 
-        const formula = String(rollFormula ?? "0").trim();
-        if (!formula || formula === "0") {
-            ui.notifications.warn("No damage formula to roll.");
+        const formula = String(rollFormula ?? '0').trim();
+        if (!formula || formula === '0') {
+            ui.notifications.warn('No damage formula to roll.');
             return;
         }
 
@@ -141,14 +141,14 @@ export class SLAChat {
             if (roll._total !== undefined) roll._total = minDmg;
         }
 
-        const hideApplyButtons = ebbTarget === "self";
+        const hideApplyButtons = ebbTarget === 'self';
         if (hideApplyButtons && !autoApplyWound) {
             try {
                 await this._applyEbbOutcomeToActor(actor, finalTotal, adValue, { isHeal, removeWoundsCount });
-                flavor += `<br/><span style="color:#9cf;font-size:0.9em;">${game.i18n.localize("SLA.EbbAppliedToCaster")}</span>`;
+                flavor += `<br/><span style="color:#9cf;font-size:0.9em;">${game.i18n.localize('SLA.EbbAppliedToCaster')}</span>`;
             } catch (err) {
-                console.error("SLA | Ebb self-apply:", err);
-                flavor += `<br/><span style="color:#f66;font-size:0.9em;">${game.i18n.localize("SLA.EbbApplyToCasterFailed")}</span>`;
+                console.error('SLA | Ebb self-apply:', err);
+                flavor += `<br/><span style="color:#f66;font-size:0.9em;">${game.i18n.localize('SLA.EbbApplyToCasterFailed')}</span>`;
             }
         }
 
@@ -164,7 +164,7 @@ export class SLAChat {
         };
 
         const content = await foundry.applications.handlebars.renderTemplate(
-            "systems/sla-industries/templates/chat/chat-damage.hbs",
+            'systems/sla-industries/templates/chat/chat-damage.hbs',
             templateData
         );
 
@@ -184,7 +184,7 @@ export class SLAChat {
         });
 
         if (autoApplyWound && parentTargets.length > 0) {
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             const targetUuid = parentTargets[0];
             if (targetUuid) {
                 await this._applyDamageToTarget(finalTotal, adValue, targetUuid);
@@ -198,155 +198,161 @@ export class SLAChat {
     static async _onRollDamage(ev) {
         ev.preventDefault();
         const btn = $(ev.currentTarget);
-        const card = btn.closest(".sla-chat-card");
+        const card = btn.closest('.sla-chat-card');
 
         try {
             // Determine Action Type
-            const action = btn.data("action") || "standard";
+            const action = btn.data('action') || 'standard';
 
             // 1. Get Actor
-            const uuid = card.data("actor-uuid");
-            const actorId = card.data("actor-id");
+            const uuid = card.data('actor-uuid');
+            const actorId = card.data('actor-id');
             let actor = uuid ? await fromUuid(uuid) : game.actors.get(actorId);
 
-            if (!actor) return ui.notifications.error("SLA | Actor not found.");
-            if (!actor.isOwner) return ui.notifications.warn("You do not own this actor.");
+            if (!actor) return ui.notifications.error('SLA | Actor not found.');
+            if (!actor.isOwner) return ui.notifications.warn('You do not own this actor.');
 
-            const messageId = card.closest(".message").data("messageId");
+            const messageId = card.closest('.message').data('messageId');
             const parentMessage = game.messages.get(messageId);
             const guardFlags = parentMessage?.flags?.sla ?? {};
             if (guardFlags.isEbb && guardFlags.ebbRollSuccess === false) {
                 return ui.notifications.warn(
-                    "SLA | This Ebb check did not succeed; damage, healing, and wound removal are not available."
+                    'SLA | This Ebb check did not succeed; damage, healing, and wound removal are not available.'
                 );
             }
 
-            const isHealEbbStandardRoll = action === "standard" && btn.attr("data-is-heal") === "true";
-            if (guardFlags.ebbHealWoundMutualExclude && isHealEbbStandardRoll && guardFlags.ebbHealWoundPathUsed === "wounds") {
-                return ui.notifications.warn(game.i18n.localize("SLA.EbbHealWoundHealLockedAfterWounds"));
+            const isHealEbbStandardRoll = action === 'standard' && btn.attr('data-is-heal') === 'true';
+            if (
+                guardFlags.ebbHealWoundMutualExclude &&
+                isHealEbbStandardRoll &&
+                guardFlags.ebbHealWoundPathUsed === 'wounds'
+            ) {
+                return ui.notifications.warn(game.i18n.localize('SLA.EbbHealWoundHealLockedAfterWounds'));
             }
 
             const parentTargets = Array.isArray(guardFlags.targets) ? guardFlags.targets : [];
 
-        // 2. Data Setup
-        let rollFormula = "";
-        let flavorText = "";
-        let adValue = Number(btn.data("ad") || 0);
+            // 2. Data Setup
+            let rollFormula = '';
+            let flavorText = '';
+            let adValue = Number(btn.data('ad') || 0);
 
-        // Disable button to prevent double clicks
-        btn.prop("disabled", true);
+            // Disable button to prevent double clicks
+            btn.prop('disabled', true);
 
-        // --- BRANCH A: TACTICAL CHOICE (MOS 2/3) ---
-        if (action === "damage" || action === "wound") {
-            const baseFormula = String(btn.data("base-formula") || "0");
-            const bonus = Number(btn.data("damage-bonus") || 0);
+            // --- BRANCH A: TACTICAL CHOICE (MOS 2/3) ---
+            if (action === 'damage' || action === 'wound') {
+                const baseFormula = String(btn.data('base-formula') || '0');
+                const bonus = Number(btn.data('damage-bonus') || 0);
 
-            // DAMAGE CHOICE
-            if (action === "damage") {
-                flavorText = `<span style="color:#39ff14">Tactical Choice: +${bonus} Damage</span>`;
-                rollFormula = `${baseFormula} + ${bonus}`;
-            }
-            // WOUND CHOICE
-            else if (action === "wound") {
-                const location = btn.data("location");
-                let woundSuccess = false;
+                // DAMAGE CHOICE
+                if (action === 'damage') {
+                    flavorText = `<span style="color:#39ff14">Tactical Choice: +${bonus} Damage</span>`;
+                    rollFormula = `${baseFormula} + ${bonus}`;
+                }
+                // WOUND CHOICE
+                else if (action === 'wound') {
+                    const location = btn.data('location');
+                    let woundSuccess = false;
 
-                // Get target from parent message (wound is applied to the TARGET, not the attacker)
-                // Apply wound to the first target
-                if (parentTargets.length > 0) {
-                    const targetToken = await fromUuid(parentTargets[0]);
-                    const targetActor = targetToken?.actor;
-                    
-                    if (targetActor) {
-                        const wounds = targetActor.system.wounds;
-                        if (location === "arm") {
-                            if (!wounds.lArm) { 
-                                await targetActor.update({ "system.wounds.lArm": true }); 
-                                woundSuccess = true; 
-                                flavorText = `<span style="color:#ff4444">Snapped ${targetActor.name}'s Left Arm!</span>`; 
-                            }
-                            else if (!wounds.rArm) { 
-                                await targetActor.update({ "system.wounds.rArm": true }); 
-                                woundSuccess = true; 
-                                flavorText = `<span style="color:#ff4444">Snapped ${targetActor.name}'s Right Arm!</span>`; 
-                            }
-                        } else if (location === "leg") {
-                            if (!wounds.lLeg) { 
-                                await targetActor.update({ "system.wounds.lLeg": true }); 
-                                woundSuccess = true; 
-                                flavorText = `<span style="color:#ff4444">Broken ${targetActor.name}'s Left Leg!</span>`; 
-                            }
-                            else if (!wounds.rLeg) { 
-                                await targetActor.update({ "system.wounds.rLeg": true }); 
-                                woundSuccess = true; 
-                                flavorText = `<span style="color:#ff4444">Broken ${targetActor.name}'s Right Leg!</span>`; 
+                    // Get target from parent message (wound is applied to the TARGET, not the attacker)
+                    // Apply wound to the first target
+                    if (parentTargets.length > 0) {
+                        const targetToken = await fromUuid(parentTargets[0]);
+                        const targetActor = targetToken?.actor;
+
+                        if (targetActor) {
+                            const wounds = targetActor.system.wounds;
+                            if (location === 'arm') {
+                                if (!wounds.lArm) {
+                                    await targetActor.update({ 'system.wounds.lArm': true });
+                                    woundSuccess = true;
+                                    flavorText = `<span style="color:#ff4444">Snapped ${targetActor.name}'s Left Arm!</span>`;
+                                } else if (!wounds.rArm) {
+                                    await targetActor.update({ 'system.wounds.rArm': true });
+                                    woundSuccess = true;
+                                    flavorText = `<span style="color:#ff4444">Snapped ${targetActor.name}'s Right Arm!</span>`;
+                                }
+                            } else if (location === 'leg') {
+                                if (!wounds.lLeg) {
+                                    await targetActor.update({ 'system.wounds.lLeg': true });
+                                    woundSuccess = true;
+                                    flavorText = `<span style="color:#ff4444">Broken ${targetActor.name}'s Left Leg!</span>`;
+                                } else if (!wounds.rLeg) {
+                                    await targetActor.update({ 'system.wounds.rLeg': true });
+                                    woundSuccess = true;
+                                    flavorText = `<span style="color:#ff4444">Broken ${targetActor.name}'s Right Leg!</span>`;
+                                }
                             }
                         }
                     }
+
+                    if (woundSuccess) {
+                        // Success: Roll Base Only
+                        rollFormula = baseFormula;
+                    } else {
+                        // Failure: Fallback to Damage
+                        flavorText = `<span style="color:orange">Limbs Gone! Reverting to +${bonus} Dmg.</span>`;
+                        rollFormula = `${baseFormula} + ${bonus}`;
+                    }
                 }
+            }
 
-                if (woundSuccess) {
-                    // Success: Roll Base Only
-                    rollFormula = baseFormula;
-                } else {
-                    // Failure: Fallback to Damage
-                    flavorText = `<span style="color:orange">Limbs Gone! Reverting to +${bonus} Dmg.</span>`;
-                    rollFormula = `${baseFormula} + ${bonus}`;
+            // --- BRANCH B: STANDARD ROLL (Normal Hit) ---
+            else {
+                rollFormula = String(btn.data('formula') || '0');
+                flavorText = 'Standard Damage Roll';
+            }
+
+            const isHealRoll = btn.attr('data-is-heal') === 'true';
+            const removeWoundsCountRoll = Math.max(
+                0,
+                Math.min(6, Math.floor(Number(btn.attr('data-remove-wounds-count')) || 0))
+            );
+            const ebbTargetRoll = btn.attr('data-ebb-target') || 'enemy';
+            if (action === 'standard' && isHealRoll) {
+                flavorText = game.i18n.localize('SLA.EbbStandardHealRoll');
+            }
+
+            const minDmgRaw = btn.attr('data-min') || btn.data('min') || '0';
+            const minDmg = Math.max(0, Number(minDmgRaw) || 0);
+
+            let woundBtnPrelocked = false;
+            if (guardFlags.ebbHealWoundMutualExclude && action === 'standard' && isHealRoll) {
+                card.find('.sla-ebb-remove-wounds-btn')
+                    .prop('disabled', true)
+                    .attr('title', game.i18n.localize('SLA.EbbHealWoundLockedOtherUsedHeal'));
+                woundBtnPrelocked = true;
+            }
+
+            try {
+                await this.executeStandardDamageRoll({
+                    actor,
+                    rollData: actor.getRollData?.(),
+                    rollFormula,
+                    adValue,
+                    minDamage: minDmg,
+                    flavorText,
+                    parentTargets,
+                    autoApplyWound: action === 'wound',
+                    isHeal: isHealRoll,
+                    removeWoundsCount: removeWoundsCountRoll,
+                    ebbTarget: ebbTargetRoll
+                });
+                if (woundBtnPrelocked && parentMessage?.id) {
+                    const fresh = game.messages.get(parentMessage.id);
+                    await fresh?.update({ 'flags.sla.ebbHealWoundPathUsed': 'heal' });
                 }
+            } catch (rollErr) {
+                if (woundBtnPrelocked) {
+                    card.find('.sla-ebb-remove-wounds-btn').prop('disabled', false).removeAttr('title');
+                }
+                throw rollErr;
             }
-        }
-
-        // --- BRANCH B: STANDARD ROLL (Normal Hit) ---
-        else {
-            rollFormula = String(btn.data("formula") || "0");
-            flavorText = "Standard Damage Roll";
-        }
-
-        const isHealRoll = btn.attr("data-is-heal") === "true";
-        const removeWoundsCountRoll = Math.max(0, Math.min(6, Math.floor(Number(btn.attr("data-remove-wounds-count")) || 0)));
-        const ebbTargetRoll = btn.attr("data-ebb-target") || "enemy";
-        if (action === "standard" && isHealRoll) {
-            flavorText = game.i18n.localize("SLA.EbbStandardHealRoll");
-        }
-
-        const minDmgRaw = btn.attr("data-min") || btn.data("min") || "0";
-        const minDmg = Math.max(0, Number(minDmgRaw) || 0);
-
-        let woundBtnPrelocked = false;
-        if (guardFlags.ebbHealWoundMutualExclude && action === "standard" && isHealRoll) {
-            card.find(".sla-ebb-remove-wounds-btn").prop("disabled", true)
-                .attr("title", game.i18n.localize("SLA.EbbHealWoundLockedOtherUsedHeal"));
-            woundBtnPrelocked = true;
-        }
-
-        try {
-            await this.executeStandardDamageRoll({
-                actor,
-                rollData: actor.getRollData?.(),
-                rollFormula,
-                adValue,
-                minDamage: minDmg,
-                flavorText,
-                parentTargets,
-                autoApplyWound: action === "wound",
-                isHeal: isHealRoll,
-                removeWoundsCount: removeWoundsCountRoll,
-                ebbTarget: ebbTargetRoll
-            });
-            if (woundBtnPrelocked && parentMessage?.id) {
-                const fresh = game.messages.get(parentMessage.id);
-                await fresh?.update({ "flags.sla.ebbHealWoundPathUsed": "heal" });
-            }
-        } catch (rollErr) {
-            if (woundBtnPrelocked) {
-                card.find(".sla-ebb-remove-wounds-btn").prop("disabled", false).removeAttr("title");
-            }
-            throw rollErr;
-        }
         } catch (err) {
-            console.error("SLA | Error in _onRollDamage:", err);
-            ui.notifications.error("SLA | Failed to roll damage. See console for details.");
-            btn.prop("disabled", false); // Re-enable button on error
+            console.error('SLA | Error in _onRollDamage:', err);
+            ui.notifications.error('SLA | Failed to roll damage. See console for details.');
+            btn.prop('disabled', false); // Re-enable button on error
         }
     }
 
@@ -363,10 +369,10 @@ export class SLAChat {
             return await this._resolveActorFromUuid(targetUuid);
         }
 
-        if (type === "selected") {
+        if (type === 'selected') {
             const selectedActor = canvas.tokens.controlled[0]?.actor;
             if (!selectedActor) {
-                ui.notifications.warn("No token selected.");
+                ui.notifications.warn('No token selected.');
                 return null;
             }
             return selectedActor;
@@ -374,7 +380,7 @@ export class SLAChat {
 
         const targetActor = game.user.targets.first()?.actor;
         if (!targetActor) {
-            ui.notifications.warn("No target designated.");
+            ui.notifications.warn('No target designated.');
             return null;
         }
         return targetActor;
@@ -390,9 +396,9 @@ export class SLAChat {
      * @returns {Promise<Actor|null>}
      */
     static async _resolveEbbFormulaVictim(rollingActor, ebbTarget, { type, targetUuid, parentTargets = [] } = {}) {
-        if (ebbTarget === "self") {
+        if (ebbTarget === 'self') {
             if (!rollingActor) {
-                ui.notifications.warn(game.i18n.localize("SLA.EbbCasterNotFound"));
+                ui.notifications.warn(game.i18n.localize('SLA.EbbCasterNotFound'));
                 return null;
             }
             return rollingActor;
@@ -402,14 +408,14 @@ export class SLAChat {
             return await this._resolveActorFromUuid(targetUuid);
         }
 
-        if (ebbTarget === "ally") {
-            if (type === "target") {
+        if (ebbTarget === 'ally') {
+            if (type === 'target') {
                 const t = game.user.targets.first();
                 return t?.actor ?? null;
             }
             const selectedActor = canvas.tokens.controlled[0]?.actor;
             if (!selectedActor) {
-                ui.notifications.warn(game.i18n.localize("SLA.EbbNoAllySelected"));
+                ui.notifications.warn(game.i18n.localize('SLA.EbbNoAllySelected'));
                 return null;
             }
             return selectedActor;
@@ -420,7 +426,7 @@ export class SLAChat {
             if (a) return a;
         }
 
-        return await this._resolveVictimForApplyDamage({ targetUuid: null, type: type || "target" });
+        return await this._resolveVictimForApplyDamage({ targetUuid: null, type: type || 'target' });
     }
 
     /**
@@ -430,7 +436,7 @@ export class SLAChat {
     static async _clearNWoundsOnActor(actor, count) {
         const n = Math.max(0, Math.min(6, Math.floor(Number(count) || 0)));
         if (n === 0 || !actor?.system?.wounds) return 0;
-        const order = ["head", "torso", "lArm", "rArm", "lLeg", "rLeg"];
+        const order = ['head', 'torso', 'lArm', 'rArm', 'lLeg', 'rLeg'];
         const wounds = actor.system.wounds;
         let left = n;
         const updates = {};
@@ -451,7 +457,7 @@ export class SLAChat {
         const maxHP = victim.system.hp.max ?? currentHP;
         const gain = Math.max(0, rawHeal);
         const newHP = Math.min(maxHP, currentHP + gain);
-        await victim.update({ "system.hp.value": newHP });
+        await victim.update({ 'system.hp.value': newHP });
         return {
             finalHeal: newHP - currentHP,
             hpData: { old: currentHP, new: newHP }
@@ -476,7 +482,7 @@ export class SLAChat {
 
     static async _postHealResultChat({ victim, rawHeal, finalHeal, hpData }) {
         const content = await foundry.applications.handlebars.renderTemplate(
-            "systems/sla-industries/templates/chat/chat-damage-result.hbs",
+            'systems/sla-industries/templates/chat/chat-damage-result.hbs',
             {
                 victimName: victim.name,
                 rawDamage: rawHeal,
@@ -491,7 +497,7 @@ export class SLAChat {
     }
 
     static async _computeArmorMitigation(victim, ad) {
-        const armorItem = victim.items.find(i => i.type === "armor" && i.system.equipped);
+        const armorItem = victim.items.find((i) => i.type === 'armor' && i.system.equipped);
 
         let targetPV = 0;
         let armorData = null;
@@ -507,10 +513,10 @@ export class SLAChat {
             const currentRes = armorItem.system.resistance?.value || 0;
             const maxRes = armorItem.system.resistance?.max || 10;
             const newRes = Math.max(0, currentRes - ad);
-            await armorItem.update({ "system.resistance.value": newRes });
+            await armorItem.update({ 'system.resistance.value': newRes });
 
             if (newRes <= 0) effectivePV = 0;
-            else if (newRes < (maxRes / 2)) effectivePV = Math.floor(targetPV / 2);
+            else if (newRes < maxRes / 2) effectivePV = Math.floor(targetPV / 2);
             else effectivePV = targetPV;
 
             armorData = {
@@ -528,7 +534,7 @@ export class SLAChat {
         const finalDamage = Math.max(0, rawDamage - effectivePV);
         const currentHP = victim.system.hp.value;
         const newHP = currentHP - finalDamage;
-        await victim.update({ "system.hp.value": newHP });
+        await victim.update({ 'system.hp.value': newHP });
 
         return {
             finalDamage,
@@ -550,7 +556,7 @@ export class SLAChat {
         };
 
         const content = await foundry.applications.handlebars.renderTemplate(
-            "systems/sla-industries/templates/chat/chat-damage-result.hbs",
+            'systems/sla-industries/templates/chat/chat-damage-result.hbs',
             templateData
         );
 
@@ -573,7 +579,7 @@ export class SLAChat {
     static async _applyDamageToTarget(rawDamage, ad, targetUuid) {
         const victim = await this._resolveActorFromUuid(targetUuid);
         if (!victim) {
-            console.warn("SLA | Auto-apply: Target not found", targetUuid);
+            console.warn('SLA | Auto-apply: Target not found', targetUuid);
             return;
         }
         await this._applyDamageToVictim(victim, rawDamage, ad);
@@ -587,30 +593,30 @@ export class SLAChat {
         const btn = $(ev.currentTarget);
 
         try {
-            const rawDamage = Number(btn.data("dmg"));
-            const ad = Number(btn.data("ad"));
-            const type = btn.data("target");
-            const targetUuid = btn.data("target-uuid");
+            const rawDamage = Number(btn.data('dmg'));
+            const ad = Number(btn.data('ad'));
+            const type = btn.data('target');
+            const targetUuid = btn.data('target-uuid');
 
-            const card = btn.closest(".sla-chat-card");
-            const messageId = card.closest(".message").data("messageId");
+            const card = btn.closest('.sla-chat-card');
+            const messageId = card.closest('.message').data('messageId');
             const message = game.messages.get(messageId);
             const mflags = message?.flags?.sla ?? {};
 
-            const rollingUuid = card.data("actor-uuid") || mflags.ebbCasterUuid;
+            const rollingUuid = card.data('actor-uuid') || mflags.ebbCasterUuid;
             const rollingActor = rollingUuid ? await fromUuid(rollingUuid) : null;
 
-            const isHeal = Boolean(btn.attr("data-is-heal") === "true" || mflags.ebbIsHeal);
+            const isHeal = Boolean(btn.attr('data-is-heal') === 'true' || mflags.ebbIsHeal);
             let removeWoundsCount = 0;
-            const rwAttr = btn.attr("data-remove-wounds-count");
-            if (rwAttr !== undefined && rwAttr !== "") {
+            const rwAttr = btn.attr('data-remove-wounds-count');
+            if (rwAttr !== undefined && rwAttr !== '') {
                 removeWoundsCount = Math.max(0, Math.min(6, Math.floor(Number(rwAttr) || 0)));
             } else if (mflags.ebbRemoveWoundsCount != null) {
                 removeWoundsCount = Math.max(0, Math.min(6, Math.floor(Number(mflags.ebbRemoveWoundsCount) || 0)));
             } else if (mflags.ebbRemoveWounds === true) {
                 removeWoundsCount = 6;
             }
-            const ebbTarget = btn.attr("data-ebb-target") || mflags.ebbTarget || "enemy";
+            const ebbTarget = btn.attr('data-ebb-target') || mflags.ebbTarget || 'enemy';
 
             const parentTargets = Array.isArray(mflags.targets) ? mflags.targets : [];
             const victim = await this._resolveEbbFormulaVictim(rollingActor, ebbTarget, {
@@ -622,8 +628,8 @@ export class SLAChat {
 
             await this._applyEbbOutcomeToActor(victim, rawDamage, ad, { isHeal, removeWoundsCount });
         } catch (err) {
-            console.error("SLA | Error in _onApplyDamage:", err);
-            ui.notifications.error("SLA | Failed to apply damage. See console for details.");
+            console.error('SLA | Error in _onApplyDamage:', err);
+            ui.notifications.error('SLA | Failed to apply damage. See console for details.');
         }
     }
 
@@ -636,36 +642,36 @@ export class SLAChat {
 
         try {
             if (!game.user.isGM) {
-                ui.notifications.warn("SLA | Only a GM can apply formula effects.");
+                ui.notifications.warn('SLA | Only a GM can apply formula effects.');
                 return;
             }
 
-            const card = btn.closest(".sla-chat-card");
-            const messageId = card.closest(".message").data("messageId");
+            const card = btn.closest('.sla-chat-card');
+            const messageId = card.closest('.message').data('messageId');
             const message = game.messages.get(messageId);
             if (!message) return;
 
             const flags = message.flags?.sla ?? {};
             if (!flags.ebbRollSuccess || !flags.ebbHasEffects || !flags.itemUuid) {
-                ui.notifications.warn("SLA | This roll cannot apply Ebb formula effects.");
+                ui.notifications.warn('SLA | This roll cannot apply Ebb formula effects.');
                 return;
             }
 
             const item = await fromUuid(flags.itemUuid);
-            if (!item || item.type !== "ebbFormula" || !(item.effects?.size > 0)) {
-                ui.notifications.warn("SLA | Ebb formula or embedded effects not found.");
+            if (!item || item.type !== 'ebbFormula' || !(item.effects?.size > 0)) {
+                ui.notifications.warn('SLA | Ebb formula or embedded effects not found.');
                 return;
             }
 
-            const type = btn.data("target");
-            const targetUuid = btn.attr("data-target-uuid") || btn.data("target-uuid");
+            const type = btn.data('target');
+            const targetUuid = btn.attr('data-target-uuid') || btn.data('target-uuid');
 
             let victim = null;
-            if (type === "self") {
-                const casterUuid = card.data("actor-uuid") || flags.actorUuid;
+            if (type === 'self') {
+                const casterUuid = card.data('actor-uuid') || flags.actorUuid;
                 victim = casterUuid ? await fromUuid(casterUuid) : null;
                 if (!victim) {
-                    ui.notifications.warn("SLA | Could not resolve caster for formula effects.");
+                    ui.notifications.warn('SLA | Could not resolve caster for formula effects.');
                     return;
                 }
             } else {
@@ -676,8 +682,8 @@ export class SLAChat {
             await item.applyItemEffectsToActor(victim);
             ui.notifications.info(`SLA | Applied ${item.name} effects to ${victim.name}.`);
         } catch (err) {
-            console.error("SLA | Error in _onApplyEbbEffects:", err);
-            ui.notifications.error("SLA | Failed to apply formula effects. See console for details.");
+            console.error('SLA | Error in _onApplyEbbEffects:', err);
+            ui.notifications.error('SLA | Failed to apply formula effects. See console for details.');
         }
     }
 
@@ -686,29 +692,27 @@ export class SLAChat {
         const btn = $(ev.currentTarget);
 
         try {
-            const card = btn.closest(".sla-chat-card");
-            const messageId = card.closest(".message").data("messageId");
+            const card = btn.closest('.sla-chat-card');
+            const messageId = card.closest('.message').data('messageId');
             const message = game.messages.get(messageId);
             const flags = message?.flags?.sla ?? {};
 
             if (flags.isEbb && flags.ebbRollSuccess === false) {
-                ui.notifications.warn(
-                    "SLA | This Ebb check did not succeed; wound removal is not available."
-                );
+                ui.notifications.warn('SLA | This Ebb check did not succeed; wound removal is not available.');
                 return;
             }
 
-            if (flags.ebbHealWoundMutualExclude && flags.ebbHealWoundPathUsed === "heal") {
-                ui.notifications.warn(game.i18n.localize("SLA.EbbHealWoundWoundsLockedAfterHeal"));
+            if (flags.ebbHealWoundMutualExclude && flags.ebbHealWoundPathUsed === 'heal') {
+                ui.notifications.warn(game.i18n.localize('SLA.EbbHealWoundWoundsLockedAfterHeal'));
                 return;
             }
 
-            const casterUuid = card.data("actor-uuid") || flags.actorUuid;
+            const casterUuid = card.data('actor-uuid') || flags.actorUuid;
             const rollingActor = casterUuid ? await fromUuid(casterUuid) : null;
-            const ebbTarget = flags.ebbTarget || btn.attr("data-ebb-target") || "enemy";
+            const ebbTarget = flags.ebbTarget || btn.attr('data-ebb-target') || 'enemy';
             const parentTargets = Array.isArray(flags.targets) ? flags.targets : [];
 
-            const resolveType = ebbTarget === "ally" ? "selected" : "target";
+            const resolveType = ebbTarget === 'ally' ? 'selected' : 'target';
             const victim = await this._resolveEbbFormulaVictim(rollingActor, ebbTarget, {
                 type: resolveType,
                 targetUuid: null,
@@ -716,51 +720,49 @@ export class SLAChat {
             });
             if (!victim) return;
 
-            if (!victim.testUserPermission(game.user, "OWNER") && !game.user.isGM) {
-                ui.notifications.warn(game.i18n.localize("SLA.EbbNoPermissionWounds"));
+            if (!victim.testUserPermission(game.user, 'OWNER') && !game.user.isGM) {
+                ui.notifications.warn(game.i18n.localize('SLA.EbbNoPermissionWounds'));
                 return;
             }
 
-            const requested = Math.max(
-                0,
-                Math.min(6, Math.floor(Number(flags.ebbRemoveWoundsCount) || 0))
-            );
+            const requested = Math.max(0, Math.min(6, Math.floor(Number(flags.ebbRemoveWoundsCount) || 0)));
             if (requested <= 0) {
-                ui.notifications.warn(game.i18n.localize("SLA.EbbNoWoundsToRemove"));
+                ui.notifications.warn(game.i18n.localize('SLA.EbbNoWoundsToRemove'));
                 return;
             }
 
-            btn.prop("disabled", true);
+            btn.prop('disabled', true);
             let healBtnPrelocked = false;
             if (flags.ebbHealWoundMutualExclude && !flags.ebbHealWoundPathUsed) {
-                card.find(".damage-roll").prop("disabled", true)
-                    .attr("title", game.i18n.localize("SLA.EbbHealWoundLockedOtherUsedWounds"));
+                card.find('.damage-roll')
+                    .prop('disabled', true)
+                    .attr('title', game.i18n.localize('SLA.EbbHealWoundLockedOtherUsedWounds'));
                 healBtnPrelocked = true;
             }
 
             try {
                 const removed = await this._clearNWoundsOnActor(victim, requested);
                 ui.notifications.info(
-                    game.i18n.format("SLA.EbbNWoundsRemoved", { name: victim.name, count: removed, requested })
+                    game.i18n.format('SLA.EbbNWoundsRemoved', { name: victim.name, count: removed, requested })
                 );
             } catch (innerErr) {
                 if (healBtnPrelocked) {
-                    card.find(".damage-roll").prop("disabled", false).removeAttr("title");
+                    card.find('.damage-roll').prop('disabled', false).removeAttr('title');
                 }
-                btn.prop("disabled", false);
+                btn.prop('disabled', false);
                 throw innerErr;
             }
             if (healBtnPrelocked && message?.id) {
                 try {
                     const fresh = game.messages.get(message.id);
-                    await fresh?.update({ "flags.sla.ebbHealWoundPathUsed": "wounds" });
+                    await fresh?.update({ 'flags.sla.ebbHealWoundPathUsed': 'wounds' });
                 } catch (flagErr) {
-                    console.warn("SLA | Failed to persist ebbHealWoundPathUsed", flagErr);
+                    console.warn('SLA | Failed to persist ebbHealWoundPathUsed', flagErr);
                 }
             }
         } catch (err) {
-            console.error("SLA | Error in _onRemoveEbbWounds:", err);
-            ui.notifications.error("SLA | Failed to remove wounds. See console for details.");
+            console.error('SLA | Error in _onRemoveEbbWounds:', err);
+            ui.notifications.error('SLA | Failed to remove wounds. See console for details.');
         }
     }
 
@@ -770,8 +772,8 @@ export class SLAChat {
     static _onToggleRoll(ev) {
         ev.preventDefault();
         const btn = $(ev.currentTarget);
-        const card = btn.closest(".sla-chat-card");
-        const tooltip = card.find(".dice-tooltip");
+        const card = btn.closest('.sla-chat-card');
+        const tooltip = card.find('.dice-tooltip');
 
         if (tooltip.length) {
             tooltip.slideToggle(200);
@@ -784,30 +786,32 @@ export class SLAChat {
     static async _onLuck(ev) {
         ev.preventDefault();
         const btn = $(ev.currentTarget);
-        const card = btn.closest(".sla-chat-card");
+        const card = btn.closest('.sla-chat-card');
 
         // 1. Get Actor
-        const uuid = card.data("actor-uuid");
-        const actorId = card.data("actor-id");
+        const uuid = card.data('actor-uuid');
+        const actorId = card.data('actor-id');
         let actor = uuid ? await fromUuid(uuid) : game.actors.get(actorId);
 
-        if (!actor) return ui.notifications.error("SLA | Actor not found.");
-        if (!actor.isOwner) return ui.notifications.warn("You do not own this actor.");
+        if (!actor) return ui.notifications.error('SLA | Actor not found.');
+        if (!actor.isOwner) return ui.notifications.warn('You do not own this actor.');
 
         // 2. Get Message
-        const messageId = card.closest(".message").data("messageId");
+        const messageId = card.closest('.message').data('messageId');
         const message = game.messages.get(messageId);
         if (!message) return;
 
         // 3. Check if luck has already been spent
         const flags = message.flags.sla || {};
         if (flags.luckSpent) {
-            return ui.notifications.warn("SLA | Luck has already been spent on this roll. Only one option may be applied per roll.");
+            return ui.notifications.warn(
+                'SLA | Luck has already been spent on this roll. Only one option may be applied per roll.'
+            );
         }
 
         // 4. Get Roll
         const roll = message.rolls[0];
-        if (!roll) return ui.notifications.warn("No roll data found.");
+        if (!roll) return ui.notifications.warn('No roll data found.');
 
         // 5. Open Dialog
         LuckDialog.create(actor, roll, messageId);
@@ -820,26 +824,26 @@ export class SLAChat {
         const targetToken = await fromUuid(targets[0]);
         const targetActor = targetToken?.actor;
         if (targetActor && !targetActor.system.wounds.head) {
-            await targetActor.update({ "system.wounds.head": true });
+            await targetActor.update({ 'system.wounds.head': true });
         }
     }
 
     static async _resolveDifficultyRecalcMos(flags, result, isSuccess, skillSuccessCount) {
         let mosDamageBonus = 0;
-        let mosEffectText = isSuccess ? "Standard Hit" : "Failed";
-        let mosChoiceData = { hasChoice: false, choiceType: "", choiceDmg: 0 };
+        let mosEffectText = isSuccess ? 'Standard Hit' : 'Failed';
+        let mosChoiceData = { hasChoice: false, choiceType: '', choiceDmg: 0 };
 
         if (flags.isEbb) {
-            mosEffectText = isSuccess ? "Standard Success" : "Failed";
-            const attackMos = normalizeEbbEffect(flags.ebbEffect) === "damage";
+            mosEffectText = isSuccess ? 'Standard Success' : 'Failed';
+            const attackMos = normalizeEbbEffect(flags.ebbEffect) === 'damage';
             if (isSuccess) {
                 if (skillSuccessCount === 2) {
-                    mosEffectText = attackMos ? "+1 Damage / Effect" : "Standard Success";
+                    mosEffectText = attackMos ? '+1 Damage / Effect' : 'Standard Success';
                     if (attackMos) mosDamageBonus = 1;
                 } else if (skillSuccessCount === 3) {
                     mosEffectText = attackMos
-                        ? "+2 Damage / Repeat Ability"
-                        : "May use the same Ebb ability again within 5 minutes (-3 FLUX)";
+                        ? '+2 Damage / Repeat Ability'
+                        : 'May use the same Ebb ability again within 5 minutes (-3 FLUX)';
                     if (attackMos) mosDamageBonus = 2;
                 } else if (skillSuccessCount >= 4) {
                     mosEffectText = attackMos
@@ -853,16 +857,22 @@ export class SLAChat {
 
         if (flags.isWeapon) {
             if (isSuccess && !result.successThroughExperience) {
-                if (skillSuccessCount === 1) { mosDamageBonus = 1; mosEffectText = "+1 Damage"; }
-                else if (skillSuccessCount === 2) { mosEffectText = "MOS 2: Choose Effect"; mosChoiceData = { hasChoice: true, choiceType: "arm", choiceDmg: 2 }; }
-                else if (skillSuccessCount === 3) { mosEffectText = "MOS 3: Choose Effect"; mosChoiceData = { hasChoice: true, choiceType: "leg", choiceDmg: 4 }; }
-                else if (skillSuccessCount >= 4) {
+                if (skillSuccessCount === 1) {
+                    mosDamageBonus = 1;
+                    mosEffectText = '+1 Damage';
+                } else if (skillSuccessCount === 2) {
+                    mosEffectText = 'MOS 2: Choose Effect';
+                    mosChoiceData = { hasChoice: true, choiceType: 'arm', choiceDmg: 2 };
+                } else if (skillSuccessCount === 3) {
+                    mosEffectText = 'MOS 3: Choose Effect';
+                    mosChoiceData = { hasChoice: true, choiceType: 'leg', choiceDmg: 4 };
+                } else if (skillSuccessCount >= 4) {
                     mosDamageBonus = 6;
                     mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)";
                     await this._applyHeadshotForDifficultyRecalc(flags);
                 }
             } else if (result.successThroughExperience) {
-                mosEffectText = "Success Through Experience";
+                mosEffectText = 'Success Through Experience';
             }
             return { mosDamageBonus, mosEffectText, mosChoiceData };
         }
@@ -872,23 +882,23 @@ export class SLAChat {
     }
 
     static _rebuildDifficultyDamageFormula(flags, mosDamageBonus) {
-        const baseDmg = flags.damageBase || "0";
+        const baseDmg = flags.damageBase || '0';
         const damageMod = flags.damageMod || 0;
         const totalMod = damageMod + mosDamageBonus;
 
         let finalDmgFormula = baseDmg;
         if (totalMod !== 0) {
-            if (baseDmg === "0" || baseDmg === "") finalDmgFormula = String(totalMod);
-            else finalDmgFormula = `${baseDmg} ${totalMod > 0 ? "+" : ""} ${totalMod}`;
+            if (baseDmg === '0' || baseDmg === '') finalDmgFormula = String(totalMod);
+            else finalDmgFormula = `${baseDmg} ${totalMod > 0 ? '+' : ''} ${totalMod}`;
         }
         return finalDmgFormula;
     }
 
     static _buildDifficultyNotes(flags, newTN) {
         const originalTN = flags.tn || 10;
-        let baseNotes = flags.notes || "";
-        baseNotes = baseNotes.replace(/\s*\(TN\s+\d+(?:\s*→\s*\d+)?\)/g, "").trim();
-        const tnNote = (newTN !== originalTN) ? ` (TN ${originalTN} → ${newTN})` : ` (TN ${newTN})`;
+        let baseNotes = flags.notes || '';
+        baseNotes = baseNotes.replace(/\s*\(TN\s+\d+(?:\s*→\s*\d+)?\)/g, '').trim();
+        const tnNote = newTN !== originalTN ? ` (TN ${originalTN} → ${newTN})` : ` (TN ${newTN})`;
         return baseNotes + tnNote;
     }
 
@@ -898,14 +908,14 @@ export class SLAChat {
     static async _onChangeDifficulty(ev) {
         ev.preventDefault();
         const btn = $(ev.currentTarget);
-        if (!game.user.isGM) return ui.notifications.warn("Only GM can adjust difficulty.");
+        if (!game.user.isGM) return ui.notifications.warn('Only GM can adjust difficulty.');
 
         try {
-            const card = btn.closest(".sla-chat-card");
-            const newTN = Number(btn.data("tn"));
+            const card = btn.closest('.sla-chat-card');
+            const newTN = Number(btn.data('tn'));
 
             // Retrieve Data
-            const messageId = card.closest(".message").data("messageId");
+            const messageId = card.closest('.message').data('messageId');
             const message = game.messages.get(messageId);
             if (!message) return;
 
@@ -913,74 +923,77 @@ export class SLAChat {
             const roll = message.rolls[0];
             if (!roll) return;
 
-        const minDamage = Number(card.find(".damage-roll").data("min")) || 0;
-        const result = calculateRollResult(roll, flags.baseModifier, newTN, {
-            autoSkillSuccesses: flags.autoSkillSuccesses || 0
-        });
-        const isSuccess = result.isSuccess;
-        const skillSuccessCount = result.skillHits + (flags.autoSkillSuccesses || 0);
-        const { mosDamageBonus, mosEffectText, mosChoiceData } = await this._resolveDifficultyRecalcMos(
-            flags,
-            result,
-            isSuccess,
-            skillSuccessCount
-        );
-        const finalDmgFormula = this._rebuildDifficultyDamageFormula(flags, mosDamageBonus);
+            const minDamage = Number(card.find('.damage-roll').data('min')) || 0;
+            const result = calculateRollResult(roll, flags.baseModifier, newTN, {
+                autoSkillSuccesses: flags.autoSkillSuccesses || 0
+            });
+            const isSuccess = result.isSuccess;
+            const skillSuccessCount = result.skillHits + (flags.autoSkillSuccesses || 0);
+            const { mosDamageBonus, mosEffectText, mosChoiceData } = await this._resolveDifficultyRecalcMos(
+                flags,
+                result,
+                isSuccess,
+                skillSuccessCount
+            );
+            const finalDmgFormula = this._rebuildDifficultyDamageFormula(flags, mosDamageBonus);
 
-        let showButton = isSuccess && (finalDmgFormula && finalDmgFormula !== "0");
-        const resultColor = isSuccess ? '#39ff14' : '#f55';
-        const finalNotes = this._buildDifficultyNotes(flags, newTN);
-        
-        const actor = await fromUuid(card.data("actor-uuid"));
-        const templateData = {
-            actorUuid: card.data("actor-uuid"),
-            borderColor: resultColor,
-            headerColor: resultColor,
-            resultColor: resultColor,
-            itemName: flags.itemName,
-            successTotal: result.total,
-            tooltip: await roll.getTooltip(), // Use standard tooltip or regenerate? Standard is fine.
-            skillDice: result.skillDiceData,
-            notes: finalNotes, // Use notes from flags instead of DOM parsing
+            let showButton = isSuccess && finalDmgFormula && finalDmgFormula !== '0';
+            const resultColor = isSuccess ? '#39ff14' : '#f55';
+            const finalNotes = this._buildDifficultyNotes(flags, newTN);
 
-            showDamageButton: showButton,
-            dmgFormula: finalDmgFormula,
-            dmgDisplay: this._resolveDamageDisplay(finalDmgFormula, actor ?? null),
-            minDamage: minDamage,
-            adValue: flags.adValue || 0,
-            sdIsReroll: flags.rofRerollSD,
+            const actor = await fromUuid(card.data('actor-uuid'));
+            const templateData = {
+                actorUuid: card.data('actor-uuid'),
+                borderColor: resultColor,
+                headerColor: resultColor,
+                resultColor: resultColor,
+                itemName: flags.itemName,
+                successTotal: result.total,
+                tooltip: await roll.getTooltip(), // Use standard tooltip or regenerate? Standard is fine.
+                skillDice: result.skillDiceData,
+                notes: finalNotes, // Use notes from flags instead of DOM parsing
 
-            mos: {
-                isSuccess: isSuccess,
-                hits: skillSuccessCount,
-                effect: mosEffectText,
-                ...mosChoiceData
-            },
+                showDamageButton: showButton,
+                dmgFormula: finalDmgFormula,
+                dmgDisplay: this._resolveDamageDisplay(finalDmgFormula, actor ?? null),
+                minDamage: minDamage,
+                adValue: flags.adValue || 0,
+                sdIsReroll: flags.rofRerollSD,
 
-            canUseLuck: (card.find(".chat-btn-luck").length > 0), // Basic check if luck button was there
-            luckValue: 0, // Visual only, doesn't matter much if we don't know exact value. 
-            // Or we could re-fetch actor?
-            luckSpent: flags.luckSpent || false // Read from flags to preserve state
-        };
+                mos: {
+                    isSuccess: isSuccess,
+                    hits: skillSuccessCount,
+                    effect: mosEffectText,
+                    ...mosChoiceData
+                },
 
-        // Refetch actor for Luck Value and canUseLuck
-        if (actor) {
-            templateData.luckValue = actor.system.stats.luck.value;
-            templateData.canUseLuck = actor.system.stats.luck.value > 0;
-        }
+                canUseLuck: card.find('.chat-btn-luck').length > 0, // Basic check if luck button was there
+                luckValue: 0, // Visual only, doesn't matter much if we don't know exact value.
+                // Or we could re-fetch actor?
+                luckSpent: flags.luckSpent || false // Read from flags to preserve state
+            };
 
-        const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
+            // Refetch actor for Luck Value and canUseLuck
+            if (actor) {
+                templateData.luckValue = actor.system.stats.luck.value;
+                templateData.canUseLuck = actor.system.stats.luck.value > 0;
+            }
 
-        await message.update({
-            content: chatContent,
-            "flags.sla.tn": newTN,
-            "flags.sla.notes": finalNotes // Update notes in flags to preserve them
-        });
+            const chatContent = await foundry.applications.handlebars.renderTemplate(
+                'systems/sla-industries/templates/chat/chat-weapon-rolls.hbs',
+                templateData
+            );
+
+            await message.update({
+                content: chatContent,
+                'flags.sla.tn': newTN,
+                'flags.sla.notes': finalNotes // Update notes in flags to preserve them
+            });
 
             await syncEbbCriticalFlux(message, actor, message.flags?.sla ?? flags, isSuccess, skillSuccessCount);
         } catch (err) {
-            console.error("SLA | Error in _onChangeDifficulty:", err);
-            ui.notifications.error("SLA | Failed to change difficulty. See console for details.");
+            console.error('SLA | Error in _onChangeDifficulty:', err);
+            ui.notifications.error('SLA | Failed to change difficulty. See console for details.');
         }
     }
 
@@ -992,7 +1005,7 @@ export class SLAChat {
         const htmlElement = html instanceof HTMLElement ? html : html[0];
         const $html = $(htmlElement);
 
-        const ebbBlock = $html.find(".sla-ebb-effect-actions");
+        const ebbBlock = $html.find('.sla-ebb-effect-actions');
         if (ebbBlock.length) {
             if (!game.user.isGM) {
                 ebbBlock.remove();
@@ -1004,17 +1017,19 @@ export class SLAChat {
                         const tokenDocument = await fromUuid(targetUuid);
                         if (tokenDocument) {
                             const ebbTargetBtn = $html.find('.sla-ebb-apply-effect-btn[data-target="target"]');
-                            ebbTargetBtn.html(`<i class="fas fa-crosshairs"></i> Apply effects to ${tokenDocument.name}`);
-                            ebbTargetBtn.attr("data-target-uuid", targetUuid);
+                            ebbTargetBtn.html(
+                                `<i class="fas fa-crosshairs"></i> Apply effects to ${tokenDocument.name}`
+                            );
+                            ebbTargetBtn.attr('data-target-uuid', targetUuid);
                         }
                     } catch (err) {
-                        console.error("SLA | Error in onRenderChatMessage (Ebb effect target button):", err);
+                        console.error('SLA | Error in onRenderChatMessage (Ebb effect target button):', err);
                     }
                 }
             }
         }
 
-        const dmgButtons = $html.find(".apply-damage-btn");
+        const dmgButtons = $html.find('.apply-damage-btn');
         if (!dmgButtons.length) return;
 
         if (!game.user.isGM) {
@@ -1031,10 +1046,10 @@ export class SLAChat {
                 if (tokenDocument) {
                     const targetBtn = $html.find('.apply-damage-btn[data-target="target"]');
                     targetBtn.html(`<i class="fas fa-crosshairs"></i> Apply to ${tokenDocument.name}`);
-                    targetBtn.attr("data-target-uuid", targetUuid);
+                    targetBtn.attr('data-target-uuid', targetUuid);
                 }
             } catch (err) {
-                console.error("SLA | Error in onRenderChatMessage (target button):", err);
+                console.error('SLA | Error in onRenderChatMessage (target button):', err);
             }
         }
     }
