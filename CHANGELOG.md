@@ -9,10 +9,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 * **Item sheet UI E2E regression:** Playwright spec `tests/e2e/regression-item-sheets.spec.js` covers discipline, ebb formula, weapon, magazine, skill, and generic item sheets (tabs, spectral stamps, shared drop hints, drag-over feedback, effects tab CRUD). Included in `npm run test:e2e:regression`.
+* **Data model registry:** `module/data/registry.mjs` and `module/data/model-type-keys.mjs` centralize `CONFIG.*.dataModels` registration; unit test asserts parity with `system.json` `documentTypes`.
 
 ### Changed
 
 * **Foundry cloud bootstrap:** `foundry-bootstrap.mjs` confirms world data migration and pre-migration backup dialogs so E2E can launch `sla-test-world` after system version bumps.
+* **Compiled CSS:** `css/sla-industries.css` is no longer committed; run `npm run build:css` or `npm run build` before local Foundry dev (CI and `cloud-foundry.sh` already build CSS).
+* **Unit tests:** `npm run test:unit` discovers all `tests/unit/*.test.mjs` files via glob.
+
+### Fixed
+
+* **Toxicant item type:** Register `SlaToxicantData` in `CONFIG.Item.dataModels` (was declared in `system.json` but missing from init).
+
+### Removed
+
+* Unused devDependencies: `inquirer`, `prompt`, `renamer`, `replace`.
 
 ## [2.6.9] - 2026-06-06
 
