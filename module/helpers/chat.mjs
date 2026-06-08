@@ -1,5 +1,5 @@
 import { executeStandardDamageRoll, resolveDamageDisplay } from './chat/damage.mjs';
-import { setButtonDisabled } from './chat/dom.mjs';
+import { handlerEvent, setButtonDisabled } from './chat/dom.mjs';
 import {
     onApplyDamage,
     onApplyEbbEffects,
@@ -71,20 +71,22 @@ export class SLAChat {
             const el = target.closest(CHAT_CLICK_SELECTOR);
             if (!el) return;
 
+            const handlerEv = handlerEvent(ev, el);
+
             if (el.matches('.chat-btn-wound, .chat-btn-damage, .damage-roll')) {
-                void onRollDamage({ ...ev, currentTarget: el });
+                void onRollDamage(handlerEv);
             } else if (el.matches('.apply-damage-btn')) {
-                void onApplyDamage({ ...ev, currentTarget: el });
+                void onApplyDamage(handlerEv);
             } else if (el.matches('.sla-ebb-apply-effect-btn')) {
-                void onApplyEbbEffects({ ...ev, currentTarget: el });
+                void onApplyEbbEffects(handlerEv);
             } else if (el.matches('.sla-ebb-remove-wounds-btn')) {
-                void onRemoveEbbWounds({ ...ev, currentTarget: el });
+                void onRemoveEbbWounds(handlerEv);
             } else if (el.matches('.roll-toggle')) {
-                onToggleRoll({ ...ev, currentTarget: el });
+                onToggleRoll(handlerEv);
             } else if (el.matches('.chat-btn-luck')) {
-                void onLuck({ ...ev, currentTarget: el });
+                void onLuck(handlerEv);
             } else if (el.matches('.diff-btn')) {
-                void onChangeDifficulty({ ...ev, currentTarget: el });
+                void onChangeDifficulty(handlerEv);
             }
         };
 
