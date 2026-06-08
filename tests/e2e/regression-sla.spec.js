@@ -10,6 +10,9 @@ test.describe('SLA regression — authenticated', () => {
         needsAuth();
         await joinGame(page);
         await waitForSLASystem(page);
+        await page.evaluate(() => {
+            if (globalThis.game?.paused) globalThis.game.togglePause();
+        });
     });
 
     test('game.system is sla-industries with expected version shape', async ({ page }) => {
@@ -53,15 +56,32 @@ test.describe('SLA regression — authenticated', () => {
     test('Foundry v14+ Active Effect change types are available (effect stack smoke)', async ({ page }) => {
         const ok = await page.evaluate(() => {
             const t = globalThis.CONST?.ACTIVE_EFFECT_CHANGE_TYPES;
-            const add = t?.ADD;
+            const add = t?.add ?? t?.ADD;
             return Boolean(t && typeof t === 'object' && add !== undefined && add !== null);
         });
         expect(ok).toBe(true);
     });
 
+    test('SlaActor and SlaItem are registered with legacy aliases', async ({ page }) => {
+        const classes = await page.evaluate(() => ({
+            slaActor: globalThis.game?.sla?.SlaActor?.name,
+            slaItem: globalThis.game?.sla?.SlaItem?.name,
+            legacyActor: globalThis.game?.boilerplate?.BoilerplateActor?.name,
+            legacyItem: globalThis.game?.boilerplate?.BoilerplateItem?.name,
+            configActor: globalThis.CONFIG?.Actor?.documentClass?.name,
+            configItem: globalThis.CONFIG?.Item?.documentClass?.name
+        }));
+        expect(classes.slaActor).toBe('SlaActor');
+        expect(classes.slaItem).toBe('SlaItem');
+        expect(classes.legacyActor).toBe('SlaActor');
+        expect(classes.legacyItem).toBe('SlaItem');
+        expect(classes.configActor).toBe('SlaActor');
+        expect(classes.configItem).toBe('SlaItem');
+    });
+
     test('Configure Settings lists SLA Industries section', async ({ page }) => {
         await dismissFoundryNotifications(page);
-        await page.getByRole('tab', { name: /game settings/i }).click();
+        await page.getByRole('tab', { name: /^settings$/i }).click();
         await page.getByRole('button', { name: /^game settings$/i }).click();
         await page.getByRole('button', { name: /SLA Industries 2nd Edition/i }).click();
         await expect(page.getByText(/Enable Combat Movement Lock/i).first()).toBeVisible({ timeout: 15_000 });
