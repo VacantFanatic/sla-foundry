@@ -4,14 +4,21 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+    applyExplosiveRollAdjustments,
     applySuccessThroughExperience,
+    buildEbbDamageFormula,
+    buildExplosiveMods,
     buildSkillDiceResults,
     buildSkillRollFormula,
+    calculateEbbModifier,
+    computeExplosiveMaxRange,
     computeMeleeStrDamageModifier,
     computeSkillRollModifier,
     computeSuccessDieOutcome,
     computeWeaponSkillDiceCount,
     buildWeaponDamageFormula,
+    resolveEbbDisciplineName,
+    resolveEbbOutcomeText,
     resolveExplosiveBlastData,
     resolveWeaponMosOutcome
 } from '../../module/sheets/actor/roll-math.mjs';
@@ -130,6 +137,121 @@ describe('resolveExplosiveBlastData', () => {
         const d = resolveExplosiveBlastData({ blastRadiusInner: 2, blastRadiusOuter: 0 });
         assert.equal(d.innerDist, 2);
         assert.equal(d.outerDist, 5);
+    });
+});
+
+describe('computeExplosiveMaxRange', () => {
+    test('scales throw range with STR up to 5', () => {
+        assert.equal(computeExplosiveMaxRange(0), 15);
+        assert.equal(computeExplosiveMaxRange(3), 30);
+        assert.equal(computeExplosiveMaxRange(5), 40);
+        assert.equal(computeExplosiveMaxRange(9), 40);
+    });
+});
+
+describe('buildExplosiveMods', () => {
+    test('maps form modifier to allDice', () => {
+        const mods = buildExplosiveMods({ mod: 2 });
+        assert.equal(mods.allDice, 2);
+        assert.equal(mods.successDie, 0);
+    });
+});
+
+describe('applyExplosiveRollAdjustments', () => {
+    test('applies prone, wounds, cover, and aiming', () => {
+        const mods = buildExplosiveMods({ mod: 1 });
+        applyExplosiveRollAdjustments({
+            prone: true,
+            stunned: false,
+            woundPenalty: 2,
+            applyWoundPenalties: true,
+            rollData: { cover: 1, aiming: 'sd' },
+            mods
+        });
+        assert.equal(mods.allDice, -2);
+        assert.equal(mods.successDie, 2);
+    });
+
+    test('skill aiming grants auto skill success', () => {
+        const mods = buildExplosiveMods({ mod: 0 });
+        applyExplosiveRollAdjustments({
+            prone: false,
+            stunned: false,
+            woundPenalty: 0,
+            applyWoundPenalties: false,
+            rollData: { cover: 0, aiming: 'skill' },
+            mods
+        });
+        assert.equal(mods.autoSkillSuccesses, 1);
+    });
+});
+
+describe('resolveEbbDisciplineName', () => {
+    test('resolves discipline key to display label', () => {
+        const name = resolveEbbDisciplineName('blast', { blast: 'Blast Discipline', heal: 'Heal' });
+        assert.equal(name, 'Blast Discipline');
+    });
+
+    test('returns input when no mapping matches', () => {
+        assert.equal(resolveEbbDisciplineName('Unknown', {}), 'Unknown');
+    });
+});
+
+describe('calculateEbbModifier', () => {
+    test('uses CONC and rank with global penalties', () => {
+        const mod = calculateEbbModifier({
+            statValue: 4,
+            rank: 2,
+            prone: true,
+            stunned: false,
+            woundPenalty: 1,
+            applyWoundPenalties: true
+        });
+        assert.equal(mod, 4);
+    });
+});
+
+describe('resolveEbbOutcomeText', () => {
+    test('MOS 4 damage attack is critical with flux regain text', () => {
+        const r = resolveEbbOutcomeText(true, 4, 'damage');
+        assert.equal(r.isSuccessful, true);
+        assert.match(r.mosEffectText, /CRITICAL/);
+        assert.match(r.mosEffectText, /\+4 Dmg/);
+    });
+
+    test('all dice failed is severe failure', () => {
+        const r = resolveEbbOutcomeText(false, 0, 'effect');
+        assert.equal(r.isSuccessful, false);
+        assert.match(r.failureConsequence, /SEVERE FAILURE/);
+    });
+});
+
+describe('buildEbbDamageFormula', () => {
+    test('adds MOS bonus for successful damage formula', () => {
+        const item = {
+            system: {
+                dmg: '2d10',
+                ebbEffect: 'damage',
+                removeWounds: 0
+            }
+        };
+        const r = buildEbbDamageFormula(item, true, 2);
+        assert.equal(r.finalDmgFormula, '2d10 + 1');
+        assert.equal(r.showHpRollButton, true);
+        assert.equal(r.ebbEffect, 'damage');
+    });
+
+    test('effect-only heal wounds shows remove wounds without HP roll', () => {
+        const item = {
+            system: {
+                dmg: '0',
+                ebbEffect: 'effect',
+                removeWounds: 2
+            }
+        };
+        const r = buildEbbDamageFormula(item, true, 1);
+        assert.equal(r.showRemoveWoundsOnly, true);
+        assert.equal(r.showHpRollButton, false);
     });
 });
 

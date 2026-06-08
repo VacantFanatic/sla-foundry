@@ -42,9 +42,11 @@ sla-industries/
 │   │   └── wound-visibility.mjs  # shouldShowMosWoundChoice()
 │   └── sheets/
 │       ├── actor/
-│       │   ├── roll-math.mjs   # Pure skill/weapon roll math (unit tested)
+│       │   ├── roll-math.mjs   # Pure skill/weapon/explosive/Ebb roll math (unit tested)
 │       │   ├── skill-rolls.mjs # Skill roll execution extracted from actor sheet
-│       │   └── weapon-rolls.mjs # Weapon attack dialog and roll orchestration
+│       │   ├── weapon-rolls.mjs # Weapon attack dialog and roll orchestration
+│       │   ├── explosive-rolls.mjs # Explosive throw dialog and roll orchestration
+│       │   └── ebb-rolls.mjs   # Ebb formula roll orchestration
 │       ├── actor-sheet.mjs     # SlaActorSheet (operative/character, ApplicationV2)
 │       ├── actor-npc-sheet.mjs # SlaNPCSheet (threat/NPC, ApplicationV2)
 │       ├── actor-vehicle-sheet.mjs  # SlaVehicleSheet (vehicle, ApplicationV2)

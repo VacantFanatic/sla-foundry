@@ -1,3 +1,6 @@
+import { normalizeEbbEffect, normalizeEbbHealWoundMode } from '../../helpers/items.mjs';
+import { getEbbMosDamageBonus } from '../../helpers/ebb-mos.mjs';
+
 /**
  * Pure roll math helpers extracted from SlaActorSheet.
  */
@@ -205,4 +208,142 @@ export function resolveExplosiveBlastData(itemSystem) {
     let outerDist = itemSystem.blastRadiusOuter || 0;
     if (outerDist === 0) outerDist = 5;
     return { innerDist, outerDist };
+}
+
+/**
+ * @param {number} strValue
+ * @returns {number}
+ */
+export function computeExplosiveMaxRange(strValue) {
+    const str = Math.min(Math.max(0, Number(strValue) || 0), 5);
+    return 15 + str * 5;
+}
+
+/**
+ * @param {{ mod: number }} rollData
+ */
+export function buildExplosiveMods(rollData) {
+    return {
+        successDie: 0,
+        allDice: rollData.mod,
+        rank: 0,
+        damage: 0,
+        autoSkillSuccesses: 0
+    };
+}
+
+/**
+ * @param {{ prone: boolean, stunned: boolean, woundPenalty: number, applyWoundPenalties: boolean, rollData: { cover: number, aiming: string }, mods: { allDice: number, successDie: number, autoSkillSuccesses: number } }}
+ */
+export function applyExplosiveRollAdjustments({ prone, stunned, woundPenalty, applyWoundPenalties, rollData, mods }) {
+    if (prone) mods.allDice -= 1;
+    if (stunned) mods.allDice -= 1;
+    if (applyWoundPenalties) mods.allDice -= woundPenalty;
+
+    mods.successDie += rollData.cover;
+    if (rollData.aiming === 'sd') mods.successDie += 1;
+    if (rollData.aiming === 'skill') mods.autoSkillSuccesses += 1;
+}
+
+/**
+ * @param {string} disciplineName
+ * @param {Record<string, string>} [ebbDisciplines]
+ */
+export function resolveEbbDisciplineName(disciplineName, ebbDisciplines = {}) {
+    let resolvedName = disciplineName;
+    for (const [key, label] of Object.entries(ebbDisciplines)) {
+        if (key === disciplineName || label === disciplineName) {
+            resolvedName = label;
+            break;
+        }
+    }
+    return resolvedName;
+}
+
+/**
+ * @param {{ statValue: number, rank: number, prone: boolean, stunned: boolean, woundPenalty: number, applyWoundPenalties: boolean }}
+ */
+export function calculateEbbModifier({ statValue, rank, prone, stunned, woundPenalty, applyWoundPenalties }) {
+    let globalMod = 0;
+    if (prone) globalMod -= 1;
+    if (stunned) globalMod -= 1;
+    const penalty = applyWoundPenalties ? woundPenalty : 0;
+    return statValue + rank - penalty + globalMod;
+}
+
+/**
+ * @param {boolean} isBaseSuccess
+ * @param {number} skillSuccesses
+ * @param {string} ebbEffectRaw
+ */
+export function resolveEbbOutcomeText(isBaseSuccess, skillSuccesses, ebbEffectRaw) {
+    const allDiceFailed = !isBaseSuccess && skillSuccesses === 0;
+    const isSuccessful = isBaseSuccess;
+    const ebbEffect = normalizeEbbEffect(ebbEffectRaw);
+    const attackMos = ebbEffect === 'damage';
+
+    let mosEffectText = 'Standard Success';
+    let failureConsequence = 'Failed';
+
+    if (isSuccessful) {
+        if (skillSuccesses === 2) {
+            mosEffectText = attackMos ? '+1 Damage / Effect' : 'Standard Success';
+        } else if (skillSuccesses === 3) {
+            mosEffectText = attackMos
+                ? '+2 Damage / Repeat Ability'
+                : 'May use the same Ebb ability again within 5 minutes (-3 FLUX)';
+        } else if (skillSuccesses >= 4) {
+            mosEffectText = attackMos
+                ? "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX"
+                : "<strong style='color:#39ff14'>CRITICAL:</strong> Regain 1 FLUX";
+        }
+    } else if (allDiceFailed) {
+        failureConsequence = "<strong style='color:#ff5555'>SEVERE FAILURE:</strong> -3 HP & -1 Extra FLUX";
+    }
+
+    return { isSuccessful, mosEffectText, failureConsequence };
+}
+
+/**
+ * @param {Item} item
+ * @param {boolean} isSuccessful
+ * @param {number} skillSuccesses
+ */
+export function buildEbbDamageFormula(item, isSuccessful, skillSuccesses) {
+    const rawBase = item.system.dmg || item.system.damage || '0';
+    const baseDmg = String(rawBase);
+    const ebbEffect = normalizeEbbEffect(item.system.ebbEffect);
+    const mosDamageBonus = getEbbMosDamageBonus(isSuccessful, skillSuccesses, item.system.ebbEffect);
+
+    let finalDmgFormula = baseDmg;
+    if (baseDmg !== '0' && baseDmg !== '' && mosDamageBonus > 0) {
+        finalDmgFormula = `${baseDmg} + ${mosDamageBonus}`;
+    }
+
+    const hasHpFormula = finalDmgFormula && finalDmgFormula !== '0' && String(finalDmgFormula).trim() !== '';
+    const showHpRollButton = Boolean(isSuccessful && (ebbEffect === 'damage' || ebbEffect === 'heal') && hasHpFormula);
+    const removeWoundsCount = Math.max(0, Math.min(6, Math.floor(Number(item.system.removeWounds) || 0)));
+    const isHealEffect = ebbEffect === 'heal';
+    const healWoundMode = normalizeEbbHealWoundMode(item.system.ebbHealWoundMode);
+    const showRemoveWoundsOnly = Boolean(
+        isSuccessful &&
+        removeWoundsCount > 0 &&
+        ((ebbEffect === 'effect' && !hasHpFormula) || (isHealEffect && healWoundMode === 'or' && hasHpFormula))
+    );
+    const removeWoundsBundledWithHpRoll = Boolean(
+        showHpRollButton && removeWoundsCount > 0 && !(isHealEffect && healWoundMode === 'or')
+    )
+        ? removeWoundsCount
+        : 0;
+
+    return {
+        finalDmgFormula,
+        showDamageButton: showHpRollButton,
+        showHpRollButton,
+        showRemoveWoundsOnly,
+        removeWoundsBundledWithHpRoll,
+        healWoundMode,
+        ebbEffect,
+        isHealRoll: ebbEffect === 'heal'
+    };
 }
