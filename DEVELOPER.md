@@ -53,7 +53,11 @@ sla-industries/
 │       │   ├── weapon-gates.mjs # Equipped/target checks and combat loadout damage
 │       │   ├── actor-drops.mjs # Species/package/vehicle drop handling
 │       │   ├── actor-drops-pure.mjs # Pure drop validation helpers (unit tested)
-│       │   └── sheet-helpers.mjs # Shared tooltip, flags, and roll helpers
+│       │   ├── sheet-helpers.mjs # Shared tooltip, flags, and roll helpers
+│       │   ├── stat-rolls.mjs    # Stat check rolls from sheet
+│       │   ├── sheet-rolls.mjs   # Routes item/stat/skill/init roll clicks
+│       │   ├── sheet-actions.mjs # Sheet click/change UI delegation
+│       │   └── sheet-actions-pure.mjs # Pure species-removal helpers (unit tested)
 │       ├── actor-sheet.mjs     # SlaActorSheet (operative/character, ApplicationV2)
 │       ├── actor-npc-sheet.mjs # SlaNPCSheet (threat/NPC, ApplicationV2)
 │       ├── actor-vehicle-sheet.mjs  # SlaVehicleSheet (vehicle, ApplicationV2)

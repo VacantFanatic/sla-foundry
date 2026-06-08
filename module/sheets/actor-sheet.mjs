@@ -1,15 +1,13 @@
 /**
  * SLA actor sheet (Application V2).
  */
-import { XPDialog } from '../apps/xp-dialog.mjs';
-import { SlaSimpleContentDialog } from '../apps/sla-simple-dialog.mjs';
-import { createSLARoll } from '../helpers/dice.mjs';
 import { prepareItems } from '../helpers/items.mjs';
 import { applyMeleeModifiers, applyRangedModifiers } from '../helpers/modifiers.mjs';
 import { addActorItemToHotbar } from '../helpers/sla-hotbar.mjs';
 import { onDropItem, onDropVehicleWeapon, onItemCreate } from './actor/actor-drops.mjs';
-import { triggerItemRoll, useDrugItem } from './actor/item-actions.mjs';
-import { onReloadWeapon } from './actor/reload.mjs';
+import { triggerItemRoll } from './actor/item-actions.mjs';
+import { handleSheetChange, handleSheetClick } from './actor/sheet-actions.mjs';
+import { handleSheetRoll } from './actor/sheet-rolls.mjs';
 import {
     applyHeadshotSideEffect,
     applySuccessThroughExperienceForSheet,
@@ -20,11 +18,7 @@ import {
     resolveCombatSkillRank,
     resolveSheetDamageDisplay
 } from './actor/sheet-helpers.mjs';
-import {
-    canProceedWithWeaponAttack,
-    executeCombatLoadoutDamageRoll,
-    resolveRangedAttackContext
-} from './actor/weapon-gates.mjs';
+import { canProceedWithWeaponAttack, resolveRangedAttackContext } from './actor/weapon-gates.mjs';
 import { executeSkillRollFromItem } from './actor/skill-rolls.mjs';
 import { executeEbbRoll } from './actor/ebb-rolls.mjs';
 import { processExplosiveRoll, renderExplosiveDialog } from './actor/explosive-rolls.mjs';
@@ -437,43 +431,6 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         });
     }
 
-    /** App V2 does not attach FormApplication `[data-edit]` listeners; open image FilePicker for actor portrait. */
-    async #openActorImagePicker() {
-        const Picker = foundry.applications.apps?.FilePicker ?? globalThis.FilePicker;
-        if (!Picker) {
-            ui.notifications?.error?.('FilePicker is unavailable.');
-            return;
-        }
-        const fp = new Picker({
-            type: 'image',
-            current: this.actor.img,
-            callback: (path) => {
-                if (path) void this.actor.update({ img: path });
-            }
-        });
-        await fp.render(true);
-    }
-
-    /**
-     * App V2 replacement for Dialog.confirm.
-     * @param {string} title
-     * @param {string} contentHtml
-     * @param {() => Promise<void> | void} onConfirm
-     * @param {string} [actionLabel]
-     */
-    async #confirmAction(title, contentHtml, onConfirm, actionLabel = 'Confirm') {
-        await new SlaSimpleContentDialog({
-            title,
-            contentHtml,
-            width: 420,
-            classes: ['sla-dialog', 'sla-sheet'],
-            actionLabel,
-            onConfirm: async () => {
-                await onConfirm();
-            }
-        }).render(true);
-    }
-
     /**
      * ContextMenu.close() can animate via getBoundingClientRect on a target that is already detached
      * when the sheet closes. Skip animation and await so promise rejections are handled.
@@ -600,359 +557,15 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     };
 
     #onSheetClick = async (event) => {
-        const t = event.target;
-        if (!(t instanceof Element)) return;
-
-        const cond = t.closest('.condition-toggle');
-        if (cond) {
-            event.preventDefault();
-            if (cond.classList.contains('condition-automatic')) return;
-            const conditionId = cond.dataset.condition;
-            if (conditionId) await this.actor.toggleStatusEffect(conditionId);
-            return;
-        }
-
-        const damageRoll = t.closest('.item-roll-damage');
-        if (damageRoll) {
-            event.preventDefault();
-            await executeCombatLoadoutDamageRoll(this, damageRoll);
-            return;
-        }
-
-        const rollable = t.closest('.item-rollable') || t.closest('.rollable');
-        if (rollable) {
-            event.preventDefault();
-            await this._onRoll(event, rollable);
-            return;
-        }
-
-        const comp = t.closest('.open-compendium');
-        if (comp) {
-            event.preventDefault();
-            const compendiumId = comp.dataset.compendium;
-            const pack = game.packs.get(compendiumId);
-            if (pack) pack.render(true);
-            else ui.notifications.warn(`Compendium '${compendiumId}' not found.`);
-            return;
-        }
-
-        const dataEdit = t.closest('[data-edit]');
-        if (dataEdit instanceof HTMLElement && this.isEditable && dataEdit.dataset.edit === 'img') {
-            event.preventDefault();
-            event.stopPropagation();
-            await this.#openActorImagePicker();
-            return;
-        }
-
-        if (!this.isEditable) return;
-
-        const drugBtn = t.closest('.item-use-drug');
-        if (drugBtn) {
-            event.preventDefault();
-            const li = drugBtn.closest('.item');
-            const itemId = li?.dataset.itemId;
-            const item = itemId ? this.actor.items.get(itemId) : null;
-            if (!item || item.type !== 'drug') return;
-            await useDrugItem(this, item);
-            return;
-        }
-
-        const toxicantBtn = t.closest('.item-use-toxicant');
-        if (toxicantBtn) {
-            event.preventDefault();
-            const li = toxicantBtn.closest('.item');
-            const itemId = li?.dataset.itemId;
-            const item = itemId ? this.actor.items.get(itemId) : null;
-            if (!item || item.type !== 'toxicant') return;
-            await item.rollInfectionTest();
-            return;
-        }
-
-        const effToggle = t.closest('.sla-effect-toggle');
-        if (effToggle && this.actor.isOwner) {
-            event.preventDefault();
-            const id = effToggle.dataset.effectId;
-            const effect = id ? this.actor.effects.get(id) : null;
-            if (effect) await effect.update({ disabled: !effect.disabled });
-            this.render(false);
-            return;
-        }
-        const effEdit = t.closest('.sla-effect-edit');
-        if (effEdit && this.actor.isOwner) {
-            event.preventDefault();
-            const id = effEdit.dataset.effectId;
-            const effect = id ? this.actor.effects.get(id) : null;
-            effect?.sheet?.render(true);
-            return;
-        }
-        const effDel = t.closest('.sla-effect-delete');
-        if (effDel && this.actor.isOwner) {
-            event.preventDefault();
-            const id = effDel.dataset.effectId;
-            const effect = id ? this.actor.effects.get(id) : null;
-            if (effect) await effect.delete();
-            this.render(false);
-            return;
-        }
-        const effAdd = t.closest('.sla-effect-create');
-        if (effAdd && this.actor.isOwner && this.isEditable) {
-            event.preventDefault();
-            await this.actor.createEmbeddedDocuments('ActiveEffect', [
-                {
-                    name: game.i18n.localize('DOCUMENT.ActiveEffect'),
-                    img: 'icons/svg/aura.svg',
-                    disabled: false
-                }
-            ]);
-            this.render(false);
-            return;
-        }
-
-        const chipSpecies = t.closest('.chip-delete[data-type="species"]');
-        if (chipSpecies) {
-            event.preventDefault();
-            event.stopPropagation();
-            const speciesItem = this.actor.items.find((i) => i.type === 'species');
-            if (!speciesItem) return;
-            await this.#confirmAction(
-                'Remove Species?',
-                `<p>Remove <strong>${speciesItem.name}</strong>?</p>`,
-                async () => {
-                    const skillsToDelete = this.actor.items
-                        .filter((i) => i.getFlag('sla-industries', 'fromSpecies'))
-                        .map((i) => i.id);
-                    await this.actor.deleteEmbeddedDocuments('Item', [speciesItem.id, ...skillsToDelete], {
-                        render: false
-                    });
-                    const resets = { 'system.bio.species': '' };
-                    ['str', 'dex', 'know', 'conc', 'cha', 'cool'].forEach(
-                        (k) => (resets[`system.stats.${k}.value`] = 1)
-                    );
-                    await this.actor.update(resets);
-                },
-                'Remove'
-            );
-            return;
-        }
-
-        const chipPackage = t.closest('.chip-delete[data-type="package"]');
-        if (chipPackage) {
-            event.preventDefault();
-            event.stopPropagation();
-            const packageItem = this.actor.items.find((i) => i.type === 'package');
-            if (!packageItem) return;
-            await this.#confirmAction(
-                'Remove Package?',
-                `<p>Remove <strong>${packageItem.name}</strong>?</p>`,
-                async () => {
-                    const skillsToDelete = this.actor.items
-                        .filter((i) => i.getFlag('sla-industries', 'fromPackage'))
-                        .map((i) => i.id);
-                    await this.actor.deleteEmbeddedDocuments('Item', [packageItem.id, ...skillsToDelete], {
-                        render: false
-                    });
-                    await this.actor.update({ 'system.bio.package': '' });
-                },
-                'Remove'
-            );
-            return;
-        }
-
-        const itemEdit = t.closest('.item-edit');
-        if (itemEdit) {
-            event.preventDefault();
-            const li = itemEdit.closest('.item');
-            const item = li?.dataset.itemId ? this.actor.items.get(li.dataset.itemId) : null;
-            if (item) item.sheet.render(true);
-            return;
-        }
-
-        const itemDelete = t.closest('.item-delete');
-        if (itemDelete) {
-            event.preventDefault();
-            const li = itemDelete.closest('.item');
-            const item = li?.dataset.itemId ? this.actor.items.get(li.dataset.itemId) : null;
-            if (item) {
-                await this.#confirmAction(
-                    'Delete Item?',
-                    '<p>Are you sure?</p>',
-                    async () => {
-                        await item.delete();
-                        this.render(false);
-                    },
-                    'Delete'
-                );
-            }
-            return;
-        }
-
-        const itemToggle = t.closest('.item-toggle');
-        if (itemToggle) {
-            event.preventDefault();
-            const li = itemToggle.closest('.item');
-            const item = li?.dataset.itemId ? this.actor.items.get(li.dataset.itemId) : null;
-            if (!item) return;
-            if (item.type === 'drug') await item.toggleActive();
-            else await item.update({ 'system.equipped': !item.system.equipped });
-            return;
-        }
-
-        const itemReload = t.closest('.item-reload');
-        if (itemReload) {
-            await onReloadWeapon(this, event, itemReload);
-            return;
-        }
-
-        const itemCreate = t.closest('.item-create');
-        if (itemCreate) {
-            await onItemCreate(this, event, itemCreate);
-            return;
-        }
-
-        const xpBtn = t.closest('.xp-button');
-        if (xpBtn) {
-            event.preventDefault();
-            await XPDialog.create(this.actor);
-        }
+        await handleSheetClick(this, event);
     };
 
     #onSheetChange = async (event) => {
-        const root = event.currentTarget;
-        if (!(root instanceof HTMLElement)) return;
-
-        const el = event.target instanceof Element ? event.target : null;
-        if (!el) return;
-
-        const inlineInput = el.closest('.inline-edit');
-        if (inlineInput) {
-            if (!this.isEditable) return;
-            event.preventDefault();
-            const input = inlineInput;
-            const row = input.closest('.item');
-            const itemId = input.dataset.itemId || row?.dataset.itemId;
-            if (!itemId) return;
-            const item = this.actor.items.get(itemId);
-            const field = input.dataset.field;
-            if (item && field) await item.update({ [field]: Number(input.value) });
-            return;
-        }
-
-        const woundCb = el.closest('.wound-checkbox');
-        if (woundCb) {
-            const field = woundCb.name;
-            const isChecked = woundCb.checked;
-            if (this.actor.type === 'npc') {
-                const systemPath = field.replace('system.', '');
-                const currentValue = foundry.utils.getProperty(this.actor.system, systemPath);
-                if (currentValue === isChecked) return;
-            }
-            const updateData = { [field]: isChecked };
-            try {
-                await this.actor.update(updateData);
-            } catch (error) {
-                console.error('SLA Industries | Error updating actor:', error);
-                woundCb.checked = !isChecked;
-            }
-        }
+        await handleSheetChange(this, event);
     };
 
-    /* -------------------------------------------- */
-    /* ROLL HANDLERS                               */
-    /* -------------------------------------------- */
-
-    /**
-     * Handle clickable rolls.
-     * @param {PointerEvent} event   The originating click event (must be a real event; do not spread into a plain object)
-     * @param {HTMLElement} [rollTarget]  The `.rollable` / `.item-rollable` element (required for delegated clicks where `event.currentTarget` is the sheet root)
-     * @private
-     */
     async _onRoll(event, rollTarget) {
-        event.preventDefault();
-        const element = rollTarget ?? event.currentTarget;
-        const dataset = element.dataset;
-
-        // Handle Item Rolls (triggered by your crosshairs icon)
-        if (dataset.rollType === 'item') {
-            const itemId = element.closest('.item')?.dataset.itemId;
-            const item = itemId ? this.actor.items.get(itemId) : null;
-            if (item) await this.triggerItemRoll(item);
-        }
-
-        let globalMod = 0;
-        if (this.actor.system.conditions?.prone) globalMod -= 1;
-        if (this.actor.system.conditions?.stunned) globalMod -= 1;
-
-        // STAT ROLL
-        if (dataset.rollType === 'stat') {
-            const statKey = dataset.key.toLowerCase();
-            const statLabel = statKey.toUpperCase();
-            const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
-            const penalty = this.actor.system.wounds.penalty || 0;
-            const finalMod =
-                statValue -
-                (game.settings.get('sla-industries', 'enableAutomaticWoundPenalties') ? penalty : 0) +
-                globalMod;
-
-            let roll = createSLARoll('1d10');
-            // ---------------------------------------------
-            await roll.evaluate();
-
-            let rawDie = roll.terms[0].results[0].result;
-            let finalTotal = rawDie + finalMod;
-            const resultColor = finalTotal > 10 ? '#39ff14' : '#f55';
-
-            const tooltipHtml = this._generateTooltip(roll, finalMod, 0, 0);
-
-            const isSuccess = finalTotal > 10;
-
-            const templateData = {
-                borderColor: resultColor,
-                headerColor: resultColor,
-                resultColor: resultColor,
-                actorUuid: this.actor.uuid,
-                itemName: `${statLabel} CHECK`,
-                successTotal: finalTotal,
-                tooltip: tooltipHtml,
-                skillDice: [],
-                notes: '',
-                showDamageButton: false,
-                // Luck Data
-                canUseLuck: this.actor.system.stats.luck.value > 0,
-                luckValue: this.actor.system.stats.luck.value,
-                luckSpent: false,
-                mos: {
-                    isSuccess: isSuccess,
-                    hits: 0,
-                    effect: isSuccess ? 'Success' : 'Failure'
-                }
-            };
-
-            const chatContent = await foundry.applications.handlebars.renderTemplate(
-                'systems/sla-industries/templates/chat/chat-weapon-rolls.hbs',
-                templateData
-            );
-
-            roll.toMessage({
-                speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-                content: chatContent,
-                flags: {
-                    sla: this._buildSlaRollFlags({
-                        baseModifier: finalMod,
-                        itemName: `${statLabel} CHECK`,
-                        notes: '',
-                        tn: 10
-                    })
-                }
-            });
-        }
-
-        if (dataset.rollType === 'skill') {
-            this._executeSkillRoll(element);
-        }
-
-        if (dataset.rollType === 'init') {
-            await this.actor.rollInitiative({ createCombatants: true });
-        }
+        return handleSheetRoll(this, event, rollTarget);
     }
 
     _canProceedWithWeaponAttack(item, options) {
