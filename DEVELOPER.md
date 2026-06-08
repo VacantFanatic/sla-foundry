@@ -60,7 +60,7 @@ sla-industries/
 - **Foundry VTT v14** (minimum 14, verified 14.360)
 - **Application V2** (`ApplicationV2` + `HandlebarsApplicationMixin`) for all sheets and dialogs.
 - **TypeDataModel** (`foundry.abstract.TypeDataModel`) for all actor and item data schemas.
-- **SCSS** compiled to `css/sla-industries.css` via `npm run build:css` (or `npm run watch`). `npm run build` also assembles **`dist/`** (Foundry-installable runtime files). `npm run package` produces `sla-industries.zip` for releases.
+- **SCSS** compiled to `css/sla-industries.css` via `npm run build:css` (or `npm run watch`). Compiled CSS is a **build artifact** (not committed); run `npm run build:css` or `npm run build` before local Foundry testing. `npm run build` also assembles **`dist/`** (Foundry-installable runtime files). `npm run package` produces `sla-industries.zip` for releases.
 - **Node.js test runner** for unit tests; **Playwright** for end-to-end tests.
 
 ---
@@ -269,7 +269,7 @@ E2E tests require:
 ### SCSS compilation
 
 ```bash
-npm run build:css   # SCSS → css/ (local Foundry dev)
+npm run build:css   # SCSS → css/sla-industries.css (required for local Foundry dev)
 npm run build       # css + dist/ (release tree)
 npm run package     # dist/ → sla-industries.zip
 npm run validate:dist    # assert dist/ matches system.json

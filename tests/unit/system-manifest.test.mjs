@@ -32,6 +32,7 @@ describe('system.json', () => {
         assert.ok(dt.Actor.vehicle);
         assert.ok(dt.Item.weapon);
         assert.ok(dt.Item.drug);
+        assert.ok(dt.Item.toxicant);
         assert.ok(dt.Item.explosive);
         assert.equal(dt.Item.vehicle, undefined);
     });
