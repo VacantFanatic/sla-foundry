@@ -23,6 +23,7 @@ sla-industries/
 │   │   ├── item.mjs            # TypeDataModel subclasses for all item types
 │   │   └── natural-weapons.mjs # Punch/Kick baseline definitions
 │   ├── documents/
+│   │   ├── derived/            # Pure derived-data calculators (encumbrance, wounds, penalties)
 │   │   ├── actor.mjs           # BoilerplateActor — derived data, active effects, HP sync
 │   │   └── item.mjs            # BoilerplateItem
 │   ├── helpers/

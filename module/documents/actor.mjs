@@ -1,4 +1,12 @@
 import { NATURAL_WEAPONS } from '../data/natural-weapons.mjs';
+import {
+    computeArmorPiecePv,
+    computeCarriedItemWeight,
+    computeEffectiveArmorPv,
+    computeEncumbranceState
+} from './derived/encumbrance.mjs';
+import { applyStatPenalties } from './derived/penalties.mjs';
+import { countWounds, deriveLogicConditions } from './derived/wounds.mjs';
 
 /**
  * Extend the basic Actor document.
@@ -160,15 +168,8 @@ export class BoilerplateActor extends Actor {
             }
         }
 
-        let woundCount = 0;
         const w = system.wounds;
-        // Safely count wounds (handles undefined/null values)
-        if (w.head === true) woundCount++;
-        if (w.torso === true) woundCount++;
-        if (w.lArm === true) woundCount++;
-        if (w.rArm === true) woundCount++;
-        if (w.lLeg === true) woundCount++;
-        if (w.rLeg === true) woundCount++;
+        const woundCount = countWounds(w);
 
         system.wounds.total = woundCount;
         system.wounds.penalty = woundCount;
@@ -185,22 +186,17 @@ export class BoilerplateActor extends Actor {
         system.conditions.stunned = hasEffect('stunned');
         system.conditions.immobile = hasEffect('immobile');
 
-        // Logic-based Conditions
-        const isDead = system.hp.value === 0 || woundCount >= 6;
-        system.conditions.dead = isDead;
-
-        // Critical: major damage / close to death — align with Active Effect (≤ half max HP, not dead)
         let hpBase = 10;
         const speciesItem = this.items.find((i) => i.type === 'species');
         if (speciesItem && speciesItem.system.hp) hpBase = Number(speciesItem.system.hp) || 10;
         const projectedHpMax = Math.max(1, hpBase + (system.stats.str?.total || 0));
         const hpVal = Number(system.hp?.value) ?? 0;
-        const isCritical = !isDead && hpVal > 0 && hpVal <= Math.floor(projectedHpMax / 2);
-        system.conditions.critical = isCritical;
 
-        // Wounds forcing conditions (only set if wound exists)
-        if (w.head === true) system.conditions.stunned = true;
-        if (w.lLeg === true && w.rLeg === true) system.conditions.immobile = true;
+        const logic = deriveLogicConditions(w, { hpValue: hpVal, woundCount, projectedHpMax });
+        system.conditions.dead = logic.dead;
+        system.conditions.critical = logic.critical;
+        if (logic.stunned) system.conditions.stunned = true;
+        if (logic.immobile) system.conditions.immobile = true;
     }
 
     /* -------------------------------------------- */
@@ -214,19 +210,7 @@ export class BoilerplateActor extends Actor {
         for (const item of this.items.values()) {
             const d = item.system;
 
-            // Weight
-            let itemWeight = d.weight || 0;
-
-            // POWERED ARMOR DEAD WEIGHT RULE:
-            // If Powered Armor is destroyed (Res <= 0), Weight becomes 6
-            if (item.type === 'armor' && d.powered) {
-                const currentRes = d.resistance?.value || 0;
-                if (currentRes <= 0) {
-                    itemWeight = 6;
-                }
-            }
-
-            totalWeight += itemWeight * (d.quantity || 1);
+            totalWeight += computeCarriedItemWeight(item);
 
             // Armor PV
             // For NPCs, since they lack an Equip toggle, we treat ALL armor as equipped.
@@ -234,14 +218,10 @@ export class BoilerplateActor extends Actor {
             const isEquipped = this.type === 'npc' || d.equipped;
 
             if (item.type === 'armor' && isEquipped) {
-                let currentPV = d.pv || 0;
+                const currentPV = computeArmorPiecePv(d);
                 const res = d.resistance;
 
                 if (res) {
-                    if (res.value <= 0) currentPV = 0;
-                    else if (res.value < res.max / 2) currentPV = Math.floor(currentPV / 2);
-
-                    // Populate System Resistance (Bar Attributes)
                     if (!system.armor.resist) system.armor.resist = { value: 0, max: 0 };
                     system.armor.resist.value = res.value;
                     system.armor.resist.max = res.max;
@@ -257,26 +237,14 @@ export class BoilerplateActor extends Actor {
         // ENCUMBRANCE LOGIC (Characters Only)
         // ------------------------------------------
         if (system.encumbrance) {
-            system.encumbrance.value = Math.round(totalWeight * 10) / 10;
-
-            // Max carry is based on STR (Total)
             const strTotal = system.stats.str?.total || 0;
-            system.encumbrance.max = Math.max(8, strTotal * 3);
+            const enc = computeEncumbranceState(totalWeight, strTotal);
+            system.encumbrance.value = enc.value;
+            system.encumbrance.max = enc.max;
+            system.encumbrance.penalty = enc.penalty;
+            system.encumbrance.moveCap = enc.moveCap;
 
-            const encDiff = Math.floor(system.encumbrance.max - system.encumbrance.value);
-
-            // Store penalty data for the next step
-            system.encumbrance.penalty = 0;
-            system.encumbrance.moveCap = null;
-
-            if (encDiff === 1) {
-                system.encumbrance.penalty = 1;
-                system.encumbrance.moveCap = 1;
-            } else if (encDiff === 0) {
-                system.encumbrance.penalty = 2;
-                system.encumbrance.moveCap = 1;
-            } else if (encDiff < 0) {
-                // Ensure conditions object exists
+            if (enc.immobile) {
                 if (!system.conditions) system.conditions = {};
                 system.conditions.immobile = true;
             }
@@ -306,9 +274,7 @@ export class BoilerplateActor extends Actor {
         // This *should* work if 'system.armor.pv' is 0.
 
         // Maybe the issue is type coercion?
-        const basePV = Number(system.armor.pv) || 0;
-
-        system.armor.pv = Math.max(basePV, highestPV);
+        system.armor.pv = computeEffectiveArmorPv(system.armor.pv, highestPV);
 
         // Also ensure derived 'value' property exists if templates use it
         system.armor.value = system.armor.pv;
@@ -318,17 +284,12 @@ export class BoilerplateActor extends Actor {
     /* 4. Apply Penalties (Crit / Enc)              */
     /* -------------------------------------------- */
     _applyPenalties(system) {
-        // A. Encumbrance Penalty (Affects DEX)
-        if (system.encumbrance?.penalty > 0 && system.stats.dex) {
-            system.stats.dex.total = Math.max(0, system.stats.dex.total - system.encumbrance.penalty);
-        }
-
-        // B. Critical Condition (-2 STR, -2 DEX, -1 CONC, -1 COOL)
-        if (system.conditions.critical) {
-            if (system.stats.str) system.stats.str.total = Math.max(0, system.stats.str.total - 2);
-            if (system.stats.dex) system.stats.dex.total = Math.max(0, system.stats.dex.total - 2);
-            if (system.stats.conc) system.stats.conc.total = Math.max(0, system.stats.conc.total - 1);
-            if (system.stats.cool) system.stats.cool.total = Math.max(0, system.stats.cool.total - 1);
+        const adjusted = applyStatPenalties(system.stats, {
+            encumbrancePenalty: system.encumbrance?.penalty || 0,
+            critical: Boolean(system.conditions.critical)
+        });
+        for (const [key, stat] of Object.entries(adjusted)) {
+            if (system.stats[key]) system.stats[key].total = stat.total;
         }
     }
 
