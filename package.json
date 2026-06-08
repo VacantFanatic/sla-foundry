@@ -10,7 +10,7 @@
     "validate:dist": "node scripts/validate-dist.mjs",
     "validate:package": "node scripts/validate-dist.mjs --zip",
     "watch": "sass src/scss/sla-industries.scss css/sla-industries.css --style=expanded --no-source-map --watch",
-    "test:unit": "node --test tests/unit/inventory-stack.test.mjs tests/unit/system-manifest.test.mjs tests/unit/dice.test.mjs tests/unit/chat-wound-options.test.mjs tests/unit/ebb-mos.test.mjs tests/unit/skill-rank.test.mjs tests/unit/build-dist.test.mjs tests/unit/update-foundry-release.test.mjs",
+    "test:unit": "node --test tests/unit/inventory-stack.test.mjs tests/unit/system-manifest.test.mjs tests/unit/dice.test.mjs tests/unit/chat-wound-options.test.mjs tests/unit/ebb-mos.test.mjs tests/unit/skill-rank.test.mjs tests/unit/roll-math.test.mjs tests/unit/build-dist.test.mjs tests/unit/update-foundry-release.test.mjs",
     "test:e2e": "playwright test",
     "test:e2e:regression": "playwright test tests/e2e/regression-sla.spec.js tests/e2e/regression-item-sheets.spec.js",
     "test:e2e:operators": "playwright test tests/e2e/regression-operators.spec.js",

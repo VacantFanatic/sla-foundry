@@ -40,6 +40,9 @@ sla-industries/
 │   │   ├── toxicant-scope.mjs  # Toxicant immunity scope tracking (combat/scene flags)
 │   │   └── wound-visibility.mjs  # shouldShowMosWoundChoice()
 │   └── sheets/
+│       ├── actor/
+│       │   ├── roll-math.mjs   # Pure skill/weapon roll math (unit tested)
+│       │   └── skill-rolls.mjs # Skill roll execution extracted from actor sheet
 │       ├── actor-sheet.mjs     # SlaActorSheet (operative/character, ApplicationV2)
 │       ├── actor-npc-sheet.mjs # SlaNPCSheet (threat/NPC, ApplicationV2)
 │       ├── actor-vehicle-sheet.mjs  # SlaVehicleSheet (vehicle, ApplicationV2)

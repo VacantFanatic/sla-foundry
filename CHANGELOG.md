@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+* **Actor roll modules:** `module/sheets/actor/roll-math.mjs` (pure weapon/skill roll math) and `skill-rolls.mjs` (skill roll execution); unit tests for roll math.
 * **Item sheet UI E2E regression:** Playwright spec `tests/e2e/regression-item-sheets.spec.js` covers discipline, ebb formula, weapon, magazine, skill, and generic item sheets (tabs, spectral stamps, shared drop hints, drag-over feedback, effects tab CRUD). Included in `npm run test:e2e:regression`.
 
 ### Changed

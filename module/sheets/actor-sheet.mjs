@@ -13,6 +13,13 @@ import { SLAChat } from "../helpers/chat.mjs";
 import { syncEbbCriticalFlux } from "../helpers/ebb-flux.mjs";
 import { shouldShowMosWoundChoice } from "../helpers/wound-visibility.mjs";
 import { handleStackableActorItemDrop } from "../helpers/inventory-stack.mjs";
+import {
+    buildWeaponDamageFormula,
+    buildWeaponRollMods,
+    readWeaponRollFormState,
+    resolveWeaponMosOutcome
+} from "./actor/roll-math.mjs";
+import { executeSkillRollFromItem } from "./actor/skill-rolls.mjs";
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -1154,7 +1161,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
 
         const rawBase = item.system.damage || item.system.dmg || "0";
-        const rollFormula = this._buildWeaponDamageFormula(String(rawBase), damageMod);
+        const rollFormula = buildWeaponDamageFormula(String(rawBase), damageMod);
         const minDamage = Number(item.system.minDamage) || 0;
         const adValue = item.type === "explosive"
             ? (Number(item.system.ad) || 0)
@@ -1280,78 +1287,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     async _executeSkillRollFromItem(item) {
-        if (!item || item.type !== "skill") return;
-
-        const statKey = item.system.stat || "dex";
-        const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
-
-        // Default rank to 0 if missing
-        const rank = Number(item.system.rank) || 0;
-
-        // 2. MODIFIERS (Wounds, Prone, Stunned)
-        let globalMod = 0;
-        if (this.actor.system.conditions?.prone) globalMod -= 1;
-        if (this.actor.system.conditions?.stunned) globalMod -= 1;
-        const penalty = this.actor.system.wounds.penalty || 0;
-
-        const baseModifier = statValue + rank + globalMod - (game.settings.get("sla-industries", "enableAutomaticWoundPenalties") ? penalty : 0);
-
-        // 3. ROLL FORMULA
-        // Unskilled Rule: If Rank 0, still roll.
-        // Rule: "Success Die and one Skill Die for each rank... plus one"
-        // So Rank 0 = 1 Skill Die. Rank 1 = 2 Skill Dice.
-        const skillDiceCount = rank + 1;
-        const rollFormula = `1d10 + ${skillDiceCount}d10`;
-
-        let roll = createSLARoll(rollFormula);
-        // ---------------------------------------------
-        await roll.evaluate();
-
-        // 4. CALCULATE SUCCESS
-        const result = calculateRollResult(roll, baseModifier);
-        const resultColor = result.isSuccess ? '#39ff14' : '#f55';
-
-        // 6. RENDER TEMPLATE
-        const templateData = {
-            borderColor: resultColor,
-            headerColor: resultColor,
-            resultColor: resultColor,
-            actorUuid: this.actor.uuid,
-            itemName: item.name.toUpperCase(),
-            successTotal: result.total,
-            tooltip: generateDiceTooltip(roll, baseModifier),
-            skillDice: result.skillDiceData,
-            notes: "",
-            showDamageButton: false, // Ensure Hidden for Skills
-            // Luck Data
-            canUseLuck: this.actor.system.stats.luck.value > 0,
-            luckValue: this.actor.system.stats.luck.value,
-            luckSpent: false,
-            mos: {
-                isSuccess: result.isSuccess,
-                hits: result.skillHits,
-                effect: result.isSuccess ? `Margin of Success: ${result.skillHits}` : "Failed"
-            }
-        };
-
-        const chatContent = await foundry.applications.handlebars.renderTemplate("systems/sla-industries/templates/chat/chat-weapon-rolls.hbs", templateData);
-
-        roll.toMessage({
-            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-            content: chatContent,
-            flags: {
-                sla: this._buildSlaRollFlags({
-                    baseModifier: baseModifier,
-                    itemName: item.name.toUpperCase(),
-                    notes: "",
-                    tn: 10,
-                    extra: {
-                        rofRerollSD: false,
-                        rofRerollSkills: []
-                    }
-                })
-            }
-        });
+        return executeSkillRollFromItem(this, item);
     }
 
     // --- HELPERS: HTML GENERATION ---
@@ -1381,62 +1317,6 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         return skillItem ? (Number(skillItem.system.rank) || 0) : 0;
     }
 
-    _readWeaponRollFormState(form) {
-        return {
-            modifier: Number(form.modifier?.value) || 0,
-            aimSd: Number(form.aim_sd?.value) || 0,
-            aimAuto: Number(form.aim_auto?.value) || 0,
-            combatDef: Number(form.combatDef?.value) || 0,
-            acroDef: Number(form.acroDef?.value) || 0,
-            targetProne: form.prone?.checked || false
-        };
-    }
-
-    _buildWeaponRollMods(formState) {
-        return {
-            successDie: 0,
-            allDice: formState.modifier,
-            rank: 0,
-            damage: 0,
-            autoSkillSuccesses: 0,
-            reservedDice: 0,
-            aimSd: formState.aimSd,
-            aimAuto: formState.aimAuto,
-            combatDef: formState.combatDef,
-            acroDef: formState.acroDef,
-            targetProne: formState.targetProne
-        };
-    }
-
-    _resolveWeaponMosOutcome({ isSuccess, successThroughExperience, skillSuccessCount }) {
-        let mosDamageBonus = 0;
-        let mosEffectText = isSuccess ? "Standard Hit" : "Failed";
-        let mosChoiceData = { hasChoice: false, choiceType: "", choiceDmg: 0 };
-        let shouldApplyHeadWound = false;
-
-        if (isSuccess && !successThroughExperience) {
-            if (skillSuccessCount === 1) {
-                mosDamageBonus = 1;
-                mosEffectText = "+1 Damage";
-            }
-            else if (skillSuccessCount === 2) {
-                mosEffectText = "MOS 2: Choose Effect";
-                mosChoiceData = { hasChoice: true, choiceType: "arm", choiceDmg: 2 };
-            }
-            else if (skillSuccessCount === 3) {
-                mosEffectText = "MOS 3: Choose Effect";
-                mosChoiceData = { hasChoice: true, choiceType: "leg", choiceDmg: 4 };
-            }
-            else if (skillSuccessCount >= 4) {
-                mosDamageBonus = 6;
-                mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)";
-                shouldApplyHeadWound = true;
-            }
-        }
-
-        return { mosDamageBonus, mosEffectText, mosChoiceData, shouldApplyHeadWound };
-    }
-
     async _applyHeadshotSideEffect(notes) {
         if (game.user.targets.size === 0) return;
 
@@ -1446,18 +1326,6 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
             await targetActor.update({ "system.wounds.head": true });
             notes.push(`<span style="color:#ff5555">Head Wound Applied!</span>`);
         }
-    }
-
-    _buildWeaponDamageFormula(baseDamage, totalModifier) {
-        let finalDamageFormula = baseDamage;
-        if (totalModifier !== 0) {
-            if (baseDamage === "0" || baseDamage === "") {
-                finalDamageFormula = String(totalModifier);
-            } else {
-                finalDamageFormula = `${baseDamage} ${totalModifier > 0 ? "+" : ""} ${totalModifier}`;
-            }
-        }
-        return finalDamageFormula;
     }
 
     _resolveDamageDisplay(formula) {
@@ -1664,8 +1532,8 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
         const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0);
         const rank = this._resolveCombatSkillRank(item.system.skill);
-        const formState = this._readWeaponRollFormState(form);
-        let mods = this._buildWeaponRollMods(formState);
+        const formState = readWeaponRollFormState(form);
+        let mods = buildWeaponRollMods(formState);
 
         let notes = [];
         let flags = { rerollSD: false, rerollAll: false };
@@ -1794,7 +1662,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const resultColor = isSuccess ? '#39ff14' : '#f55';
 
 
-        const { mosDamageBonus, mosEffectText, mosChoiceData, shouldApplyHeadWound } = this._resolveWeaponMosOutcome({
+        const { mosDamageBonus, mosEffectText, mosChoiceData, shouldApplyHeadWound } = resolveWeaponMosOutcome({
             isSuccess,
             successThroughExperience,
             skillSuccessCount
@@ -1809,7 +1677,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         let baseDmg = String(rawBase);
         let totalMod = mods.damage + mosDamageBonus;
 
-        const finalDmgFormula = this._buildWeaponDamageFormula(baseDmg, totalMod);
+        const finalDmgFormula = buildWeaponDamageFormula(baseDmg, totalMod);
         let resolvedPreview = null;
         try {
             const replaced = Roll.replaceFormulaData(finalDmgFormula, this.actor.getRollData());
