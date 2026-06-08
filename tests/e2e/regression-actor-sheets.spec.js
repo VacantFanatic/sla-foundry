@@ -12,6 +12,11 @@ const {
 
 test.describe.configure({ timeout: 60_000 });
 
+/** Dice-icon stat roll control (play mode also has a clickable total). */
+function statRollDice(sheet, key) {
+    return sheet.locator(`.stat-box a.rollable[data-roll-type="stat"][data-key="${key}"]:has(.fa-dice-d20)`);
+}
+
 test.describe('SLA actor sheet UI — regression', () => {
     test.beforeEach(async ({ page }) => {
         test.skip(!process.env.FOUNDRY_USER, 'Set FOUNDRY_USER');
@@ -37,25 +42,37 @@ test.describe('SLA actor sheet UI — regression', () => {
         const sheet = await openActorSheet(page, actorId);
 
         await expect(sheet.locator('.stats-matrix')).toBeVisible();
-        await expect(sheet.locator('a.rollable[data-roll-type="stat"][data-key="str"]')).toBeVisible();
+        await expect(statRollDice(sheet, 'str')).toBeVisible();
         await expect(sheet.locator('nav.sheet-tabs a[data-tab="main"]')).toBeVisible();
         await expect(sheet.locator('nav.sheet-tabs a[data-tab="combat"]')).toBeVisible();
         await expect(sheet.locator('nav.sheet-tabs a[data-tab="inventory"]')).toBeVisible();
         await expect(sheet.locator('nav.sheet-tabs a[data-tab="effects"]')).toBeVisible();
+        await expect(sheet.locator('nav.sheet-tabs a[data-tab="traits"]')).toBeVisible();
+        await expect(sheet.locator('nav.sheet-tabs a[data-tab="notes"]')).toBeVisible();
     });
 
-    test('character sheet — tab navigation shows combat and inventory panels', async ({ page }) => {
+    test('character sheet — tab navigation shows combat, inventory, traits, and notes panels', async ({ page }) => {
         const actorId = await createTestActor(page);
         const sheet = await openActorSheet(page, actorId);
 
         await clickActorSheetTab(sheet, 'combat');
         await expect(sheet.locator('.tab[data-tab="combat"]')).toHaveClass(/active/);
+        await expect(sheet.locator('.sla-combat-loadout')).toBeVisible();
 
         await clickActorSheetTab(sheet, 'inventory');
         await expect(sheet.locator('.tab[data-tab="inventory"]')).toHaveClass(/active/);
 
         await clickActorSheetTab(sheet, 'effects');
         await expect(sheet.locator('.tab[data-tab="effects"]')).toHaveClass(/active/);
+        await expect(sheet.locator('.sla-effect-search')).toBeVisible();
+
+        await clickActorSheetTab(sheet, 'traits');
+        await expect(sheet.locator('.tab[data-tab="traits"]')).toHaveClass(/active/);
+        await expect(sheet.locator('.sla-traits-panel')).toBeVisible();
+
+        await clickActorSheetTab(sheet, 'notes');
+        await expect(sheet.locator('.tab[data-tab="notes"]')).toHaveClass(/active/);
+        await expect(sheet.locator('.sla-notes-panel')).toBeVisible();
     });
 
     test('character sheet — stat roll posts to chat', async ({ page }) => {
@@ -64,7 +81,7 @@ test.describe('SLA actor sheet UI — regression', () => {
         });
         const sheet = await openActorSheet(page, actorId);
 
-        await sheet.locator('a.rollable[data-roll-type="stat"][data-key="str"]').click();
+        await statRollDice(sheet, 'str').click();
 
         await expect
             .poll(
@@ -76,6 +93,111 @@ test.describe('SLA actor sheet UI — regression', () => {
             )
             .toBe(true);
         await expect(page.getByRole('heading', { name: /STR\s+CHECK/i }).first()).toBeVisible();
+    });
+
+    test('character sheet — play-mode stat total is also a roll target', async ({ page }) => {
+        const actorId = await createTestActor(page, {
+            stats: { str: { value: 5 } }
+        });
+        const sheet = await openActorSheet(page, actorId);
+
+        await sheet.locator('a.rollable.sla-stat-play-hit[data-key="str"]').click();
+
+        await expect
+            .poll(
+                async () =>
+                    page.evaluate(() =>
+                        globalThis.game?.messages?.contents?.some((m) => /STR\s+CHECK/i.test(String(m.content ?? '')))
+                    ),
+                { timeout: 15_000 }
+            )
+            .toBe(true);
+    });
+
+    test('character sheet — Edit/Play mode banner and HP bar', async ({ page }) => {
+        const actorId = await createTestActor(page, {
+            hp: { value: 4, max: 10 },
+            stats: { str: { value: 3 } }
+        });
+        const sheet = await openActorSheet(page, actorId);
+
+        await expect(sheet.locator('.sla-stat-mode-banner')).toBeVisible();
+        await expect(sheet.locator('.sla-hp-bar__fill.is-critical')).toBeVisible();
+    });
+
+    test('character sheet — effects search filters rows', async ({ page }) => {
+        const actorId = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Actor ${stamp}`,
+                    type: 'character',
+                    system: { stats: { str: { value: 3 } } }
+                }
+            ]);
+            await actor.createEmbeddedDocuments('ActiveEffect', [
+                { name: 'Alpha Boost', disabled: false, img: 'icons/svg/aura.svg' },
+                { name: 'Beta Shield', disabled: false, img: 'icons/svg/aura.svg' }
+            ]);
+            return actor.id;
+        });
+
+        const sheet = await openActorSheet(page, actorId);
+        await clickActorSheetTab(sheet, 'effects');
+
+        const rows = sheet.locator('.sla-effect-row');
+        await expect(rows).toHaveCount(2);
+
+        await sheet.locator('.sla-effect-search').fill('alpha');
+        await expect(sheet.locator('.sla-effect-row:not(.sla-effect-filtered)')).toHaveCount(1);
+        await expect(sheet.locator('.sla-effect-row:not(.sla-effect-filtered) h4')).toHaveText('Alpha Boost');
+
+        await sheet.locator('.sla-effect-search').fill('');
+        await expect(sheet.locator('.sla-effect-row:not(.sla-effect-filtered)')).toHaveCount(2);
+    });
+
+    test('character sheet — wound diagram reflects checked wounds', async ({ page }) => {
+        const actorId = await createTestActor(page, {
+            wounds: { head: true, torso: false, lArm: true }
+        });
+        const sheet = await openActorSheet(page, actorId);
+        await clickActorSheetTab(sheet, 'combat');
+
+        await expect(sheet.locator('.sla-wound-summary')).toBeVisible();
+        await expect(sheet.locator('.sla-wound-diagram__slot[data-area="head"].is-wounded')).toBeVisible();
+        await expect(sheet.locator('.sla-wound-diagram__slot[data-area="larm"].is-wounded')).toBeVisible();
+        await expect(sheet.locator('.sla-wound-diagram__slot[data-area="torso"].is-wounded')).toHaveCount(0);
+    });
+
+    test('character sheet — tab rail exposes accessibility attributes', async ({ page }) => {
+        const actorId = await createTestActor(page);
+        const sheet = await openActorSheet(page, actorId);
+
+        const tablist = sheet.locator('nav.sheet-tabs[role="tablist"]');
+        await expect(tablist).toBeVisible();
+
+        const mainTab = sheet.locator('nav.sheet-tabs a[data-tab="main"]');
+        await expect(mainTab).toHaveAttribute('aria-selected', 'true');
+        await expect(mainTab).toHaveAttribute('aria-controls', 'sla-tabpanel-main');
+
+        await clickActorSheetTab(sheet, 'combat');
+        await expect(sheet.locator('nav.sheet-tabs a[data-tab="combat"]')).toHaveAttribute('aria-selected', 'true');
+        await expect(sheet.locator('nav.sheet-tabs a[data-tab="main"]')).toHaveAttribute('aria-selected', 'false');
+    });
+
+    test('character sheet — legacy biography tab id opens traits panel', async ({ page }) => {
+        const actorId = await createTestActor(page);
+        await openActorSheet(page, actorId);
+
+        await page.evaluate(async (id) => {
+            const actor = game.actors.get(id);
+            const sheet = actor.sheet;
+            await sheet.changeTab('biography', 'primary');
+        }, actorId);
+
+        const sheet = page.locator('form.application.sla-industries.actor').last();
+        await expect(sheet.locator('.tab[data-tab="traits"]')).toHaveClass(/active/);
+        await expect(sheet.locator('.sla-traits-panel')).toBeVisible();
     });
 });
 

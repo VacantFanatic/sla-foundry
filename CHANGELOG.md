@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Operative tab IA:** Reordered tabs (Main → Combat → Inventory → Effects → Traits → Notes → Ebb); Bio & Traits split into separate **Traits** (traits + infections) and **Notes** tabs; legacy `biography` tab id redirects to **Traits**.
 - **Actor sheet SCSS modules:** `src/scss/sheets/actor/` (`_effects`, `_fields`, `_drops`, `_ux-enhancements`, `_responsive`) mirroring item-sheet #243 patterns.
 - **Pure UX helpers:** `module/sheets/actor/sheet-ux-pure.mjs` with unit tests (`wound count`, `HP bar tone`, `stat play color`, tab normalization).
+- **Actor sheet E2E coverage:** Playwright regression tests for Traits/Notes tabs, effects search filter, HP bar, wound diagram, tab `aria-selected`, play-mode stat total rolls, and legacy `biography` tab redirect.
 
 ### Changed
 
