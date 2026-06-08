@@ -3,8 +3,7 @@ import { BoilerplateActor } from "./documents/actor.mjs";
 import { BoilerplateItem } from "./documents/item.mjs";
 import { LuckDialog } from "./apps/luck-dialog.mjs";
 
-import { SlaCharacterData, SlaNPCData, SlaVehicleData } from "./data/actor.mjs";
-import { SlaItemData, SlaSkillData, SlaTraitData, SlaWeaponData, SlaArmorData, SlaEbbFormulaData, SlaDisciplineData, SlaDrugData, SlaSpeciesData, SlaPackageData, SlaMagazineData, SlaExplosiveData } from "./data/item.mjs";
+import { ACTOR_DATA_MODELS, ITEM_DATA_MODELS } from "./data/registry.mjs";
 
 // Import sheet classes.
 import { SlaActorSheet } from "./sheets/actor-sheet.mjs";
@@ -132,25 +131,8 @@ Hooks.once('init', async function () {
     CONFIG.Item.documentClass = BoilerplateItem;
 
     // REGISTER DATA MODELS
-    CONFIG.Actor.dataModels = {
-        character: SlaCharacterData,
-        npc: SlaNPCData,
-        vehicle: SlaVehicleData
-    };
-    CONFIG.Item.dataModels = {
-        item: SlaItemData,
-        skill: SlaSkillData,
-        trait: SlaTraitData,
-        weapon: SlaWeaponData,
-        explosive: SlaExplosiveData,
-        armor: SlaArmorData,
-        ebbFormula: SlaEbbFormulaData,
-        discipline: SlaDisciplineData,
-        drug: SlaDrugData,
-        species: SlaSpeciesData,
-        package: SlaPackageData,
-        magazine: SlaMagazineData
-    };
+    CONFIG.Actor.dataModels = ACTOR_DATA_MODELS;
+    CONFIG.Item.dataModels = ITEM_DATA_MODELS;
 
     // REGISTER CUSTOM TOKEN RULER
     CONFIG.Token.rulerClass = SLATokenRuler;
