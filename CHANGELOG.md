@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.8.1] - 2026-06-08
+
+### Changed
+
+- **Actor sheet density pass:** Compact header (species/package grid, shorter finance inputs), icon-only tab rail with subtle active state (no oversized orange tiles), and smaller wound/condition controls.
+- **Tab rail:** Removed persistent text labels under icons; tooltips and `aria-label` remain for discoverability.
+
+### Added
+
+- **Screenshot capture spec:** `tests/e2e/capture-actor-sheet-screenshots.spec.js` exports header, stats, tab rail, wounds, and full sheet PNGs for UX review.
+
 ## [2.8.0] - 2026-06-08
 
 ### Added

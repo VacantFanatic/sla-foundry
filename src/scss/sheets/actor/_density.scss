@@ -1,0 +1,202 @@
+/**
+ * Actor sheet density pass — tighten oversized header, tab rail, and wounds UI.
+ */
+
+/* --- Header -------------------------------------------------------------- */
+.sla-sheet .header-grid {
+    min-height: 132px;
+}
+
+.sla-sheet .header-left {
+    padding: 6px;
+}
+
+.sla-sheet .header-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    align-items: start;
+}
+
+.sla-sheet .header-fields .form-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+}
+
+.sla-sheet .header-fields .form-group label.label-bold {
+    flex: 0 0 auto;
+    font-size: 0.7rem;
+}
+
+.sla-sheet .header-bottom-bar {
+    margin-top: 4px;
+    padding-top: 4px;
+    font-size: 0.8rem;
+}
+
+.sla-sheet .finance-box {
+    flex: 0 0 118px;
+    max-width: 132px;
+}
+
+.sla-sheet .sla-finance-details summary {
+    font-size: 0.7rem;
+    padding: 3px 4px;
+}
+
+.sla-sheet .sla-finance-fields {
+    gap: 4px;
+    padding: 4px 6px 6px;
+}
+
+.sla-sheet .sla-finance-fields .sla-field > label {
+    font-size: 0.65rem;
+    margin-bottom: 0;
+}
+
+.sla-sheet .sla-finance-fields input[type='number'] {
+    height: 22px;
+    min-height: 22px;
+    padding: 1px 5px;
+    font-size: 0.8rem;
+    line-height: 1.2;
+}
+
+.sla-sheet .chip,
+.sla-sheet .chip-placeholder {
+    height: 26px;
+    min-height: 26px;
+    font-size: 0.78rem;
+}
+
+.sla-sheet .chip img {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+}
+
+.sla-sheet .portrait-container {
+    flex: 0 0 108px;
+}
+
+/* --- Tab rail ------------------------------------------------------------ */
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail {
+    width: 34px;
+    padding: 4px 2px;
+    gap: 2px;
+    overflow: visible;
+    overflow-y: visible;
+    flex-shrink: 0;
+    border-bottom: none;
+}
+
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail .item,
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-btn {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+    max-height: 30px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    flex-direction: column;
+}
+
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-btn i {
+    font-size: 0.85rem;
+    line-height: 1;
+}
+
+/* Icon-only rail: compact active — not a full-height orange tile */
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail .item.active {
+    color: var(--sla-accent);
+    background: rgba(208, 94, 26, 0.12);
+    border-color: var(--sla-accent);
+    box-shadow: none;
+}
+
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail .item:hover {
+    color: var(--sla-text-light);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-label {
+    display: none !important;
+}
+
+.sla-sheet .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-tooltip {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+}
+
+/* --- Wounds & conditions ------------------------------------------------- */
+.sla-sheet .wound-list {
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.sla-sheet .wound-entry {
+    padding: 2px 6px;
+    min-height: 0;
+
+    label {
+        font-size: 0.72rem;
+        font-weight: 600;
+    }
+
+    .wound-checkbox {
+        width: 14px !important;
+        height: 14px !important;
+        min-width: 14px !important;
+        min-height: 14px !important;
+    }
+}
+
+.sla-sheet .sla-wound-panel {
+    gap: 8px;
+}
+
+.sla-sheet .sla-wound-diagram {
+    min-width: 96px;
+    padding: 4px;
+    gap: 3px;
+}
+
+.sla-sheet .sla-wound-diagram__slot {
+    width: 28px;
+    height: 22px;
+    font-size: 0.58rem;
+}
+
+.sla-sheet .condition-grid {
+    gap: 4px;
+    padding-top: 6px;
+    justify-content: flex-start;
+}
+
+.sla-sheet .condition-toggle {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    max-width: 34px;
+    max-height: 34px;
+    font-size: 1rem;
+    flex: 0 0 34px;
+}
+
+.sla-sheet .sla-wound-summary {
+    font-size: 0.72rem;
+    margin-bottom: 4px;
+}
+
+/* --- Stat mode banner ---------------------------------------------------- */
+.sla-sheet .sla-stat-mode-banner {
+    margin: 0 5px 2px;
+    padding: 2px 6px;
+    font-size: 0.68rem;
+    line-height: 1.3;
+}
