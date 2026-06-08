@@ -4,11 +4,23 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+    applySuccessThroughExperience,
+    buildSkillDiceResults,
     buildSkillRollFormula,
+    computeMeleeStrDamageModifier,
     computeSkillRollModifier,
+    computeSuccessDieOutcome,
+    computeWeaponSkillDiceCount,
     buildWeaponDamageFormula,
+    resolveExplosiveBlastData,
     resolveWeaponMosOutcome
 } from '../../module/sheets/actor/roll-math.mjs';
+
+function mockWeaponRoll(successDieRaw, skillDieRaws = []) {
+    return {
+        terms: [{ results: [{ result: successDieRaw }] }, {}, { results: skillDieRaws.map((r) => ({ result: r })) }]
+    };
+}
 
 describe('buildSkillRollFormula', () => {
     test('rank 0 rolls one skill die', () => {
@@ -65,6 +77,59 @@ describe('buildWeaponDamageFormula', () => {
 
     test('returns modifier alone when base is zero', () => {
         assert.equal(buildWeaponDamageFormula('0', 2), '2');
+    });
+});
+
+describe('computeMeleeStrDamageModifier', () => {
+    test('scales STR bonus for melee damage', () => {
+        assert.equal(computeMeleeStrDamageModifier(5), 1);
+        assert.equal(computeMeleeStrDamageModifier(6), 2);
+        assert.equal(computeMeleeStrDamageModifier(7), 4);
+        assert.equal(computeMeleeStrDamageModifier(3), 0);
+    });
+});
+
+describe('computeSuccessDieOutcome', () => {
+    test('success when modified total meets TN', () => {
+        const r = computeSuccessDieOutcome({ sdRaw: 6, baseModifier: 4, successDieModifier: 0, targetNumber: 10 });
+        assert.equal(r.isBaseSuccess, true);
+        assert.equal(r.sdTotal, 10);
+    });
+});
+
+describe('applySuccessThroughExperience', () => {
+    test('converts failed SD with 4+ skill hits to success', () => {
+        const r = applySuccessThroughExperience({ isBaseSuccess: false, skillSuccessCount: 4 });
+        assert.equal(r.isSuccess, true);
+        assert.equal(r.successThroughExperience, true);
+        assert.ok(r.note);
+    });
+});
+
+describe('buildSkillDiceResults', () => {
+    test('counts skill dice at or above TN', () => {
+        const roll = mockWeaponRoll(3, [8, 4, 10]);
+        const { skillSuccessCount, skillDiceData } = buildSkillDiceResults({
+            roll,
+            baseModifier: 0,
+            targetNumber: 8
+        });
+        assert.equal(skillSuccessCount, 2);
+        assert.equal(skillDiceData.length, 3);
+    });
+});
+
+describe('computeWeaponSkillDiceCount', () => {
+    test('subtracts reserved and aim-auto dice from pool', () => {
+        assert.equal(computeWeaponSkillDiceCount(3, { reservedDice: 1, aimAuto: 1 }), 2);
+    });
+});
+
+describe('resolveExplosiveBlastData', () => {
+    test('defaults outer blast to 5 when unset', () => {
+        const d = resolveExplosiveBlastData({ blastRadiusInner: 2, blastRadiusOuter: 0 });
+        assert.equal(d.innerDist, 2);
+        assert.equal(d.outerDist, 5);
     });
 });
 

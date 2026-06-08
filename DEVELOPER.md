@@ -43,7 +43,8 @@ sla-industries/
 │   └── sheets/
 │       ├── actor/
 │       │   ├── roll-math.mjs   # Pure skill/weapon roll math (unit tested)
-│       │   └── skill-rolls.mjs # Skill roll execution extracted from actor sheet
+│       │   ├── skill-rolls.mjs # Skill roll execution extracted from actor sheet
+│       │   └── weapon-rolls.mjs # Weapon attack dialog and roll orchestration
 │       ├── actor-sheet.mjs     # SlaActorSheet (operative/character, ApplicationV2)
 │       ├── actor-npc-sheet.mjs # SlaNPCSheet (threat/NPC, ApplicationV2)
 │       ├── actor-vehicle-sheet.mjs  # SlaVehicleSheet (vehicle, ApplicationV2)
