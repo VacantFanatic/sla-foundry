@@ -32,6 +32,21 @@ export function statPlayColorClass(total, base) {
 }
 
 /**
+ * Clamp stored HP to [0, max]. When max is 0, HP is forced to 0.
+ * @param {number | string} value
+ * @param {number | string} max
+ * @returns {number}
+ */
+export function clampHpValue(value, max) {
+    let v = Number(value) || 0;
+    const m = Number(max) || 0;
+    if (v < 0) v = 0;
+    if (m > 0 && v > m) v = m;
+    else if (m <= 0) v = 0;
+    return v;
+}
+
+/**
  * @param {number} value
  * @param {number} max
  * @returns {{ percent: number, tone: HpBarTone }}

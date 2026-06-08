@@ -36,7 +36,7 @@
         <div class="compact-row">
             <label title="{{localize 'SLA.ActorSheet.HitPoints'}}">{{localize "SLA.ActorSheet.HitPoints"}}</label>
             <div class="flexrow sla-hp-inputs">
-                <input type="number" name="system.hp.value" value="{{system.hp.value}}" class="sla-input-mini"/>
+                <input type="number" name="system.hp.value" value="{{system.hp.value}}" min="0" max="{{system.hp.max}}" class="sla-input-mini"/>
                 <span class="sla-hp-sep">/</span>
                 <input type="number" name="system.hp.max" value="{{system.hp.max}}" class="sla-input-mini" readonly />
             </div>
@@ -63,7 +63,6 @@
                 <input type="number" name="system.xp.value" value="{{system.xp.value}}" class="sla-input-mini" readonly />
                 <button type="button" class="xp-button sla-xp-button" title="{{localize 'SLA.ActorSheet.ManageXP'}}" aria-label="{{localize 'SLA.ActorSheet.ManageXP'}}">
                     <i class="fas fa-coins" aria-hidden="true"></i>
-                    <span>{{localize "SLA.ActorSheet.ManageXP"}}</span>
                 </button>
             </div>
         </div>

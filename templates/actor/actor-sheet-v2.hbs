@@ -1,4 +1,4 @@
-<div class="{{cssClass}} sla-sheet standard-form sla-actor-layout sla-sheet-tabs-labeled" autocomplete="off">
+<div class="{{cssClass}} sla-sheet standard-form sla-actor-layout" autocomplete="off">
 
     {{> "systems/sla-industries/templates/actor/parts/header-card.hbs"}}
 
@@ -50,38 +50,31 @@
         <nav class="sheet-tabs tabs sla-sheet-tab-rail" data-group="primary" role="tablist" aria-label="{{localize 'SLA.ActorSheet.TabNavLabel'}}">
             <a class="item sla-tab-rail-btn {{tabs.main.cssClass}}" href="#" id="sla-tab-main" role="tab" data-group="primary" data-tab="main" title="{{tabs.main.label}}" aria-label="{{tabs.main.label}}" aria-controls="sla-tabpanel-main">
                 <i class="fas {{tabs.main.icon}}" aria-hidden="true"></i>
-                <span class="sla-tab-rail-label">{{tabs.main.label}}</span>
                 <span class="sla-tab-rail-tooltip">{{tabs.main.label}}</span>
             </a>
             <a class="item sla-tab-rail-btn {{tabs.combat.cssClass}}" href="#" id="sla-tab-combat" role="tab" data-group="primary" data-tab="combat" title="{{tabs.combat.label}}" aria-label="{{tabs.combat.label}}" aria-controls="sla-tabpanel-combat">
                 <i class="fas {{tabs.combat.icon}}" aria-hidden="true"></i>
-                <span class="sla-tab-rail-label">{{tabs.combat.label}}</span>
                 <span class="sla-tab-rail-tooltip">{{tabs.combat.label}}</span>
             </a>
             <a class="item sla-tab-rail-btn {{tabs.inventory.cssClass}}" href="#" id="sla-tab-inventory" role="tab" data-group="primary" data-tab="inventory" title="{{tabs.inventory.label}}" aria-label="{{tabs.inventory.label}}" aria-controls="sla-tabpanel-inventory">
                 <i class="fas {{tabs.inventory.icon}}" aria-hidden="true"></i>
-                <span class="sla-tab-rail-label">{{tabs.inventory.label}}</span>
                 <span class="sla-tab-rail-tooltip">{{tabs.inventory.label}}</span>
             </a>
             <a class="item sla-tab-rail-btn {{tabs.effects.cssClass}}" href="#" id="sla-tab-effects" role="tab" data-group="primary" data-tab="effects" title="{{tabs.effects.label}}" aria-label="{{tabs.effects.label}}" aria-controls="sla-tabpanel-effects">
                 <i class="fas {{tabs.effects.icon}}" aria-hidden="true"></i>
-                <span class="sla-tab-rail-label">{{tabs.effects.label}}</span>
                 <span class="sla-tab-rail-tooltip">{{tabs.effects.label}}</span>
             </a>
             <a class="item sla-tab-rail-btn {{tabs.traits.cssClass}}" href="#" id="sla-tab-traits" role="tab" data-group="primary" data-tab="traits" title="{{tabs.traits.label}}" aria-label="{{tabs.traits.label}}" aria-controls="sla-tabpanel-traits">
                 <i class="fas {{tabs.traits.icon}}" aria-hidden="true"></i>
-                <span class="sla-tab-rail-label">{{tabs.traits.label}}</span>
                 <span class="sla-tab-rail-tooltip">{{tabs.traits.label}}</span>
             </a>
             <a class="item sla-tab-rail-btn {{tabs.notes.cssClass}}" href="#" id="sla-tab-notes" role="tab" data-group="primary" data-tab="notes" title="{{tabs.notes.label}}" aria-label="{{tabs.notes.label}}" aria-controls="sla-tabpanel-notes">
                 <i class="fas {{tabs.notes.icon}}" aria-hidden="true"></i>
-                <span class="sla-tab-rail-label">{{tabs.notes.label}}</span>
                 <span class="sla-tab-rail-tooltip">{{tabs.notes.label}}</span>
             </a>
             {{#if isEbonite}}
             <a class="item sla-tab-rail-btn {{tabs.ebb.cssClass}}" href="#" id="sla-tab-ebb" role="tab" data-group="primary" data-tab="ebb" title="{{tabs.ebb.label}}" aria-label="{{tabs.ebb.label}}" aria-controls="sla-tabpanel-ebb">
                 <i class="fas {{tabs.ebb.icon}}" aria-hidden="true"></i>
-                <span class="sla-tab-rail-label">{{tabs.ebb.label}}</span>
                 <span class="sla-tab-rail-tooltip">{{tabs.ebb.label}}</span>
             </a>
             {{/if}}

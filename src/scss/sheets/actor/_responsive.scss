@@ -50,12 +50,19 @@
         padding: 4px;
     }
 
-    .sla-sheet .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-tooltip {
-        display: none;
+    .sla-sheet .sheet-tabs.sla-sheet-tab-rail {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 4px;
+        gap: 4px;
     }
 
-    .sla-sheet.sla-sheet-tabs-labeled .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-label {
-        display: block;
+    .sla-sheet .sheet-tabs.sla-sheet-tab-rail .item,
+    .sla-sheet .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-btn {
+        width: 36px;
+        height: 36px;
     }
 
     .sla-sheet .sla-combat-colhead,

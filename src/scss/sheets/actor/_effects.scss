@@ -6,6 +6,46 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+
+    > .sla-header-bar.flexrow > span {
+        flex: 1;
+    }
+}
+
+/* Header add control — avoid Foundry's oversized default <button> chrome */
+.sla-sheet .sla-header-bar .sla-effect-create {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: 1px solid var(--sla-border);
+    border-radius: var(--sla-radius);
+    background: transparent;
+    color: var(--sla-text-muted, #888);
+    cursor: pointer;
+    line-height: 1;
+    font-size: 0.65rem;
+    box-shadow: none;
+
+    i {
+        font-size: 0.65rem;
+        line-height: 1;
+    }
+
+    &:hover,
+    &:focus-visible {
+        color: var(--sla-accent);
+        border-color: var(--sla-accent);
+        background: rgba(208, 94, 26, 0.08);
+        outline: none;
+        box-shadow: none;
+    }
 }
 
 .sla-sheet .sla-effects-toolbar {

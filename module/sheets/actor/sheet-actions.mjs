@@ -4,6 +4,7 @@ import { onItemCreate } from './actor-drops.mjs';
 import { onReloadWeapon } from './reload.mjs';
 import { useDrugItem } from './item-actions.mjs';
 import { executeCombatLoadoutDamageRoll } from './weapon-gates.mjs';
+import { clampHpValue } from './sheet-ux-pure.mjs';
 import { buildSpeciesRemovalUpdates } from './sheet-actions-pure.mjs';
 import { handleSheetRoll } from './sheet-rolls.mjs';
 
@@ -275,6 +276,16 @@ export async function handleSheetChange(sheet, event) {
         const item = sheet.actor.items.get(itemId);
         const field = input.dataset.field;
         if (item && field) await item.update({ [field]: Number(input.value) });
+        return;
+    }
+
+    const hpInput = el.closest('input[name="system.hp.value"]');
+    if (hpInput instanceof HTMLInputElement) {
+        const max = sheet.actor.system.hp?.max ?? 0;
+        const clamped = clampHpValue(hpInput.value, max);
+        if (String(clamped) !== hpInput.value) {
+            hpInput.value = String(clamped);
+        }
         return;
     }
 
