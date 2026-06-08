@@ -10,7 +10,7 @@ export function computeCarriedItemWeight(item) {
     const d = item.system ?? {};
     let itemWeight = d.weight || 0;
 
-    if (item.type === "armor" && d.powered) {
+    if (item.type === 'armor' && d.powered) {
         const currentRes = d.resistance?.value || 0;
         if (currentRes <= 0) {
             itemWeight = 6;

@@ -2,7 +2,7 @@
  * Helper functions for preparing item data for actor sheets.
  */
 
-const NON_RELOADABLE_SKILLS = new Set(["melee", "unarmed"]);
+const NON_RELOADABLE_SKILLS = new Set(['melee', 'unarmed']);
 
 /**
  * Normalize legacy `ebbEffect` on Ebb formulas (`none` → `effect`).
@@ -10,8 +10,8 @@ const NON_RELOADABLE_SKILLS = new Set(["melee", "unarmed"]);
  * @returns {"damage"|"heal"|"effect"|string}
  */
 export function normalizeEbbEffect(raw) {
-    const v = raw || "damage";
-    return v === "none" ? "effect" : v;
+    const v = raw || 'damage';
+    return v === 'none' ? 'effect' : v;
 }
 
 /**
@@ -20,8 +20,8 @@ export function normalizeEbbEffect(raw) {
  * @returns {"and"|"or"}
  */
 export function normalizeEbbHealWoundMode(raw) {
-    const v = String(raw ?? "and").toLowerCase();
-    return v === "or" ? "or" : "and";
+    const v = String(raw ?? 'and').toLowerCase();
+    return v === 'or' ? 'or' : 'and';
 }
 
 /**
@@ -60,12 +60,12 @@ export function prepareItems(items, rollData) {
 function initPrepareItemBuckets() {
     return {
         inventory: {
-            weapon: { label: "Weapons", items: [] },
-            armor: { label: "Armor", items: [] },
-            explosive: { label: "Explosives", items: [] },
-            magazine: { label: "Ammunition", items: [] },
-            drug: { label: "Drugs", items: [] },
-            item: { label: "Gear", items: [] }
+            weapon: { label: 'Weapons', items: [] },
+            armor: { label: 'Armor', items: [] },
+            explosive: { label: 'Explosives', items: [] },
+            magazine: { label: 'Ammunition', items: [] },
+            drug: { label: 'Drugs', items: [] },
+            item: { label: 'Gear', items: [] }
         },
         infections: [],
         traits: [],
@@ -73,13 +73,13 @@ function initPrepareItemBuckets() {
         disciplines: [],
         skills: [],
         skillsByStat: {
-            str: { label: "STR", items: [] },
-            dex: { label: "DEX", items: [] },
-            know: { label: "KNOW", items: [] },
-            conc: { label: "CONC", items: [] },
-            cha: { label: "CHA", items: [] },
-            cool: { label: "COOL", items: [] },
-            other: { label: "OTHER", items: [] }
+            str: { label: 'STR', items: [] },
+            dex: { label: 'DEX', items: [] },
+            know: { label: 'KNOW', items: [] },
+            conc: { label: 'CONC', items: [] },
+            cha: { label: 'CHA', items: [] },
+            cool: { label: 'COOL', items: [] },
+            other: { label: 'OTHER', items: [] }
         },
         // Includes weapon and explosive attackables; exposed as "weapons" for template compatibility.
         combatAttackItems: [],
@@ -89,45 +89,45 @@ function initPrepareItemBuckets() {
 
 function classifyItems(items, rollData, buckets) {
     for (const item of items) {
-        item.img = item.img || "icons/svg/item-bag.svg";
+        item.img = item.img || 'icons/svg/item-bag.svg';
 
-        if (item.type === "toxicant") {
+        if (item.type === 'toxicant') {
             buckets.infections.push(item);
         } else if (buckets.inventory[item.type]) {
             buckets.inventory[item.type].items.push(item);
         }
 
         switch (item.type) {
-            case "weapon": {
-                const skillKey = (item.system.skill || "").toLowerCase();
+            case 'weapon': {
+                const skillKey = (item.system.skill || '').toLowerCase();
                 item.isReloadable = !NON_RELOADABLE_SKILLS.has(skillKey);
                 item.resolvedDamage = resolveDamage(item.system.damage, item.system.minDamage, rollData);
                 buckets.combatAttackItems.push(item);
                 break;
             }
-            case "explosive":
+            case 'explosive':
                 item.resolvedDamage = item.system.damage;
                 buckets.combatAttackItems.push(item);
                 break;
-            case "armor":
+            case 'armor':
                 buckets.armors.push(item);
                 break;
-            case "trait":
+            case 'trait':
                 buckets.traits.push(item);
                 break;
-            case "ebbFormula": {
-                const t = item.system.ebbTarget || "enemy";
+            case 'ebbFormula': {
+                const t = item.system.ebbTarget || 'enemy';
                 const e = normalizeEbbEffect(item.system.ebbEffect);
                 item.ebbTargetLabel = game.i18n?.localize(`SLA.EbbTarget.${t}`) ?? t;
                 item.ebbEffectLabel = game.i18n?.localize(`SLA.EbbEffect.${e}`) ?? e;
                 buckets.ebbFormulas.push(item);
                 break;
             }
-            case "discipline":
+            case 'discipline':
                 buckets.disciplines.push(item);
                 break;
-            case "skill": {
-                const stat = (item.system.stat || "dex").toLowerCase();
+            case 'skill': {
+                const stat = (item.system.stat || 'dex').toLowerCase();
                 (buckets.skillsByStat[stat] || buckets.skillsByStat.other).items.push(item);
                 buckets.skills.push(item);
                 break;
@@ -166,17 +166,17 @@ function buildNestedDisciplines(disciplines, ebbFormulas) {
         discipline.formulas = [];
         nestedDisciplines.push(discipline);
 
-        const nameKey = (discipline.name || "").toLowerCase();
+        const nameKey = (discipline.name || '').toLowerCase();
         if (nameKey && !disciplineByName.has(nameKey)) {
             disciplineByName.set(nameKey, discipline);
         }
     }
 
     for (const formula of ebbFormulas) {
-        const rawKey = formula.system.discipline || "";
+        const rawKey = formula.system.discipline || '';
         const key = rawKey.toLowerCase();
         const label = configDis[rawKey] || configDis[key];
-        const labelKey = (label || "").toLowerCase();
+        const labelKey = (label || '').toLowerCase();
         const parent = disciplineByName.get(key) || disciplineByName.get(labelKey);
         if (parent) parent.formulas.push(formula);
     }
@@ -193,17 +193,17 @@ function buildNestedDisciplines(disciplines, ebbFormulas) {
  */
 function resolveDamage(dmg, minDamage, rollData) {
     try {
-        const dmgStr = String(dmg || "0");
+        const dmgStr = String(dmg || '0');
         const minDmg = Math.max(0, Number(minDamage) || 0);
-        
+
         // Check if it contains dice (e.g., "1d6", "2d4+1")
-        if (dmgStr.includes("d")) {
+        if (dmgStr.includes('d')) {
             // Keep formula if dice present (minDamage will be enforced during roll)
             return dmgStr;
         }
-        
+
         // Check if it contains a variable (e.g. @stats) or math operators
-        if (typeof dmg === "string" && (dmgStr.includes("@") || dmgStr.match(/[+\-*\/]/))) {
+        if (typeof dmg === 'string' && (dmgStr.includes('@') || dmgStr.match(/[+\-*\/]/))) {
             // Resolve formula with variables
             const resolvedFormula = Roll.replaceFormulaData(dmgStr, rollData);
             // Evaluate math string
@@ -226,13 +226,13 @@ function resolveDamage(dmg, minDamage, rollData) {
                 // If conversion fails, return original
                 return dmg;
             }
-            
+
             // Apply minDamage to static values
             total = Math.max(0, total); // Never allow negative damage
             if (total < minDmg) {
                 total = minDmg;
             }
-            
+
             return total;
         }
     } catch (err) {
@@ -240,4 +240,3 @@ function resolveDamage(dmg, minDamage, rollData) {
         return dmg;
     }
 }
-

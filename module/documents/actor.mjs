@@ -1,19 +1,18 @@
-import { NATURAL_WEAPONS } from "../data/natural-weapons.mjs";
+import { NATURAL_WEAPONS } from '../data/natural-weapons.mjs';
 import {
     computeArmorPiecePv,
     computeCarriedItemWeight,
     computeEffectiveArmorPv,
     computeEncumbranceState
-} from "./derived/encumbrance.mjs";
-import { applyStatPenalties } from "./derived/penalties.mjs";
-import { countWounds, deriveLogicConditions } from "./derived/wounds.mjs";
+} from './derived/encumbrance.mjs';
+import { applyStatPenalties } from './derived/penalties.mjs';
+import { countWounds, deriveLogicConditions } from './derived/wounds.mjs';
 
 /**
  * Extend the basic Actor document.
  * @extends {Actor}
  */
 export class BoilerplateActor extends Actor {
-
     /**
      * Active effect change rows (Foundry 14 may store under effect.system.changes).
      * @param {ActiveEffect} effect
@@ -59,13 +58,12 @@ export class BoilerplateActor extends Actor {
 
         // Only calculate for Characters and NPCs
         if (actorData.type === 'character' || actorData.type === 'npc') {
-
             // 1. Core stat totals: _source base + stored bonus + explicit sum of active effect ADD rows
-            const statsWithBonus = new Set(["str", "dex", "know", "conc", "cha", "cool"]);
-            const srcStats = foundry.utils.getProperty(this._source, "system.stats") || {};
+            const statsWithBonus = new Set(['str', 'dex', 'know', 'conc', 'cha', 'cool']);
+            const srcStats = foundry.utils.getProperty(this._source, 'system.stats') || {};
             for (const key of statsWithBonus) {
                 const stat = system.stats[key];
-                if (!stat || typeof stat !== "object") continue;
+                if (!stat || typeof stat !== 'object') continue;
                 const src = srcStats[key] || {};
                 const base = Number(src.value) || 0;
                 const srcBonus = Number(src.bonus) || 0;
@@ -73,7 +71,7 @@ export class BoilerplateActor extends Actor {
                 stat.total = base + srcBonus + fromEffects;
             }
             for (const [key, stat] of Object.entries(system.stats)) {
-                if (!stat || typeof stat !== "object") continue;
+                if (!stat || typeof stat !== 'object') continue;
                 if (statsWithBonus.has(key)) continue;
                 stat.total = Number(stat.value) || 0;
             }
@@ -104,11 +102,8 @@ export class BoilerplateActor extends Actor {
         if (!system.stats) return;
 
         // Filter for Equipped, Powered Armor that is NOT broken
-        const armors = this.items.filter(i =>
-            i.type === 'armor' &&
-            i.system.equipped &&
-            i.system.powered &&
-            (i.system.resistance?.value > 0)
+        const armors = this.items.filter(
+            (i) => i.type === 'armor' && i.system.equipped && i.system.powered && i.system.resistance?.value > 0
         );
 
         // Initialize Move Bonus if not present
@@ -118,7 +113,7 @@ export class BoilerplateActor extends Actor {
 
         // Choose one active powersuit (if any) for replacement/cap bonuses.
         const activePowersuit = armors
-            .filter(a => a.system.powersuit)
+            .filter((a) => a.system.powersuit)
             .sort((a, b) => (Number(b.system.resistance?.value) || 0) - (Number(a.system.resistance?.value) || 0))[0];
 
         for (const armor of armors) {
@@ -143,8 +138,8 @@ export class BoilerplateActor extends Actor {
 
             // Accumulate Move Bonuses (Applied in _calculateDerived)
             if (mods.move) {
-                system.move.armorBonus.closing += (mods.move.closing || 0);
-                system.move.armorBonus.rushing += (mods.move.rushing || 0);
+                system.move.armorBonus.closing += mods.move.closing || 0;
+                system.move.armorBonus.rushing += mods.move.rushing || 0;
             }
         }
     }
@@ -154,7 +149,7 @@ export class BoilerplateActor extends Actor {
     /* -------------------------------------------- */
     _calculateWounds(system) {
         // Skip wound calculations for NPCs if disabled
-        if (this.type === 'npc' && !game.settings.get("sla-industries", "enableNPCWoundTracking")) {
+        if (this.type === 'npc' && !game.settings.get('sla-industries', 'enableNPCWoundTracking')) {
             // Set defaults but don't calculate
             if (!system.wounds) system.wounds = {};
             system.wounds.total = 0;
@@ -164,7 +159,7 @@ export class BoilerplateActor extends Actor {
 
         // Ensure wounds object exists (should be in schema, but defensive check)
         if (!system.wounds) system.wounds = {};
-        
+
         // Initialize wound fields if they don't exist (for NPCs that were created before schema update)
         const woundFields = ['head', 'torso', 'lArm', 'rArm', 'lLeg', 'rLeg'];
         for (const field of woundFields) {
@@ -172,7 +167,7 @@ export class BoilerplateActor extends Actor {
                 system.wounds[field] = false;
             }
         }
-        
+
         const w = system.wounds;
         const woundCount = countWounds(w);
 
@@ -183,16 +178,16 @@ export class BoilerplateActor extends Actor {
         system.conditions = system.conditions || {};
 
         // Sync with Foundry Effects (Active Effects)
-        const hasEffect = (id) => this.effects.some(e => e.statuses.has(id));
+        const hasEffect = (id) => this.effects.some((e) => e.statuses.has(id));
 
-        system.conditions.bleeding = hasEffect("bleeding");
-        system.conditions.burning = hasEffect("burning");
-        system.conditions.prone = hasEffect("prone");
-        system.conditions.stunned = hasEffect("stunned");
-        system.conditions.immobile = hasEffect("immobile");
+        system.conditions.bleeding = hasEffect('bleeding');
+        system.conditions.burning = hasEffect('burning');
+        system.conditions.prone = hasEffect('prone');
+        system.conditions.stunned = hasEffect('stunned');
+        system.conditions.immobile = hasEffect('immobile');
 
         let hpBase = 10;
-        const speciesItem = this.items.find(i => i.type === "species");
+        const speciesItem = this.items.find((i) => i.type === 'species');
         if (speciesItem && speciesItem.system.hp) hpBase = Number(speciesItem.system.hp) || 10;
         const projectedHpMax = Math.max(1, hpBase + (system.stats.str?.total || 0));
         const hpVal = Number(system.hp?.value) ?? 0;
@@ -220,7 +215,7 @@ export class BoilerplateActor extends Actor {
             // Armor PV
             // For NPCs, since they lack an Equip toggle, we treat ALL armor as equipped.
             // For Characters, we respect the 'equipped' flag.
-            const isEquipped = (this.type === 'npc') || d.equipped;
+            const isEquipped = this.type === 'npc' || d.equipped;
 
             if (item.type === 'armor' && isEquipped) {
                 const currentPV = computeArmorPiecePv(d);
@@ -304,7 +299,7 @@ export class BoilerplateActor extends Actor {
     _calculateDerived(system) {
         // A. HP Calculation
         let hpBase = 10;
-        const speciesItem = this.items.find(i => i.type === 'species');
+        const speciesItem = this.items.find((i) => i.type === 'species');
 
         if (speciesItem && speciesItem.system.hp) {
             hpBase = speciesItem.system.hp;
@@ -316,7 +311,10 @@ export class BoilerplateActor extends Actor {
         // B. Initiative (Character Only)
         if (this.type === 'character') {
             if (system.stats.init) {
-                system.stats.init.value = (system.stats.dex?.total || 0) + (system.stats.conc?.total || 0) + (system.stats.init.armorBonus || 0);
+                system.stats.init.value =
+                    (system.stats.dex?.total || 0) +
+                    (system.stats.conc?.total || 0) +
+                    (system.stats.init.armorBonus || 0);
             }
         }
 
@@ -335,9 +333,8 @@ export class BoilerplateActor extends Actor {
                 system.bio.species = speciesItem.name;
             }
 
-
             // Athletics Bonus (+1 Rushing per 2 Ranks)
-            const athletics = this.items.find(i => i.type === 'skill' && i.name.toLowerCase() === 'athletics');
+            const athletics = this.items.find((i) => i.type === 'skill' && i.name.toLowerCase() === 'athletics');
             if (athletics) {
                 rushing += Math.floor((athletics.system.rank || 0) / 2);
             }
@@ -360,7 +357,8 @@ export class BoilerplateActor extends Actor {
 
             // 3. Immobile / Dead (Zero Movement)
             if (system.conditions.immobile || system.conditions.dead) {
-                closing = 0; rushing = 0;
+                closing = 0;
+                rushing = 0;
             }
 
             system.move.closing = closing;
@@ -371,16 +369,14 @@ export class BoilerplateActor extends Actor {
     /** @override */
     async _preCreate(data, options, user) {
         await super._preCreate(data, options, user);
-        this.updateSource({ "prototypeToken.actorLink": true, "prototypeToken.disposition": 1 });
+        this.updateSource({ 'prototypeToken.actorLink': true, 'prototypeToken.disposition': 1 });
 
         // Add Punch/Kick
         if (this.type === 'character' || this.type === 'npc') {
-            const sourceItems = Array.isArray(data?.items)
-                ? foundry.utils.deepClone(data.items)
-                : [];
+            const sourceItems = Array.isArray(data?.items) ? foundry.utils.deepClone(data.items) : [];
             const punchKickIndices = sourceItems
                 .map((item, index) => ({ item, index }))
-                .filter(({ item }) => item?.type === "weapon" && item?.name === NATURAL_WEAPONS.punchKick.name)
+                .filter(({ item }) => item?.type === 'weapon' && item?.name === NATURAL_WEAPONS.punchKick.name)
                 .map(({ index }) => index);
 
             // Ensure exactly one Punch/Kick in the source payload:
@@ -406,13 +402,13 @@ export class BoilerplateActor extends Actor {
         super._onCreateDescendantDocuments(parent, collection, documents, data, options, userId);
 
         // Only handle Items on this Actor
-        if (collection !== "items") return;
+        if (collection !== 'items') return;
 
         // Ensure we only run this once per creation batch (usually singular)
         if (game.user.id !== userId) return;
 
         for (const doc of documents) {
-            if (doc.type === "species") {
+            if (doc.type === 'species') {
                 this._handleSpeciesAdd(doc);
             }
         }
@@ -423,11 +419,11 @@ export class BoilerplateActor extends Actor {
         super._onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId);
 
         // Only handle Items on this Actor
-        if (collection !== "items") return;
+        if (collection !== 'items') return;
         if (game.user.id !== userId) return;
 
         for (const doc of documents) {
-            if (doc.type === "species") {
+            if (doc.type === 'species') {
                 this._handleSpeciesRemove(doc);
             }
         }
@@ -435,20 +431,20 @@ export class BoilerplateActor extends Actor {
 
     async _handleSpeciesAdd(speciesItem) {
         // 0. SINGLETON ENFORCEMENT: Check for existing species and delete them
-        const existingSpecies = this.items.filter(i => i.type === "species" && i.id !== speciesItem.id);
+        const existingSpecies = this.items.filter((i) => i.type === 'species' && i.id !== speciesItem.id);
         if (existingSpecies.length > 0) {
-            const deleteIds = existingSpecies.map(i => i.id);
-            if (typeof ui !== "undefined") ui.notifications.info(`Replacing existing species...`);
-            await this.deleteEmbeddedDocuments("Item", deleteIds);
+            const deleteIds = existingSpecies.map((i) => i.id);
+            if (typeof ui !== 'undefined') ui.notifications.info(`Replacing existing species...`);
+            await this.deleteEmbeddedDocuments('Item', deleteIds);
         }
 
         const speciesName = speciesItem.name.toLowerCase();
         let weaponToAdd = null;
 
         // 1. Natural Weapons Logic
-        if (speciesName.includes("stormer")) {
+        if (speciesName.includes('stormer')) {
             weaponToAdd = NATURAL_WEAPONS.teethClaws;
-        } else if (speciesName.includes("neophron")) {
+        } else if (speciesName.includes('neophron')) {
             weaponToAdd = NATURAL_WEAPONS.beak;
         }
 
@@ -457,10 +453,10 @@ export class BoilerplateActor extends Actor {
             // We use 'find' but since we just cleared species, we might need to check if we cleared weapons too?
             // Natural Weapons are separate Items. _handleSpeciesRemove handles their deletion.
             // So if we just deleted the old species, its weapons are gone (via _handleSpeciesRemove).
-            const exists = this.items.find(i => i.name === weaponToAdd.name);
+            const exists = this.items.find((i) => i.name === weaponToAdd.name);
             if (!exists) {
-                await this.createEmbeddedDocuments("Item", [weaponToAdd]);
-                if (typeof ui !== "undefined") ui.notifications.info(`Added natural weapon: ${weaponToAdd.name}`);
+                await this.createEmbeddedDocuments('Item', [weaponToAdd]);
+                if (typeof ui !== 'undefined') ui.notifications.info(`Added natural weapon: ${weaponToAdd.name}`);
             }
         }
 
@@ -475,51 +471,74 @@ export class BoilerplateActor extends Actor {
         let moveRushing = sys.move?.rushing ?? 0;
 
         // CHECK: If this looks like an "Unmigrated/Broken" item (all zeros), try to apply known defaults
-        const isBlank = (luckMax === 0 && fluxMax === 0 && hpBase <= 10 && moveClosing === 0);
+        const isBlank = luckMax === 0 && fluxMax === 0 && hpBase <= 10 && moveClosing === 0;
 
         if (isBlank) {
-            console.warn(`SLA Industries | Detected potentially unmigrated Species Item: ${speciesItem.name}. Applying system defaults.`);
-            if (speciesName.includes("ebon")) {
-                fluxInit = 2; fluxMax = 6;
+            console.warn(
+                `SLA Industries | Detected potentially unmigrated Species Item: ${speciesItem.name}. Applying system defaults.`
+            );
+            if (speciesName.includes('ebon')) {
+                fluxInit = 2;
+                fluxMax = 6;
                 hpBase = 14;
-                moveClosing = 2; moveRushing = 5;
-            } else if (speciesName.includes("human")) {
-                luckInit = 1; luckMax = 6;
+                moveClosing = 2;
+                moveRushing = 5;
+            } else if (speciesName.includes('human')) {
+                luckInit = 1;
+                luckMax = 6;
                 hpBase = 14;
-                moveClosing = 2; moveRushing = 5;
-            } else if (speciesName.includes("frother")) {
-                luckInit = 1; luckMax = 3;
+                moveClosing = 2;
+                moveRushing = 5;
+            } else if (speciesName.includes('frother')) {
+                luckInit = 1;
+                luckMax = 3;
                 hpBase = 15;
-                moveClosing = 2; moveRushing = 5;
-            } else if (speciesName.includes("wraithen")) {
-                luckInit = 1; luckMax = 4;
+                moveClosing = 2;
+                moveRushing = 5;
+            } else if (speciesName.includes('wraithen')) {
+                luckInit = 1;
+                luckMax = 4;
                 hpBase = 14;
-                moveClosing = 4; moveRushing = 8;
-            } else if (speciesName.includes("shaktar")) {
-                luckInit = 0; luckMax = 3;
+                moveClosing = 4;
+                moveRushing = 8;
+            } else if (speciesName.includes('shaktar')) {
+                luckInit = 0;
+                luckMax = 3;
                 hpBase = 19;
-                moveClosing = 3; moveRushing = 6;
-            } else if (speciesName.includes("carrien")) { // Advanced Carrien
-                luckInit = 0; luckMax = 3;
+                moveClosing = 3;
+                moveRushing = 6;
+            } else if (speciesName.includes('carrien')) {
+                // Advanced Carrien
+                luckInit = 0;
+                luckMax = 3;
                 hpBase = 20;
-                moveClosing = 4; moveRushing = 7;
-            } else if (speciesName.includes("neophron")) {
-                luckInit = 0; luckMax = 3;
+                moveClosing = 4;
+                moveRushing = 7;
+            } else if (speciesName.includes('neophron')) {
+                luckInit = 0;
+                luckMax = 3;
                 hpBase = 11;
-                moveClosing = 2; moveRushing = 5;
-            } else if (speciesName.includes("stormer")) {
-                if (speciesName.includes("313") || speciesName.includes("malice")) {
-                    luckInit = 0; luckMax = 2;
+                moveClosing = 2;
+                moveRushing = 5;
+            } else if (speciesName.includes('stormer')) {
+                if (speciesName.includes('313') || speciesName.includes('malice')) {
+                    luckInit = 0;
+                    luckMax = 2;
                     hpBase = 22;
-                    moveClosing = 3; moveRushing = 6;
-                } else if (speciesName.includes("711") || speciesName.includes("xeno")) {
-                    luckInit = 0; luckMax = 2;
+                    moveClosing = 3;
+                    moveRushing = 6;
+                } else if (speciesName.includes('711') || speciesName.includes('xeno')) {
+                    luckInit = 0;
+                    luckMax = 2;
                     hpBase = 20;
-                    moveClosing = 4; moveRushing = 6;
+                    moveClosing = 4;
+                    moveRushing = 6;
                 } else {
-                    luckInit = 0; luckMax = 2;
+                    luckInit = 0;
+                    luckMax = 2;
                     hpBase = 20;
-                    moveClosing = 3; moveRushing = 6;
+                    moveClosing = 3;
+                    moveRushing = 6;
                 }
             }
         }
@@ -530,21 +549,21 @@ export class BoilerplateActor extends Actor {
 
         // LUCK
         if (luckMax > 0) {
-            updateData["system.stats.luck.value"] = luckInit;
-            updateData["system.stats.luck.max"] = luckMax;
+            updateData['system.stats.luck.value'] = luckInit;
+            updateData['system.stats.luck.max'] = luckMax;
             if (isBlank) {
-                itemUpdateData["system.luck.initial"] = luckInit;
-                itemUpdateData["system.luck.max"] = luckMax;
+                itemUpdateData['system.luck.initial'] = luckInit;
+                itemUpdateData['system.luck.max'] = luckMax;
             }
         }
 
         // FLUX
         if (fluxMax > 0) {
-            updateData["system.stats.flux.value"] = fluxInit;
-            updateData["system.stats.flux.max"] = fluxMax;
+            updateData['system.stats.flux.value'] = fluxInit;
+            updateData['system.stats.flux.max'] = fluxMax;
             if (isBlank) {
-                itemUpdateData["system.flux.initial"] = fluxInit;
-                itemUpdateData["system.flux.max"] = fluxMax;
+                itemUpdateData['system.flux.initial'] = fluxInit;
+                itemUpdateData['system.flux.max'] = fluxMax;
             }
         }
 
@@ -552,14 +571,14 @@ export class BoilerplateActor extends Actor {
         if (hpBase > 0) {
             // Note: Actor HP is derived in _calculateDerived, so we don't strictly need to set actor.system.hp.max here
             // But we SHOULD ensure the embedded item has the data if it was blank
-            if (isBlank) itemUpdateData["system.hp"] = hpBase;
+            if (isBlank) itemUpdateData['system.hp'] = hpBase;
         }
 
         // MOVEMENT
         if (moveClosing > 0) {
             if (isBlank) {
-                itemUpdateData["system.move.closing"] = moveClosing;
-                itemUpdateData["system.move.rushing"] = moveRushing;
+                itemUpdateData['system.move.closing'] = moveClosing;
+                itemUpdateData['system.move.rushing'] = moveRushing;
             }
         }
 
@@ -579,17 +598,17 @@ export class BoilerplateActor extends Actor {
 
         // 1. Remove Natural Weapons
         let weaponToRemoveName = null;
-        if (speciesName.includes("stormer")) {
+        if (speciesName.includes('stormer')) {
             weaponToRemoveName = NATURAL_WEAPONS.teethClaws.name;
-        } else if (speciesName.includes("neophron")) {
+        } else if (speciesName.includes('neophron')) {
             weaponToRemoveName = NATURAL_WEAPONS.beak.name;
         }
 
         if (weaponToRemoveName) {
-            const weapon = this.items.find(i => i.name === weaponToRemoveName);
+            const weapon = this.items.find((i) => i.name === weaponToRemoveName);
             if (weapon) {
                 await weapon.delete();
-                if (typeof ui !== "undefined") ui.notifications.info(`Removed natural weapon: ${weaponToRemoveName}`);
+                if (typeof ui !== 'undefined') ui.notifications.info(`Removed natural weapon: ${weaponToRemoveName}`);
             }
         }
 
@@ -597,19 +616,19 @@ export class BoilerplateActor extends Actor {
         // If we found any species that is NOT the one being deleted (although 'this.items' might already lack it)
         // In _onDeleteDescendantDocuments, 'this.items' usually implies the state *after* deletion in memory?
         // Let's rely on finding ANY species. If none, we clean up.
-        const remainingSpecies = this.items.find(i => i.type === "species" && i.id !== speciesItem.id);
+        const remainingSpecies = this.items.find((i) => i.type === 'species' && i.id !== speciesItem.id);
 
         if (!remainingSpecies) {
             // 3. Last Species Removed -> RESET STATS
             const updateData = {
-                "system.stats.luck.value": 0,
-                "system.stats.luck.max": 0,
-                "system.stats.flux.value": 0,
-                "system.stats.flux.max": 0
+                'system.stats.luck.value': 0,
+                'system.stats.luck.max': 0,
+                'system.stats.flux.value': 0,
+                'system.stats.flux.max': 0
                 // HP Base is derived from item presence, so no manual reset needed for 'system.hp'?
                 // Move is derived from item presence, so no manual reset needed.
             };
-            if (typeof ui !== "undefined") ui.notifications.info(`Species removed: Resetting Stats.`);
+            if (typeof ui !== 'undefined') ui.notifications.info(`Species removed: Resetting Stats.`);
             await this.update(updateData);
         }
     }
@@ -642,7 +661,9 @@ export class BoilerplateActor extends Actor {
         // Armor Resist Bi-Directional Sync (Token Bar -> Item)
         if (changed.system?.armor?.resist?.value !== undefined) {
             // 1. Find the Item responsible (Powered Armor)
-            const armorItem = this.items.find(i => i.type === 'armor' && i.system.equipped && i.system.powered && i.system.resistance.max > 0);
+            const armorItem = this.items.find(
+                (i) => i.type === 'armor' && i.system.equipped && i.system.powered && i.system.resistance.max > 0
+            );
 
             if (armorItem) {
                 // 2. Clamp the new value to the Item's Max
@@ -652,7 +673,7 @@ export class BoilerplateActor extends Actor {
                 if (newVal < 0) newVal = 0;
 
                 // 3. Update the Item
-                await armorItem.update({ "system.resistance.value": newVal });
+                await armorItem.update({ 'system.resistance.value': newVal });
             }
 
             // 4. PREVENT Actor update (since this is a derived value)
@@ -661,7 +682,7 @@ export class BoilerplateActor extends Actor {
 
         // Species Stat Cap Logic
         if (changed.system?.stats) {
-            const speciesItem = this.items.find(i => i.type === 'species');
+            const speciesItem = this.items.find((i) => i.type === 'species');
             if (speciesItem) {
                 const limitData = speciesItem.system.stats;
                 for (const [key, updateData] of Object.entries(changed.system.stats)) {
@@ -670,7 +691,8 @@ export class BoilerplateActor extends Actor {
                         if (statLimit && statLimit.max !== undefined) {
                             if (updateData.value > statLimit.max) {
                                 updateData.value = statLimit.max;
-                                if (typeof ui !== "undefined") ui.notifications.warn(`${key.toUpperCase()} capped at ${statLimit.max}`);
+                                if (typeof ui !== 'undefined')
+                                    ui.notifications.warn(`${key.toUpperCase()} capped at ${statLimit.max}`);
                             }
                         }
                     }
@@ -685,7 +707,7 @@ export class BoilerplateActor extends Actor {
         if (data.stats) {
             for (let [k, v] of Object.entries(data.stats)) {
                 // If total is missing, fallback to value
-                data[k] = (v.total !== undefined) ? v.total : v.value;
+                data[k] = v.total !== undefined ? v.total : v.value;
             }
         }
         return data;
@@ -695,28 +717,28 @@ export class BoilerplateActor extends Actor {
     /**
      * Helper to recursively check if any wound property exists in an object
      */
-    _hasWoundProperty(obj, path = "") {
-        if (!obj || typeof obj !== "object") return false;
-        
-        const woundProps = ["head", "torso", "lArm", "rArm", "lLeg", "rLeg"];
-        const currentPath = path ? `${path}.` : "";
-        
+    _hasWoundProperty(obj, path = '') {
+        if (!obj || typeof obj !== 'object') return false;
+
+        const woundProps = ['head', 'torso', 'lArm', 'rArm', 'lLeg', 'rLeg'];
+        const currentPath = path ? `${path}.` : '';
+
         for (const key in obj) {
             const fullPath = `${currentPath}${key}`;
-            
+
             // Check if this path contains "wounds" and a wound property
-            if (fullPath.includes("wounds") && woundProps.includes(key)) {
+            if (fullPath.includes('wounds') && woundProps.includes(key)) {
                 return true;
             }
-            
+
             // Recursively check nested objects
-            if (typeof obj[key] === "object" && obj[key] !== null) {
+            if (typeof obj[key] === 'object' && obj[key] !== null) {
                 if (this._hasWoundProperty(obj[key], fullPath)) {
                     return true;
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -724,19 +746,19 @@ export class BoilerplateActor extends Actor {
         try {
             await super._onUpdate(changed, options, userId);
         } catch (error) {
-            console.error("SLA Industries | Error in super._onUpdate:", error);
+            console.error('SLA Industries | Error in super._onUpdate:', error);
         }
 
         // 1. STOP if the update didn't touch conditions OR wounds.
         // This prevents HP updates or Bio updates from triggering the condition loop.
-        const conditionChanges = foundry.utils.getProperty(changed, "system.conditions");
-        const woundChanges = foundry.utils.getProperty(changed, "system.wounds");
+        const conditionChanges = foundry.utils.getProperty(changed, 'system.conditions');
+        const woundChanges = foundry.utils.getProperty(changed, 'system.wounds');
 
         // A. Handle Manual Condition Toggles (Clicking icons)
         if (conditionChanges) {
             const syncStatus = async (id, isState) => {
                 if (isState === undefined) return;
-                const hasEffect = this.effects.some(e => e.statuses.has(id));
+                const hasEffect = this.effects.some((e) => e.statuses.has(id));
                 if (isState !== hasEffect) {
                     await this.toggleStatusEffect(id, { active: isState });
                 }
@@ -750,9 +772,9 @@ export class BoilerplateActor extends Actor {
 
         // B. Handle Wound Logic (Head -> Stunned, Legs -> Immobile, Any -> Bleeding)
         // Check if ANY wound field changed - Foundry uses flat keys like "system.wounds.head"
-        const woundFieldNames = ["head", "torso", "lArm", "rArm", "lLeg", "rLeg"];
+        const woundFieldNames = ['head', 'torso', 'lArm', 'rArm', 'lLeg', 'rLeg'];
         let hasWoundChange = false;
-        
+
         // Check if woundChanges object exists (nested update)
         if (woundChanges) {
             hasWoundChange = true;
@@ -761,8 +783,8 @@ export class BoilerplateActor extends Actor {
             // Also check if any key in changed starts with "system.wounds."
             const changedKeys = Object.keys(changed);
             for (const key of changedKeys) {
-                if (key.startsWith("system.wounds.")) {
-                    const fieldName = key.replace("system.wounds.", "");
+                if (key.startsWith('system.wounds.')) {
+                    const fieldName = key.replace('system.wounds.', '');
                     if (woundFieldNames.includes(fieldName)) {
                         hasWoundChange = true;
                         break;
@@ -770,14 +792,16 @@ export class BoilerplateActor extends Actor {
                 }
             }
         }
-            
+
         if (hasWoundChange) {
             await this._handleWoundEffects(woundChanges || {});
         }
 
         // 2. SEPARATE LOGIC: Critical / dead status vs HP (value or max threshold)
-        if (foundry.utils.hasProperty(changed, "system.hp.value")
-            || foundry.utils.hasProperty(changed, "system.hp.max")) {
+        if (
+            foundry.utils.hasProperty(changed, 'system.hp.value') ||
+            foundry.utils.hasProperty(changed, 'system.hp.max')
+        ) {
             await this._handleWoundThresholds();
         }
     }
@@ -785,15 +809,22 @@ export class BoilerplateActor extends Actor {
     /** @returns {number} Count of marked wound locations (0–6). */
     _getWoundCount(w = this.system.wounds) {
         if (!w) return 0;
-        return (w.head ? 1 : 0) + (w.torso ? 1 : 0) + (w.lArm ? 1 : 0) + (w.rArm ? 1 : 0) + (w.lLeg ? 1 : 0) + (w.rLeg ? 1 : 0);
+        return (
+            (w.head ? 1 : 0) +
+            (w.torso ? 1 : 0) +
+            (w.lArm ? 1 : 0) +
+            (w.rArm ? 1 : 0) +
+            (w.lLeg ? 1 : 0) +
+            (w.rLeg ? 1 : 0)
+        );
     }
 
     /** Frother Feel No Pain: suppress Bleeding only while exactly one wound is marked. */
     _frotherSuppressesBleeding(woundCount) {
         if (woundCount !== 1) return false;
-        const species = this.items.find(i => i.type === "species");
-        const name = (species?.name ?? "").toLowerCase();
-        return name.includes("frother");
+        const species = this.items.find((i) => i.type === 'species');
+        const name = (species?.name ?? '').toLowerCase();
+        return name.includes('frother');
     }
 
     /**
@@ -801,12 +832,12 @@ export class BoilerplateActor extends Actor {
      */
     async _syncBleedingToWounds() {
         const woundCount = this._getWoundCount();
-        const hasBleeding = this.effects.some(e => e.statuses.has("bleeding"));
+        const hasBleeding = this.effects.some((e) => e.statuses.has('bleeding'));
         const shouldBleed = woundCount > 0 && !this._frotherSuppressesBleeding(woundCount);
         if (shouldBleed && !hasBleeding) {
-            await this.toggleStatusEffect("bleeding", { active: true });
+            await this.toggleStatusEffect('bleeding', { active: true });
         } else if (!shouldBleed && hasBleeding) {
-            await this.toggleStatusEffect("bleeding", { active: false });
+            await this.toggleStatusEffect('bleeding', { active: false });
         }
     }
 
@@ -815,7 +846,7 @@ export class BoilerplateActor extends Actor {
      */
     async _handleWoundEffects(woundChanges) {
         // We need the *full* current state of wounds, merging the update with existing data
-        // However, 'this.system.wounds' is already updated in memory by the time _onUpdate fires? 
+        // However, 'this.system.wounds' is already updated in memory by the time _onUpdate fires?
         // ACTUALLY: In _onUpdate, 'this.system' IS already updated to the new state.
         // 'changed' only contains the diff.
 
@@ -825,41 +856,39 @@ export class BoilerplateActor extends Actor {
         const effectsToToggle = [];
 
         // Helper to check if effect exists
-        const hasEffect = (id) => this.effects.some(e => e.statuses.has(id));
+        const hasEffect = (id) => this.effects.some((e) => e.statuses.has(id));
 
         // 1. HEAD WOUND -> STUNNED
         // If head is wounded and we are not stunned, ADD Stunned
-        if (w.head === true && !hasEffect("stunned")) {
-            // We only add it. We don't remove it auto-magically if healed, 
-            // unless the user specifically wants that. 
+        if (w.head === true && !hasEffect('stunned')) {
+            // We only add it. We don't remove it auto-magically if healed,
+            // unless the user specifically wants that.
             // Rule: "Stunned is removed with medical intervention... or rest"
             // So it's safer to Auto-Add, but maybe Auto-Remove is convenient?
-            // Let's do Auto-Add and Auto-Remove for immediate feedback, 
+            // Let's do Auto-Add and Auto-Remove for immediate feedback,
             // but allow manual toggle back if needed.
-            effectsToToggle.push({ id: "stunned", active: true });
-        }
-        else if (w.head !== true && hasEffect("stunned")) {
-            // Only remove if it was the head wound causing it? 
+            effectsToToggle.push({ id: 'stunned', active: true });
+        } else if (w.head !== true && hasEffect('stunned')) {
+            // Only remove if it was the head wound causing it?
             // Hard to know. But typically if you heal the head, the stun might fade.
             // Let's be aggressive for UX: Remove it.
-            effectsToToggle.push({ id: "stunned", active: false });
+            effectsToToggle.push({ id: 'stunned', active: false });
         }
 
         // 2. BOT LEG WOUNDS -> IMMOBILE
         const legsGone = w.lLeg === true && w.rLeg === true;
-        if (legsGone && !hasEffect("immobile")) {
-            effectsToToggle.push({ id: "immobile", active: true });
-        }
-        else if (!legsGone && hasEffect("immobile")) {
+        if (legsGone && !hasEffect('immobile')) {
+            effectsToToggle.push({ id: 'immobile', active: true });
+        } else if (!legsGone && hasEffect('immobile')) {
             // Check if immobile was caused by something else (Encumbrance)?
             // If Encumbrance is forcing immobile, we shouldn't remove it.
             // We can check encumbrance state (only for characters, NPCs don't have encumbrance)
-            const hasEncumbrance = this.system.encumbrance && (this.system.encumbrance.value !== undefined);
-            const isEncumbered = hasEncumbrance && (this.system.encumbrance.value > this.system.encumbrance.max);
+            const hasEncumbrance = this.system.encumbrance && this.system.encumbrance.value !== undefined;
+            const isEncumbered = hasEncumbrance && this.system.encumbrance.value > this.system.encumbrance.max;
 
             // Only remove if NOT encumbered (or if NPC which doesn't have encumbrance)
             if (!isEncumbered) {
-                effectsToToggle.push({ id: "immobile", active: false });
+                effectsToToggle.push({ id: 'immobile', active: false });
             }
         }
 
@@ -874,9 +903,9 @@ export class BoilerplateActor extends Actor {
         const woundCount = this._getWoundCount(w);
         if (woundCount >= 6) {
             if (this.system.hp.value > 0) {
-                await this.update({ "system.hp.value": 0 });
-            } else if (!this.effects.some(e => e.statuses.has("dead"))) {
-                await this.toggleStatusEffect("dead", { active: true, overlay: true });
+                await this.update({ 'system.hp.value': 0 });
+            } else if (!this.effects.some((e) => e.statuses.has('dead'))) {
+                await this.toggleStatusEffect('dead', { active: true, overlay: true });
             }
         }
 
@@ -896,25 +925,25 @@ export class BoilerplateActor extends Actor {
         const woundCount = this._getWoundCount();
 
         // Helper to check if effect exists
-        const hasEffect = (id) => this.effects.some(e => e.statuses.has(id));
+        const hasEffect = (id) => this.effects.some((e) => e.statuses.has(id));
 
         // 1. DEAD (HP <= 0 or six wounds — instant death regardless of HP)
         // We apply as overlay for visual emphasis
         const isDead = hp <= 0 || woundCount >= 6;
-        if (isDead && !hasEffect("dead")) {
-            await this.toggleStatusEffect("dead", { active: true, overlay: true });
-        } else if (!isDead && hasEffect("dead")) {
-            await this.toggleStatusEffect("dead", { active: false });
+        if (isDead && !hasEffect('dead')) {
+            await this.toggleStatusEffect('dead', { active: true, overlay: true });
+        } else if (!isDead && hasEffect('dead')) {
+            await this.toggleStatusEffect('dead', { active: false });
         }
 
         // 2. CRITICAL (HP <= floor(Max/2) AND Not Dead)
         // Note: We use the Effect ID (e.g., 'critical') not the boolean
         const isCritical = hp > 0 && hp <= Math.floor(max / 2);
 
-        if (isCritical && !hasEffect("critical")) {
-            await this.toggleStatusEffect("critical", { active: true });
-        } else if (!isCritical && hasEffect("critical")) {
-            await this.toggleStatusEffect("critical", { active: false });
+        if (isCritical && !hasEffect('critical')) {
+            await this.toggleStatusEffect('critical', { active: true });
+        } else if (!isCritical && hasEffect('critical')) {
+            await this.toggleStatusEffect('critical', { active: false });
         }
     }
 }

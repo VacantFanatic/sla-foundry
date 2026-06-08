@@ -185,13 +185,13 @@ export class SlaVehicleData extends foundry.abstract.TypeDataModel {
             biography: new fields.HTMLField(),
             appearance: new fields.HTMLField(),
             notes: new fields.HTMLField(),
-            skill: new fields.StringField({ initial: "" }),
+            skill: new fields.StringField({ initial: '' }),
             dimensions: new fields.SchemaField({
-                length: new fields.StringField({ initial: "" }),
-                width: new fields.StringField({ initial: "" }),
-                height: new fields.StringField({ initial: "" })
+                length: new fields.StringField({ initial: '' }),
+                width: new fields.StringField({ initial: '' }),
+                height: new fields.StringField({ initial: '' })
             }),
-            capacity: new fields.StringField({ initial: "" }),
+            capacity: new fields.StringField({ initial: '' }),
             mountedWeaponsIgnoreSkillReq: new fields.BooleanField({ initial: true }),
             providesCombatCover: new fields.BooleanField({ initial: true }),
             hp: new fields.SchemaField({

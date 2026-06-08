@@ -1,114 +1,110 @@
 {
-  "id": "sla-industries",
-  "title": "SLA Industries 2nd Edition",
-  "description": "A fully automated character sheet and combat system for SLA Industries 2nd Edition (S5S). Features include calculated derived stats, S5S dice rolling, species limits, and custom weapon/armor logic.",
-  "version": "2.6.9",
-  "compatibility": {
-    "minimum": "14",
-    "verified": "14.360"
-  },
-  "media": [
-    {
-      "type": "cover",
-      "url": "systems/sla-industries/assets/sla-back.png"
+    "id": "sla-industries",
+    "title": "SLA Industries 2nd Edition",
+    "description": "A fully automated character sheet and combat system for SLA Industries 2nd Edition (S5S). Features include calculated derived stats, S5S dice rolling, species limits, and custom weapon/armor logic.",
+    "version": "2.6.9",
+    "compatibility": {
+        "minimum": "14",
+        "verified": "14.360"
     },
-    {
-      "type": "setup",
-      "url": "systems/sla-industries/assets/sla-back.png",
-      "thumbnail": "systems/sla-industries/assets/sla-back.png"
+    "media": [
+        {
+            "type": "cover",
+            "url": "systems/sla-industries/assets/sla-back.png"
+        },
+        {
+            "type": "setup",
+            "url": "systems/sla-industries/assets/sla-back.png",
+            "thumbnail": "systems/sla-industries/assets/sla-back.png"
+        }
+    ],
+    "esmodules": ["module/sla-industries.mjs"],
+    "styles": ["css/sla-industries.css"],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "lang/en.json"
+        },
+        {
+            "lang": "fr",
+            "name": "Français",
+            "path": "lang/fr.json"
+        }
+    ],
+    "grid": {
+        "distance": 1,
+        "units": "m",
+        "type": 1
+    },
+    "primaryTokenAttribute": "hp",
+    "secondaryTokenAttribute": "armor.resist",
+    "authors": [
+        {
+            "name": "VacantFanatic"
+        }
+    ],
+    "url": "https://github.com/VacantFanatic/sla-foundry",
+    "manifest": "https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json",
+    "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/2.6.9/sla-industries.zip",
+    "packs": [
+        {
+            "name": "skills",
+            "label": "Skills",
+            "path": "packs/skills.db",
+            "type": "Item"
+        },
+        {
+            "name": "traits",
+            "label": "Traits",
+            "path": "packs/traits.db",
+            "type": "Item"
+        },
+        {
+            "name": "species",
+            "label": "Species",
+            "path": "packs/species.db",
+            "type": "Item"
+        },
+        {
+            "name": "quick-start-gear",
+            "label": "Quick Start Gear",
+            "path": "packs/quick-start-gear.db",
+            "type": "Item"
+        },
+        {
+            "name": "disciplines",
+            "label": "Disciplines",
+            "path": "packs/disciplines.db",
+            "type": "Item"
+        },
+        {
+            "name": "vehicles",
+            "label": "Vehicles",
+            "path": "packs/vehicles.db",
+            "type": "Actor"
+        }
+    ],
+    "documentTypes": {
+        "Actor": {
+            "character": {},
+            "npc": {},
+            "vehicle": {}
+        },
+        "Item": {
+            "item": {},
+            "skill": {},
+            "trait": {},
+            "weapon": {},
+            "explosive": {},
+            "armor": {},
+            "ebbFormula": {},
+            "discipline": {},
+            "drug": {},
+            "toxicant": {},
+            "species": {},
+            "package": {},
+            "magazine": {}
+        }
     }
-  ],
-  "esmodules": [
-    "module/sla-industries.mjs"
-  ],
-  "styles": [
-    "css/sla-industries.css"
-  ],
-  "languages": [
-    {
-      "lang": "en",
-      "name": "English",
-      "path": "lang/en.json"
-    },
-    {
-      "lang": "fr",
-      "name": "Français",
-      "path": "lang/fr.json"
-    }
-  ],
-  "grid": {
-    "distance": 1,
-    "units": "m",
-    "type": 1
-  },
-  "primaryTokenAttribute": "hp",
-  "secondaryTokenAttribute": "armor.resist",
-  "authors": [
-    {
-      "name": "VacantFanatic"
-    }
-  ],
-  "url": "https://github.com/VacantFanatic/sla-foundry",
-  "manifest": "https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json",
-  "download": "https://github.com/VacantFanatic/sla-foundry/releases/download/2.6.9/sla-industries.zip",
-  "packs": [
-    {
-      "name": "skills",
-      "label": "Skills",
-      "path": "packs/skills.db",
-      "type": "Item"
-    },
-    {
-      "name": "traits",
-      "label": "Traits",
-      "path": "packs/traits.db",
-      "type": "Item"
-    },
-    {
-      "name": "species",
-      "label": "Species",
-      "path": "packs/species.db",
-      "type": "Item"
-    },
-    {
-      "name": "quick-start-gear",
-      "label": "Quick Start Gear",
-      "path": "packs/quick-start-gear.db",
-      "type": "Item"
-    },
-    {
-      "name": "disciplines",
-      "label": "Disciplines",
-      "path": "packs/disciplines.db",
-      "type": "Item"
-    },
-    {
-      "name": "vehicles",
-      "label": "Vehicles",
-      "path": "packs/vehicles.db",
-      "type": "Actor"
-    }
-  ],
-  "documentTypes": {
-    "Actor": {
-      "character": {},
-      "npc": {},
-      "vehicle": {}
-    },
-    "Item": {
-      "item": {},
-      "skill": {},
-      "trait": {},
-      "weapon": {},
-      "explosive": {},
-      "armor": {},
-      "ebbFormula": {},
-      "discipline": {},
-      "drug": {},
-      "toxicant": {},
-      "species": {},
-      "package": {},
-      "magazine": {}
-    }
-  }
 }

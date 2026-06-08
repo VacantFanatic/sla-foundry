@@ -9,18 +9,18 @@ Skills are the foundation of the system. You can link them to Species, Packages,
 ### A. Creating a Skill
 
 1. Go to the **Items Directory** (right sidebar).
-2. Click **Create Item**, name it (e.g., *Pistol*), and select type **Skill**.
-3. In the sheet, select the **Related Stat** (e.g., *Dexterity*).
+2. Click **Create Item**, name it (e.g., _Pistol_), and select type **Skill**.
+3. In the sheet, select the **Related Stat** (e.g., _Dexterity_).
 4. **Rank** is usually left at `0` or `1` for the base item; it will be upgraded when added to an Actor.
 
 ### B. Granting Skills via Species & Packages
 
-You can create a "Package" (e.g., *Kick Murder Squad*) that automatically gives a list of skills to an operative.
+You can create a "Package" (e.g., _Kick Murder Squad_) that automatically gives a list of skills to an operative.
 
 1. Create an Item of type **Species** or **Package**.
 2. Open the Item Sheet. You will see a large **"Granted Skills"** drop zone.
 3. Drag a **Skill Item** from the sidebar and drop it onto this zone.
-4. The skill will appear in the list. You can click the **Rank** number to modify it (e.g., set *Pistol* to Rank 3).
+4. The skill will appear in the list. You can click the **Rank** number to modify it (e.g., set _Pistol_ to Rank 3).
 5. **Usage:** When you drop this Package onto an Actor, all listed skills are automatically added to that Actor at the specified ranks.
 
 ### C. Linking a Skill to a Weapon
@@ -29,7 +29,7 @@ Weapons need to know which skill they use for attack rolls.
 
 1. Open a **Weapon** item sheet.
 2. Locate the **Required Skill** box (dashed outline).
-3. Drag a **Skill Item** (e.g., *Pistol*) from the sidebar and drop it into the box.
+3. Drag a **Skill Item** (e.g., _Pistol_) from the sidebar and drop it into the box.
 4. The box will update to show the linked skill name.
 5. **Usage:** When you roll an attack with this weapon, the system automatically checks the Actor for that specific skill rank.
 
@@ -41,29 +41,28 @@ The system handles ammo tracking by linking specific Magazine items to Weapon it
 
 ### A. Setting up a Weapon
 
-1. Create a **Weapon** item (e.g., *FEN 603*).
+1. Create a **Weapon** item (e.g., _FEN 603_).
 2. Set the **Stats**: Damage, Rate of Fire (ROF), and Recoil.
 3. **Important:** Link the Required Skill (see section 1C above).
 
 ### B. Setting up a Magazine
 
-1. Create a **Magazine** item (e.g., *FEN 603 Mag*).
+1. Create a **Magazine** item (e.g., _FEN 603 Mag_).
 2. Set the **Capacity** (e.g., `30` rounds).
 3. **Link to Weapon:**
-* Look for the **"Linked Weapon"** drop zone.
-* Drag your *FEN 603* Weapon item onto this box.
-* The Magazine now knows it belongs to the *FEN 603*.
 
-
+- Look for the **"Linked Weapon"** drop zone.
+- Drag your _FEN 603_ Weapon item onto this box.
+- The Magazine now knows it belongs to the _FEN 603_.
 
 ### C. Reloading in Combat
 
 1. Give an Actor both the **Weapon** and several **Magazines**.
 2. On the Actor Sheet **Combat Tab**, click the **Reload** (Cycle) icon next to the gun.
 3. The system will search the inventory for any Magazine linked to that gun.
-* If one type is found, it reloads instantly.
-* If multiple types are found (e.g., *Standard Mag* vs *Hollow Point*), a dialog asks you which one to load.
 
+- If one type is found, it reloads instantly.
+- If multiple types are found (e.g., _Standard Mag_ vs _Hollow Point_), a dialog asks you which one to load.
 
 4. The Magazine is consumed (Quantity -1) and the Weapon's ammo count is refilled.
 
@@ -75,22 +74,22 @@ Ebb users (Ebonites) rely on Formulas which are governed by Disciplines. The **E
 
 ### A. Creating a Discipline
 
-1. Create an Item of type **Discipline** (e.g., *Reality Folding*).
+1. Create an Item of type **Discipline** (e.g., _Reality Folding_).
 2. Set the **Rank** (this acts as the base modifier for rolls).
 
 ### B. Creating a Formula
 
-1. Create an Item of type **Ebb Formula** (e.g., *Fold*).
+1. Create an Item of type **Ebb Formula** (e.g., _Fold_).
 2. Set the **Formula Rating** (Target Number), **Flux Cost**, and **Effect**:
-   - **Effect:** `damage` / `heal` / `effect` — controls MOS bonus rules and chat card behavior.
-   - **Target:** `self` / `ally` / `enemy` — affects how the result is applied. Self-target formulas apply directly to the caster.
-   - **Wounds to Remove:** 0–6 wound locations to clear on a successful roll.
+    - **Effect:** `damage` / `heal` / `effect` — controls MOS bonus rules and chat card behavior.
+    - **Target:** `self` / `ally` / `enemy` — affects how the result is applied. Self-target formulas apply directly to the caster.
+    - **Wounds to Remove:** 0–6 wound locations to clear on a successful roll.
 3. **Link the Discipline:**
-* Locate the **"Required Discipline"** drop zone (purple dashed box).
-* Drag the *Reality Folding* Discipline item onto it.
 
+- Locate the **"Required Discipline"** drop zone (purple dashed box).
+- Drag the _Reality Folding_ Discipline item onto it.
 
-4. **Usage:** When you roll this Formula, the system looks up the Actor's *Reality Folding* rank to calculate the dice pool (`1d10 + (Rank+1)d10`) and spends the configured **Flux Cost**.
+4. **Usage:** When you roll this Formula, the system looks up the Actor's _Reality Folding_ rank to calculate the dice pool (`1d10 + (Rank+1)d10`) and spends the configured **Flux Cost**.
 
 ### C. Ebb Formula Effects
 
@@ -114,6 +113,7 @@ Drugs are consumed via the **Consume** button in the Inventory tab. Quantity dec
 Drug stat modifiers and damage reduction **must be configured as embedded Active Effects** on the drug item (the old `Mod 1`/`Mod 2` fields are removed). When the drug is toggled active or consumed as a syringe, those effects transfer to the actor. When the drug wears off, the effects are removed.
 
 Fields on the drug item sheet:
+
 - **Addiction Rating / Addiction Dose:** Reference text; addiction tests are resolved manually at the table.
 - **Duration:** Reference text for how long the drug lasts.
 - **Detox Effects:** Reference text for treatment information.
@@ -126,8 +126,8 @@ Toxicants appear under the **Bio & Traits → Infections** section on operative 
 
 1. Create an item of type **Toxicant**.
 2. Set the fields:
-   - **Infection Rating:** The TN for the infection test (Success Die + STR).
-   - **Vector / Progression / Treatment / Treatment Rating:** Reference text for the GM.
+    - **Infection Rating:** The TN for the infection test (Success Die + STR).
+    - **Vector / Progression / Treatment / Treatment Rating:** Reference text for the GM.
 3. Embedded **Active Effects** on the toxicant are transferred to the actor on a **failed** infection test.
 4. On a **successful** test, the actor becomes **immune for the current encounter** (tracked by combat id while in combat, or scene id otherwise). Immunity clears automatically when the encounter or scene changes.
 
@@ -139,23 +139,24 @@ Toxicants appear under the **Bio & Traits → Infections** section on operative 
 
 The Actor Sheet automatically sorts items into the following categories based on their **Item Type**. You do not need to do anything manually; just create the item with the correct type.
 
-| Type | Tab | Notes |
-|---|---|---|
-| `weapon` | Combat / Inventory | Attack rolls, ammo tracking |
-| `armor` | Combat / Inventory | PV and Resistance |
-| `explosive` | Combat / Inventory | Throw automation, quantity tracking |
-| `magazine` | Inventory | Links to a weapon; reloading |
-| `drug` | Inventory | Consume action; Active Effects |
-| `item` | Inventory | Generic gear |
-| `toxicant` | Bio & Traits → Infections | Infection test action |
-| `skill` | Skills tab | Sorted by stat |
-| `trait` | Bio & Traits | Reference |
-| `discipline` | Ebb tab (Ebonites only) | Nested with formulas |
-| `ebbFormula` | Ebb tab (Ebonites only) | Rolls, flux, wounds |
+| Type         | Tab                       | Notes                               |
+| ------------ | ------------------------- | ----------------------------------- |
+| `weapon`     | Combat / Inventory        | Attack rolls, ammo tracking         |
+| `armor`      | Combat / Inventory        | PV and Resistance                   |
+| `explosive`  | Combat / Inventory        | Throw automation, quantity tracking |
+| `magazine`   | Inventory                 | Links to a weapon; reloading        |
+| `drug`       | Inventory                 | Consume action; Active Effects      |
+| `item`       | Inventory                 | Generic gear                        |
+| `toxicant`   | Bio & Traits → Infections | Infection test action               |
+| `skill`      | Skills tab                | Sorted by stat                      |
+| `trait`      | Bio & Traits              | Reference                           |
+| `discipline` | Ebb tab (Ebonites only)   | Nested with formulas                |
+| `ebbFormula` | Ebb tab (Ebonites only)   | Rolls, flux, wounds                 |
 
 ### Stackable Items
 
 Dragging **gear**, **explosives**, **magazines**, or **drugs** onto an actor sheet **merges** into an existing stack when the system considers it the same item:
+
 - Items with a compendium source ID match by that ID.
 - Other items match by type + name (case-insensitive), and magazines also require matching `ammoType` and `ammoCapacity`.
 - Items with embedded Active Effects are **never** merged automatically.
@@ -178,8 +179,8 @@ Powered armor provides stat bonuses while retaining a resistance bar.
 1. Create an **Armor** item and check **Powered**.
 2. Set **Resistance** (current/max) — this becomes the second token bar (`armor.resist`).
 3. Fill the **Mods** section:
-   - **STR Mod / DEX Mod:** Flat additions to the actor's derived STR and DEX totals.
-   - **Move Closing / Move Rushing:** Added to the actor's base movement from their species.
+    - **STR Mod / DEX Mod:** Flat additions to the actor's derived STR and DEX totals.
+    - **Move Closing / Move Rushing:** Added to the actor's base movement from their species.
 4. If the armor's resistance drops to **0**, its PV becomes 0 and its weight counts as **6** for encumbrance regardless of its listed weight.
 
 ### C. Powersuit
@@ -189,11 +190,11 @@ A powersuit **replaces** the actor's STR total and caps DEX, rather than adding 
 1. Create an **Armor** item, check **Powered**, and also check **Powersuit**.
 2. Set **Resistance** and **PV** as above.
 3. Fill the **Mods** section:
-   - **STR Mod:** The value written here **becomes** the actor's STR total (not additive). Set it to the powersuit's rated strength.
-   - **DEX Mod:** Added to DEX total after the replacement (still additive for DEX).
-   - **DEX Cap:** If set (> 0), the actor's DEX total cannot exceed this value.
-   - **Init Bonus:** Added to the initiative calculation.
-   - **Move Closing / Move Rushing:** Added to base movement.
+    - **STR Mod:** The value written here **becomes** the actor's STR total (not additive). Set it to the powersuit's rated strength.
+    - **DEX Mod:** Added to DEX total after the replacement (still additive for DEX).
+    - **DEX Cap:** If set (> 0), the actor's DEX total cannot exceed this value.
+    - **Init Bonus:** Added to the initiative calculation.
+    - **Move Closing / Move Rushing:** Added to base movement.
 4. If the actor wears multiple powersuit items, only the one with the highest resistance value is treated as the active powersuit.
 5. Drag `system.powersuitAttack = true` weapons to the actor to mark them as requiring powersuit use.
 
@@ -207,14 +208,14 @@ Explosives are thrown weapons with an inner and outer blast radius. The system p
 
 ### Setting up an Explosive
 
-1. Create an item of type **Explosive** (e.g., *Fragmentation Grenade*).
+1. Create an item of type **Explosive** (e.g., _Fragmentation Grenade_).
 2. Set the fields:
-   - **Damage** and **Min Damage:** Roll formula (e.g. `3d10`) and floor.
-   - **AD:** Armour Damage value applied on each hit.
-   - **Blast Radius Inner:** Distance in grid units for the primary zone (full effect).
-   - **Blast Radius Outer:** Distance in grid units for the secondary zone.
-   - **Skill:** The skill used for the throw roll (default: `Throw`).
-3. Link the relevant throwing skill to the actor (the *Throw* skill uses STR as its governing stat).
+    - **Damage** and **Min Damage:** Roll formula (e.g. `3d10`) and floor.
+    - **AD:** Armour Damage value applied on each hit.
+    - **Blast Radius Inner:** Distance in grid units for the primary zone (full effect).
+    - **Blast Radius Outer:** Distance in grid units for the secondary zone.
+    - **Skill:** The skill used for the throw roll (default: `Throw`).
+3. Link the relevant throwing skill to the actor (the _Throw_ skill uses STR as its governing stat).
 
 ### Throwing an Explosive
 
@@ -236,19 +237,19 @@ Vehicles are a distinct actor type with their own sheet. They track HP, armor, m
 ### Creating a Vehicle
 
 1. Go to the **Actors Directory** and click **Create Actor**.
-2. Choose type **Vehicle** and name it (e.g., *Manta APC*).
+2. Choose type **Vehicle** and name it (e.g., _Manta APC_).
 3. The vehicle sheet opens with the following fields:
 
-| Field | Description |
-|---|---|
-| HP (current / max) | Vehicle structural integrity |
-| PV | Protection Value against each hit |
-| Resist (current / max) | Powered armor-style resistance bar (token bar) |
-| Move | Speed in grid units; used for the token ruler |
-| Drive Skill | The skill name used for driving checks (text reference only) |
-| Dimensions | Length / Width / Height (text, for reference) |
-| Capacity | Crew and passenger count (text, for reference) |
-| Provides Cover | Whether occupants benefit from cover |
+| Field                            | Description                                                       |
+| -------------------------------- | ----------------------------------------------------------------- |
+| HP (current / max)               | Vehicle structural integrity                                      |
+| PV                               | Protection Value against each hit                                 |
+| Resist (current / max)           | Powered armor-style resistance bar (token bar)                    |
+| Move                             | Speed in grid units; used for the token ruler                     |
+| Drive Skill                      | The skill name used for driving checks (text reference only)      |
+| Dimensions                       | Length / Width / Height (text, for reference)                     |
+| Capacity                         | Crew and passenger count (text, for reference)                    |
+| Provides Cover                   | Whether occupants benefit from cover                              |
 | Mounted Weapons Ignore Skill Req | Operators may use mounted weapons without owning the linked skill |
 
 ### Adding Mounted Weapons

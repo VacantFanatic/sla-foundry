@@ -2,7 +2,7 @@
  * Pure wound counting and logic-condition helpers for actor derived data.
  */
 
-const WOUND_FIELDS = ["head", "torso", "lArm", "rArm", "lLeg", "rLeg"];
+const WOUND_FIELDS = ['head', 'torso', 'lArm', 'rArm', 'lLeg', 'rLeg'];
 
 /**
  * @param {Record<string, boolean | undefined>} wounds

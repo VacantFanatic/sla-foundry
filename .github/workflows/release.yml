@@ -1,81 +1,81 @@
 name: sla-industries Release
 
 permissions:
-  contents: write
+    contents: write
 
 on:
-  push:
-    tags:
-      - "[0-9]+.[0-9]+.[0-9]+"
-      - "[0-9]+.[0-9]+.[0-9]+-*"
-      - "v[0-9]+.[0-9]+.[0-9]+"
-      - "v[0-9]+.[0-9]+.[0-9]+-*"
+    push:
+        tags:
+            - '[0-9]+.[0-9]+.[0-9]+'
+            - '[0-9]+.[0-9]+.[0-9]+-*'
+            - 'v[0-9]+.[0-9]+.[0-9]+'
+            - 'v[0-9]+.[0-9]+.[0-9]+-*'
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    release:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: npm
 
-      - name: Resolve release version from tag
-        id: get-version
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          VERSION="${TAG#v}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            - name: Resolve release version from tag
+              id: get-version
+              run: |
+                  TAG="${GITHUB_REF_NAME}"
+                  VERSION="${TAG#v}"
+                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Verify package.json and system.json versions match
-        run: node scripts/validate-dist.mjs --sync-only
+            - name: Verify package.json and system.json versions match
+              run: node scripts/validate-dist.mjs --sync-only
 
-      - name: Verify tag matches system.json version
-        run: |
-          MANIFEST_VERSION=$(node ./.github/workflows/get-version.js)
-          if [ "$MANIFEST_VERSION" != "${{ steps.get-version.outputs.version }}" ]; then
-            echo "Tag version (${{ steps.get-version.outputs.version }}) does not match system.json ($MANIFEST_VERSION)"
-            exit 1
-          fi
+            - name: Verify tag matches system.json version
+              run: |
+                  MANIFEST_VERSION=$(node ./.github/workflows/get-version.js)
+                  if [ "$MANIFEST_VERSION" != "${{ steps.get-version.outputs.version }}" ]; then
+                    echo "Tag version (${{ steps.get-version.outputs.version }}) does not match system.json ($MANIFEST_VERSION)"
+                    exit 1
+                  fi
 
-      - name: Run unit tests
-        run: npm run test:unit
+            - name: Run unit tests
+              run: npm run test:unit
 
-      - name: Build and package release zip
-        run: npm run package
+            - name: Build and package release zip
+              run: npm run package
 
-      - name: Validate dist and zip artifacts
-        run: node scripts/validate-dist.mjs --zip
+            - name: Validate dist and zip artifacts
+              run: node scripts/validate-dist.mjs --zip
 
-      - name: Copy manifest for release asset
-        run: cp dist/system.json system.json
+            - name: Copy manifest for release asset
+              run: cp dist/system.json system.json
 
-      - name: Create Release
-        id: create_versioned_release
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true
-          skipIfReleaseExists: true
-          name: Release ${{ steps.get-version.outputs.version }}
-          draft: true
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "./system.json,./sla-industries.zip"
-          tag: ${{ steps.get-version.outputs.version }}
+            - name: Create Release
+              id: create_versioned_release
+              uses: ncipollo/release-action@v1
+              with:
+                  allowUpdates: true
+                  skipIfReleaseExists: true
+                  name: Release ${{ steps.get-version.outputs.version }}
+                  draft: true
+                  prerelease: false
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  artifacts: './system.json,./sla-industries.zip'
+                  tag: ${{ steps.get-version.outputs.version }}
 
-      - name: Create Latest release
-        id: create_latest_release
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true
-          name: Latest
-          draft: true
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "./system.json,./sla-industries.zip"
-          tag: latest
+            - name: Create Latest release
+              id: create_latest_release
+              uses: ncipollo/release-action@v1
+              with:
+                  allowUpdates: true
+                  name: Latest
+                  draft: true
+                  prerelease: false
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  artifacts: './system.json,./sla-industries.zip'
+                  tag: latest

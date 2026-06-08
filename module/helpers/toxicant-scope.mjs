@@ -1,7 +1,7 @@
 /** @module helpers/toxicant-scope */
 
-const FLAG_SCOPE = "sla-industries";
-const FLAG_KEY = "toxicantImmunity";
+const FLAG_SCOPE = 'sla-industries';
+const FLAG_KEY = 'toxicantImmunity';
 
 /**
  * Active combat uses combat id; otherwise current scene id (exploration).
@@ -9,7 +9,7 @@ const FLAG_KEY = "toxicantImmunity";
  */
 export function getSlaEncounterScopeId() {
     if (game.combat?.started && game.combat?.id) return `combat:${game.combat.id}`;
-    const sid = game.scenes?.current?.id ?? game.scenes?.active?.id ?? "none";
+    const sid = game.scenes?.current?.id ?? game.scenes?.active?.id ?? 'none';
     return `scene:${sid}`;
 }
 
@@ -19,7 +19,7 @@ export function getSlaEncounterScopeId() {
  */
 export function isToxicantImmuneThisEncounter(actor, itemUuid) {
     const map = actor.getFlag(FLAG_SCOPE, FLAG_KEY);
-    if (!map || typeof map !== "object") return false;
+    if (!map || typeof map !== 'object') return false;
     return map[itemUuid] === getSlaEncounterScopeId();
 }
 
