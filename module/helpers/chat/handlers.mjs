@@ -1,5 +1,5 @@
 import { LuckDialog } from '../../apps/luck-dialog.mjs';
-import { calculateRollResult } from '../dice.mjs';
+import { calculateRollResult, generateDiceTooltip } from '../dice.mjs';
 import { syncEbbCriticalFlux } from '../ebb-flux.mjs';
 import { normalizeEbbEffect } from '../items.mjs';
 import { resolveEbbOutcomeText, resolveWeaponMosOutcome } from '../../sheets/actor/roll-math.mjs';
@@ -473,7 +473,7 @@ export async function onChangeDifficulty(ev) {
             resultColor: resultColor,
             itemName: flags.itemName,
             successTotal: result.total,
-            tooltip: await roll.getTooltip(),
+            tooltip: generateDiceTooltip(roll, flags.baseModifier, 0, flags.successDieModifier || 0),
             skillDice: result.skillDiceData,
             notes: finalNotes,
             showDamageButton: showButton,

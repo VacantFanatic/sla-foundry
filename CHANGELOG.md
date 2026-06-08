@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.7.1] - 2026-06-08
+
+### Fixed
+
+- **Chat card buttons (adjust TN, Luck, damage, etc.):** Native click delegation no longer spreads the DOM `Event` (which drops `preventDefault`), so GM difficulty adjustment and other chat card actions work again after the v2.7.0 chat refactor.
+- **Adjust TN tooltip:** Difficulty recalculation uses `generateDiceTooltip()` instead of `roll.getTooltip()` so skill-check cards re-render consistently.
+
+### Added
+
+- **Unit tests:** `chat-dom.test.mjs` (handler event wrapper, data-tn reads) and `chat-difficulty.test.mjs` (TN recalculation and tooltip regeneration).
+
 ## [2.7.0] - 2026-06-08
 
 ### Added

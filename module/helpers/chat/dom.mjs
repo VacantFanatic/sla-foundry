@@ -58,3 +58,18 @@ export function toggleTooltip(tooltip) {
     if (hidden) tooltip.removeAttribute('hidden');
     else tooltip.setAttribute('hidden', '');
 }
+
+/**
+ * Build a handler-friendly event object from a native DOM event.
+ * Spreading a native Event drops prototype methods such as preventDefault.
+ *
+ * @param {Event} nativeEv
+ * @param {HTMLElement} currentTarget
+ */
+export function handlerEvent(nativeEv, currentTarget) {
+    return {
+        currentTarget,
+        preventDefault: () => nativeEv.preventDefault(),
+        stopPropagation: () => nativeEv.stopPropagation()
+    };
+}
