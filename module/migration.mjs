@@ -1,5 +1,5 @@
 import { NATURAL_WEAPONS } from './data/natural-weapons.mjs';
-import { migrateNaturalWeapons } from '../scripts/migrate_stat_damage.js';
+import { migrateNaturalWeapons } from './migration/natural-weapons.mjs';
 
 /** * module/migration.mjs
  * World migration version is stored in game.settings ("sla-industries", "systemMigrationVersion").

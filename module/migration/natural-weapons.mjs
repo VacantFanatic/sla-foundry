@@ -1,5 +1,37 @@
-import { NATURAL_WEAPONS } from '../module/data/natural-weapons.mjs';
+import { NATURAL_WEAPONS } from '../data/natural-weapons.mjs';
 
+/**
+ * Detect legacy natural weapon items that should be replaced during world migration.
+ * @param {{ type?: string, name?: string, system?: { damage?: string } }} item
+ * @returns {{ isLegacy: boolean, replacementKey: "teethClaws" | "beak" | "punchKick" | null }}
+ */
+export function classifyLegacyNaturalWeapon(item) {
+    if (item?.type !== 'weapon') {
+        return { isLegacy: false, replacementKey: null };
+    }
+
+    const damage = item.system?.damage ?? '';
+    if (!damage.includes('1d10')) {
+        return { isLegacy: false, replacementKey: null };
+    }
+
+    if (item.name === 'Teeth/Claws (Stormer)') {
+        return { isLegacy: true, replacementKey: 'teethClaws' };
+    }
+    if (item.name === 'Beak (Neophron)') {
+        return { isLegacy: true, replacementKey: 'beak' };
+    }
+    if (item.name === 'Punch/Kick') {
+        return { isLegacy: true, replacementKey: 'punchKick' };
+    }
+
+    return { isLegacy: false, replacementKey: null };
+}
+
+/**
+ * Replace legacy natural weapon embedded items across all world actors.
+ * @param {boolean} [silent=false]
+ */
 export async function migrateNaturalWeapons(silent = false) {
     console.log('SLA | Starting Natural Weapons Migration...');
     const actors = game.actors.contents;
@@ -10,51 +42,32 @@ export async function migrateNaturalWeapons(silent = false) {
         const itemsToDelete = [];
         const itemsToCreate = [];
 
-        // 1. IDENTIFY BAD ITEMS
         const weapons = actor.items.filter((i) => i.type === 'weapon');
 
         for (const item of weapons) {
-            let isLegacy = false;
-            let replacementData = null;
+            const { isLegacy, replacementKey } = classifyLegacyNaturalWeapon(item);
+            if (!isLegacy) continue;
 
-            // 1. Stormer Teeth/Claws
-            if (item.name === 'Teeth/Claws (Stormer)' && item.system.damage.includes('1d10')) {
-                isLegacy = true;
-                replacementData = foundry.utils.deepClone(NATURAL_WEAPONS.teethClaws);
-            }
-            // 2. Neophron Beak
-            else if (item.name === 'Beak (Neophron)' && item.system.damage.includes('1d10')) {
-                isLegacy = true;
-                replacementData = foundry.utils.deepClone(NATURAL_WEAPONS.beak);
-            }
-            // 3. Punch/Kick (Legacy)
-            else if (item.name === 'Punch/Kick' && item.system.damage.includes('1d10')) {
-                isLegacy = true;
-                // We don't need to explicitly push to itemsToCreate for Punch/Kick
-                // because the "ENSURE" block below will handle it if it's missing.
-                // But specifically for consistency let's rely on the block below for Punch/Kick.
-            }
+            console.log(`SLA | Identifying Legacy Item for Replacement: ${actor.name} - ${item.name}`);
+            itemsToDelete.push(item.id);
 
-            if (isLegacy) {
-                console.log(`SLA | Identifying Legacy Item for Replacement: ${actor.name} - ${item.name}`);
-                itemsToDelete.push(item.id);
-                if (replacementData) itemsToCreate.push(replacementData);
+            if (replacementKey === 'teethClaws') {
+                itemsToCreate.push(foundry.utils.deepClone(NATURAL_WEAPONS.teethClaws));
+            } else if (replacementKey === 'beak') {
+                itemsToCreate.push(foundry.utils.deepClone(NATURAL_WEAPONS.beak));
             }
         }
 
-        // 2. EXECUTE DELETES
         if (itemsToDelete.length > 0) {
             await actor.deleteEmbeddedDocuments('Item', itemsToDelete);
-            updateCount += itemsToDelete.length; // Counting deletions as "updates" to the actor state
+            updateCount += itemsToDelete.length;
         }
 
-        // 3. EXECUTE RE-CREATES (Specific Species Weapons)
         if (itemsToCreate.length > 0) {
             await actor.createEmbeddedDocuments('Item', itemsToCreate);
             createdCount += itemsToCreate.length;
         }
 
-        // 4. ENSURE PUNCH/KICK EXISTS (Handles both missing AND deleted-legacy cases)
         if (actor.type === 'character' || actor.type === 'npc') {
             const punchKickItems = actor.items.filter(
                 (i) => i.type === 'weapon' && i.name === NATURAL_WEAPONS.punchKick.name
@@ -65,7 +78,6 @@ export async function migrateNaturalWeapons(silent = false) {
                 await actor.createEmbeddedDocuments('Item', [punchData]);
                 createdCount++;
             } else if (punchKickItems.length > 1) {
-                // Keep the first instance and remove duplicate Punch/Kick entries.
                 const duplicateIds = punchKickItems.slice(1).map((i) => i.id);
                 if (duplicateIds.length > 0) {
                     console.log(`SLA | Removing duplicate Punch/Kick (${duplicateIds.length}) from ${actor.name}`);
@@ -77,8 +89,9 @@ export async function migrateNaturalWeapons(silent = false) {
     }
 
     if (updateCount > 0 || createdCount > 0) {
-        if (!silent)
+        if (!silent) {
             ui.notifications.info(`SLA | Updated ${updateCount} Items. Created ${createdCount} Natural Weapons.`);
+        }
         console.log(`SLA | Updated ${updateCount} Items. Created ${createdCount} Natural Weapons.`);
     } else {
         console.log('SLA | No natural weapons needed migration.');
