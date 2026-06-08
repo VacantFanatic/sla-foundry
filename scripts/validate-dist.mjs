@@ -45,7 +45,6 @@ export function manifestAssetPaths(manifest) {
     }
 
     paths.push("system.json");
-    paths.push("scripts/migrate_stat_damage.js");
 
     return [...new Set(paths)];
 }

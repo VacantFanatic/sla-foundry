@@ -46,7 +46,8 @@ sla-industries/
 │       └── item-sheet.mjs      # SlaItemSheet (all item types, ApplicationV2)
 ├── templates/                  # Handlebars templates for sheets and chat cards
 ├── packs/                      # Compendium source files (.db)
-├── scripts/                    # External migration helpers
+├── module/migration/           # World migration helpers (e.g. natural-weapons.mjs)
+├── scripts/                    # Build, validation, and Foundry cloud bootstrap
 ├── tests/
 │   ├── unit/                   # Node.js unit tests (no Foundry dependency)
 │   └── e2e/                    # Playwright browser tests (require running Foundry instance)

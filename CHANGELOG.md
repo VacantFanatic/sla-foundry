@@ -8,10 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+* **Natural weapons migration tests:** `classifyLegacyNaturalWeapon()` unit tests in `tests/unit/natural-weapons-migration.test.mjs`.
 * **Item sheet UI E2E regression:** Playwright spec `tests/e2e/regression-item-sheets.spec.js` covers discipline, ebb formula, weapon, magazine, skill, and generic item sheets (tabs, spectral stamps, shared drop hints, drag-over feedback, effects tab CRUD). Included in `npm run test:e2e:regression`.
 
 ### Changed
 
+* **Natural weapons migration:** Moved from `scripts/migrate_stat_damage.js` to `module/migration/natural-weapons.mjs` so dev and `dist/` share the same import path; removed `dist/scripts/` copy step.
 * **Foundry cloud bootstrap:** `foundry-bootstrap.mjs` confirms world data migration and pre-migration backup dialogs so E2E can launch `sla-test-world` after system version bumps.
 
 ## [2.6.9] - 2026-06-06
