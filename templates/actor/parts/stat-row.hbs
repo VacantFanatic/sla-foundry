@@ -1,0 +1,24 @@
+<div class="stat-box {{#if (eq statSheetMode "edit")}}sla-stat-box-mode-edit{{else}}sla-stat-box-mode-play{{/if}}">
+    <label>{{label}}</label>
+    {{#if (eq statSheetMode "edit")}}
+    <div class="flexrow sla-stat-row-inner sla-stat-row-edit">
+        {{#if (and owner editable)}}
+        <input type="number" class="sla-stat-base-input-edit" name="system.stats.{{key}}.value"
+            value="{{lookup statInputs key}}" title="{{localize "SLA.StatSheetMode.BaseTooltip"}}" />
+        {{else}}
+        <span class="sla-stat-base-input-edit sla-stat-readonly">{{lookup statInputs key}}</span>
+        {{/if}}
+        {{#if statInputs}}{{#if (ne (lookup (lookup system.stats key) 'total') (lookup statInputs key))}}
+        <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">→ {{lookup (lookup system.stats key) 'total'}}</span>
+        {{/if}}{{/if}}
+    </div>
+    <a class="rollable" data-roll-type="stat" data-key="{{key}}" aria-label="{{localize rollKey}}" title="{{localize rollKey}}"><i class="fas fa-dice-d20" aria-hidden="true"></i></a>
+    {{else}}
+    <div class="flexrow sla-stat-row-inner">
+        <input type="hidden" name="system.stats.{{key}}.value" value="{{lookup statInputs key}}" />
+        <a class="rollable sla-stat-play-hit sla-stat-play-total {{lookup statPlayClasses key}}" data-roll-type="stat" data-key="{{key}}" aria-label="{{localize rollKey}}">{{lookup (lookup system.stats key) 'total'}}</a>
+        <span class="sla-stat-play-base-label" title="{{localize "SLA.StatSheetMode.BaseInPlayTooltip"}}">({{lookup statInputs key}})</span>
+    </div>
+    <a class="rollable" data-roll-type="stat" data-key="{{key}}" aria-label="{{localize rollKey}}" title="{{localize rollKey}}"><i class="fas fa-dice-d20" aria-hidden="true"></i></a>
+    {{/if}}
+</div>

@@ -1,0 +1,106 @@
+/**
+ * Actor sheet fields — shared with item sheet #243 tokens.
+ */
+
+.sla-sheet .sla-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+
+    > label {
+        font-size: 0.8125rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--sla-accent);
+        opacity: 0.85;
+        margin: 0;
+    }
+
+    &.sla-field--inline {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+
+        > label {
+            flex: 0 0 auto;
+            opacity: 1;
+        }
+
+        > input,
+        > select {
+            flex: 1;
+        }
+    }
+
+    &.sla-field--toggle {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+
+        > label {
+            flex: 1;
+        }
+    }
+
+    &.sla-field--finance-credits input {
+        color: #39ff14 !important;
+        font-weight: 700;
+        text-align: right;
+    }
+
+    &.sla-field--finance-debt input {
+        color: #ff5555 !important;
+        text-align: right;
+    }
+}
+
+.sla-sheet .sla-section-hint {
+    margin: 0 0 6px;
+    font-size: 0.75rem;
+    color: var(--sla-text-muted, #999);
+    font-style: italic;
+}
+
+.sla-sheet .sla-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead th {
+        background: #111;
+        color: var(--sla-accent);
+        border-bottom: 1px solid var(--sla-border);
+        padding: 4px 8px;
+        font-size: 0.85em;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    tbody tr {
+        border-bottom: 1px solid #333;
+    }
+
+    .skill-group-header td {
+        border-top: 2px solid var(--sla-accent);
+        background: rgba(208, 94, 26, 0.1);
+        color: var(--sla-accent);
+        font-weight: 700;
+        padding: 4px 8px;
+    }
+
+    .sla-table-empty td {
+        text-align: center;
+        color: #555;
+        font-style: italic;
+        padding: 12px;
+    }
+}
+
+.sla-sheet .sla-empty-state {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    font-size: 0.875rem;
+}

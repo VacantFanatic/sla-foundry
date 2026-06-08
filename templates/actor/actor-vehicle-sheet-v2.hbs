@@ -1,17 +1,17 @@
-<div class="{{cssClass}} sla-sheet threat-sheet standard-form" autocomplete="off">
+<div class="{{cssClass}} sla-sheet threat-sheet standard-form sla-vehicle-layout" autocomplete="off">
     <div class="threat-header">
-        <div style="display:flex; align-items:center; flex:1;">
-            <img class="threat-logo" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
-            <div class="header-name" style="flex:1;">
+        <div class="threat-header-row">
+            <img class="threat-logo" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" alt="{{actor.name}}" />
+            <div class="header-name">
                 <input name="name" type="text" value="{{actor.name}}" placeholder="Vehicle Name" />
             </div>
         </div>
     </div>
 
-    <div class="threat-body" style="padding: 5px;">
-        <div class="threat-derived">
+    <div class="threat-body sla-vehicle-body">
+        <div class="threat-derived sla-vehicle-stats">
             <div class="threat-box">
-                <label>HP</label>
+                <label>{{localize "SLA.ActorSheet.HitPoints"}}</label>
                 <div class="flexrow">
                     <input type="number" name="system.hp.value" value="{{system.hp.value}}" />
                     <span>/</span>
@@ -19,7 +19,7 @@
                 </div>
             </div>
             <div class="threat-box">
-                <label>PV</label>
+                <label>{{localize "SLA.ActorSheet.ArmorPV"}}</label>
                 <input type="number" name="system.armor.pv" value="{{system.armor.pv}}" placeholder="0" />
             </div>
             <div class="threat-box">
@@ -31,7 +31,7 @@
                 </div>
             </div>
             <div class="threat-box">
-                <label>MOVE</label>
+                <label>{{localize "SLA.ActorSheet.Movement"}}</label>
                 <input type="number" name="system.move.value" value="{{system.move.value}}" />
             </div>
             <div class="threat-box">
@@ -41,69 +41,63 @@
         </div>
 
         <div class="threat-section-bar">WEAPONS</div>
-        <div class="threat-content-box" style="min-height: 30px;">
-            <div class="vehicle-weapon-drop" style="border:1px dashed #666; border-radius:4px; padding:6px; margin-bottom:6px; text-align:center; color:#bbb;">
-                Drop Weapon Items Here to Equip
-            </div>
+        <div class="threat-content-box sla-vehicle-weapons">
+            <div class="vehicle-weapon-drop sla-drop">{{localize "SLA.ActorSheet.VehicleDropWeapon"}}</div>
             {{#unless weapons.length}}
-            <div style="text-align:center; color:#888; font-style:italic; padding:5px;">
-                Drop Weapons Here
-            </div>
+            <div class="sla-empty-state">{{localize "SLA.ActorSheet.VehicleWeaponsEmpty"}}</div>
             {{/unless}}
 
             {{#each weapons as |item|}}
             <div class="item threat-item flexrow" data-item-id="{{item._id}}">
-                <span class="item-name rollable" data-roll-type="item" style="font-weight:bold; cursor:pointer;">
-                    {{item.name}}
-                </span>
-                <span style="color:#333; margin-left:5px; font-style:italic;" title="Damage: {{item.system.damage}}">
+                <span class="item-name rollable" data-roll-type="item">{{item.name}}</span>
+                <span class="sla-vehicle-dmg" title="Damage: {{item.system.damage}}">
                     (Dmg: {{item.resolvedDamage}})
                 </span>
-                <div class="item-controls" style="margin-left:auto; display:flex; gap:5px; align-items:center;">
-                    <a class="item-edit"><i class="fas fa-edit"></i></a>
-                    <a class="item-delete"><i class="fas fa-trash"></i></a>
+                <div class="item-controls">
+                    <a class="item-edit" title="{{localize 'SLA.ActorSheet.EditItem'}}" aria-label="{{localize 'SLA.ActorSheet.EditItem'}}"><i class="fas fa-edit"></i></a>
+                    <a class="item-delete" title="{{localize 'SLA.ActorSheet.DeleteItem'}}" aria-label="{{localize 'SLA.ActorSheet.DeleteItem'}}"><i class="fas fa-trash"></i></a>
                 </div>
             </div>
             {{/each}}
         </div>
 
         <div class="threat-section-bar">DIMENSIONS</div>
-        <div class="threat-content-box" style="padding:8px;">
-            <div class="flexrow" style="gap:8px;">
-                <div style="flex:1;">
+        <div class="threat-content-box sla-vehicle-dimensions">
+            <div class="flexrow sla-vehicle-dim-row">
+                <div class="sla-field">
                     <label>Length</label>
                     <input type="text" name="system.dimensions.length" value="{{system.dimensions.length}}" />
                 </div>
-                <div style="flex:1;">
+                <div class="sla-field">
                     <label>Width</label>
                     <input type="text" name="system.dimensions.width" value="{{system.dimensions.width}}" />
                 </div>
-                <div style="flex:1;">
+                <div class="sla-field">
                     <label>Height</label>
                     <input type="text" name="system.dimensions.height" value="{{system.dimensions.height}}" />
                 </div>
             </div>
-            <div style="margin-top:8px;">
+            <div class="sla-field">
                 <label>Capacity</label>
                 <input type="text" name="system.capacity" value="{{system.capacity}}" placeholder="e.g. 1 driver, 1 passenger" />
             </div>
         </div>
 
         <div class="threat-section-bar">VEHICLE COMBAT RULES</div>
-        <div class="threat-content-box" style="padding:8px;">
-            <div class="flexrow" style="gap:10px;">
-                <label style="display:flex; align-items:center; gap:6px;">
+        <div class="threat-content-box">
+            <div class="flexrow sla-vehicle-rules">
+                <label class="sla-field sla-field--toggle">
+                    <span>Provides Cover</span>
                     <input type="checkbox" name="system.providesCombatCover" {{checked system.providesCombatCover}} />
-                    Provides Cover
                 </label>
-                <label style="display:flex; align-items:center; gap:6px;">
+                <label class="sla-field sla-field--toggle">
+                    <span>Mounted Weapons Ignore Skill Requirement</span>
                     <input type="checkbox" name="system.mountedWeaponsIgnoreSkillReq" {{checked system.mountedWeaponsIgnoreSkillReq}} />
-                    Mounted Weapons Ignore Skill Requirement
                 </label>
             </div>
         </div>
 
-        <div class="threat-section-bar">NOTES</div>
+        <div class="threat-section-bar">{{localize "SLA.ActorSheet.Notes"}}</div>
         <div class="threat-content-box threat-notes-editor">
             {{#if editable}}
             <prose-mirror class="editor" name="system.notes" toggled value="{{system.notes}}">{{{enrichedNotes}}}</prose-mirror>

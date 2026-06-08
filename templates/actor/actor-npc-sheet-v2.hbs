@@ -1,4 +1,4 @@
-<div class="{{cssClass}} sla-sheet threat-sheet standard-form sla-actor-layout" autocomplete="off">
+<div class="{{cssClass}} sla-sheet threat-sheet standard-form sla-actor-layout sla-sheet-tabs-labeled" autocomplete="off">
 
     {{!-- THREAT HEADER --}}
     <div class="threat-header">
@@ -102,7 +102,7 @@
 
         <div class="sla-actor-tabbed-area threat-tabbed-area">
             <section class="sheet-body sla-actor-sheet-body">
-                <div class="tab {{tabs.combat.cssClass}}" data-group="primary" data-tab="combat">
+                <div class="tab {{tabs.combat.cssClass}}" data-group="primary" data-tab="combat" role="tabpanel" id="sla-npc-tabpanel-combat" aria-labelledby="sla-npc-tab-combat">
                     {{!-- Wounds / Conditions --}}
                     {{> "systems/sla-industries/templates/actor/parts/wounds.hbs"}}
 
@@ -110,33 +110,9 @@
                     {{> "systems/sla-industries/templates/actor/parts/combat-loadout.hbs"}}
                 </div>
 
-                <div class="tab {{tabs.skills.cssClass}}" data-group="primary" data-tab="skills">
-                    <div class="threat-section-bar">SKILLS</div>
-                    <div class="threat-content-box" style="min-height: 30px;">
-                        {{#unless skills.length}}
-                        <div style="text-align:center; color:#888; font-style:italic; padding:5px;">
-                            Drop Skills Here
-                        </div>
-                        {{/unless}}
-
-                        {{#each skillsByStat as |data key|}}
-                        {{#if data.items.length}}
-                        <div
-                            style="background:rgba(0,0,0,0.05); color:#800000; font-weight:bold; font-size:0.75em; padding:1px 5px; border-bottom:1px solid #ccc;">
-                            {{data.label}}
-                        </div>
-                        {{#each data.items as |skill|}}
-                        <div class="item threat-item flexrow" data-item-id="{{skill._id}}">
-                            <span class="item-name rollable" data-roll-type="skill" style="font-weight:bold;">{{skill.name}}:</span>
-                            <span style="color:#000; margin-left:5px;">{{skill.system.rank}}</span>
-                            <div class="item-controls" style="margin-left:auto;">
-                                <a class="item-edit"><i class="fas fa-edit"></i></a>
-                                <a class="item-delete"><i class="fas fa-trash"></i></a>
-                            </div>
-                        </div>
-                        {{/each}}
-                        {{/if}}
-                        {{/each}}
+                <div class="tab {{tabs.skills.cssClass}}" data-group="primary" data-tab="skills" role="tabpanel" id="sla-npc-tabpanel-skills" aria-labelledby="sla-npc-tab-skills">
+                    <div class="threat-content-box sla-skills-threat">
+                        {{> "systems/sla-industries/templates/actor/parts/skills.hbs"}}
                     </div>
                 </div>
 
@@ -160,10 +136,11 @@
                 </div>
             </section>
 
-            <nav class="sheet-tabs tabs sla-sheet-tab-rail" data-group="primary" aria-label="Sheet sections">
-                <a class="item sla-tab-rail-btn {{tabs.combat.cssClass}}" href="#" data-group="primary" data-tab="combat"
-                    title="{{tabs.combat.label}}">
-                    <i class="fas {{tabs.combat.icon}}"></i>
+            <nav class="sheet-tabs tabs sla-sheet-tab-rail" data-group="primary" role="tablist" aria-label="{{localize 'SLA.ActorSheet.TabNavLabel'}}">
+                <a class="item sla-tab-rail-btn {{tabs.combat.cssClass}}" href="#" id="sla-npc-tab-combat" role="tab" data-group="primary" data-tab="combat"
+                    title="{{tabs.combat.label}}" aria-label="{{tabs.combat.label}}" aria-controls="sla-npc-tabpanel-combat">
+                    <i class="fas {{tabs.combat.icon}}" aria-hidden="true"></i>
+                    <span class="sla-tab-rail-label">{{tabs.combat.label}}</span>
                     <span class="sla-tab-rail-tooltip">{{tabs.combat.label}}</span>
                 </a>
                 <a class="item sla-tab-rail-btn {{tabs.inventory.cssClass}}" href="#" data-group="primary" data-tab="inventory"

@@ -1,0 +1,10 @@
+<div class="sla-panel sla-notes-panel full-height">
+    <div class="sla-header-bar">{{localize "SLA.ActorSheet.Notes"}}</div>
+    <div class="sla-editor-container sla-notes-editor">
+        {{#if editable}}
+        <prose-mirror class="editor" name="system.notes" toggled value="{{system.notes}}">{{{enrichedNotes}}}</prose-mirror>
+        {{else}}
+        <div class="editor notes-readonly">{{{enrichedNotes}}}</div>
+        {{/if}}
+    </div>
+</div>

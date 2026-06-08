@@ -1,202 +1,38 @@
 <div class="stats-matrix">
 
-    {{!-- COLUMN 1: BODY (STR / DEX) --}}
     <div class="stat-col">
         <div class="rating-header">
-            <span class="rating-label">BODY</span>
-            <input type="number" class="rating-val" name="system.ratings.body.value"
-                value="{{system.ratings.body.value}}" />
+            <span class="rating-label" title="{{localize 'SLA.ActorSheet.BodyRating'}}">BODY</span>
+            <input type="number" class="rating-val" name="system.ratings.body.value" value="{{system.ratings.body.value}}" />
         </div>
-
-        {{!-- STR --}}
-        <div class="stat-box {{#if (eq statSheetMode "edit")}}sla-stat-box-mode-edit{{else}}sla-stat-box-mode-play{{/if}}">
-            <label>STR</label>
-            {{#if (eq statSheetMode "edit")}}
-            <div class="flexrow sla-stat-row-inner" style="align-items:center; justify-content:center; gap:6px; flex-wrap:wrap;">
-                {{#if (and owner editable)}}
-                <input type="number" class="sla-stat-base-input-edit" name="system.stats.str.value"
-                    value="{{#if statInputs}}{{statInputs.str}}{{else}}{{system.stats.str.value}}{{/if}}"
-                    title="{{localize "SLA.StatSheetMode.BaseTooltip"}}" />
-                {{else}}
-                <span class="sla-stat-base-input-edit sla-stat-readonly">{{#if statInputs}}{{statInputs.str}}{{else}}{{system.stats.str.value}}{{/if}}</span>
-                {{/if}}
-                {{#if statInputs}}{{#if (ne system.stats.str.total statInputs.str)}}
-                <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">→ {{system.stats.str.total}}</span>
-                {{/if}}{{/if}}
-            </div>
-            {{else}}
-            <div class="flexrow sla-stat-row-inner" style="align-items:center; justify-content:center; gap:6px;">
-                <input type="hidden" name="system.stats.str.value" value="{{#if statInputs}}{{statInputs.str}}{{else}}{{system.stats.str.value}}{{/if}}" />
-                <span class="sla-stat-play-total"
-                    style="font-size:1.35em;font-weight:bold;min-width:2rem;text-align:center;color:{{#if statInputs}}{{#if (lt system.stats.str.total statInputs.str)}}#ff5555{{else}}{{#if (gt system.stats.str.total statInputs.str)}}#39ff14{{else}}#eee{{/if}}{{/if}}{{else}}{{#if (lt system.stats.str.total system.stats.str.value)}}#ff5555{{else}}{{#if (gt system.stats.str.total system.stats.str.value)}}#39ff14{{else}}#eee{{/if}}{{/if}}{{/if}};">{{system.stats.str.total}}</span>
-                <span class="sla-stat-play-base-label" title="{{localize "SLA.StatSheetMode.BaseInPlayTooltip"}}">({{#if statInputs}}{{statInputs.str}}{{else}}{{system.stats.str.value}}{{/if}})</span>
-            </div>
-            {{/if}}
-            <a class="rollable" data-roll-type="stat" data-key="str"><i class="fas fa-dice-d20"></i></a>
-        </div>
-
-        {{!-- DEX --}}
-        <div class="stat-box {{#if (eq statSheetMode "edit")}}sla-stat-box-mode-edit{{else}}sla-stat-box-mode-play{{/if}}">
-            <label>DEX</label>
-            {{#if (eq statSheetMode "edit")}}
-            <div class="flexrow sla-stat-row-inner" style="align-items:center; justify-content:center; gap:6px; flex-wrap:wrap;">
-                {{#if (and owner editable)}}
-                <input type="number" class="sla-stat-base-input-edit" name="system.stats.dex.value"
-                    value="{{#if statInputs}}{{statInputs.dex}}{{else}}{{system.stats.dex.value}}{{/if}}"
-                    title="{{localize "SLA.StatSheetMode.BaseTooltip"}}" />
-                {{else}}
-                <span class="sla-stat-base-input-edit sla-stat-readonly">{{#if statInputs}}{{statInputs.dex}}{{else}}{{system.stats.dex.value}}{{/if}}</span>
-                {{/if}}
-                {{#if statInputs}}{{#if (ne system.stats.dex.total statInputs.dex)}}
-                <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">→ {{system.stats.dex.total}}</span>
-                {{/if}}{{/if}}
-            </div>
-            {{else}}
-            <div class="flexrow sla-stat-row-inner" style="align-items:center; justify-content:center; gap:6px;">
-                <input type="hidden" name="system.stats.dex.value" value="{{#if statInputs}}{{statInputs.dex}}{{else}}{{system.stats.dex.value}}{{/if}}" />
-                <span class="sla-stat-play-total"
-                    style="font-size:1.35em;font-weight:bold;min-width:2rem;text-align:center;color:{{#if statInputs}}{{#if (lt system.stats.dex.total statInputs.dex)}}#ff5555{{else}}{{#if (gt system.stats.dex.total statInputs.dex)}}#39ff14{{else}}#eee{{/if}}{{/if}}{{else}}{{#if (lt system.stats.dex.total system.stats.dex.value)}}#ff5555{{else}}{{#if (gt system.stats.dex.total system.stats.dex.value)}}#39ff14{{else}}#eee{{/if}}{{/if}}{{/if}};">{{system.stats.dex.total}}</span>
-                <span class="sla-stat-play-base-label" title="{{localize "SLA.StatSheetMode.BaseInPlayTooltip"}}">({{#if statInputs}}{{statInputs.dex}}{{else}}{{system.stats.dex.value}}{{/if}})</span>
-            </div>
-            {{/if}}
-            <a class="rollable" data-roll-type="stat" data-key="dex"><i class="fas fa-dice-d20"></i></a>
-        </div>
+        {{> "systems/sla-industries/templates/actor/parts/stat-row.hbs" key="str" label="STR" rollKey="SLA.ActorSheet.RollStatStr"}}
+        {{> "systems/sla-industries/templates/actor/parts/stat-row.hbs" key="dex" label="DEX" rollKey="SLA.ActorSheet.RollStatDex"}}
     </div>
 
-    {{!-- COLUMN 2: BRAINS (KNOW / CONC) --}}
     <div class="stat-col">
         <div class="rating-header">
-            <span class="rating-label">BRAINS</span>
-            <input type="number" class="rating-val" name="system.ratings.brains.value"
-                value="{{system.ratings.brains.value}}" />
+            <span class="rating-label" title="{{localize 'SLA.ActorSheet.BrainsRating'}}">BRAINS</span>
+            <input type="number" class="rating-val" name="system.ratings.brains.value" value="{{system.ratings.brains.value}}" />
         </div>
-
-        {{!-- KNOW --}}
-        <div class="stat-box {{#if (eq statSheetMode "edit")}}sla-stat-box-mode-edit{{else}}sla-stat-box-mode-play{{/if}}">
-            <label>KNOW</label>
-            {{#if (eq statSheetMode "edit")}}
-            <div class="flexrow sla-stat-row-inner" style="align-items:center; justify-content:center; gap:6px; flex-wrap:wrap;">
-                {{#if (and owner editable)}}
-                <input type="number" class="sla-stat-base-input-edit" name="system.stats.know.value"
-                    value="{{#if statInputs}}{{statInputs.know}}{{else}}{{system.stats.know.value}}{{/if}}"
-                    title="{{localize "SLA.StatSheetMode.BaseTooltip"}}" />
-                {{else}}
-                <span class="sla-stat-base-input-edit sla-stat-readonly">{{#if statInputs}}{{statInputs.know}}{{else}}{{system.stats.know.value}}{{/if}}</span>
-                {{/if}}
-                {{#if statInputs}}{{#if (ne system.stats.know.total statInputs.know)}}
-                <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">→ {{system.stats.know.total}}</span>
-                {{/if}}{{/if}}
-            </div>
-            {{else}}
-            <div class="flexrow sla-stat-row-inner" style="align-items:center; justify-content:center; gap:6px;">
-                <input type="hidden" name="system.stats.know.value" value="{{#if statInputs}}{{statInputs.know}}{{else}}{{system.stats.know.value}}{{/if}}" />
-                <span class="sla-stat-play-total"
-                    style="font-size:1.35em;font-weight:bold;min-width:2rem;text-align:center;color:{{#if statInputs}}{{#if (lt system.stats.know.total statInputs.know)}}#ff5555{{else}}{{#if (gt system.stats.know.total statInputs.know)}}#39ff14{{else}}#eee{{/if}}{{/if}}{{else}}{{#if (lt system.stats.know.total system.stats.know.value)}}#ff5555{{else}}{{#if (gt system.stats.know.total system.stats.know.value)}}#39ff14{{else}}#eee{{/if}}{{/if}}{{/if}};">{{system.stats.know.total}}</span>
-                <span class="sla-stat-play-base-label" title="{{localize "SLA.StatSheetMode.BaseInPlayTooltip"}}">({{#if statInputs}}{{statInputs.know}}{{else}}{{system.stats.know.value}}{{/if}})</span>
-            </div>
-            {{/if}}
-            <a class="rollable" data-roll-type="stat" data-key="know"><i class="fas fa-dice-d20"></i></a>
-        </div>
-
-        {{!-- CONC --}}
-        <div class="stat-box {{#if (eq statSheetMode "edit")}}sla-stat-box-mode-edit{{else}}sla-stat-box-mode-play{{/if}}">
-            <label>CONC</label>
-            {{#if (eq statSheetMode "edit")}}
-            <div class="flexrow sla-stat-row-inner" style="align-items:center; justify-content:center; gap:6px; flex-wrap:wrap;">
-                {{#if (and owner editable)}}
-                <input type="number" class="sla-stat-base-input-edit" name="system.stats.conc.value"
-                    value="{{#if statInputs}}{{statInputs.conc}}{{else}}{{system.stats.conc.value}}{{/if}}"
-                    title="{{localize "SLA.StatSheetMode.BaseTooltip"}}" />
-                {{else}}
-                <span class="sla-stat-base-input-edit sla-stat-readonly">{{#if statInputs}}{{statInputs.conc}}{{else}}{{system.stats.conc.value}}{{/if}}</span>
-                {{/if}}
-                {{#if statInputs}}{{#if (ne system.stats.conc.total statInputs.conc)}}
-                <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">→ {{system.stats.conc.total}}</span>
-                {{/if}}{{/if}}
-            </div>
-            {{else}}
-            <div class="flexrow sla-stat-row-inner" style="align-items:center; justify-content:center; gap:6px;">
-                <input type="hidden" name="system.stats.conc.value" value="{{#if statInputs}}{{statInputs.conc}}{{else}}{{system.stats.conc.value}}{{/if}}" />
-                <span class="sla-stat-play-total"
-                    style="font-size:1.35em;font-weight:bold;min-width:2rem;text-align:center;color:{{#if statInputs}}{{#if (lt system.stats.conc.total statInputs.conc)}}#ff5555{{else}}{{#if (gt system.stats.conc.total statInputs.conc)}}#39ff14{{else}}#eee{{/if}}{{/if}}{{else}}{{#if (lt system.stats.conc.total system.stats.conc.value)}}#ff5555{{else}}{{#if (gt system.stats.conc.total system.stats.conc.value)}}#39ff14{{else}}#eee{{/if}}{{/if}}{{/if}};">{{system.stats.conc.total}}</span>
-                <span class="sla-stat-play-base-label" title="{{localize "SLA.StatSheetMode.BaseInPlayTooltip"}}">({{#if statInputs}}{{statInputs.conc}}{{else}}{{system.stats.conc.value}}{{/if}})</span>
-            </div>
-            {{/if}}
-            <a class="rollable" data-roll-type="stat" data-key="conc"><i class="fas fa-dice-d20"></i></a>
-        </div>
+        {{> "systems/sla-industries/templates/actor/parts/stat-row.hbs" key="know" label="KNOW" rollKey="SLA.ActorSheet.RollStatKnow"}}
+        {{> "systems/sla-industries/templates/actor/parts/stat-row.hbs" key="conc" label="CONC" rollKey="SLA.ActorSheet.RollStatConc"}}
     </div>
 
-    {{!-- COLUMN 3: BRAVADO (CHA / COOL) --}}
     <div class="stat-col">
         <div class="rating-header">
-            <span class="rating-label">BRAVADO</span>
-            <input type="number" class="rating-val" name="system.ratings.bravado.value"
-                value="{{system.ratings.bravado.value}}" />
+            <span class="rating-label" title="{{localize 'SLA.ActorSheet.BravadoRating'}}">BRAVADO</span>
+            <input type="number" class="rating-val" name="system.ratings.bravado.value" value="{{system.ratings.bravado.value}}" />
         </div>
-
-        {{!-- CHA --}}
-        <div class="stat-box {{#if (eq statSheetMode "edit")}}sla-stat-box-mode-edit{{else}}sla-stat-box-mode-play{{/if}}">
-            <label>CHA</label>
-            {{#if (eq statSheetMode "edit")}}
-            <div class="flexrow sla-stat-row-inner" style="align-items:center; justify-content:center; gap:6px; flex-wrap:wrap;">
-                {{#if (and owner editable)}}
-                <input type="number" class="sla-stat-base-input-edit" name="system.stats.cha.value"
-                    value="{{#if statInputs}}{{statInputs.cha}}{{else}}{{system.stats.cha.value}}{{/if}}"
-                    title="{{localize "SLA.StatSheetMode.BaseTooltip"}}" />
-                {{else}}
-                <span class="sla-stat-base-input-edit sla-stat-readonly">{{#if statInputs}}{{statInputs.cha}}{{else}}{{system.stats.cha.value}}{{/if}}</span>
-                {{/if}}
-                {{#if statInputs}}{{#if (ne system.stats.cha.total statInputs.cha)}}
-                <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">→ {{system.stats.cha.total}}</span>
-                {{/if}}{{/if}}
-            </div>
-            {{else}}
-            <div class="flexrow sla-stat-row-inner" style="align-items:center; justify-content:center; gap:6px;">
-                <input type="hidden" name="system.stats.cha.value" value="{{#if statInputs}}{{statInputs.cha}}{{else}}{{system.stats.cha.value}}{{/if}}" />
-                <span class="sla-stat-play-total"
-                    style="font-size:1.35em;font-weight:bold;min-width:2rem;text-align:center;color:{{#if statInputs}}{{#if (lt system.stats.cha.total statInputs.cha)}}#ff5555{{else}}{{#if (gt system.stats.cha.total statInputs.cha)}}#39ff14{{else}}#eee{{/if}}{{/if}}{{else}}{{#if (lt system.stats.cha.total system.stats.cha.value)}}#ff5555{{else}}{{#if (gt system.stats.cha.total system.stats.cha.value)}}#39ff14{{else}}#eee{{/if}}{{/if}}{{/if}};">{{system.stats.cha.total}}</span>
-                <span class="sla-stat-play-base-label" title="{{localize "SLA.StatSheetMode.BaseInPlayTooltip"}}">({{#if statInputs}}{{statInputs.cha}}{{else}}{{system.stats.cha.value}}{{/if}})</span>
-            </div>
-            {{/if}}
-            <a class="rollable" data-roll-type="stat" data-key="cha"><i class="fas fa-dice-d20"></i></a>
-        </div>
-
-        {{!-- COOL --}}
-        <div class="stat-box {{#if (eq statSheetMode "edit")}}sla-stat-box-mode-edit{{else}}sla-stat-box-mode-play{{/if}}">
-            <label>COOL</label>
-            {{#if (eq statSheetMode "edit")}}
-            <div class="flexrow sla-stat-row-inner" style="align-items:center; justify-content:center; gap:6px; flex-wrap:wrap;">
-                {{#if (and owner editable)}}
-                <input type="number" class="sla-stat-base-input-edit" name="system.stats.cool.value"
-                    value="{{#if statInputs}}{{statInputs.cool}}{{else}}{{system.stats.cool.value}}{{/if}}"
-                    title="{{localize "SLA.StatSheetMode.BaseTooltip"}}" />
-                {{else}}
-                <span class="sla-stat-base-input-edit sla-stat-readonly">{{#if statInputs}}{{statInputs.cool}}{{else}}{{system.stats.cool.value}}{{/if}}</span>
-                {{/if}}
-                {{#if statInputs}}{{#if (ne system.stats.cool.total statInputs.cool)}}
-                <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">→ {{system.stats.cool.total}}</span>
-                {{/if}}{{/if}}
-            </div>
-            {{else}}
-            <div class="flexrow sla-stat-row-inner" style="align-items:center; justify-content:center; gap:6px;">
-                <input type="hidden" name="system.stats.cool.value" value="{{#if statInputs}}{{statInputs.cool}}{{else}}{{system.stats.cool.value}}{{/if}}" />
-                <span class="sla-stat-play-total"
-                    style="font-size:1.35em;font-weight:bold;min-width:2rem;text-align:center;color:{{#if statInputs}}{{#if (lt system.stats.cool.total statInputs.cool)}}#ff5555{{else}}{{#if (gt system.stats.cool.total statInputs.cool)}}#39ff14{{else}}#eee{{/if}}{{/if}}{{else}}{{#if (lt system.stats.cool.total system.stats.cool.value)}}#ff5555{{else}}{{#if (gt system.stats.cool.total system.stats.cool.value)}}#39ff14{{else}}#eee{{/if}}{{/if}}{{/if}};">{{system.stats.cool.total}}</span>
-                <span class="sla-stat-play-base-label" title="{{localize "SLA.StatSheetMode.BaseInPlayTooltip"}}">({{#if statInputs}}{{statInputs.cool}}{{else}}{{system.stats.cool.value}}{{/if}})</span>
-            </div>
-            {{/if}}
-            <a class="rollable" data-roll-type="stat" data-key="cool"><i class="fas fa-dice-d20"></i></a>
-        </div>
+        {{> "systems/sla-industries/templates/actor/parts/stat-row.hbs" key="cha" label="CHA" rollKey="SLA.ActorSheet.RollStatCha"}}
+        {{> "systems/sla-industries/templates/actor/parts/stat-row.hbs" key="cool" label="COOL" rollKey="SLA.ActorSheet.RollStatCool"}}
     </div>
 
-    {{!-- COLUMN 4: SIDE STATS --}}
     <div class="side-col">
         {{#if (or system.stats.luck.max system.stats.luck.value)}}
         <div class="side-box">
-            <label>LUCK</label>
+            <label title="{{localize 'SLA.ActorSheet.Luck'}}">{{localize "SLA.ActorSheet.Luck"}}</label>
             <div class="flexrow">
-                <input type="number" name="system.stats.luck.value" value="{{system.stats.luck.value}}"
-                    placeholder="0" />
+                <input type="number" name="system.stats.luck.value" value="{{system.stats.luck.value}}" placeholder="0" />
                 <span>/</span>
                 <input type="number" name="system.stats.luck.max" value="{{system.stats.luck.max}}" placeholder="0" />
             </div>
@@ -205,21 +41,20 @@
 
         {{#if (or system.stats.flux.max system.stats.flux.value)}}
         <div class="side-box">
-            <label>FLUX</label>
+            <label title="{{localize 'SLA.ActorSheet.Flux'}}">{{localize "SLA.ActorSheet.Flux"}}</label>
             <div class="flexrow">
-                <input type="number" name="system.stats.flux.value" value="{{system.stats.flux.value}}"
-                    placeholder="0" />
+                <input type="number" name="system.stats.flux.value" value="{{system.stats.flux.value}}" placeholder="0" />
                 <span>/</span>
                 <input type="number" name="system.stats.flux.max" value="{{system.stats.flux.max}}" placeholder="0" />
             </div>
         </div>
         {{/if}}
 
-        <div class="side-box init rollable" data-roll-type="init" style="cursor:pointer;" title="Roll Initiative">
-            <label style="cursor:pointer;">INIT</label>
-            <div class="flexrow" style="justify-content:center; align-items:center;">
+        <div class="side-box init rollable" data-roll-type="init" title="{{localize 'SLA.ActorSheet.RollInitiative'}}" aria-label="{{localize 'SLA.ActorSheet.RollInitiative'}}">
+            <label>{{localize "SLA.ActorSheet.Initiative"}}</label>
+            <div class="flexrow init-row">
                 <span class="init-val">{{system.stats.init.value}}</span>
-                <i class="fas fa-dice-d10" style="margin-left:5px;"></i>
+                <i class="fas fa-dice-d10" aria-hidden="true"></i>
             </div>
         </div>
     </div>

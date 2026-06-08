@@ -1,59 +1,43 @@
 <div class="sla-panel full-height">
-
-    {{!-- HEADER --}}
     <div class="sla-header-bar flexrow">
-        <span style="flex:1; cursor: pointer;" class="open-compendium" data-compendium="sla-industries.skills"
-            title="Open Compendium">SKILLS</span>
-
+        <span class="open-compendium" data-compendium="sla-industries.skills"
+            title="{{localize 'SLA.ActorSheet.OpenCompendium'}}">{{localize "SLA.ActorSheet.Skills"}}</span>
     </div>
 
-    {{!-- SCROLLABLE LIST --}}
     <div class="scroll-list">
         <table class="sla-table">
             <thead>
                 <tr>
-                    <th style="text-align: left; padding-left: 5px;">Name</th>
-                    <th style="width: 50px;">Rank</th>
-                    <th style="width: 50px;">Roll</th>
-                    <th style="width: 50px;"></th>
+                    <th>{{localize "SLA.ActorSheet.ColName"}}</th>
+                    <th class="sla-col-rank">{{localize "SLA.ActorSheet.ColRank"}}</th>
+                    <th class="sla-col-roll">{{localize "SLA.ActorSheet.ColRoll"}}</th>
+                    <th class="sla-col-actions"></th>
                 </tr>
             </thead>
             <tbody>
                 {{#each skillsByStat as |group key|}}
                 {{#if group.items.length}}
-                {{!-- SECTION HEADER (e.g. STR) --}}
                 <tr class="skill-group-header">
-                    <td colspan="4" style="border-top: 2px solid var(--sla-accent); background: rgba(208, 94, 26, 0.1); color: var(--sla-accent); font-weight: bold; padding: 4px 8px;">{{group.label}}</td>
+                    <td colspan="4">{{group.label}}</td>
                 </tr>
-
-                {{!-- SKILL ROWS --}}
                 {{#each group.items as |skill|}}
                 <tr class="item" data-item-id="{{skill._id}}">
-                    <td class="item-name rollable" data-roll-type="item"
-                        style="font-weight: bold; color: #fff; padding-left: 10px;">
-                        {{skill.name}}
+                    <td class="item-name rollable" data-roll-type="item">{{skill.name}}</td>
+                    <td class="sla-col-rank">{{skill.system.rank}}</td>
+                    <td class="sla-col-roll">
+                        <a class="rollable" data-roll-type="skill" title="{{localize 'SLA.ActorSheet.RollSkill'}}" aria-label="{{localize 'SLA.ActorSheet.RollSkill'}}: {{skill.name}}"><i class="fas fa-dice-d20" aria-hidden="true"></i></a>
                     </td>
-                    <td style="text-align: center;">{{skill.system.rank}}</td>
-                    <td style="text-align: center;">
-                        <a class="rollable" data-roll-type="skill" title="Roll Skill"><i
-                                class="fas fa-dice-d20"></i></a>
-                    </td>
-                    <td class="item-controls">
-                        <a class="item-edit" title="Edit Skill"><i class="fas fa-edit"></i></a>
-                        <a class="item-delete" title="Delete Skill"><i class="fas fa-trash"></i></a>
+                    <td class="item-controls sla-col-actions">
+                        <a class="item-edit" title="{{localize 'SLA.ActorSheet.EditSkill'}}" aria-label="{{localize 'SLA.ActorSheet.EditSkill'}}"><i class="fas fa-edit"></i></a>
+                        <a class="item-delete" title="{{localize 'SLA.ActorSheet.DeleteSkill'}}" aria-label="{{localize 'SLA.ActorSheet.DeleteSkill'}}"><i class="fas fa-trash"></i></a>
                     </td>
                 </tr>
                 {{/each}}
                 {{/if}}
                 {{/each}}
-
-                {{!-- EMPTY STATE --}}
-                {{#unless (or skillsByStat.str.items.length skillsByStat.dex.items.length skillsByStat.know.items.length
-                skillsByStat.conc.items.length skillsByStat.cha.items.length skillsByStat.cool.items.length)}}
-                <tr>
-                    <td colspan="4" style="text-align: center; color: #555; font-style: italic; padding: 10px;">
-                        No skills learned.
-                    </td>
+                {{#unless (or skillsByStat.str.items.length skillsByStat.dex.items.length skillsByStat.know.items.length skillsByStat.conc.items.length skillsByStat.cha.items.length skillsByStat.cool.items.length)}}
+                <tr class="sla-table-empty">
+                    <td colspan="4">{{localize "SLA.ActorSheet.SkillsEmpty"}}</td>
                 </tr>
                 {{/unless}}
             </tbody>

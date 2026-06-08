@@ -408,19 +408,6 @@
     border-bottom: 2px solid var(--sla-border);
 }
 
-.stats-matrix {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 100px;
-    gap: 15px;
-    background: transparent !important;
-}
-
-.stat-col {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
 .rating-block {
     display: flex;
     justify-content: space-between;
@@ -2215,3 +2202,5 @@
     font-style: italic;
     padding: 16px 8px;
 }
+
+@import 'actor/index';
