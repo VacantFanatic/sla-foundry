@@ -11,15 +11,16 @@ import { applyMeleeModifiers, applyRangedModifiers, calculateRangePenalty } from
 import { addActorItemToHotbar } from '../helpers/sla-hotbar.mjs';
 import { SLAChat } from '../helpers/chat.mjs';
 import { syncEbbCriticalFlux } from '../helpers/ebb-flux.mjs';
-import { shouldShowMosWoundChoice } from '../helpers/wound-visibility.mjs';
 import { handleStackableActorItemDrop } from '../helpers/inventory-stack.mjs';
 import {
+    applySuccessThroughExperience,
+    buildSkillDiceResults,
     buildWeaponDamageFormula,
-    buildWeaponRollMods,
-    readWeaponRollFormState,
-    resolveWeaponMosOutcome
+    computeMeleeStrDamageModifier,
+    computeSuccessDieOutcome
 } from './actor/roll-math.mjs';
 import { executeSkillRollFromItem } from './actor/skill-rolls.mjs';
+import { processWeaponRoll, renderAttackDialog } from './actor/weapon-rolls.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -1190,11 +1191,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
         if (item.type === 'weapon') {
             const isMelee = (item.system.attackType || 'melee') === 'melee';
-            if (isMelee) {
-                if (strValue >= 7) damageMod += 4;
-                else if (strValue === 6) damageMod += 2;
-                else if (strValue === 5) damageMod += 1;
-            }
+            if (isMelee) damageMod += computeMeleeStrDamageModifier(strValue);
             damageMod += this._getAmmoDamageModifierForWeapon(item);
         }
 
@@ -1260,69 +1257,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
     // --- DIALOG ---
     async _renderAttackDialog(item, isMelee) {
-        if (!this._canProceedWithWeaponAttack(item, { requireTarget: true })) return;
-
-        // 1. Prepare Firing Modes (Ranged Only)
-        let validModes = {};
-        let defaultModeKey = '';
-
-        if (!isMelee && item.system.firingModes) {
-            // Filter down to only active modes
-            validModes = Object.entries(item.system.firingModes)
-                .filter(([key, data]) => data.active)
-                .reduce((obj, [key, data]) => {
-                    obj[key] = data; // Keep the full data object so we can read recoil later
-                    return obj;
-                }, {});
-
-            // Safety Fallback: If no modes active, default to Single
-            if (Object.keys(validModes).length === 0) {
-                validModes['single'] = { label: 'Single', active: true, rounds: 1, recoil: 0 };
-            }
-
-            // Pick the first valid mode as the default selection
-            defaultModeKey = Object.keys(validModes)[0];
-        }
-
-        // --- RANGE CALCULATION ---
-        const { rangePenaltyMsg } = this._resolveRangedAttackContext(item, isMelee);
-        // -------------------------
-
-        // 2. Prepare Template Data
-        const templateData = {
-            item: item,
-            isMelee: isMelee,
-            validModes: validModes,
-            selectedMode: defaultModeKey, // Pass this to HBS for the <select>
-            rangePenaltyMsg: rangePenaltyMsg, // Display logic inside template might be needed, or we just rely on implicit knowledge for now?
-            // Actually, we should probably Pass 'isLongRange' to the process function via a hidden field or reconstruct it,
-            // BUT simpler to just reconstruct it in _processWeaponRoll since we enforce target selection now.
-
-            // Melee uses item recoil (usually 0), Ranged uses the recoil of the default mode
-            recoil: isMelee ? item.system.recoil || 0 : validModes[defaultModeKey]?.recoil || 0,
-
-            // AIM DATA
-            canAim: ['pistol', 'rifle'].includes((item.system.skill || '').toLowerCase()),
-            aimLimit: (() => {
-                const sKey = (item.system.skill || '').toLowerCase();
-                const sItem = this.actor.items.find((i) => i.type === 'skill' && i.name.toLowerCase() === sKey);
-                return sItem ? sItem.system.rank || 0 : 0;
-            })()
-        };
-
-        const content = await foundry.applications.handlebars.renderTemplate(
-            'systems/sla-industries/templates/dialogs/attack-dialog.hbs',
-            templateData
-        );
-
-        await new SlaSimpleContentDialog({
-            title: `Attack: ${item.name} ${rangePenaltyMsg}`,
-            contentHtml: content,
-            width: 520,
-            classes: ['sla-dialog-window', 'dialog'],
-            actionLabel: 'ROLL',
-            onConfirm: (root) => void this._processWeaponRoll(item, root, isMelee)
-        }).render(true);
+        return renderAttackDialog(this, item, isMelee);
     }
 
     async _executeSkillRoll(element) {
@@ -1390,407 +1325,23 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         }
     }
 
-    _buildWeaponRollTemplateData({
-        item,
-        roll,
-        baseModifier,
-        notesText,
-        successDieModifier,
-        resultColor,
-        sdTotal,
-        skillDiceData,
-        showDamageButton,
-        finalDamageFormula,
-        adValue,
-        rofRerollSD,
-        isSuccess,
-        skillSuccessCount,
-        mosEffectText,
-        mosChoiceData
-    }) {
-        const targetActorType = game.user.targets.first()?.actor?.type;
-        const showWoundChoice = shouldShowMosWoundChoice({
-            hasChoice: Boolean(mosChoiceData?.hasChoice),
-            targetActorType,
-            enableNpcWoundTracking: game.settings.get('sla-industries', 'enableNPCWoundTracking')
-        });
-
-        return {
-            actorUuid: this.actor.uuid,
-            borderColor: resultColor,
-            headerColor: resultColor,
-            resultColor: resultColor,
-            itemName: item.name.toUpperCase(),
-            successTotal: sdTotal,
-            tooltip: this._generateTooltip(roll, baseModifier, successDieModifier),
-            skillDice: skillDiceData,
-            notes: notesText,
-            showDamageButton: showDamageButton,
-            dmgFormula: finalDamageFormula,
-            dmgDisplay: this._resolveDamageDisplay(finalDamageFormula),
-            minDamage: Number(item.system.minDamage) || 0,
-            adValue: adValue,
-            sdIsReroll: rofRerollSD,
-            mos: {
-                isSuccess: isSuccess,
-                hits: skillSuccessCount,
-                effect: mosEffectText,
-                ...mosChoiceData,
-                showWoundChoice
-            },
-            canUseLuck: this.actor.system.stats.luck.value > 0,
-            luckValue: this.actor.system.stats.luck.value,
-            luckSpent: false,
-            isWeapon: true
-        };
-    }
-
-    async _rerollDieKeepHighest(currentResult) {
-        const newRoll = createSLARoll('1d10');
-        await newRoll.evaluate();
-        const newResult = newRoll.terms[0].results[0].result;
-        if (newResult > currentResult) {
-            return { result: newResult, rerolled: true };
-        }
-        return { result: currentResult, rerolled: false };
-    }
-
-    async _applyWeaponRofRerolls({ roll, flags, notes }) {
-        let rofRerollSD = false;
-        let rofRerollSkills = [];
-
-        if (flags.rerollSD || flags.rerollAll) {
-            const sdTerm = roll.terms[0];
-            const oldValue = sdTerm.results[0].result;
-            const outcome = await this._rerollDieKeepHighest(oldValue);
-
-            rofRerollSD = true;
-            if (outcome.rerolled) {
-                sdTerm.results[0].result = outcome.result;
-                notes.push(`<strong>ROF:</strong> Success Die Improved (${oldValue} ➔ ${outcome.result})`);
-            } else {
-                notes.push(`<strong>ROF:</strong> Success Die Kept (${oldValue})`);
-            }
-        }
-
-        if (flags.rerollAll && roll.terms.length > 2) {
-            const skillTerm = roll.terms[2];
-            let improvedCount = 0;
-
-            for (let i = 0; i < skillTerm.results.length; i++) {
-                const oldValue = skillTerm.results[i].result;
-                const outcome = await this._rerollDieKeepHighest(oldValue);
-                rofRerollSkills.push(i);
-
-                if (outcome.rerolled) {
-                    skillTerm.results[i].result = outcome.result;
-                    improvedCount++;
-                }
-            }
-
-            if (improvedCount > 0) {
-                notes.push(`<strong>ROF:</strong> ${improvedCount} Skill Dice Improved.`);
-            } else {
-                notes.push(`<strong>ROF:</strong> Skill Dice Kept.`);
-            }
-        }
-
-        if (rofRerollSD || rofRerollSkills.length > 0) {
-            roll._total = roll._evaluateTotal();
-        }
-
-        return { rofRerollSD, rofRerollSkills };
-    }
-
-    _buildSkillDiceResults({
-        roll,
-        baseModifier,
-        targetNumber,
-        autoSuccesses = 0,
-        rerollIndexes = [],
-        includeRerollFlag = false
-    }) {
-        const rerollIndexSet = new Set(rerollIndexes);
-        const skillDiceData = [];
-        let skillSuccessCount = 0;
-
-        if (roll.terms.length > 2) {
-            roll.terms[2].results.forEach((result, index) => {
-                const total = result.result + baseModifier;
-                const isHit = total >= targetNumber;
-                if (isHit) skillSuccessCount++;
-
-                const dieData = {
-                    raw: result.result,
-                    total: total,
-                    borderColor: isHit ? '#39ff14' : '#555',
-                    textColor: isHit ? '#39ff14' : '#ccc'
-                };
-                if (includeRerollFlag) {
-                    dieData.isReroll = rerollIndexSet.has(index);
-                }
-                skillDiceData.push(dieData);
-            });
-        }
-
-        skillSuccessCount += autoSuccesses;
-        for (let i = 0; i < autoSuccesses; i++) {
-            skillDiceData.push({ raw: '-', total: 'Auto', borderColor: '#39ff14', textColor: '#39ff14' });
-        }
-
-        return { skillDiceData, skillSuccessCount };
+    _buildSkillDiceResults(params) {
+        return buildSkillDiceResults(params);
     }
 
     _computeSuccessDieOutcome({ roll, baseModifier, successDieModifier = 0, targetNumber }) {
         const sdRaw = roll.terms[0].results[0].result;
-        const sdTotal = sdRaw + baseModifier + successDieModifier;
-        const isBaseSuccess = sdTotal >= targetNumber;
-        return { sdRaw, sdTotal, isBaseSuccess };
+        return computeSuccessDieOutcome({ sdRaw, baseModifier, successDieModifier, targetNumber });
     }
 
     _applySuccessThroughExperience({ isBaseSuccess, skillSuccessCount, threshold = 4, notes }) {
-        let isSuccess = isBaseSuccess;
-        let successThroughExperience = false;
-
-        if (!isBaseSuccess && skillSuccessCount >= threshold) {
-            isSuccess = true;
-            successThroughExperience = true;
-            if (notes) {
-                notes.push('<strong>Success Through Experience</strong> (4+ Skill Dice hit).');
-            }
-        }
-
-        return { isSuccess, successThroughExperience };
+        const result = applySuccessThroughExperience({ isBaseSuccess, skillSuccessCount, threshold });
+        if (result.note && notes) notes.push(result.note);
+        return { isSuccess: result.isSuccess, successThroughExperience: result.successThroughExperience };
     }
 
     async _processWeaponRoll(item, html, isMelee) {
-        const root = html?.jquery ? html[0] : html;
-        const form = root instanceof HTMLFormElement ? root : root?.querySelector?.('form');
-        if (!form) return;
-
-        const weapon = this.actor.items.get(item.id) ?? item;
-        if (!this._canProceedWithWeaponAttack(weapon, { requireTarget: true })) return;
-        item = weapon;
-
-        // 1. SETUP
-        // Melee weapons use STR, ranged weapons use DEX.
-        const statKey = isMelee ? 'str' : 'dex';
-        const statValue = this.actor.system.stats[statKey]?.total ?? this.actor.system.stats[statKey]?.value ?? 0;
-        const strValue = Number(this.actor.system.stats.str?.total ?? this.actor.system.stats.str?.value ?? 0);
-        const rank = this._resolveCombatSkillRank(item.system.skill);
-        const formState = readWeaponRollFormState(form);
-        let mods = buildWeaponRollMods(formState);
-
-        let notes = [];
-        let flags = { rerollSD: false, rerollAll: false };
-
-        // AIM VALIDATION
-        const totalAim = mods.aimSd + mods.aimAuto;
-        if (totalAim > rank) {
-            ui.notifications.warn(`Total Aiming rounds (${totalAim}) cannot exceed Skill Rank (${rank}).`);
-            return;
-        }
-
-        // Conditions
-        if (this.actor.system.conditions?.prone) mods.allDice -= 1;
-        if (this.actor.system.conditions?.stunned) mods.allDice -= 1;
-
-        // --- AIM BONUSES ---
-        if (mods.aimSd > 0) mods.successDie += mods.aimSd;
-        if (mods.aimAuto > 0) mods.autoSkillSuccesses += mods.aimAuto;
-
-        // --- RANGE PENALTY LOGIC ---
-        const rangedContext = this._resolveRangedAttackContext(item, isMelee);
-        // ---------------------------
-
-        // Apply Modifiers
-        if (isMelee) {
-            this._applyMeleeModifiers(form, strValue, mods);
-
-            // --- DEFENSE MODIFIERS (Melee) - Note: applied in _applyMeleeModifiers ---
-            // Add notes for display (modifiers already applied in helper)
-            if (mods.combatDef > 0) {
-                notes.push(`Defended (Combat Def: -${mods.combatDef})`);
-            }
-            if (mods.acroDef > 0) {
-                const pen = mods.acroDef * 2;
-                notes.push(`Defended (Acrobatics: -${pen})`);
-            }
-            if (mods.targetProne) {
-                mods.successDie += 2;
-                notes.push(`Target Prone (+2 SD)`);
-            }
-            // ---------------------------------
-
-            // Clamp reserved dice to available rank.
-            if (mods.reservedDice > rank) {
-                ui.notifications.warn(
-                    `Cannot reserve more dice (${mods.reservedDice}) than Skill Rank (${rank}). Reduced to ${rank}.`
-                );
-                mods.reservedDice = rank;
-            }
-            if (mods.reservedDice > 0) {
-                notes.push(`Reserved ${mods.reservedDice} Dice.`);
-            }
-            // -------------------------------------------
-        } else {
-            // Check for false return to stop execution
-            const canFire = await this._applyRangedModifiers(item, form, mods, notes, flags, {
-                forceLongRange: rangedContext.isLongRange
-            });
-            if (canFire === false) return;
-        }
-
-        const penalty = this.actor.system.wounds.penalty || 0;
-        if (game.settings.get('sla-industries', 'enableAutomaticWoundPenalties')) {
-            mods.allDice -= penalty;
-        }
-
-        // Powersuit attacks apply their built-in attack penalty automatically.
-        if (item.system.powersuitAttack) {
-            const attackPenalty = Number(item.system.attackPenalty) || 0;
-            if (attackPenalty !== 0) {
-                mods.allDice += attackPenalty;
-                if (attackPenalty < 0) notes.push(`Powersuit Attack (${attackPenalty})`);
-                else notes.push(`Powersuit Attack (+${attackPenalty})`);
-            }
-        }
-
-        // 4. ROLL
-        // Base modifier excludes success-die-only modifiers (aim/target prone).
-        const baseModifier = statValue + rank + mods.allDice;
-
-        // 5. CALCULATE SUCCESS
-        let skillDiceCount = rank + 1 + (mods.rank || 0) - (mods.reservedDice || 0) - (mods.aimAuto || 0);
-        if (skillDiceCount < 0) skillDiceCount = 0;
-
-        const rollFormula = `1d10 + ${skillDiceCount}d10`;
-        let roll = createSLARoll(rollFormula);
-        await roll.evaluate();
-
-        // We pass the final Base Mod and Success Die Mod
-        // TN (Target Number) is 10 for all weapon attacks (melee and ranged)
-        const TN = 10;
-        const result = calculateRollResult(roll, baseModifier, TN, {
-            autoSkillSuccesses: mods.aimAuto || 0,
-            successDieModifier: mods.successDie // Pass explicit SD mod
-        });
-
-        const { rofRerollSD, rofRerollSkills } = await this._applyWeaponRofRerolls({
-            roll,
-            flags,
-            notes
-        });
-
-        const { sdTotal, isBaseSuccess } = this._computeSuccessDieOutcome({
-            roll,
-            baseModifier,
-            successDieModifier: mods.successDie,
-            targetNumber: TN
-        });
-
-        const { skillDiceData, skillSuccessCount } = this._buildSkillDiceResults({
-            roll,
-            baseModifier,
-            targetNumber: TN,
-            autoSuccesses: mods.autoSkillSuccesses,
-            rerollIndexes: rofRerollSkills,
-            includeRerollFlag: true
-        });
-
-        const { isSuccess, successThroughExperience } = this._applySuccessThroughExperience({
-            isBaseSuccess,
-            skillSuccessCount,
-            threshold: 4,
-            notes
-        });
-
-        // Update Result Color if it became a success
-        const resultColor = isSuccess ? '#39ff14' : '#f55';
-
-        const { mosDamageBonus, mosEffectText, mosChoiceData, shouldApplyHeadWound } = resolveWeaponMosOutcome({
-            isSuccess,
-            successThroughExperience,
-            skillSuccessCount
-        });
-        if (shouldApplyHeadWound) {
-            await this._applyHeadshotSideEffect(notes);
-        }
-
-        // Damage Calculation
-        // Note: If user has a choice, we DO NOT add the bonus yet. They must click the button.
-        let rawBase = item.system.damage || item.system.dmg || '0';
-        let baseDmg = String(rawBase);
-        let totalMod = mods.damage + mosDamageBonus;
-
-        const finalDmgFormula = buildWeaponDamageFormula(baseDmg, totalMod);
-        let resolvedPreview = null;
-        try {
-            const replaced = Roll.replaceFormulaData(finalDmgFormula, this.actor.getRollData());
-            resolvedPreview = Math.round(Number(Function('"use strict";return (' + replaced + ')')()));
-        } catch (_err) {
-            resolvedPreview = null;
-        }
-
-        let showButton = isSuccess && finalDmgFormula && finalDmgFormula !== '0';
-
-        // 1. CAPTURE AD VALUE (Ensure it's a number)
-        let adValue = Number(item.system.ad) || 0;
-        if (item.system.powersuitAttack) {
-            const adFromStrMinus = Number(item.system.adFromStrMinus) || 0;
-            if (adFromStrMinus > 0) {
-                adValue = Math.max(0, strValue - adFromStrMinus);
-            }
-        }
-
-        const notesText = notes.join(' ');
-        const templateData = this._buildWeaponRollTemplateData({
-            item,
-            roll,
-            baseModifier,
-            notesText,
-            successDieModifier: mods.successDie,
-            resultColor,
-            sdTotal,
-            skillDiceData,
-            showDamageButton: showButton,
-            finalDamageFormula: finalDmgFormula,
-            adValue,
-            rofRerollSD,
-            isSuccess,
-            skillSuccessCount,
-            mosEffectText,
-            mosChoiceData
-        });
-
-        const chatContent = await foundry.applications.handlebars.renderTemplate(
-            'systems/sla-industries/templates/chat/chat-weapon-rolls.hbs',
-            templateData
-        );
-
-        roll.toMessage({
-            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-            content: chatContent,
-            flags: {
-                sla: this._buildSlaRollFlags({
-                    baseModifier: baseModifier,
-                    itemName: item.name.toUpperCase(),
-                    notes: notesText,
-                    tn: TN,
-                    extra: {
-                        rofRerollSD: rofRerollSD,
-                        rofRerollSkills: rofRerollSkills,
-                        targets: Array.from(game.user.targets).map((t) => t.document.uuid),
-                        damageBase: baseDmg,
-                        damageMod: mods.damage,
-                        adValue: adValue,
-                        autoSkillSuccesses: mods.autoSkillSuccesses,
-                        successDieModifier: mods.successDie,
-                        isWeapon: true
-                    }
-                })
-            }
-        });
+        return processWeaponRoll(this, item, html, isMelee);
     }
 
     // --- EXPLOSIVE LOGIC ---

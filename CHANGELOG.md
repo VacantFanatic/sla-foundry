@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Data model registry:** `module/data/registry.mjs` and `module/data/model-type-keys.mjs` centralize `CONFIG.*.dataModels` registration; unit test asserts parity with `system.json` `documentTypes`.
 - **Derived data helpers:** Pure encumbrance, wound, and penalty calculators in `module/documents/derived/` with unit tests; `BoilerplateActor` delegates to these modules.
 - **Actor roll modules:** `module/sheets/actor/roll-math.mjs` (pure weapon/skill roll math) and `skill-rolls.mjs` (skill roll execution); unit tests for roll math.
+- **Weapon roll extraction:** `module/sheets/actor/weapon-rolls.mjs` handles attack dialog and weapon roll orchestration; additional pure helpers in `roll-math.mjs`.
 
 ### Changed
 

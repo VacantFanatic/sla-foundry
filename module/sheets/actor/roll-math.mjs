@@ -95,3 +95,114 @@ export function resolveWeaponMosOutcome({ isSuccess, successThroughExperience, s
 
     return { mosDamageBonus, mosEffectText, mosChoiceData, shouldApplyHeadWound };
 }
+
+/**
+ * @param {number} strValue
+ * @returns {number}
+ */
+export function computeMeleeStrDamageModifier(strValue) {
+    const str = Number(strValue) || 0;
+    if (str >= 7) return 4;
+    if (str === 6) return 2;
+    if (str === 5) return 1;
+    return 0;
+}
+
+/**
+ * @param {{ sdRaw: number, baseModifier: number, successDieModifier?: number, targetNumber: number }}
+ */
+export function computeSuccessDieOutcome({ sdRaw, baseModifier, successDieModifier = 0, targetNumber }) {
+    const sdTotal = sdRaw + baseModifier + successDieModifier;
+    return { sdRaw, sdTotal, isBaseSuccess: sdTotal >= targetNumber };
+}
+
+/**
+ * @param {{ isBaseSuccess: boolean, skillSuccessCount: number, threshold?: number }}
+ */
+export function applySuccessThroughExperience({ isBaseSuccess, skillSuccessCount, threshold = 4 }) {
+    let isSuccess = isBaseSuccess;
+    let successThroughExperience = false;
+    let note = null;
+
+    if (!isBaseSuccess && skillSuccessCount >= threshold) {
+        isSuccess = true;
+        successThroughExperience = true;
+        note = '<strong>Success Through Experience</strong> (4+ Skill Dice hit).';
+    }
+
+    return { isSuccess, successThroughExperience, note };
+}
+
+/**
+ * @param {{ roll: { terms: Array<{ results?: Array<{ result: number }> }> }, baseModifier: number, targetNumber: number, autoSuccesses?: number, rerollIndexes?: number[], includeRerollFlag?: boolean }}
+ */
+export function buildSkillDiceResults({
+    roll,
+    baseModifier,
+    targetNumber,
+    autoSuccesses = 0,
+    rerollIndexes = [],
+    includeRerollFlag = false
+}) {
+    const rerollIndexSet = new Set(rerollIndexes);
+    const skillDiceData = [];
+    let skillSuccessCount = 0;
+
+    if (roll.terms.length > 2 && roll.terms[2].results) {
+        roll.terms[2].results.forEach((result, index) => {
+            const total = result.result + baseModifier;
+            const isHit = total >= targetNumber;
+            if (isHit) skillSuccessCount++;
+
+            const dieData = {
+                raw: result.result,
+                total: total,
+                borderColor: isHit ? '#39ff14' : '#555',
+                textColor: isHit ? '#39ff14' : '#ccc'
+            };
+            if (includeRerollFlag) {
+                dieData.isReroll = rerollIndexSet.has(index);
+            }
+            skillDiceData.push(dieData);
+        });
+    }
+
+    skillSuccessCount += autoSuccesses;
+    for (let i = 0; i < autoSuccesses; i++) {
+        skillDiceData.push({ raw: '-', total: 'Auto', borderColor: '#39ff14', textColor: '#39ff14' });
+    }
+
+    return { skillDiceData, skillSuccessCount };
+}
+
+/**
+ * @param {number} rank
+ * @param {{ rank?: number, reservedDice?: number, aimAuto?: number }} mods
+ * @returns {number}
+ */
+export function computeWeaponSkillDiceCount(rank, mods = {}) {
+    let count = rank + 1 + (mods.rank || 0) - (mods.reservedDice || 0) - (mods.aimAuto || 0);
+    return Math.max(0, count);
+}
+
+/**
+ * @param {HTMLFormElement} form
+ */
+export function readExplosiveRollForm(form) {
+    return {
+        mod: Number(form.modifier?.value) || 0,
+        cover: Number(form.cover?.value) || 0,
+        aiming: form.aiming?.value || 'none',
+        blind: form.blind?.checked || false
+    };
+}
+
+/**
+ * @param {{ blastRadiusInner?: number, blastRadiusOuter?: number }} itemSystem
+ */
+export function resolveExplosiveBlastData(itemSystem) {
+    const innerDist = itemSystem.blastRadiusInner || 0;
+    let outerDist = itemSystem.blastRadiusOuter || 0;
+    if (outerDist === 0) outerDist = 5;
+    return { innerDist, outerDist };
+}
