@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Natural weapons migration tests:** `classifyLegacyNaturalWeapon()` unit tests in `tests/unit/natural-weapons-migration.test.mjs`.
 - **Item sheet UI E2E regression:** Playwright spec `tests/e2e/regression-item-sheets.spec.js` covers discipline, ebb formula, weapon, magazine, skill, and generic item sheets (tabs, spectral stamps, shared drop hints, drag-over feedback, effects tab CRUD). Included in `npm run test:e2e:regression`.
 - **Data model registry:** `module/data/registry.mjs` and `module/data/model-type-keys.mjs` centralize `CONFIG.*.dataModels` registration; unit test asserts parity with `system.json` `documentTypes`.
-- **Derived data helpers:** Pure encumbrance, wound, and penalty calculators in `module/documents/derived/` with unit tests; `BoilerplateActor` delegates to these modules.
+- **Derived data helpers:** Pure encumbrance, wound, and penalty calculators in `module/documents/derived/` with unit tests; `SlaActor` delegates to these modules.
 - **Actor roll modules:** `module/sheets/actor/roll-math.mjs` (pure weapon/skill roll math) and `skill-rolls.mjs` (skill roll execution); unit tests for roll math.
 - **Weapon roll extraction:** `module/sheets/actor/weapon-rolls.mjs` handles attack dialog and weapon roll orchestration; additional pure helpers in `roll-math.mjs`.
 - **Explosive and Ebb roll extraction:** `module/sheets/actor/explosive-rolls.mjs` and `ebb-rolls.mjs` handle throw and Ebb formula orchestration; explosive/Ebb pure helpers in `roll-math.mjs` with unit tests.
@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Document classes:** `BoilerplateActor` → `SlaActor` and `BoilerplateItem` → `SlaItem`. `BoilerplateActor` / `BoilerplateItem` remain as deprecated aliases on `game.boilerplate` and module exports for macro compatibility. `game.sla` now also exposes `SlaActor` and `SlaItem`.
 - **Natural weapons migration:** Moved from `scripts/migrate_stat_damage.js` to `module/migration/natural-weapons.mjs` so dev and `dist/` share the same import path; removed `dist/scripts/` copy step.
 - **Foundry cloud bootstrap:** `foundry-bootstrap.mjs` confirms world data migration and pre-migration backup dialogs so E2E can launch `sla-test-world` after system version bumps.
 - **Compiled CSS:** `css/sla-industries.css` is no longer committed; run `npm run build:css` or `npm run build` before local Foundry dev (CI and `cloud-foundry.sh` already build CSS).

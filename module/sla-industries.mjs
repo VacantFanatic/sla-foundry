@@ -1,6 +1,6 @@
 // Import document classes.
-import { BoilerplateActor } from './documents/actor.mjs';
-import { BoilerplateItem } from './documents/item.mjs';
+import { BoilerplateActor, SlaActor } from './documents/actor.mjs';
+import { BoilerplateItem, SlaItem } from './documents/item.mjs';
 import { LuckDialog } from './apps/luck-dialog.mjs';
 
 import { ACTOR_DATA_MODELS, ITEM_DATA_MODELS } from './data/registry.mjs';
@@ -126,9 +126,16 @@ Hooks.once('init', async function () {
 
     CONFIG.SLA = SLA;
 
-    game.boilerplate = { SlaActorSheet, SlaItemSheet, BoilerplateActor, BoilerplateItem };
-    CONFIG.Actor.documentClass = BoilerplateActor;
-    CONFIG.Item.documentClass = BoilerplateItem;
+    game.boilerplate = {
+        SlaActorSheet,
+        SlaItemSheet,
+        SlaActor,
+        SlaItem,
+        BoilerplateActor,
+        BoilerplateItem
+    };
+    CONFIG.Actor.documentClass = SlaActor;
+    CONFIG.Item.documentClass = SlaItem;
 
     // REGISTER DATA MODELS
     CONFIG.Actor.dataModels = ACTOR_DATA_MODELS;
@@ -281,7 +288,9 @@ Hooks.once('init', async function () {
     game.sla = foundry.utils.mergeObject(game.sla ?? {}, {
         rollOwnedItem,
         addActorItemToHotbar,
-        canTokenMoveThisTurn
+        canTokenMoveThisTurn,
+        SlaActor,
+        SlaItem
     });
 
     return preloadHandlebarsTemplates();

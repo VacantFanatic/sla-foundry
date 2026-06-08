@@ -24,8 +24,8 @@ sla-industries/
 │   │   └── natural-weapons.mjs # Punch/Kick baseline definitions
 │   ├── documents/
 │   │   ├── derived/            # Pure derived-data calculators (encumbrance, wounds, penalties)
-│   │   ├── actor.mjs           # BoilerplateActor — derived data, active effects, HP sync
-│   │   └── item.mjs            # BoilerplateItem
+│   │   ├── actor.mjs           # SlaActor — derived data, active effects, HP sync
+│   │   └── item.mjs            # SlaItem
 │   ├── helpers/
 │   │   ├── chat.mjs            # SLAChat facade — chat card rendering and button handlers
 │   │   └── chat/               # Chat split: pure.mjs, dom.mjs, damage.mjs, handlers.mjs
@@ -120,7 +120,7 @@ Core stats (`str`, `dex`, `know`, `conc`, `cha`, `cool`) each have a `value` (sh
 
 ---
 
-## Derived Data (`BoilerplateActor.prepareDerivedData`)
+## Derived Data (`SlaActor.prepareDerivedData`)
 
 `module/documents/actor.mjs` handles all derived calculations, including:
 
@@ -200,6 +200,10 @@ Creates or reuses a script macro for the given embedded item and assigns it to t
 ### `game.sla.canTokenMoveThisTurn(tokenLike)`
 
 Returns `true` if the token is allowed to move this turn (respects the **Enable Combat Movement Lock** setting and per-turn movement state).
+
+### `game.sla.SlaActor` / `game.sla.SlaItem`
+
+The registered Actor and Item document classes (`CONFIG.Actor.documentClass` / `CONFIG.Item.documentClass`). Legacy names `BoilerplateActor` and `BoilerplateItem` remain on `game.boilerplate` and as module export aliases.
 
 Source: `module/helpers/sla-hotbar.mjs`, `module/sla-industries.mjs`
 
@@ -372,7 +376,7 @@ Chat state is persisted on `ChatMessage.flags.sla`:
 
 ### Wound cascade
 
-`BoilerplateActor._handleWoundEffects()` runs on every wound field change:
+`SlaActor._handleWoundEffects()` runs on every wound field change:
 
 - **Head wound** → applies `stunned` status effect.
 - **Both leg wounds** → applies `immobile` status effect.

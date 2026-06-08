@@ -12,7 +12,7 @@ import { countWounds, deriveLogicConditions } from './derived/wounds.mjs';
  * Extend the basic Actor document.
  * @extends {Actor}
  */
-export class BoilerplateActor extends Actor {
+export class SlaActor extends Actor {
     /**
      * Active effect change rows (Foundry 14 may store under effect.system.changes).
      * @param {ActiveEffect} effect
@@ -38,7 +38,7 @@ export class BoilerplateActor extends Actor {
         let sum = 0;
         for (const effect of this.effects ?? []) {
             if (effect.disabled) continue;
-            for (const ch of BoilerplateActor._effectChangeRows(effect)) {
+            for (const ch of SlaActor._effectChangeRows(effect)) {
                 if (ch.mode !== addMode) continue;
                 if (ch.key === kb || ch.key === kv) sum += Number(ch.value) || 0;
             }
@@ -947,3 +947,6 @@ export class BoilerplateActor extends Actor {
         }
     }
 }
+
+/** @deprecated Use {@link SlaActor} — legacy boilerplate name kept for macro compatibility. */
+export const BoilerplateActor = SlaActor;
