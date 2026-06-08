@@ -37,7 +37,7 @@ async function saveShot(locator, name) {
     }
 }
 
-test.describe.configure({ timeout: 90_000 });
+test.describe.configure({ timeout: 180_000 });
 
 test.describe('Actor sheet screenshot capture', () => {
     test.beforeEach(async ({ page }) => {
@@ -64,7 +64,7 @@ test.describe('Actor sheet screenshot capture', () => {
         await closeApplicationWindows(page);
     });
 
-    test('capture operative sheet regions', async ({ page }) => {
+    test('capture operative sheet — all tabs and density regions', async ({ page }) => {
         const actorId = await page.evaluate(async () => {
             const stamp = Date.now();
             const [actor] = await Actor.createDocuments([
@@ -74,6 +74,7 @@ test.describe('Actor sheet screenshot capture', () => {
                     system: {
                         stats: { str: { value: 4 }, dex: { value: 3 }, init: { value: 22 } },
                         hp: { value: 22, max: 30 },
+                        xp: { value: 120 },
                         finance: { credits: 1820, unis: 0, debt: 0 },
                         wounds: { head: false, torso: false, lArm: true, rArm: false, lLeg: false, rLeg: false }
                     }
@@ -83,25 +84,32 @@ test.describe('Actor sheet screenshot capture', () => {
         });
 
         const sheet = await openActorSheet(page, actorId);
+        const operativeTabs = ['main', 'combat', 'inventory', 'effects', 'traits', 'notes'];
 
-        await saveShot(sheet, '01-operative-sheet');
         await saveShot(sheet.locator('.sheet-header'), '02-operative-header');
         await saveShot(sheet.locator('.stats-strip-container'), '03-operative-stats-strip');
         await saveShot(sheet.locator('nav.sla-sheet-tab-rail'), '04-operative-tab-rail');
 
+        for (const tabId of operativeTabs) {
+            await clickActorSheetTab(sheet, tabId);
+            await sheet.locator(`nav.sheet-tabs a[data-tab="${tabId}"].active`).waitFor({ state: 'attached' });
+            await saveShot(sheet, `tab-${tabId}-full`);
+        }
+
         await clickActorSheetTab(sheet, 'combat');
-        await saveShot(sheet.locator('.tab[data-tab="combat"] .sla-panel').first(), '05-operative-wounds');
-        if ((await sheet.locator('.sla-combat-loadout').count()) > 0) {
-            await saveShot(sheet.locator('.sla-combat-loadout'), '06-operative-combat-loadout');
+        const woundPanel = sheet.locator('.sla-wound-panel');
+        if ((await woundPanel.count()) > 0) {
+            await saveShot(woundPanel, '05-operative-wounds-conditions');
         }
 
         await clickActorSheetTab(sheet, 'main');
-        if ((await sheet.locator('.right-col').count()) > 0) {
-            await saveShot(sheet.locator('.right-col'), '07-operative-vitals');
+        const vitalsCol = sheet.locator('.right-col');
+        if ((await vitalsCol.count()) > 0) {
+            await saveShot(vitalsCol, '07-operative-vitals-xp');
         }
     });
 
-    test('capture NPC threat sheet', async ({ page }) => {
+    test('capture NPC threat sheet — all tabs', async ({ page }) => {
         const npcId = await page.evaluate(async () => {
             const stamp = Date.now();
             const [actor] = await Actor.createDocuments([
@@ -110,13 +118,13 @@ test.describe('Actor sheet screenshot capture', () => {
             return actor.id;
         });
 
-        await page.evaluate(async (id) => {
-            const actor = game.actors.get(id);
-            await actor.sheet.render(true);
-        }, npcId);
+        const sheet = await openActorSheet(page, npcId);
+        const npcTabs = ['combat', 'inventory', 'effects', 'skills', 'notes'];
 
-        const sheet = page.locator('form.application.sla-industries.actor').last();
-        await sheet.waitFor({ state: 'visible' });
-        await saveShot(sheet, '08-npc-threat-sheet');
+        for (const tabId of npcTabs) {
+            await clickActorSheetTab(sheet, tabId);
+            await sheet.locator(`nav.sheet-tabs a[data-tab="${tabId}"].active`).waitFor({ state: 'attached' });
+            await saveShot(sheet, `npc-tab-${tabId}-full`);
+        }
     });
 });
