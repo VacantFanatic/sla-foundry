@@ -15,6 +15,7 @@ import {
     computeMeleeStrDamageModifier,
     computeSkillRollModifier,
     computeSuccessDieOutcome,
+    isStatCheckSuccess,
     computeWeaponSkillDiceCount,
     buildWeaponDamageFormula,
     resolveEbbDisciplineName,
@@ -36,6 +37,13 @@ describe('buildSkillRollFormula', () => {
 
     test('rank 2 rolls three skill dice', () => {
         assert.equal(buildSkillRollFormula(2), '1d10 + 3d10');
+    });
+});
+
+describe('isStatCheckSuccess', () => {
+    test('requires total above TN for stat checks', () => {
+        assert.equal(isStatCheckSuccess(10), false);
+        assert.equal(isStatCheckSuccess(11), true);
     });
 });
 

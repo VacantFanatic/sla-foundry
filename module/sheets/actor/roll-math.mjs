@@ -27,6 +27,15 @@ export function computeSkillRollModifier({ statValue, rank, prone, stunned, woun
 }
 
 /**
+ * Stat checks succeed when the modified total exceeds the target (legacy SLA: > 10).
+ * @param {number} finalTotal
+ * @param {number} [targetNumber=10]
+ */
+export function isStatCheckSuccess(finalTotal, targetNumber = 10) {
+    return finalTotal > targetNumber;
+}
+
+/**
  * @param {string} baseDamage
  * @param {number} totalModifier
  * @returns {string}
