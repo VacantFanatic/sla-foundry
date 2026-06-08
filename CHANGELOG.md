@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **Actor sheet density pass:** Compact header (species/package grid, shorter finance inputs), icon-only tab rail with subtle active state (no oversized orange tiles), smaller wound checkboxes/labels, icon-only Manage XP button, and looser spacing between condition toggles.
+- **Actor sheet density pass:** Compact header (species/package grid, shorter finance inputs), icon-only tab rail with subtle active state (no oversized orange tiles), smaller wound checkboxes/labels, icon-only Manage XP button, looser spacing between condition toggles, and a subtler Active Effects add control.
 - **Tab rail:** Removed persistent text labels under icons; tooltips and `aria-label` remain for discoverability.
 
 ### Added

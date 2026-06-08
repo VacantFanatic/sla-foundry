@@ -107,6 +107,13 @@ test.describe('Actor sheet screenshot capture', () => {
         if ((await vitalsCol.count()) > 0) {
             await saveShot(vitalsCol, '07-operative-vitals-xp');
         }
+
+        await clickActorSheetTab(sheet, 'effects');
+        const effectsHeader = sheet.locator('.sla-effects-panel > .sla-header-bar');
+        if ((await effectsHeader.count()) > 0) {
+            await saveShot(effectsHeader, '08-operative-effects-header');
+        }
+        await saveShot(sheet.locator('.sla-effects-panel'), '08-operative-effects-panel');
     });
 
     test('capture NPC threat sheet — all tabs', async ({ page }) => {
