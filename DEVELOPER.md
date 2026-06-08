@@ -27,7 +27,8 @@ sla-industries/
 │   │   ├── actor.mjs           # BoilerplateActor — derived data, active effects, HP sync
 │   │   └── item.mjs            # BoilerplateItem
 │   ├── helpers/
-│   │   ├── chat.mjs            # SLAChat — all chat card rendering and button handlers
+│   │   ├── chat.mjs            # SLAChat facade — chat card rendering and button handlers
+│   │   └── chat/               # Chat split: pure.mjs, dom.mjs, damage.mjs, handlers.mjs
 │   │   ├── dice.mjs            # Roll helpers: calculateRollResult, getMOS, createSLARoll
 │   │   ├── drop-handlers.mjs   # Item drop linking (weapon→magazine, skill→weapon, etc.)
 │   │   ├── ebb-flux.mjs        # Critical Ebb flux regain/revoke

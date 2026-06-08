@@ -1,40 +1,54 @@
-import { LuckDialog } from '../apps/luck-dialog.mjs';
-import { calculateRollResult } from './dice.mjs';
-import { syncEbbCriticalFlux } from './ebb-flux.mjs';
-import { normalizeEbbEffect } from './items.mjs';
+import { executeStandardDamageRoll, resolveDamageDisplay } from './chat/damage.mjs';
+import { setButtonDisabled } from './chat/dom.mjs';
+import {
+    onApplyDamage,
+    onApplyEbbEffects,
+    onChangeDifficulty,
+    onLuck,
+    onRemoveEbbWounds,
+    onRollDamage,
+    onToggleRoll
+} from './chat/handlers.mjs';
+
+const CHAT_CLICK_SELECTOR =
+    '.chat-btn-wound, .chat-btn-damage, .damage-roll, .apply-damage-btn, .roll-toggle, .chat-btn-luck, .diff-btn, .sla-ebb-apply-effect-btn, .sla-ebb-remove-wounds-btn';
+
+/** @type {((ev: Event) => void)|null} */
+let _chatClickHandler = null;
 
 export class SLAChat {
     /**
      * @param {ChatMessage} message
-     * @param {JQuery} html
+     * @param {HTMLElement|JQuery} html
      */
     static applyEbbHealWoundOrLockFromMessage(message, html) {
         const sla = message.flags?.sla;
         if (!sla?.ebbHealWoundMutualExclude) return;
         const used = sla.ebbHealWoundPathUsed;
         if (!used) return;
-        const $card = html.find('.sla-chat-card');
-        if (!$card.length) return;
-        this._applyEbbHealWoundOrLockToCard($card, used);
+        const root = html instanceof HTMLElement ? html : html[0];
+        const card = root?.querySelector?.('.sla-chat-card');
+        if (!card) return;
+        SLAChat._applyEbbHealWoundOrLockToCard(card, used);
     }
 
     /**
-     * @param {JQuery} $card
+     * @param {HTMLElement} card
      * @param {"heal"|"wounds"} pathUsed
      */
-    static _applyEbbHealWoundOrLockToCard($card, pathUsed) {
+    static _applyEbbHealWoundOrLockToCard(card, pathUsed) {
         const healLocksWounds = game.i18n.localize('SLA.EbbHealWoundLockedOtherUsedHeal');
         const woundsLocksHeal = game.i18n.localize('SLA.EbbHealWoundLockedOtherUsedWounds');
         const healAlreadyUsed = game.i18n.localize('SLA.EbbHealWoundHealAlreadyUsed');
         const woundsAlreadyUsed = game.i18n.localize('SLA.EbbHealWoundWoundsAlreadyUsed');
-        const $heal = $card.find('.damage-roll');
-        const $wound = $card.find('.sla-ebb-remove-wounds-btn');
+        const healBtns = card.querySelectorAll('.damage-roll');
+        const woundBtns = card.querySelectorAll('.sla-ebb-remove-wounds-btn');
         if (pathUsed === 'heal') {
-            $heal.prop('disabled', true).attr('title', healAlreadyUsed);
-            $wound.prop('disabled', true).attr('title', healLocksWounds);
+            for (const el of healBtns) setButtonDisabled(el, true, healAlreadyUsed);
+            for (const el of woundBtns) setButtonDisabled(el, true, healLocksWounds);
         } else if (pathUsed === 'wounds') {
-            $heal.prop('disabled', true).attr('title', woundsLocksHeal);
-            $wound.prop('disabled', true).attr('title', woundsAlreadyUsed);
+            for (const el of healBtns) setButtonDisabled(el, true, woundsLocksHeal);
+            for (const el of woundBtns) setButtonDisabled(el, true, woundsAlreadyUsed);
         }
     }
 
@@ -43,970 +57,53 @@ export class SLAChat {
     }
 
     static _resolveDamageDisplay(formula, actor = null) {
-        const formulaStr = String(formula ?? '0').trim();
-        if (!formulaStr || formulaStr === '0') return '0';
-        if (formulaStr.includes('d')) return formulaStr;
-
-        try {
-            const rollData = actor?.getRollData?.() ?? {};
-            const replaced = Roll.replaceFormulaData(formulaStr, rollData);
-            const resolved = Math.round(Number(Function('"use strict";return (' + replaced + ')')()));
-            return Number.isFinite(resolved) ? String(Math.max(0, resolved)) : formulaStr;
-        } catch (_err) {
-            return formulaStr;
-        }
+        return resolveDamageDisplay(formula, actor);
     }
 
     static init() {
-        // FIX: Remove existing listeners before adding new ones
-        $(document.body).off('click', '.chat-btn-wound, .chat-btn-damage, .damage-roll');
-        $(document.body).off('click', '.apply-damage-btn');
-        $(document.body).off('click', '.roll-toggle');
-        $(document.body).off('click', '.chat-btn-luck');
-        $(document.body).off('click', '.diff-btn');
-        $(document.body).off('click', '.sla-ebb-apply-effect-btn');
-        $(document.body).off('click', '.sla-ebb-remove-wounds-btn');
+        if (_chatClickHandler) {
+            document.body.removeEventListener('click', _chatClickHandler);
+        }
 
-        // Register Listeners
-        $(document.body).on('click', '.chat-btn-wound, .chat-btn-damage, .damage-roll', this._onRollDamage.bind(this));
-        $(document.body).on('click', '.apply-damage-btn', this._onApplyDamage.bind(this));
-        $(document.body).on('click', '.sla-ebb-apply-effect-btn', this._onApplyEbbEffects.bind(this));
-        $(document.body).on('click', '.sla-ebb-remove-wounds-btn', this._onRemoveEbbWounds.bind(this));
-        $(document.body).on('click', '.roll-toggle', this._onToggleRoll.bind(this));
-        $(document.body).on('click', '.chat-btn-luck', this._onLuck.bind(this));
-        $(document.body).on('click', '.diff-btn', this._onChangeDifficulty.bind(this));
+        _chatClickHandler = (ev) => {
+            const target = ev.target instanceof Element ? ev.target : null;
+            if (!target) return;
+            const el = target.closest(CHAT_CLICK_SELECTOR);
+            if (!el) return;
+
+            if (el.matches('.chat-btn-wound, .chat-btn-damage, .damage-roll')) {
+                void onRollDamage({ ...ev, currentTarget: el });
+            } else if (el.matches('.apply-damage-btn')) {
+                void onApplyDamage({ ...ev, currentTarget: el });
+            } else if (el.matches('.sla-ebb-apply-effect-btn')) {
+                void onApplyEbbEffects({ ...ev, currentTarget: el });
+            } else if (el.matches('.sla-ebb-remove-wounds-btn')) {
+                void onRemoveEbbWounds({ ...ev, currentTarget: el });
+            } else if (el.matches('.roll-toggle')) {
+                onToggleRoll({ ...ev, currentTarget: el });
+            } else if (el.matches('.chat-btn-luck')) {
+                void onLuck({ ...ev, currentTarget: el });
+            } else if (el.matches('.diff-btn')) {
+                void onChangeDifficulty({ ...ev, currentTarget: el });
+            }
+        };
+
+        document.body.addEventListener('click', _chatClickHandler);
 
         Hooks.off('renderChatMessage', SLAChat._ebbHealWoundRenderHook);
         Hooks.on('renderChatMessage', SLAChat._ebbHealWoundRenderHook);
     }
 
-    /**
-     * Evaluate damage, post the damage chat card, and optionally auto-apply (MOS wound path).
-     * Used by chat-card buttons and actor sheet combat loadout.
-     *
-     * @param {object} options
-     * @param {Actor} options.actor
-     * @param {string} options.rollFormula
-     * @param {object} [options.rollData]  Data for Roll formula resolution (@stats, @item, etc.)
-     * @param {number} [options.adValue=0]
-     * @param {number} [options.minDamage=0]
-     * @param {string} [options.flavorText="Standard Damage Roll"]
-     * @param {string[]} [options.parentTargets=[]]  Token UUIDs for apply-damage buttons
-     * @param {boolean} [options.autoApplyWound=false]
-     * @param {boolean} [options.isHeal=false]
-     * @param {number} [options.removeWoundsCount=0]  How many wound locations to clear (0–6) on apply
-     * @param {string} [options.ebbTarget="enemy"]  self | ally | enemy — self skips apply buttons and auto-applies to caster
-     */
-    static async executeStandardDamageRoll({
-        actor,
-        rollFormula,
-        rollData = null,
-        adValue = 0,
-        minDamage = 0,
-        flavorText = 'Standard Damage Roll',
-        parentTargets = [],
-        autoApplyWound = false,
-        isHeal = false,
-        removeWoundsCount = 0,
-        ebbTarget = 'enemy'
-    }) {
-        if (!actor) {
-            ui.notifications.error('SLA | Actor not found.');
-            return;
-        }
-        if (!actor.isOwner) {
-            ui.notifications.warn('You do not own this actor.');
-            return;
-        }
-
-        const formula = String(rollFormula ?? '0').trim();
-        if (!formula || formula === '0') {
-            ui.notifications.warn('No damage formula to roll.');
-            return;
-        }
-
-        const data = rollData ?? actor.getRollData?.() ?? {};
-        let roll = new Roll(formula, data);
-        await roll.evaluate();
-
-        const minDmg = Math.max(0, Number(minDamage) || 0);
-        let finalTotal = Math.max(0, roll.total);
-        let flavor = flavorText;
-
-        if (finalTotal < minDmg) {
-            finalTotal = minDmg;
-            if (minDmg > 0) {
-                flavor += `<br/><span style="color:orange; font-size:0.9em;">(Raised to Min Damage ${minDmg})</span>`;
-            }
-            if (roll._total !== undefined) roll._total = minDmg;
-        }
-
-        const hideApplyButtons = ebbTarget === 'self';
-        if (hideApplyButtons && !autoApplyWound) {
-            try {
-                await this._applyEbbOutcomeToActor(actor, finalTotal, adValue, { isHeal, removeWoundsCount });
-                flavor += `<br/><span style="color:#9cf;font-size:0.9em;">${game.i18n.localize('SLA.EbbAppliedToCaster')}</span>`;
-            } catch (err) {
-                console.error('SLA | Ebb self-apply:', err);
-                flavor += `<br/><span style="color:#f66;font-size:0.9em;">${game.i18n.localize('SLA.EbbApplyToCasterFailed')}</span>`;
-            }
-        }
-
-        const templateData = {
-            damageTotal: finalTotal,
-            adValue,
-            flavor,
-            isHeal,
-            hideApplyButtons,
-            actorUuid: actor.uuid,
-            ebbTarget,
-            removeWoundsCount: Math.max(0, Math.min(6, Math.floor(Number(removeWoundsCount) || 0)))
-        };
-
-        const content = await foundry.applications.handlebars.renderTemplate(
-            'systems/sla-industries/templates/chat/chat-damage.hbs',
-            templateData
-        );
-
-        await roll.toMessage({
-            speaker: ChatMessage.getSpeaker({ actor }),
-            content,
-            flags: {
-                sla: {
-                    targets: parentTargets,
-                    autoApply: autoApplyWound,
-                    ebbCasterUuid: actor.uuid,
-                    ebbTarget,
-                    ebbIsHeal: isHeal,
-                    ebbRemoveWoundsCount: Math.max(0, Math.min(6, Math.floor(Number(removeWoundsCount) || 0)))
-                }
-            }
-        });
-
-        if (autoApplyWound && parentTargets.length > 0) {
-            await new Promise((resolve) => setTimeout(resolve, 100));
-            const targetUuid = parentTargets[0];
-            if (targetUuid) {
-                await this._applyDamageToTarget(finalTotal, adValue, targetUuid);
-            }
-        }
+    static async executeStandardDamageRoll(options) {
+        return executeStandardDamageRoll(options);
     }
 
-    /**
-     * PART 1: ROLL DAMAGE (Standard Button & Tactical Choices)
-     */
-    static async _onRollDamage(ev) {
-        ev.preventDefault();
-        const btn = $(ev.currentTarget);
-        const card = btn.closest('.sla-chat-card');
-
-        try {
-            // Determine Action Type
-            const action = btn.data('action') || 'standard';
-
-            // 1. Get Actor
-            const uuid = card.data('actor-uuid');
-            const actorId = card.data('actor-id');
-            let actor = uuid ? await fromUuid(uuid) : game.actors.get(actorId);
-
-            if (!actor) return ui.notifications.error('SLA | Actor not found.');
-            if (!actor.isOwner) return ui.notifications.warn('You do not own this actor.');
-
-            const messageId = card.closest('.message').data('messageId');
-            const parentMessage = game.messages.get(messageId);
-            const guardFlags = parentMessage?.flags?.sla ?? {};
-            if (guardFlags.isEbb && guardFlags.ebbRollSuccess === false) {
-                return ui.notifications.warn(
-                    'SLA | This Ebb check did not succeed; damage, healing, and wound removal are not available.'
-                );
-            }
-
-            const isHealEbbStandardRoll = action === 'standard' && btn.attr('data-is-heal') === 'true';
-            if (
-                guardFlags.ebbHealWoundMutualExclude &&
-                isHealEbbStandardRoll &&
-                guardFlags.ebbHealWoundPathUsed === 'wounds'
-            ) {
-                return ui.notifications.warn(game.i18n.localize('SLA.EbbHealWoundHealLockedAfterWounds'));
-            }
-
-            const parentTargets = Array.isArray(guardFlags.targets) ? guardFlags.targets : [];
-
-            // 2. Data Setup
-            let rollFormula = '';
-            let flavorText = '';
-            let adValue = Number(btn.data('ad') || 0);
-
-            // Disable button to prevent double clicks
-            btn.prop('disabled', true);
-
-            // --- BRANCH A: TACTICAL CHOICE (MOS 2/3) ---
-            if (action === 'damage' || action === 'wound') {
-                const baseFormula = String(btn.data('base-formula') || '0');
-                const bonus = Number(btn.data('damage-bonus') || 0);
-
-                // DAMAGE CHOICE
-                if (action === 'damage') {
-                    flavorText = `<span style="color:#39ff14">Tactical Choice: +${bonus} Damage</span>`;
-                    rollFormula = `${baseFormula} + ${bonus}`;
-                }
-                // WOUND CHOICE
-                else if (action === 'wound') {
-                    const location = btn.data('location');
-                    let woundSuccess = false;
-
-                    // Get target from parent message (wound is applied to the TARGET, not the attacker)
-                    // Apply wound to the first target
-                    if (parentTargets.length > 0) {
-                        const targetToken = await fromUuid(parentTargets[0]);
-                        const targetActor = targetToken?.actor;
-
-                        if (targetActor) {
-                            const wounds = targetActor.system.wounds;
-                            if (location === 'arm') {
-                                if (!wounds.lArm) {
-                                    await targetActor.update({ 'system.wounds.lArm': true });
-                                    woundSuccess = true;
-                                    flavorText = `<span style="color:#ff4444">Snapped ${targetActor.name}'s Left Arm!</span>`;
-                                } else if (!wounds.rArm) {
-                                    await targetActor.update({ 'system.wounds.rArm': true });
-                                    woundSuccess = true;
-                                    flavorText = `<span style="color:#ff4444">Snapped ${targetActor.name}'s Right Arm!</span>`;
-                                }
-                            } else if (location === 'leg') {
-                                if (!wounds.lLeg) {
-                                    await targetActor.update({ 'system.wounds.lLeg': true });
-                                    woundSuccess = true;
-                                    flavorText = `<span style="color:#ff4444">Broken ${targetActor.name}'s Left Leg!</span>`;
-                                } else if (!wounds.rLeg) {
-                                    await targetActor.update({ 'system.wounds.rLeg': true });
-                                    woundSuccess = true;
-                                    flavorText = `<span style="color:#ff4444">Broken ${targetActor.name}'s Right Leg!</span>`;
-                                }
-                            }
-                        }
-                    }
-
-                    if (woundSuccess) {
-                        // Success: Roll Base Only
-                        rollFormula = baseFormula;
-                    } else {
-                        // Failure: Fallback to Damage
-                        flavorText = `<span style="color:orange">Limbs Gone! Reverting to +${bonus} Dmg.</span>`;
-                        rollFormula = `${baseFormula} + ${bonus}`;
-                    }
-                }
-            }
-
-            // --- BRANCH B: STANDARD ROLL (Normal Hit) ---
-            else {
-                rollFormula = String(btn.data('formula') || '0');
-                flavorText = 'Standard Damage Roll';
-            }
-
-            const isHealRoll = btn.attr('data-is-heal') === 'true';
-            const removeWoundsCountRoll = Math.max(
-                0,
-                Math.min(6, Math.floor(Number(btn.attr('data-remove-wounds-count')) || 0))
-            );
-            const ebbTargetRoll = btn.attr('data-ebb-target') || 'enemy';
-            if (action === 'standard' && isHealRoll) {
-                flavorText = game.i18n.localize('SLA.EbbStandardHealRoll');
-            }
-
-            const minDmgRaw = btn.attr('data-min') || btn.data('min') || '0';
-            const minDmg = Math.max(0, Number(minDmgRaw) || 0);
-
-            let woundBtnPrelocked = false;
-            if (guardFlags.ebbHealWoundMutualExclude && action === 'standard' && isHealRoll) {
-                card.find('.sla-ebb-remove-wounds-btn')
-                    .prop('disabled', true)
-                    .attr('title', game.i18n.localize('SLA.EbbHealWoundLockedOtherUsedHeal'));
-                woundBtnPrelocked = true;
-            }
-
-            try {
-                await this.executeStandardDamageRoll({
-                    actor,
-                    rollData: actor.getRollData?.(),
-                    rollFormula,
-                    adValue,
-                    minDamage: minDmg,
-                    flavorText,
-                    parentTargets,
-                    autoApplyWound: action === 'wound',
-                    isHeal: isHealRoll,
-                    removeWoundsCount: removeWoundsCountRoll,
-                    ebbTarget: ebbTargetRoll
-                });
-                if (woundBtnPrelocked && parentMessage?.id) {
-                    const fresh = game.messages.get(parentMessage.id);
-                    await fresh?.update({ 'flags.sla.ebbHealWoundPathUsed': 'heal' });
-                }
-            } catch (rollErr) {
-                if (woundBtnPrelocked) {
-                    card.find('.sla-ebb-remove-wounds-btn').prop('disabled', false).removeAttr('title');
-                }
-                throw rollErr;
-            }
-        } catch (err) {
-            console.error('SLA | Error in _onRollDamage:', err);
-            ui.notifications.error('SLA | Failed to roll damage. See console for details.');
-            btn.prop('disabled', false); // Re-enable button on error
-        }
-    }
-
-    /**
-     * Helper: Apply damage directly to a target (used for auto-apply on wound choices)
-     */
-    static async _resolveActorFromUuid(targetUuid) {
-        const token = await fromUuid(targetUuid);
-        return token?.actor ?? null;
-    }
-
-    static async _resolveVictimForApplyDamage({ targetUuid, type }) {
-        if (targetUuid) {
-            return await this._resolveActorFromUuid(targetUuid);
-        }
-
-        if (type === 'selected') {
-            const selectedActor = canvas.tokens.controlled[0]?.actor;
-            if (!selectedActor) {
-                ui.notifications.warn('No token selected.');
-                return null;
-            }
-            return selectedActor;
-        }
-
-        const targetActor = game.user.targets.first()?.actor;
-        if (!targetActor) {
-            ui.notifications.warn('No target designated.');
-            return null;
-        }
-        return targetActor;
-    }
-
-    /**
-     * @param {Actor} rollingActor
-     * @param {string} ebbTarget  self | ally | enemy
-     * @param {object} opts
-     * @param {string} [opts.type]  target | selected (from apply button)
-     * @param {string} [opts.targetUuid]
-     * @param {string[]} [opts.parentTargets]  token UUIDs from attack message
-     * @returns {Promise<Actor|null>}
-     */
-    static async _resolveEbbFormulaVictim(rollingActor, ebbTarget, { type, targetUuid, parentTargets = [] } = {}) {
-        if (ebbTarget === 'self') {
-            if (!rollingActor) {
-                ui.notifications.warn(game.i18n.localize('SLA.EbbCasterNotFound'));
-                return null;
-            }
-            return rollingActor;
-        }
-
-        if (targetUuid) {
-            return await this._resolveActorFromUuid(targetUuid);
-        }
-
-        if (ebbTarget === 'ally') {
-            if (type === 'target') {
-                const t = game.user.targets.first();
-                return t?.actor ?? null;
-            }
-            const selectedActor = canvas.tokens.controlled[0]?.actor;
-            if (!selectedActor) {
-                ui.notifications.warn(game.i18n.localize('SLA.EbbNoAllySelected'));
-                return null;
-            }
-            return selectedActor;
-        }
-
-        if (parentTargets.length > 0) {
-            const a = await this._resolveActorFromUuid(parentTargets[0]);
-            if (a) return a;
-        }
-
-        return await this._resolveVictimForApplyDamage({ targetUuid: null, type: type || 'target' });
-    }
-
-    /**
-     * Clears up to `count` wound locations (in fixed order) on the actor.
-     * @returns {number} How many locations were actually cleared
-     */
-    static async _clearNWoundsOnActor(actor, count) {
-        const n = Math.max(0, Math.min(6, Math.floor(Number(count) || 0)));
-        if (n === 0 || !actor?.system?.wounds) return 0;
-        const order = ['head', 'torso', 'lArm', 'rArm', 'lLeg', 'rLeg'];
-        const wounds = actor.system.wounds;
-        let left = n;
-        const updates = {};
-        for (const key of order) {
-            if (left <= 0) break;
-            if (wounds[key]) {
-                updates[`system.wounds.${key}`] = false;
-                left--;
-            }
-        }
-        if (!Object.keys(updates).length) return 0;
-        await actor.update(updates);
-        return Object.keys(updates).length;
-    }
-
-    static async _applyHpHeal(victim, rawHeal) {
-        const currentHP = victim.system.hp.value;
-        const maxHP = victim.system.hp.max ?? currentHP;
-        const gain = Math.max(0, rawHeal);
-        const newHP = Math.min(maxHP, currentHP + gain);
-        await victim.update({ 'system.hp.value': newHP });
-        return {
-            finalHeal: newHP - currentHP,
-            hpData: { old: currentHP, new: newHP }
-        };
-    }
-
-    /**
-     * Apply Ebb damage or heal plus optional wound clear (used for self-target auto-apply and shared logic).
-     */
-    static async _applyEbbOutcomeToActor(actor, rawAmount, ad, { isHeal, removeWoundsCount = 0 }) {
-        if (isHeal) {
-            const { finalHeal, hpData } = await this._applyHpHeal(actor, rawAmount);
-            await this._postHealResultChat({ victim: actor, rawHeal: rawAmount, finalHeal, hpData });
-        } else {
-            await this._applyDamageToVictim(actor, rawAmount, ad);
-        }
-        const n = Math.max(0, Math.min(6, Math.floor(Number(removeWoundsCount) || 0)));
-        if (n > 0) {
-            await this._clearNWoundsOnActor(actor, n);
-        }
-    }
-
-    static async _postHealResultChat({ victim, rawHeal, finalHeal, hpData }) {
-        const content = await foundry.applications.handlebars.renderTemplate(
-            'systems/sla-industries/templates/chat/chat-damage-result.hbs',
-            {
-                victimName: victim.name,
-                rawDamage: rawHeal,
-                targetPV: 0,
-                finalDamage: finalHeal,
-                hpData,
-                armorData: null,
-                isHeal: true
-            }
-        );
-        ChatMessage.create({ content });
-    }
-
-    static async _computeArmorMitigation(victim, ad) {
-        const armorItem = victim.items.find((i) => i.type === 'armor' && i.system.equipped);
-
-        let targetPV = 0;
-        let armorData = null;
-
-        if (armorItem) {
-            targetPV = armorItem.system.pv || 0;
-        } else if (victim.system.armor?.pv) {
-            targetPV = victim.system.armor.pv || 0;
-        }
-
-        let effectivePV = targetPV;
-        if (armorItem && ad > 0) {
-            const currentRes = armorItem.system.resistance?.value || 0;
-            const maxRes = armorItem.system.resistance?.max || 10;
-            const newRes = Math.max(0, currentRes - ad);
-            await armorItem.update({ 'system.resistance.value': newRes });
-
-            if (newRes <= 0) effectivePV = 0;
-            else if (newRes < maxRes / 2) effectivePV = Math.floor(targetPV / 2);
-            else effectivePV = targetPV;
-
-            armorData = {
-                current: currentRes,
-                new: newRes,
-                ad: ad,
-                effectivePV: effectivePV
-            };
-        }
-
-        return { targetPV, effectivePV, armorData };
-    }
-
-    static async _applyHpDamage(victim, rawDamage, effectivePV) {
-        const finalDamage = Math.max(0, rawDamage - effectivePV);
-        const currentHP = victim.system.hp.value;
-        const newHP = currentHP - finalDamage;
-        await victim.update({ 'system.hp.value': newHP });
-
-        return {
-            finalDamage,
-            hpData: {
-                old: currentHP,
-                new: newHP
-            }
-        };
-    }
-
-    static async _postDamageResultChat({ victim, rawDamage, targetPV, finalDamage, hpData, armorData }) {
-        const templateData = {
-            victimName: victim.name,
-            rawDamage: rawDamage,
-            targetPV: targetPV,
-            finalDamage: finalDamage,
-            hpData: hpData,
-            armorData: armorData
-        };
-
-        const content = await foundry.applications.handlebars.renderTemplate(
-            'systems/sla-industries/templates/chat/chat-damage-result.hbs',
-            templateData
-        );
-
-        ChatMessage.create({ content });
-    }
-
-    static async _applyDamageToVictim(victim, rawDamage, ad) {
-        const { targetPV, effectivePV, armorData } = await this._computeArmorMitigation(victim, ad);
-        const { finalDamage, hpData } = await this._applyHpDamage(victim, rawDamage, effectivePV);
-        await this._postDamageResultChat({
-            victim,
-            rawDamage,
-            targetPV,
-            finalDamage,
-            hpData,
-            armorData
-        });
-    }
-
-    static async _applyDamageToTarget(rawDamage, ad, targetUuid) {
-        const victim = await this._resolveActorFromUuid(targetUuid);
-        if (!victim) {
-            console.warn('SLA | Auto-apply: Target not found', targetUuid);
-            return;
-        }
-        await this._applyDamageToVictim(victim, rawDamage, ad);
-    }
-
-    /**
-     * PART 2: APPLY DAMAGE (Reduces HP & Armor)
-     */
-    static async _onApplyDamage(ev) {
-        ev.preventDefault();
-        const btn = $(ev.currentTarget);
-
-        try {
-            const rawDamage = Number(btn.data('dmg'));
-            const ad = Number(btn.data('ad'));
-            const type = btn.data('target');
-            const targetUuid = btn.data('target-uuid');
-
-            const card = btn.closest('.sla-chat-card');
-            const messageId = card.closest('.message').data('messageId');
-            const message = game.messages.get(messageId);
-            const mflags = message?.flags?.sla ?? {};
-
-            const rollingUuid = card.data('actor-uuid') || mflags.ebbCasterUuid;
-            const rollingActor = rollingUuid ? await fromUuid(rollingUuid) : null;
-
-            const isHeal = Boolean(btn.attr('data-is-heal') === 'true' || mflags.ebbIsHeal);
-            let removeWoundsCount = 0;
-            const rwAttr = btn.attr('data-remove-wounds-count');
-            if (rwAttr !== undefined && rwAttr !== '') {
-                removeWoundsCount = Math.max(0, Math.min(6, Math.floor(Number(rwAttr) || 0)));
-            } else if (mflags.ebbRemoveWoundsCount != null) {
-                removeWoundsCount = Math.max(0, Math.min(6, Math.floor(Number(mflags.ebbRemoveWoundsCount) || 0)));
-            } else if (mflags.ebbRemoveWounds === true) {
-                removeWoundsCount = 6;
-            }
-            const ebbTarget = btn.attr('data-ebb-target') || mflags.ebbTarget || 'enemy';
-
-            const parentTargets = Array.isArray(mflags.targets) ? mflags.targets : [];
-            const victim = await this._resolveEbbFormulaVictim(rollingActor, ebbTarget, {
-                type,
-                targetUuid,
-                parentTargets
-            });
-            if (!victim) return;
-
-            await this._applyEbbOutcomeToActor(victim, rawDamage, ad, { isHeal, removeWoundsCount });
-        } catch (err) {
-            console.error('SLA | Error in _onApplyDamage:', err);
-            ui.notifications.error('SLA | Failed to apply damage. See console for details.');
-        }
-    }
-
-    /**
-     * Apply embedded Active Effects from an Ebb Formula item to a target or selected token (GM only).
-     */
-    static async _onApplyEbbEffects(ev) {
-        ev.preventDefault();
-        const btn = $(ev.currentTarget);
-
-        try {
-            if (!game.user.isGM) {
-                ui.notifications.warn('SLA | Only a GM can apply formula effects.');
-                return;
-            }
-
-            const card = btn.closest('.sla-chat-card');
-            const messageId = card.closest('.message').data('messageId');
-            const message = game.messages.get(messageId);
-            if (!message) return;
-
-            const flags = message.flags?.sla ?? {};
-            if (!flags.ebbRollSuccess || !flags.ebbHasEffects || !flags.itemUuid) {
-                ui.notifications.warn('SLA | This roll cannot apply Ebb formula effects.');
-                return;
-            }
-
-            const item = await fromUuid(flags.itemUuid);
-            if (!item || item.type !== 'ebbFormula' || !(item.effects?.size > 0)) {
-                ui.notifications.warn('SLA | Ebb formula or embedded effects not found.');
-                return;
-            }
-
-            const type = btn.data('target');
-            const targetUuid = btn.attr('data-target-uuid') || btn.data('target-uuid');
-
-            let victim = null;
-            if (type === 'self') {
-                const casterUuid = card.data('actor-uuid') || flags.actorUuid;
-                victim = casterUuid ? await fromUuid(casterUuid) : null;
-                if (!victim) {
-                    ui.notifications.warn('SLA | Could not resolve caster for formula effects.');
-                    return;
-                }
-            } else {
-                victim = await this._resolveVictimForApplyDamage({ targetUuid, type });
-            }
-            if (!victim) return;
-
-            await item.applyItemEffectsToActor(victim);
-            ui.notifications.info(`SLA | Applied ${item.name} effects to ${victim.name}.`);
-        } catch (err) {
-            console.error('SLA | Error in _onApplyEbbEffects:', err);
-            ui.notifications.error('SLA | Failed to apply formula effects. See console for details.');
-        }
-    }
-
-    static async _onRemoveEbbWounds(ev) {
-        ev.preventDefault();
-        const btn = $(ev.currentTarget);
-
-        try {
-            const card = btn.closest('.sla-chat-card');
-            const messageId = card.closest('.message').data('messageId');
-            const message = game.messages.get(messageId);
-            const flags = message?.flags?.sla ?? {};
-
-            if (flags.isEbb && flags.ebbRollSuccess === false) {
-                ui.notifications.warn('SLA | This Ebb check did not succeed; wound removal is not available.');
-                return;
-            }
-
-            if (flags.ebbHealWoundMutualExclude && flags.ebbHealWoundPathUsed === 'heal') {
-                ui.notifications.warn(game.i18n.localize('SLA.EbbHealWoundWoundsLockedAfterHeal'));
-                return;
-            }
-
-            const casterUuid = card.data('actor-uuid') || flags.actorUuid;
-            const rollingActor = casterUuid ? await fromUuid(casterUuid) : null;
-            const ebbTarget = flags.ebbTarget || btn.attr('data-ebb-target') || 'enemy';
-            const parentTargets = Array.isArray(flags.targets) ? flags.targets : [];
-
-            const resolveType = ebbTarget === 'ally' ? 'selected' : 'target';
-            const victim = await this._resolveEbbFormulaVictim(rollingActor, ebbTarget, {
-                type: resolveType,
-                targetUuid: null,
-                parentTargets
-            });
-            if (!victim) return;
-
-            if (!victim.testUserPermission(game.user, 'OWNER') && !game.user.isGM) {
-                ui.notifications.warn(game.i18n.localize('SLA.EbbNoPermissionWounds'));
-                return;
-            }
-
-            const requested = Math.max(0, Math.min(6, Math.floor(Number(flags.ebbRemoveWoundsCount) || 0)));
-            if (requested <= 0) {
-                ui.notifications.warn(game.i18n.localize('SLA.EbbNoWoundsToRemove'));
-                return;
-            }
-
-            btn.prop('disabled', true);
-            let healBtnPrelocked = false;
-            if (flags.ebbHealWoundMutualExclude && !flags.ebbHealWoundPathUsed) {
-                card.find('.damage-roll')
-                    .prop('disabled', true)
-                    .attr('title', game.i18n.localize('SLA.EbbHealWoundLockedOtherUsedWounds'));
-                healBtnPrelocked = true;
-            }
-
-            try {
-                const removed = await this._clearNWoundsOnActor(victim, requested);
-                ui.notifications.info(
-                    game.i18n.format('SLA.EbbNWoundsRemoved', { name: victim.name, count: removed, requested })
-                );
-            } catch (innerErr) {
-                if (healBtnPrelocked) {
-                    card.find('.damage-roll').prop('disabled', false).removeAttr('title');
-                }
-                btn.prop('disabled', false);
-                throw innerErr;
-            }
-            if (healBtnPrelocked && message?.id) {
-                try {
-                    const fresh = game.messages.get(message.id);
-                    await fresh?.update({ 'flags.sla.ebbHealWoundPathUsed': 'wounds' });
-                } catch (flagErr) {
-                    console.warn('SLA | Failed to persist ebbHealWoundPathUsed', flagErr);
-                }
-            }
-        } catch (err) {
-            console.error('SLA | Error in _onRemoveEbbWounds:', err);
-            ui.notifications.error('SLA | Failed to remove wounds. See console for details.');
-        }
-    }
-
-    /**
-     * PART 3: TOGGLE ROLL TOOLTIP
-     */
-    static _onToggleRoll(ev) {
-        ev.preventDefault();
-        const btn = $(ev.currentTarget);
-        const card = btn.closest('.sla-chat-card');
-        const tooltip = card.find('.dice-tooltip');
-
-        if (tooltip.length) {
-            tooltip.slideToggle(200);
-        }
-    }
-
-    /**
-     * PART 4: LUCK USE
-     */
-    static async _onLuck(ev) {
-        ev.preventDefault();
-        const btn = $(ev.currentTarget);
-        const card = btn.closest('.sla-chat-card');
-
-        // 1. Get Actor
-        const uuid = card.data('actor-uuid');
-        const actorId = card.data('actor-id');
-        let actor = uuid ? await fromUuid(uuid) : game.actors.get(actorId);
-
-        if (!actor) return ui.notifications.error('SLA | Actor not found.');
-        if (!actor.isOwner) return ui.notifications.warn('You do not own this actor.');
-
-        // 2. Get Message
-        const messageId = card.closest('.message').data('messageId');
-        const message = game.messages.get(messageId);
-        if (!message) return;
-
-        // 3. Check if luck has already been spent
-        const flags = message.flags.sla || {};
-        if (flags.luckSpent) {
-            return ui.notifications.warn(
-                'SLA | Luck has already been spent on this roll. Only one option may be applied per roll.'
-            );
-        }
-
-        // 4. Get Roll
-        const roll = message.rolls[0];
-        if (!roll) return ui.notifications.warn('No roll data found.');
-
-        // 5. Open Dialog
-        LuckDialog.create(actor, roll, messageId);
-    }
-
-    static async _applyHeadshotForDifficultyRecalc(flags) {
-        const targets = flags.targets || [];
-        if (targets.length === 0) return;
-
-        const targetToken = await fromUuid(targets[0]);
-        const targetActor = targetToken?.actor;
-        if (targetActor && !targetActor.system.wounds.head) {
-            await targetActor.update({ 'system.wounds.head': true });
-        }
-    }
-
-    static async _resolveDifficultyRecalcMos(flags, result, isSuccess, skillSuccessCount) {
-        let mosDamageBonus = 0;
-        let mosEffectText = isSuccess ? 'Standard Hit' : 'Failed';
-        let mosChoiceData = { hasChoice: false, choiceType: '', choiceDmg: 0 };
-
-        if (flags.isEbb) {
-            mosEffectText = isSuccess ? 'Standard Success' : 'Failed';
-            const attackMos = normalizeEbbEffect(flags.ebbEffect) === 'damage';
-            if (isSuccess) {
-                if (skillSuccessCount === 2) {
-                    mosEffectText = attackMos ? '+1 Damage / Effect' : 'Standard Success';
-                    if (attackMos) mosDamageBonus = 1;
-                } else if (skillSuccessCount === 3) {
-                    mosEffectText = attackMos
-                        ? '+2 Damage / Repeat Ability'
-                        : 'May use the same Ebb ability again within 5 minutes (-3 FLUX)';
-                    if (attackMos) mosDamageBonus = 2;
-                } else if (skillSuccessCount >= 4) {
-                    mosEffectText = attackMos
-                        ? "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX"
-                        : "<strong style='color:#39ff14'>CRITICAL:</strong> Regain 1 FLUX";
-                    if (attackMos) mosDamageBonus = 4;
-                }
-            }
-            return { mosDamageBonus, mosEffectText, mosChoiceData };
-        }
-
-        if (flags.isWeapon) {
-            if (isSuccess && !result.successThroughExperience) {
-                if (skillSuccessCount === 1) {
-                    mosDamageBonus = 1;
-                    mosEffectText = '+1 Damage';
-                } else if (skillSuccessCount === 2) {
-                    mosEffectText = 'MOS 2: Choose Effect';
-                    mosChoiceData = { hasChoice: true, choiceType: 'arm', choiceDmg: 2 };
-                } else if (skillSuccessCount === 3) {
-                    mosEffectText = 'MOS 3: Choose Effect';
-                    mosChoiceData = { hasChoice: true, choiceType: 'leg', choiceDmg: 4 };
-                } else if (skillSuccessCount >= 4) {
-                    mosDamageBonus = 6;
-                    mosEffectText = "<strong style='color:#ff5555'>HEAD SHOT</strong> (+6 DMG)";
-                    await this._applyHeadshotForDifficultyRecalc(flags);
-                }
-            } else if (result.successThroughExperience) {
-                mosEffectText = 'Success Through Experience';
-            }
-            return { mosDamageBonus, mosEffectText, mosChoiceData };
-        }
-
-        if (isSuccess) mosEffectText = `Margin of Success: ${skillSuccessCount}`;
-        return { mosDamageBonus, mosEffectText, mosChoiceData };
-    }
-
-    static _rebuildDifficultyDamageFormula(flags, mosDamageBonus) {
-        const baseDmg = flags.damageBase || '0';
-        const damageMod = flags.damageMod || 0;
-        const totalMod = damageMod + mosDamageBonus;
-
-        let finalDmgFormula = baseDmg;
-        if (totalMod !== 0) {
-            if (baseDmg === '0' || baseDmg === '') finalDmgFormula = String(totalMod);
-            else finalDmgFormula = `${baseDmg} ${totalMod > 0 ? '+' : ''} ${totalMod}`;
-        }
-        return finalDmgFormula;
-    }
-
-    static _buildDifficultyNotes(flags, newTN) {
-        const originalTN = flags.tn || 10;
-        let baseNotes = flags.notes || '';
-        baseNotes = baseNotes.replace(/\s*\(TN\s+\d+(?:\s*→\s*\d+)?\)/g, '').trim();
-        const tnNote = newTN !== originalTN ? ` (TN ${originalTN} → ${newTN})` : ` (TN ${newTN})`;
-        return baseNotes + tnNote;
-    }
-
-    /**
-     * PART 5: CHANGE DIFFICULTY (TN)
-     */
-    static async _onChangeDifficulty(ev) {
-        ev.preventDefault();
-        const btn = $(ev.currentTarget);
-        if (!game.user.isGM) return ui.notifications.warn('Only GM can adjust difficulty.');
-
-        try {
-            const card = btn.closest('.sla-chat-card');
-            const newTN = Number(btn.data('tn'));
-
-            // Retrieve Data
-            const messageId = card.closest('.message').data('messageId');
-            const message = game.messages.get(messageId);
-            if (!message) return;
-
-            const flags = message.flags.sla || {};
-            const roll = message.rolls[0];
-            if (!roll) return;
-
-            const minDamage = Number(card.find('.damage-roll').data('min')) || 0;
-            const result = calculateRollResult(roll, flags.baseModifier, newTN, {
-                autoSkillSuccesses: flags.autoSkillSuccesses || 0
-            });
-            const isSuccess = result.isSuccess;
-            const skillSuccessCount = result.skillHits + (flags.autoSkillSuccesses || 0);
-            const { mosDamageBonus, mosEffectText, mosChoiceData } = await this._resolveDifficultyRecalcMos(
-                flags,
-                result,
-                isSuccess,
-                skillSuccessCount
-            );
-            const finalDmgFormula = this._rebuildDifficultyDamageFormula(flags, mosDamageBonus);
-
-            let showButton = isSuccess && finalDmgFormula && finalDmgFormula !== '0';
-            const resultColor = isSuccess ? '#39ff14' : '#f55';
-            const finalNotes = this._buildDifficultyNotes(flags, newTN);
-
-            const actor = await fromUuid(card.data('actor-uuid'));
-            const templateData = {
-                actorUuid: card.data('actor-uuid'),
-                borderColor: resultColor,
-                headerColor: resultColor,
-                resultColor: resultColor,
-                itemName: flags.itemName,
-                successTotal: result.total,
-                tooltip: await roll.getTooltip(), // Use standard tooltip or regenerate? Standard is fine.
-                skillDice: result.skillDiceData,
-                notes: finalNotes, // Use notes from flags instead of DOM parsing
-
-                showDamageButton: showButton,
-                dmgFormula: finalDmgFormula,
-                dmgDisplay: this._resolveDamageDisplay(finalDmgFormula, actor ?? null),
-                minDamage: minDamage,
-                adValue: flags.adValue || 0,
-                sdIsReroll: flags.rofRerollSD,
-
-                mos: {
-                    isSuccess: isSuccess,
-                    hits: skillSuccessCount,
-                    effect: mosEffectText,
-                    ...mosChoiceData
-                },
-
-                canUseLuck: card.find('.chat-btn-luck').length > 0, // Basic check if luck button was there
-                luckValue: 0, // Visual only, doesn't matter much if we don't know exact value.
-                // Or we could re-fetch actor?
-                luckSpent: flags.luckSpent || false // Read from flags to preserve state
-            };
-
-            // Refetch actor for Luck Value and canUseLuck
-            if (actor) {
-                templateData.luckValue = actor.system.stats.luck.value;
-                templateData.canUseLuck = actor.system.stats.luck.value > 0;
-            }
-
-            const chatContent = await foundry.applications.handlebars.renderTemplate(
-                'systems/sla-industries/templates/chat/chat-weapon-rolls.hbs',
-                templateData
-            );
-
-            await message.update({
-                content: chatContent,
-                'flags.sla.tn': newTN,
-                'flags.sla.notes': finalNotes // Update notes in flags to preserve them
-            });
-
-            await syncEbbCriticalFlux(message, actor, message.flags?.sla ?? flags, isSuccess, skillSuccessCount);
-        } catch (err) {
-            console.error('SLA | Error in _onChangeDifficulty:', err);
-            ui.notifications.error('SLA | Failed to change difficulty. See console for details.');
-        }
-    }
-
-    /**
-     * PART 6: RENDER HOOK (Manage Button Visibility)
-     */
     static async onRenderChatMessage(message, html, data) {
-        // V13 Migration: 'html' can be HTMLElement or jQuery object
         const htmlElement = html instanceof HTMLElement ? html : html[0];
-        const $html = $(htmlElement);
+        if (!htmlElement) return;
 
-        const ebbBlock = $html.find('.sla-ebb-effect-actions');
-        if (ebbBlock.length) {
+        const ebbBlock = htmlElement.querySelector('.sla-ebb-effect-actions');
+        if (ebbBlock) {
             if (!game.user.isGM) {
                 ebbBlock.remove();
             } else {
@@ -1016,11 +113,13 @@ export class SLAChat {
                         const targetUuid = targets[0];
                         const tokenDocument = await fromUuid(targetUuid);
                         if (tokenDocument) {
-                            const ebbTargetBtn = $html.find('.sla-ebb-apply-effect-btn[data-target="target"]');
-                            ebbTargetBtn.html(
-                                `<i class="fas fa-crosshairs"></i> Apply effects to ${tokenDocument.name}`
+                            const ebbTargetBtn = htmlElement.querySelector(
+                                '.sla-ebb-apply-effect-btn[data-target="target"]'
                             );
-                            ebbTargetBtn.attr('data-target-uuid', targetUuid);
+                            if (ebbTargetBtn) {
+                                ebbTargetBtn.innerHTML = `<i class="fas fa-crosshairs"></i> Apply effects to ${tokenDocument.name}`;
+                                ebbTargetBtn.setAttribute('data-target-uuid', targetUuid);
+                            }
                         }
                     } catch (err) {
                         console.error('SLA | Error in onRenderChatMessage (Ebb effect target button):', err);
@@ -1029,11 +128,11 @@ export class SLAChat {
             }
         }
 
-        const dmgButtons = $html.find('.apply-damage-btn');
+        const dmgButtons = htmlElement.querySelectorAll('.apply-damage-btn');
         if (!dmgButtons.length) return;
 
         if (!game.user.isGM) {
-            dmgButtons.remove();
+            for (const btn of dmgButtons) btn.remove();
             return;
         }
 
@@ -1044,9 +143,11 @@ export class SLAChat {
                 const tokenDocument = await fromUuid(targetUuid);
 
                 if (tokenDocument) {
-                    const targetBtn = $html.find('.apply-damage-btn[data-target="target"]');
-                    targetBtn.html(`<i class="fas fa-crosshairs"></i> Apply to ${tokenDocument.name}`);
-                    targetBtn.attr('data-target-uuid', targetUuid);
+                    const targetBtn = htmlElement.querySelector('.apply-damage-btn[data-target="target"]');
+                    if (targetBtn) {
+                        targetBtn.innerHTML = `<i class="fas fa-crosshairs"></i> Apply to ${tokenDocument.name}`;
+                        targetBtn.setAttribute('data-target-uuid', targetUuid);
+                    }
                 }
             } catch (err) {
                 console.error('SLA | Error in onRenderChatMessage (target button):', err);
