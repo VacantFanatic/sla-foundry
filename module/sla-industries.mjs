@@ -19,7 +19,7 @@ import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { SLAChat } from './helpers/chat.mjs';
 import { SLA } from './config.mjs';
 
-import { migrateWorld, CURRENT_MIGRATION_VERSION } from './migration.mjs';
+import { migrateWorld, DATA_MODEL_VERSION } from './migration.mjs';
 import { rollOwnedItem, addActorItemToHotbar, registerSlaHotbar } from './helpers/sla-hotbar.mjs';
 
 const movementActionState = new Map();
@@ -146,12 +146,21 @@ Hooks.once('init', async function () {
 
     CONFIG.Combat.initiative = SLA.combatInitiative;
 
+    // Legacy setting — kept registered so existing worlds don't error on read; no longer used for comparison.
     game.settings.register('sla-industries', 'systemMigrationVersion', {
-        name: 'System Migration Version',
+        name: 'System Migration Version (legacy)',
         scope: 'world',
-        config: false, // Hide from UI
+        config: false,
         type: String,
         default: '0.0.0'
+    });
+
+    game.settings.register('sla-industries', 'schemaVersion', {
+        name: 'Data Model Schema Version',
+        scope: 'world',
+        config: false,
+        type: Number,
+        default: 0
     });
 
     game.settings.register('sla-industries', 'enableMigrationWorldBackup', {
@@ -326,10 +335,10 @@ Handlebars.registerHelper('and', function (a, b) {
 /* -------------------------------------------- */
 Hooks.once('ready', async function () {
     // 1. Check current schema version
-    const currentVersion = game.settings.get('sla-industries', 'systemMigrationVersion');
+    const currentSchemaVersion = game.settings.get('sla-industries', 'schemaVersion');
 
-    // 2. If world is older than our code, Run Migration
-    if (foundry.utils.isNewerVersion(CURRENT_MIGRATION_VERSION, currentVersion)) {
+    // 2. If world data model is behind current code, run migration
+    if (DATA_MODEL_VERSION > currentSchemaVersion) {
         await migrateWorld();
     }
 

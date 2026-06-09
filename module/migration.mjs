@@ -9,19 +9,21 @@ import {
 } from './migration/pure.mjs';
 
 /** * module/migration.mjs
- * World migration version is stored in game.settings ("sla-industries", "systemMigrationVersion").
- * Bump CURRENT_MIGRATION_VERSION when this file’s behavior changes so older worlds re-run migration.
+ * Schema version is stored in game.settings ("sla-industries", "schemaVersion") as a plain integer.
+ * Increment DATA_MODEL_VERSION by 1 whenever migration steps change so older worlds re-run.
+ * This is completely independent of the release version in package.json / system.json.
  */
 
 /**
- * Highest world-data migration currently required.
- * Bump when migration steps change so older worlds re-run. `2.1.1` supersedes `2.1.0` so worlds
- * that reached `2.1.0` without `migrateTo210` (drug legacy keys) still run that step once.
- * `2.4.8`: Ebb formula `removeWounds` boolean → integer 0–6 (true → 6).
- * `2.4.9`: Ebb formula `ebbEffect` `none` → `effect`.
- * `2.5.0`: Ebb formula `ebbHpWoundMode` → `ebbHealWoundMode` when present (interim dev field cleanup).
+ * Monotonically increasing data model version.
+ * History:
+ *  1 — migrateTo200: HTML field normalisation for ApplicationV2 sheets
+ *  2 — migrateTo210: remove legacy drug system.mods / system.damageReduction keys
+ *  3 — ebbFormula: system.removeWounds boolean → integer 0–6 (true → 6)
+ *  4 — ebbFormula: system.ebbEffect ‘none’ → ‘effect’
+ *  5 — ebbFormula: system.ebbHpWoundMode → system.ebbHealWoundMode (interim dev field cleanup)
  */
-export const CURRENT_MIGRATION_VERSION = '2.5.0';
+export const DATA_MODEL_VERSION = 5;
 
 /**
  * Client-side world snapshot for disaster recovery before migration runs.
@@ -63,8 +65,8 @@ async function downloadMigrationWorldBackup() {
             formatVersion: 1,
             exportedAt: new Date().toISOString(),
             world: { id: game.world?.id ?? null, title: game.world?.title ?? null },
-            systemMigrationVersionBefore: game.settings.get('sla-industries', 'systemMigrationVersion'),
-            systemMigrationVersionTarget: CURRENT_MIGRATION_VERSION,
+            schemaVersionBefore: game.settings.get('sla-industries', 'schemaVersion'),
+            schemaVersionTarget: DATA_MODEL_VERSION,
             foundryVersion: game.version,
             systemId: game.system?.id ?? null,
             systemVersion: game.system?.version ?? null,
@@ -100,7 +102,7 @@ function getEbbFormulaMigrationEmbedded(item) {
  */
 export async function migrateWorld() {
     ui.notifications.info(
-        `SLA Industries System: Applying Migration to version ${CURRENT_MIGRATION_VERSION}. Please wait...`,
+        `SLA Industries System: Applying data model migration (schema v${DATA_MODEL_VERSION}). Please wait...`,
         { permanent: true }
     );
 
@@ -309,7 +311,7 @@ export async function migrateWorld() {
     await migrateNaturalWeapons(true);
 
     // 4. Update the Setting so it doesn't run again
-    await game.settings.set('sla-industries', 'systemMigrationVersion', CURRENT_MIGRATION_VERSION);
+    await game.settings.set('sla-industries', 'schemaVersion', DATA_MODEL_VERSION);
 
     ui.notifications.info('SLA Industries System: Migration Complete!', { permanent: false });
 }
