@@ -1,6 +1,13 @@
 import { SLAChat } from '../../helpers/chat.mjs';
 import { calculateRangePenalty } from '../../helpers/modifiers.mjs';
 import { buildWeaponDamageFormula, computeMeleeStrDamageModifier } from './roll-math.mjs';
+import {
+    requiresWeaponEquippedForAttack,
+    getAmmoDamageModifierForWeapon as _getAmmoDamageModifier,
+    resolveWeaponAdForDamageRoll
+} from './weapon-gates-pure.mjs';
+
+export { requiresWeaponEquippedForAttack, resolveWeaponAdForDamageRoll };
 
 const UNEQUIPPED_WEAPON_LINES = [
     'That hardware is still stowed—you need it in hand, not in inventory. Equip it first, operative.',
@@ -8,10 +15,6 @@ const UNEQUIPPED_WEAPON_LINES = [
     "Bane's watching, and even he expects the barrel to leave the holster before you roll. Equip it.",
     "Nice commitment to the bit, but mime combat doesn't bypass armor. Toggle that weapon to equipped."
 ];
-
-export function requiresWeaponEquippedForAttack(actor) {
-    return actor.type === 'character';
-}
 
 export function notifyUnequippedWeaponHumor() {
     ui.notifications.info(UNEQUIPPED_WEAPON_LINES[Math.floor(Math.random() * UNEQUIPPED_WEAPON_LINES.length)]);
@@ -36,24 +39,7 @@ export function canProceedWithWeaponAttack(sheet, item, { requireTarget = false 
 }
 
 export function getAmmoDamageModifierForWeapon(actor, item) {
-    if (!item?.system?.magazineId || !actor) return 0;
-    const magazine = actor.items.get(item.system.magazineId);
-    if (!magazine) return 0;
-    const ammoType = magazine.system.ammoType || 'standard';
-    const configMods = CONFIG.SLA?.ammoModifiers?.[ammoType];
-    return configMods ? Number(configMods.damage) || 0 : 0;
-}
-
-export function resolveWeaponAdForDamageRoll(actor, item) {
-    let adValue = Number(item.system.ad) || 0;
-    if (item.system.powersuitAttack) {
-        const strValue = Number(actor.system.stats.str?.total ?? actor.system.stats.str?.value ?? 0);
-        const adFromStrMinus = Number(item.system.adFromStrMinus) || 0;
-        if (adFromStrMinus > 0) {
-            adValue = Math.max(0, strValue - adFromStrMinus);
-        }
-    }
-    return adValue;
+    return _getAmmoDamageModifier(actor, item, CONFIG.SLA?.ammoModifiers);
 }
 
 export function getActorTokenForRangeCheck(sheet) {
