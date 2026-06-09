@@ -89,7 +89,6 @@ async function downloadMigrationWorldBackup() {
     }
 }
 
-
 /** @param {Item} item */
 function getEbbFormulaMigrationEmbedded(item) {
     const u = getEbbFormulaMigrationUpdate(item);
@@ -315,7 +314,6 @@ export async function migrateWorld() {
 
     ui.notifications.info('SLA Industries System: Migration Complete!', { permanent: false });
 }
-
 
 /**
  * Migration Logic for Armor

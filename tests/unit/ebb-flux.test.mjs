@@ -40,7 +40,9 @@ function makeMessage({ ebbFluxRegainApplied = false } = {}) {
     const updates = [];
     const msg = {
         flags: { sla: { isEbb: true, ebbFluxRegainApplied } },
-        update: async (data) => { updates.push(data); }
+        update: async (data) => {
+            updates.push(data);
+        }
     };
     return { msg, updates };
 }

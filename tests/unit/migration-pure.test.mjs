@@ -274,7 +274,16 @@ describe('getWeaponMigrationData', () => {
 
     test('does not overwrite an already-set attackType', () => {
         const result = getWeaponMigrationData(
-            { id: 'w', system: { attackType: 'melee', skill: 'Pistol', powersuitAttack: false, attackPenalty: 0, adFromStrMinus: 0 } },
+            {
+                id: 'w',
+                system: {
+                    attackType: 'melee',
+                    skill: 'Pistol',
+                    powersuitAttack: false,
+                    attackPenalty: 0,
+                    adFromStrMinus: 0
+                }
+            },
             MELEE_SKILLS
         );
         // attackType already set to melee — no update needed for that field

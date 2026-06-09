@@ -159,12 +159,12 @@ describe('applyMeleeModifiers — combined scenarios', () => {
         applyMeleeModifiers(
             {
                 charging: { checked: true }, // −1 SD, +1 autoSkillSuccesses
-                prone: { checked: true }      // +2 SD
+                prone: { checked: true } // +2 SD
             },
             7, // STR 7 → +4 damage
             m
         );
-        assert.equal(m.successDie, 1);          // −1 + 2
+        assert.equal(m.successDie, 1); // −1 + 2
         assert.equal(m.damage, 4);
         assert.equal(m.autoSkillSuccesses, 1);
     });
