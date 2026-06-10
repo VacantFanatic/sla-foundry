@@ -4,6 +4,12 @@ permissions:
     contents: write
 
 on:
+    workflow_dispatch:
+        inputs:
+            tag_name:
+                description: 'Pre-release tag to create and publish (e.g. pre-2.8.2-rc1)'
+                required: true
+                type: string
     push:
         tags:
             - 'pre-[0-9]+.[0-9]+.[0-9]+'
@@ -22,9 +28,18 @@ jobs:
                   node-version: '22'
                   cache: npm
 
+            - name: Resolve tag name
+              id: resolve-tag
+              run: |
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    echo "tag=${{ inputs.tag_name }}" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+                  fi
+
             - name: Resolve version from tag
               id: get-version
-              run: node scripts/resolve-prerelease-tag.mjs "${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+              run: node scripts/resolve-prerelease-tag.mjs "${{ steps.resolve-tag.outputs.tag }}" >> "$GITHUB_OUTPUT"
 
             - name: Install dependencies
               run: npm ci
