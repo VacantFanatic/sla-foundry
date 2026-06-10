@@ -10,14 +10,14 @@
 
         <div class="sla-wounds-row">
             {{#if (ne enableNPCWoundTracking false)}}
-            <div class="sla-wound-diagram">
-                <div class="sla-wound-diagram__slot {{#if system.wounds.head}}is-wounded{{/if}}" data-area="head" data-wound="head" role="button" tabindex="0" aria-pressed="{{system.wounds.head}}" aria-label="{{localize 'SLA.ActorSheet.WoundHead'}}" title="{{localize 'SLA.ActorSheet.WoundHead'}}">Hd</div>
-                <div class="sla-wound-diagram__slot {{#if system.wounds.lArm}}is-wounded{{/if}}" data-area="larm" data-wound="lArm" role="button" tabindex="0" aria-pressed="{{system.wounds.lArm}}" aria-label="{{localize 'SLA.ActorSheet.WoundLArm'}}" title="{{localize 'SLA.ActorSheet.WoundLArm'}}">LA</div>
-                <div class="sla-wound-diagram__slot {{#if system.wounds.torso}}is-wounded{{/if}}" data-area="torso" data-wound="torso" role="button" tabindex="0" aria-pressed="{{system.wounds.torso}}" aria-label="{{localize 'SLA.ActorSheet.WoundTorso'}}" title="{{localize 'SLA.ActorSheet.WoundTorso'}}">To</div>
-                <div class="sla-wound-diagram__slot {{#if system.wounds.rArm}}is-wounded{{/if}}" data-area="rarm" data-wound="rArm" role="button" tabindex="0" aria-pressed="{{system.wounds.rArm}}" aria-label="{{localize 'SLA.ActorSheet.WoundRArm'}}" title="{{localize 'SLA.ActorSheet.WoundRArm'}}">RA</div>
-                <div class="sla-wound-diagram__slot {{#if system.wounds.lLeg}}is-wounded{{/if}}" data-area="lleg" data-wound="lLeg" role="button" tabindex="0" aria-pressed="{{system.wounds.lLeg}}" aria-label="{{localize 'SLA.ActorSheet.WoundLLeg'}}" title="{{localize 'SLA.ActorSheet.WoundLLeg'}}">LL</div>
-                <div class="sla-wound-diagram__slot {{#if system.wounds.rLeg}}is-wounded{{/if}}" data-area="rleg" data-wound="rLeg" role="button" tabindex="0" aria-pressed="{{system.wounds.rLeg}}" aria-label="{{localize 'SLA.ActorSheet.WoundRLeg'}}" title="{{localize 'SLA.ActorSheet.WoundRLeg'}}">RL</div>
-            </div>
+            <svg class="sla-wound-diagram" viewBox="0 0 70 115" xmlns="http://www.w3.org/2000/svg" aria-label="{{localize 'SLA.ActorSheet.WoundsStatus'}}">
+                <circle class="sla-wound-diagram__slot {{#if system.wounds.head}}is-wounded{{/if}}" data-wound="head" cx="35" cy="11" r="10" role="button" tabindex="0" aria-pressed="{{system.wounds.head}}" aria-label="{{localize 'SLA.ActorSheet.WoundHead'}}" title="{{localize 'SLA.ActorSheet.WoundHead'}}"/>
+                <rect class="sla-wound-diagram__slot {{#if system.wounds.lArm}}is-wounded{{/if}}" data-wound="lArm" x="4" y="24" width="12" height="34" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.lArm}}" aria-label="{{localize 'SLA.ActorSheet.WoundLArm'}}" title="{{localize 'SLA.ActorSheet.WoundLArm'}}"/>
+                <rect class="sla-wound-diagram__slot {{#if system.wounds.torso}}is-wounded{{/if}}" data-wound="torso" x="19" y="24" width="32" height="38" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.torso}}" aria-label="{{localize 'SLA.ActorSheet.WoundTorso'}}" title="{{localize 'SLA.ActorSheet.WoundTorso'}}"/>
+                <rect class="sla-wound-diagram__slot {{#if system.wounds.rArm}}is-wounded{{/if}}" data-wound="rArm" x="54" y="24" width="12" height="34" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.rArm}}" aria-label="{{localize 'SLA.ActorSheet.WoundRArm'}}" title="{{localize 'SLA.ActorSheet.WoundRArm'}}"/>
+                <rect class="sla-wound-diagram__slot {{#if system.wounds.lLeg}}is-wounded{{/if}}" data-wound="lLeg" x="19" y="65" width="14" height="50" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.lLeg}}" aria-label="{{localize 'SLA.ActorSheet.WoundLLeg'}}" title="{{localize 'SLA.ActorSheet.WoundLLeg'}}"/>
+                <rect class="sla-wound-diagram__slot {{#if system.wounds.rLeg}}is-wounded{{/if}}" data-wound="rLeg" x="37" y="65" width="14" height="50" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.rLeg}}" aria-label="{{localize 'SLA.ActorSheet.WoundRLeg'}}" title="{{localize 'SLA.ActorSheet.WoundRLeg'}}"/>
+            </svg>
             {{/if}}
 
             <div class="condition-grid">
