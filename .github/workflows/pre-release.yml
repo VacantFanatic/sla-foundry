@@ -1,0 +1,102 @@
+name: sla-industries Pre-Release
+
+permissions:
+    contents: write
+
+on:
+    push:
+        tags:
+            - 'pre-[0-9]+.[0-9]+.[0-9]+'
+            - 'pre-v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+    pre-release:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: npm
+
+            - name: Resolve version from tag
+              id: get-version
+              run: |
+                  TAG="${GITHUB_REF_NAME}"
+                  VERSION="${TAG#pre-}"
+                  VERSION="${VERSION#v}"
+                  echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
+                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Verify package.json and system.json versions match
+              run: node scripts/validate-dist.mjs --sync-only
+
+            - name: Verify tag matches system.json version
+              run: |
+                  MANIFEST_VERSION=$(node ./.github/workflows/get-version.js)
+                  if [ "$MANIFEST_VERSION" != "${{ steps.get-version.outputs.version }}" ]; then
+                    echo "Tag version (${{ steps.get-version.outputs.version }}) does not match system.json ($MANIFEST_VERSION)"
+                    exit 1
+                  fi
+
+            - name: Run unit tests
+              run: npm run test:unit
+
+            - name: Patch manifest for pre-release channel
+              run: |
+                  python3 -c "
+                  import json, sys
+                  manifest = json.load(open('system.json'))
+                  manifest['manifest'] = 'https://github.com/VacantFanatic/sla-foundry/releases/download/latest-pre/system.json'
+                  manifest['download'] = f'https://github.com/VacantFanatic/sla-foundry/releases/download/{sys.argv[1]}/sla-industries.zip'
+                  open('system.json', 'w').write(json.dumps(manifest, indent=4) + '\n')
+                  " "${{ steps.get-version.outputs.tag_name }}"
+
+            - name: Build and package release zip
+              run: npm run package
+
+            - name: Validate dist and zip artifacts
+              run: node scripts/validate-dist.mjs --zip
+
+            - name: Copy manifest for release asset
+              run: cp dist/system.json system.json
+
+            - name: Create versioned pre-release
+              uses: ncipollo/release-action@v1
+              with:
+                  allowUpdates: true
+                  name: Pre-release ${{ steps.get-version.outputs.version }}
+                  draft: false
+                  prerelease: true
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  artifacts: './system.json,./sla-industries.zip'
+                  tag: ${{ steps.get-version.outputs.tag_name }}
+                  body: |
+                      **Pre-release build — for private testing only.**
+
+                      This release will not appear as an update for standard users.
+
+                      To install or update in FoundryVTT, paste this manifest URL:
+                      `https://github.com/VacantFanatic/sla-foundry/releases/download/latest-pre/system.json`
+
+            - name: Update latest-pre release
+              uses: ncipollo/release-action@v1
+              with:
+                  allowUpdates: true
+                  name: Latest Pre-release
+                  draft: false
+                  prerelease: true
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  artifacts: './system.json,./sla-industries.zip'
+                  tag: latest-pre
+                  body: |
+                      **Latest pre-release build — for private testing only.**
+
+                      This release will not appear as an update for standard users.
+
+                      To install or update in FoundryVTT, paste this manifest URL:
+                      `https://github.com/VacantFanatic/sla-foundry/releases/download/latest-pre/system.json`
