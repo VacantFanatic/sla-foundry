@@ -50,7 +50,7 @@ Cloud agents can develop and verify this repo **without** Foundry license secret
 | Compile SCSS    | `npm run build` (or `npm run watch` while editing styles)            |
 | Unit tests      | `npm run test:unit` (Node built-in test runner; no Foundry required) |
 
-There is **no** `npm run lint` script or ESLint config; format with Prettier locally if needed (`DEVELOPER.md`).
+There is **no** `npm run lint` script or ESLint config; format with Prettier locally if needed (`.docs/DEVELOPER.md`).
 
 ### Foundry (required for E2E and real UI testing)
 
@@ -150,4 +150,4 @@ npm run test:env    # build + unit tests; E2E if Foundry is listening
 bash scripts/cloud-foundry.sh status
 ```
 
-See `DEVELOPER.md` for architecture, migrations, and API details.
+See `.docs/DEVELOPER.md` for architecture, migrations, and API details.
