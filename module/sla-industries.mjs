@@ -257,6 +257,15 @@ Hooks.once('init', async function () {
         default: true
     });
 
+    game.settings.register('sla-industries', 'packagesCompendiumId', {
+        name: 'Training Packages Compendium',
+        hint: 'The ID of the compendium pack opened when clicking the Training Package field on actor sheets. System-owned packs are replaced on every update, so create a world-level compendium (Compendium tab → Create Compendium, type Item) containing your package items and paste its ID here — for example "world.packages". World compendiums are stored in your world folder and are never overwritten by system updates.',
+        scope: 'world',
+        config: true,
+        type: String,
+        default: ''
+    });
+
     CONFIG.statusEffects = SLA.statusEffects;
     CONFIG.Actor.trackableAttributes = SLA.trackableAttributes;
 
