@@ -16,7 +16,6 @@ sla-industries.zip
 .agent/
 .cursor/*
 !.cursor/environment.json
-.docs/
 .vscode/
 
 # Foundry Pack Cache (LevelDB folders)
