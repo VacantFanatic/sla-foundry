@@ -118,13 +118,13 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    width: fit-content;
+    margin: 0 auto;
 }
 
 .sla-sheet .sla-wounds-row .condition-grid {
-    flex: 1;
     border-top: none;
     padding-top: 0;
-    justify-content: space-between;
 }
 
 /* Wound diagram — SVG silhouette */
