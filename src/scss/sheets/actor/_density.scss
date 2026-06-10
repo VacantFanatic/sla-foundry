@@ -134,19 +134,12 @@
 
 /* --- Wounds & conditions ------------------------------------------------- */
 .sla-sheet .sla-wound-diagram {
-    padding: 4px;
-    gap: 3px;
-}
-
-.sla-sheet .sla-wound-diagram__slot {
-    width: 36px;
-    height: 28px;
-    font-size: 0.58rem;
+    height: 86px;
 }
 
 .sla-sheet .condition-grid {
     gap: 10px;
-    padding-top: 6px;
+    padding-top: 0;
     justify-content: flex-start;
 }
 
