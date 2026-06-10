@@ -7,42 +7,13 @@
         <div class="sla-wound-summary">{{woundCountLabel}}</div>
         {{/if}}
 
-        <div class="sla-wound-panel">
-            <div class="wound-list">
-                <div class="wound-entry">
-                    <label for="wound-head">{{localize "SLA.ActorSheet.WoundHead"}}</label>
-                    <input type="checkbox" class="wound-checkbox" id="wound-head" name="system.wounds.head" {{checked system.wounds.head}}/>
-                </div>
-                <div class="wound-entry">
-                    <label for="wound-torso">{{localize "SLA.ActorSheet.WoundTorso"}}</label>
-                    <input type="checkbox" class="wound-checkbox" id="wound-torso" name="system.wounds.torso" {{checked system.wounds.torso}}/>
-                </div>
-                <div class="wound-entry">
-                    <label for="wound-larm">{{localize "SLA.ActorSheet.WoundLArm"}}</label>
-                    <input type="checkbox" class="wound-checkbox" id="wound-larm" name="system.wounds.lArm" {{checked system.wounds.lArm}}/>
-                </div>
-                <div class="wound-entry">
-                    <label for="wound-rarm">{{localize "SLA.ActorSheet.WoundRArm"}}</label>
-                    <input type="checkbox" class="wound-checkbox" id="wound-rarm" name="system.wounds.rArm" {{checked system.wounds.rArm}}/>
-                </div>
-                <div class="wound-entry">
-                    <label for="wound-lleg">{{localize "SLA.ActorSheet.WoundLLeg"}}</label>
-                    <input type="checkbox" class="wound-checkbox" id="wound-lleg" name="system.wounds.lLeg" {{checked system.wounds.lLeg}}/>
-                </div>
-                <div class="wound-entry">
-                    <label for="wound-rleg">{{localize "SLA.ActorSheet.WoundRLeg"}}</label>
-                    <input type="checkbox" class="wound-checkbox" id="wound-rleg" name="system.wounds.rLeg" {{checked system.wounds.rLeg}}/>
-                </div>
-            </div>
-
-            <div class="sla-wound-diagram" aria-hidden="true">
-                <div class="sla-wound-diagram__slot {{#if system.wounds.head}}is-wounded{{/if}}" data-area="head">Hd</div>
-                <div class="sla-wound-diagram__slot {{#if system.wounds.lArm}}is-wounded{{/if}}" data-area="larm">LA</div>
-                <div class="sla-wound-diagram__slot {{#if system.wounds.torso}}is-wounded{{/if}}" data-area="torso">To</div>
-                <div class="sla-wound-diagram__slot {{#if system.wounds.rArm}}is-wounded{{/if}}" data-area="rarm">RA</div>
-                <div class="sla-wound-diagram__slot {{#if system.wounds.lLeg}}is-wounded{{/if}}" data-area="lleg">LL</div>
-                <div class="sla-wound-diagram__slot {{#if system.wounds.rLeg}}is-wounded{{/if}}" data-area="rleg">RL</div>
-            </div>
+        <div class="sla-wound-diagram">
+            <div class="sla-wound-diagram__slot {{#if system.wounds.head}}is-wounded{{/if}}" data-area="head" data-wound="head" role="button" tabindex="0" aria-pressed="{{system.wounds.head}}" aria-label="{{localize 'SLA.ActorSheet.WoundHead'}}" title="{{localize 'SLA.ActorSheet.WoundHead'}}">Hd</div>
+            <div class="sla-wound-diagram__slot {{#if system.wounds.lArm}}is-wounded{{/if}}" data-area="larm" data-wound="lArm" role="button" tabindex="0" aria-pressed="{{system.wounds.lArm}}" aria-label="{{localize 'SLA.ActorSheet.WoundLArm'}}" title="{{localize 'SLA.ActorSheet.WoundLArm'}}">LA</div>
+            <div class="sla-wound-diagram__slot {{#if system.wounds.torso}}is-wounded{{/if}}" data-area="torso" data-wound="torso" role="button" tabindex="0" aria-pressed="{{system.wounds.torso}}" aria-label="{{localize 'SLA.ActorSheet.WoundTorso'}}" title="{{localize 'SLA.ActorSheet.WoundTorso'}}">To</div>
+            <div class="sla-wound-diagram__slot {{#if system.wounds.rArm}}is-wounded{{/if}}" data-area="rarm" data-wound="rArm" role="button" tabindex="0" aria-pressed="{{system.wounds.rArm}}" aria-label="{{localize 'SLA.ActorSheet.WoundRArm'}}" title="{{localize 'SLA.ActorSheet.WoundRArm'}}">RA</div>
+            <div class="sla-wound-diagram__slot {{#if system.wounds.lLeg}}is-wounded{{/if}}" data-area="lleg" data-wound="lLeg" role="button" tabindex="0" aria-pressed="{{system.wounds.lLeg}}" aria-label="{{localize 'SLA.ActorSheet.WoundLLeg'}}" title="{{localize 'SLA.ActorSheet.WoundLLeg'}}">LL</div>
+            <div class="sla-wound-diagram__slot {{#if system.wounds.rLeg}}is-wounded{{/if}}" data-area="rleg" data-wound="rLeg" role="button" tabindex="0" aria-pressed="{{system.wounds.rLeg}}" aria-label="{{localize 'SLA.ActorSheet.WoundRLeg'}}" title="{{localize 'SLA.ActorSheet.WoundRLeg'}}">RL</div>
         </div>
         {{/if}}
 

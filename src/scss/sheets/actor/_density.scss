@@ -133,44 +133,14 @@
 }
 
 /* --- Wounds & conditions ------------------------------------------------- */
-.sla-sheet .wound-list {
-    gap: 4px;
-    margin-bottom: 6px;
-}
-
-.sla-sheet .wound-entry {
-    padding: 1px 4px;
-    min-height: 0;
-    gap: 4px;
-
-    label {
-        font-size: 0.62rem;
-        font-weight: 600;
-        line-height: 1.1;
-    }
-
-    .wound-checkbox {
-        width: 12px !important;
-        height: 12px !important;
-        min-width: 12px !important;
-        min-height: 12px !important;
-        margin: 0;
-    }
-}
-
-.sla-sheet .sla-wound-panel {
-    gap: 8px;
-}
-
 .sla-sheet .sla-wound-diagram {
-    min-width: 96px;
     padding: 4px;
     gap: 3px;
 }
 
 .sla-sheet .sla-wound-diagram__slot {
-    width: 28px;
-    height: 22px;
+    width: 36px;
+    height: 28px;
     font-size: 0.58rem;
 }
 
