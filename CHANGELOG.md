@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.8.2] - 2026-06-10
+
+### Added
+
+- **Configurable Training Packages compendium:** New world setting _Training Packages Compendium_ lets GMs point the Package field click-handler at a world-level compendium. World compendiums are stored in the world folder and are never overwritten by system updates. If no compendium is configured, clicking the Package field now shows an actionable notification with setup instructions instead of a generic "not found" warning.
+
 ## [2.8.1] - 2026-06-08
 
 ### Changed
@@ -912,7 +918,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Damage application targeting both selected token and target.
 - Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.5.4...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.8.2...HEAD
+[2.8.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.8.2
 [2.5.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.4
 [2.5.3]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.3
 [2.5.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.2
