@@ -113,6 +113,19 @@
     border-color: #8b0000 !important;
 }
 
+/* Wounds + conditions row */
+.sla-sheet .sla-wounds-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sla-sheet .sla-wounds-row .condition-grid {
+    flex: 1;
+    border-top: none;
+    padding-top: 0;
+}
+
 /* Wound diagram */
 .sla-sheet .sla-wound-diagram {
     display: grid;
