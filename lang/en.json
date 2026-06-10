@@ -47,6 +47,7 @@
     "SLA.ActorSheet.DropSpecies": "Drop species here",
     "SLA.ActorSheet.DropPackage": "Drop training package here",
     "SLA.ActorSheet.OpenCompendium": "Open compendium",
+    "SLA.Notification.PackagesCompendiumNotConfigured": "No Training Packages compendium is configured. Create a world-level compendium containing your package items, then set its ID in System Settings → Training Packages Compendium.",
     "SLA.ActorSheet.RemoveChip": "Remove",
     "SLA.ActorSheet.LAD": "LAD",
     "SLA.ActorSheet.LADHint": "Light Amplification Device",

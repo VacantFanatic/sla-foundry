@@ -70,10 +70,17 @@ export async function handleSheetClick(sheet, event) {
     const comp = t.closest('.open-compendium');
     if (comp) {
         event.preventDefault();
-        const compendiumId = comp.dataset.compendium;
+        let compendiumId = comp.dataset.compendium;
+        if (compendiumId === 'sla-industries.packages') {
+            const configured = (game.settings.get('sla-industries', 'packagesCompendiumId') ?? '').trim();
+            if (configured) compendiumId = configured;
+        }
         const pack = game.packs.get(compendiumId);
-        if (pack) pack.render(true);
-        else ui.notifications.warn(`Compendium '${compendiumId}' not found.`);
+        if (pack) {
+            pack.render(true);
+        } else {
+            ui.notifications.warn(game.i18n.localize('SLA.Notification.PackagesCompendiumNotConfigured'));
+        }
         return;
     }
 
