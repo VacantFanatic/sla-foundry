@@ -60,13 +60,7 @@ jobs:
               id: changelog
               run: |
                   VERSION="${{ steps.get-version.outputs.version }}"
-                  BODY=$(python3 -c "
-import re, sys
-text = open('CHANGELOG.md').read()
-version = sys.argv[1]
-m = re.search(r'\n## \[' + re.escape(version) + r'\][^\n]*\n(.*?)(?=\n## \[|\Z)', text, re.DOTALL)
-print(m.group(1).strip() if m else '')
-" "$VERSION")
+                  BODY=$(python3 scripts/extract-changelog.py "$VERSION")
                   echo "body<<EOF" >> "$GITHUB_OUTPUT"
                   echo "$BODY" >> "$GITHUB_OUTPUT"
                   echo "EOF" >> "$GITHUB_OUTPUT"
