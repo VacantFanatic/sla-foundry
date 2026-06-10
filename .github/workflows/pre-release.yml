@@ -47,11 +47,16 @@ jobs:
               run: |
                   python3 -c "
                   import json, sys
+                  tag, version = sys.argv[1], sys.argv[2]
                   manifest = json.load(open('system.json'))
+                  manifest['version'] = version
                   manifest['manifest'] = 'https://github.com/VacantFanatic/sla-foundry/releases/download/latest-pre/system.json'
-                  manifest['download'] = f'https://github.com/VacantFanatic/sla-foundry/releases/download/{sys.argv[1]}/sla-industries.zip'
+                  manifest['download'] = f'https://github.com/VacantFanatic/sla-foundry/releases/download/{tag}/sla-industries.zip'
                   open('system.json', 'w').write(json.dumps(manifest, indent=4) + '\n')
-                  " "${{ steps.get-version.outputs.tag_name }}"
+                  pkg = json.load(open('package.json'))
+                  pkg['version'] = version
+                  open('package.json', 'w').write(json.dumps(pkg, indent=4) + '\n')
+                  " "${{ steps.get-version.outputs.tag_name }}" "${{ steps.get-version.outputs.version }}"
 
             - name: Build and package release zip
               run: npm run package

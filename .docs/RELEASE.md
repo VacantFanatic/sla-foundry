@@ -13,16 +13,18 @@ CI (`main.yml`) runs on every push to `main` and every PR: version sync check, P
 
 ## Version numbering
 
-`system.json` and `package.json` always carry the **target stable semver** (e.g. `2.9.0`). The rc suffix lives only in the git tag — it is never written to source files.
+`system.json` and `package.json` in source always carry the **target stable semver** (e.g. `2.9.0`). The rc suffix is injected at build time by the pre-release workflow — it never appears in committed files.
 
-| Git tag | What it means |
-|---|---|
-| `pre-2.9.0-rc1` | First release candidate for 2.9.0 |
-| `pre-2.9.0-rc2` | Second candidate after bug fixes |
-| `pre-2.9.0` | Optional final candidate with no rc suffix |
-| `2.9.0` | Stable release |
+| Git tag         | Version shown in Foundry | What it means                              |
+| --------------- | ------------------------ | ------------------------------------------ |
+| `pre-2.9.0-rc1` | `2.9.0-rc1`              | First release candidate for 2.9.0          |
+| `pre-2.9.0-rc2` | `2.9.0-rc2`              | Second candidate after bug fixes           |
+| `pre-2.9.0`     | `2.9.0`                  | Optional final candidate with no rc suffix |
+| `2.9.0`         | `2.9.0`                  | Stable release                             |
 
 Both `pre-X.Y.Z` and `pre-vX.Y.Z` are accepted (the `v` is stripped automatically).
+
+Testers can always confirm which candidate they have installed by checking **Settings → System** in Foundry — the version field will show `2.9.0-rc2` (or whichever rc is installed).
 
 ---
 
@@ -40,7 +42,7 @@ git tag pre-2.9.0-rc1
 git push origin pre-2.9.0-rc1
 ```
 
-The **Pre-release** workflow builds `sla-industries.zip`, patches the manifest URLs for the dev channel, creates a versioned GitHub pre-release (`pre-2.9.0-rc1`), and updates the `latest-pre` release. Testers install via:
+The **Pre-release** workflow patches `system.json` and `package.json` to `2.9.0-rc1`, patches the manifest URLs for the dev channel, builds `sla-industries.zip`, creates a versioned GitHub pre-release (`pre-2.9.0-rc1`), and updates the `latest-pre` release. Foundry will show `2.9.0-rc1` as the installed version. Testers install via:
 
 ```
 https://github.com/VacantFanatic/sla-foundry/releases/download/latest-pre/system.json
@@ -48,7 +50,7 @@ https://github.com/VacantFanatic/sla-foundry/releases/download/latest-pre/system
 
 ### 2. Fix bugs and cut a new candidate
 
-No version bump needed — `system.json` stays at `2.9.0` throughout the rc cycle.
+No version bump needed — `system.json` stays at `2.9.0` in source throughout the rc cycle; the workflow stamps the rc suffix at build time.
 
 1. Fix bugs, open PRs, merge to `main`.
 2. Push the next tag:
@@ -58,7 +60,7 @@ git tag pre-2.9.0-rc2
 git push origin pre-2.9.0-rc2
 ```
 
-`latest-pre` is automatically updated. Testers hit **Update** in Foundry and get the new build.
+`latest-pre` is automatically updated. Testers hit **Update** in Foundry and get the new build showing `2.9.0-rc2`.
 
 Repeat until the candidate is stable.
 
@@ -97,11 +99,11 @@ The **Release** workflow builds the zip, extracts the `CHANGELOG.md` entry, and 
 
 ## Workflow reference
 
-| Workflow | Trigger | What it does |
-|---|---|---|
-| `main.yml` | Push to `main`, PRs | Prettier check, unit tests, dist validation |
-| `pre-release.yml` | `pre-X.Y.Z[-rcN]` tag | Builds zip, creates versioned pre-release, updates `latest-pre` |
-| `release.yml` | `X.Y.Z` tag | Builds zip, creates draft stable release for version tag and `latest` |
-| `foundry_manifest_update.yml` | `release: published` | Notifies Foundry package browser |
+| Workflow                      | Trigger               | What it does                                                          |
+| ----------------------------- | --------------------- | --------------------------------------------------------------------- |
+| `main.yml`                    | Push to `main`, PRs   | Prettier check, unit tests, dist validation                           |
+| `pre-release.yml`             | `pre-X.Y.Z[-rcN]` tag | Builds zip, creates versioned pre-release, updates `latest-pre`       |
+| `release.yml`                 | `X.Y.Z` tag           | Builds zip, creates draft stable release for version tag and `latest` |
+| `foundry_manifest_update.yml` | `release: published`  | Notifies Foundry package browser                                      |
 
 The `scripts/resolve-prerelease-tag.mjs` module handles tag parsing for `pre-release.yml` and is covered by unit tests in `tests/unit/resolve-prerelease-tag.test.mjs`.
