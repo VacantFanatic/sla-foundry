@@ -44,6 +44,19 @@ export async function handleSheetClick(sheet, event) {
     const t = event.target;
     if (!(t instanceof Element)) return;
 
+    const woundSlot = t.closest('.sla-wound-diagram__slot[data-wound]');
+    if (woundSlot) {
+        event.preventDefault();
+        const key = woundSlot.dataset.wound;
+        const current = sheet.actor.system.wounds?.[key] ?? false;
+        try {
+            await sheet.actor.update({ [`system.wounds.${key}`]: !current });
+        } catch (error) {
+            console.error('SLA Industries | Error updating wound:', error);
+        }
+        return;
+    }
+
     const cond = t.closest('.condition-toggle');
     if (cond) {
         event.preventDefault();
@@ -294,23 +307,5 @@ export async function handleSheetChange(sheet, event) {
             hpInput.value = String(clamped);
         }
         return;
-    }
-
-    const woundCb = el.closest('.wound-checkbox');
-    if (woundCb) {
-        const field = woundCb.name;
-        const isChecked = woundCb.checked;
-        if (sheet.actor.type === 'npc') {
-            const systemPath = field.replace('system.', '');
-            const currentValue = foundry.utils.getProperty(sheet.actor.system, systemPath);
-            if (currentValue === isChecked) return;
-        }
-        const updateData = { [field]: isChecked };
-        try {
-            await sheet.actor.update(updateData);
-        } catch (error) {
-            console.error('SLA Industries | Error updating actor:', error);
-            woundCb.checked = !isChecked;
-        }
     }
 }

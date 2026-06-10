@@ -69,10 +69,6 @@
     .sla-sheet .sla-combat-row {
         grid-template-columns: 1fr 4rem 5rem 100px !important;
     }
-
-    .sla-sheet .sla-wound-panel {
-        grid-template-columns: 1fr;
-    }
 }
 
 @media (max-width: 520px) {
