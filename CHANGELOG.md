@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.8.3] - 2026-06-11
+
+### Fixed
+
+- **Dice breakdown toggle:** Clicking the success die result number on a roll card now correctly shows/hides the dice breakdown. The tooltip was generated with `style="display:none"` but the toggle handler checked for the `hidden` attribute, so the breakdown was never visible.
+- **Wound tracking UI:** Interactive SVG paperdoll replaces checkbox/label wound list; wound diagram and condition toggles share a single centred row.
+
 ## [2.8.2] - 2026-06-10
 
 ### Added
