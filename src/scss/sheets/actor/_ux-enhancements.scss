@@ -61,6 +61,34 @@
     }
 }
 
+/* Health row — vitals + wounds side by side */
+.sla-sheet .sla-health-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sla-sheet .sla-vitals-col {
+    flex: 0 0 auto;
+    min-width: 110px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-right: 12px;
+    border-right: 1px solid var(--sla-border);
+
+    &.is-critical-hp .compact-row label {
+        color: #ff8888;
+    }
+}
+
+.sla-sheet .sla-wounds-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 /* HP bar */
 .sla-sheet .sla-hp-bar {
     display: flex;
@@ -96,10 +124,6 @@
     &.is-empty {
         width: 0 !important;
     }
-}
-
-.sla-sheet .sla-hp-bar.is-critical-hp .compact-row label {
-    color: #ff8888;
 }
 
 /* Encumbrance warning */
