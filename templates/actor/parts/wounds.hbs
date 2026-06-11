@@ -1,45 +1,71 @@
 <div class="sla-panel">
     <div class="sla-header-bar">{{localize "SLA.ActorSheet.WoundsStatus"}}</div>
 
-    <div class="sla-pad">
-        {{#if (ne enableNPCWoundTracking false)}}
-        {{#if woundCount}}
-        <div class="sla-wound-summary">{{woundCountLabel}}</div>
-        {{/if}}
-        {{/if}}
+    <div class="sla-pad sla-health-row">
 
-        <div class="sla-wounds-row">
-            {{#if (ne enableNPCWoundTracking false)}}
-            <svg class="sla-wound-diagram" viewBox="0 0 70 115" xmlns="http://www.w3.org/2000/svg" aria-label="{{localize 'SLA.ActorSheet.WoundsStatus'}}">
-                <circle class="sla-wound-diagram__slot {{#if system.wounds.head}}is-wounded{{/if}}" data-wound="head" cx="35" cy="11" r="10" role="button" tabindex="0" aria-pressed="{{system.wounds.head}}" aria-label="{{localize 'SLA.ActorSheet.WoundHead'}}" title="{{localize 'SLA.ActorSheet.WoundHead'}}"/>
-                <rect class="sla-wound-diagram__slot {{#if system.wounds.lArm}}is-wounded{{/if}}" data-wound="lArm" x="4" y="24" width="12" height="34" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.lArm}}" aria-label="{{localize 'SLA.ActorSheet.WoundLArm'}}" title="{{localize 'SLA.ActorSheet.WoundLArm'}}"/>
-                <rect class="sla-wound-diagram__slot {{#if system.wounds.torso}}is-wounded{{/if}}" data-wound="torso" x="19" y="24" width="32" height="38" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.torso}}" aria-label="{{localize 'SLA.ActorSheet.WoundTorso'}}" title="{{localize 'SLA.ActorSheet.WoundTorso'}}"/>
-                <rect class="sla-wound-diagram__slot {{#if system.wounds.rArm}}is-wounded{{/if}}" data-wound="rArm" x="54" y="24" width="12" height="34" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.rArm}}" aria-label="{{localize 'SLA.ActorSheet.WoundRArm'}}" title="{{localize 'SLA.ActorSheet.WoundRArm'}}"/>
-                <rect class="sla-wound-diagram__slot {{#if system.wounds.lLeg}}is-wounded{{/if}}" data-wound="lLeg" x="19" y="65" width="14" height="50" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.lLeg}}" aria-label="{{localize 'SLA.ActorSheet.WoundLLeg'}}" title="{{localize 'SLA.ActorSheet.WoundLLeg'}}"/>
-                <rect class="sla-wound-diagram__slot {{#if system.wounds.rLeg}}is-wounded{{/if}}" data-wound="rLeg" x="37" y="65" width="14" height="50" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.rLeg}}" aria-label="{{localize 'SLA.ActorSheet.WoundRLeg'}}" title="{{localize 'SLA.ActorSheet.WoundRLeg'}}"/>
-            </svg>
-            {{/if}}
-
-            <div class="condition-grid">
-            <a class="condition-toggle {{#if system.conditions.prone}}active{{/if}}" data-condition="prone" role="button" aria-pressed="{{system.conditions.prone}}" title="{{localize 'SLA.ActorSheet.ConditionProne'}}" aria-label="{{localize 'SLA.ActorSheet.ConditionProne'}}">
-                <i class="fas fa-user-injured" aria-hidden="true"></i>
-            </a>
-            <a class="condition-toggle {{#if system.conditions.stunned}}active{{/if}}" data-condition="stunned" role="button" aria-pressed="{{system.conditions.stunned}}" title="{{localize 'SLA.ActorSheet.ConditionStunned'}}" aria-label="{{localize 'SLA.ActorSheet.ConditionStunned'}}">
-                <i class="fas fa-dizzy" aria-hidden="true"></i>
-            </a>
-            <a class="condition-toggle {{#if system.conditions.burning}}active{{/if}}" data-condition="burning" role="button" aria-pressed="{{system.conditions.burning}}" title="{{localize 'SLA.ActorSheet.ConditionBurning'}}" aria-label="{{localize 'SLA.ActorSheet.ConditionBurning'}}">
-                <i class="fas fa-fire" aria-hidden="true"></i>
-            </a>
-            <a class="condition-toggle {{#if system.conditions.bleeding}}active{{/if}}" data-condition="bleeding" role="button" aria-pressed="{{system.conditions.bleeding}}" title="{{localize 'SLA.ActorSheet.ConditionBleeding'}}" aria-label="{{localize 'SLA.ActorSheet.ConditionBleeding'}}">
-                <i class="fas fa-tint" aria-hidden="true"></i>
-            </a>
-            <a class="condition-toggle {{#if system.conditions.immobile}}active{{/if}}" data-condition="immobile" role="button" aria-pressed="{{system.conditions.immobile}}" title="{{localize 'SLA.ActorSheet.ConditionImmobile'}}" aria-label="{{localize 'SLA.ActorSheet.ConditionImmobile'}}">
-                <i class="fas fa-lock" aria-hidden="true"></i>
-            </a>
-            <span class="condition-toggle condition-automatic{{#if system.conditions.critical}} active{{/if}}" title="{{localize 'SLA.ActorSheet.ConditionCritical'}}" aria-label="{{localize 'SLA.ActorSheet.ConditionCritical'}}">
-                <i class="fas fa-skull" aria-hidden="true"></i>
-            </span>
+        {{!-- Vitals column --}}
+        <div class="sla-vitals-col {{#if hpBar.isCriticalHp}}is-critical-hp{{/if}}">
+            <div class="sla-hp-bar">
+                <div class="sla-hp-bar__track" role="presentation">
+                    <div class="sla-hp-bar__fill is-{{hpBar.tone}}" style="width: {{hpBar.percent}}%;"></div>
+                </div>
+            </div>
+            <div class="compact-row">
+                <label title="{{localize 'SLA.ActorSheet.HitPoints'}}">{{localize "SLA.ActorSheet.HitPoints"}}</label>
+                <div class="flexrow sla-hp-inputs">
+                    <input type="number" name="system.hp.value" value="{{system.hp.value}}" min="0" max="{{system.hp.max}}" class="sla-input-mini"/>
+                    <span class="sla-hp-sep">/</span>
+                    <input type="number" name="system.hp.max" value="{{system.hp.max}}" class="sla-input-mini" readonly />
+                </div>
+            </div>
+            <div class="compact-row">
+                <label title="{{localize 'SLA.ActorSheet.ArmorPV'}}">{{localize "SLA.ActorSheet.ArmorPV"}}</label>
+                <input type="number" name="system.armor.pv" value="{{system.armor.pv}}" class="sla-input-mini sla-armor-pv" readonly />
             </div>
         </div>
+
+        {{!-- Wounds + conditions column --}}
+        <div class="sla-wounds-col">
+            {{#if (ne enableNPCWoundTracking false)}}
+            {{#if woundCount}}
+            <div class="sla-wound-summary">{{woundCountLabel}}</div>
+            {{/if}}
+            {{/if}}
+
+            <div class="sla-wounds-row">
+                {{#if (ne enableNPCWoundTracking false)}}
+                <svg class="sla-wound-diagram" viewBox="0 0 70 115" xmlns="http://www.w3.org/2000/svg" aria-label="{{localize 'SLA.ActorSheet.WoundsStatus'}}">
+                    <circle class="sla-wound-diagram__slot {{#if system.wounds.head}}is-wounded{{/if}}" data-wound="head" cx="35" cy="11" r="10" role="button" tabindex="0" aria-pressed="{{system.wounds.head}}" aria-label="{{localize 'SLA.ActorSheet.WoundHead'}}" title="{{localize 'SLA.ActorSheet.WoundHead'}}"/>
+                    <rect class="sla-wound-diagram__slot {{#if system.wounds.lArm}}is-wounded{{/if}}" data-wound="lArm" x="4" y="24" width="12" height="34" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.lArm}}" aria-label="{{localize 'SLA.ActorSheet.WoundLArm'}}" title="{{localize 'SLA.ActorSheet.WoundLArm'}}"/>
+                    <rect class="sla-wound-diagram__slot {{#if system.wounds.torso}}is-wounded{{/if}}" data-wound="torso" x="19" y="24" width="32" height="38" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.torso}}" aria-label="{{localize 'SLA.ActorSheet.WoundTorso'}}" title="{{localize 'SLA.ActorSheet.WoundTorso'}}"/>
+                    <rect class="sla-wound-diagram__slot {{#if system.wounds.rArm}}is-wounded{{/if}}" data-wound="rArm" x="54" y="24" width="12" height="34" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.rArm}}" aria-label="{{localize 'SLA.ActorSheet.WoundRArm'}}" title="{{localize 'SLA.ActorSheet.WoundRArm'}}"/>
+                    <rect class="sla-wound-diagram__slot {{#if system.wounds.lLeg}}is-wounded{{/if}}" data-wound="lLeg" x="19" y="65" width="14" height="50" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.lLeg}}" aria-label="{{localize 'SLA.ActorSheet.WoundLLeg'}}" title="{{localize 'SLA.ActorSheet.WoundLLeg'}}"/>
+                    <rect class="sla-wound-diagram__slot {{#if system.wounds.rLeg}}is-wounded{{/if}}" data-wound="rLeg" x="37" y="65" width="14" height="50" rx="3" role="button" tabindex="0" aria-pressed="{{system.wounds.rLeg}}" aria-label="{{localize 'SLA.ActorSheet.WoundRLeg'}}" title="{{localize 'SLA.ActorSheet.WoundRLeg'}}"/>
+                </svg>
+                {{/if}}
+
+                <div class="condition-grid">
+                <a class="condition-toggle {{#if system.conditions.prone}}active{{/if}}" data-condition="prone" role="button" aria-pressed="{{system.conditions.prone}}" title="{{localize 'SLA.ActorSheet.ConditionProne'}}" aria-label="{{localize 'SLA.ActorSheet.ConditionProne'}}">
+                    <i class="fas fa-user-injured" aria-hidden="true"></i>
+                </a>
+                <a class="condition-toggle {{#if system.conditions.stunned}}active{{/if}}" data-condition="stunned" role="button" aria-pressed="{{system.conditions.stunned}}" title="{{localize 'SLA.ActorSheet.ConditionStunned'}}" aria-label="{{localize 'SLA.ActorSheet.ConditionStunned'}}">
+                    <i class="fas fa-dizzy" aria-hidden="true"></i>
+                </a>
+                <a class="condition-toggle {{#if system.conditions.burning}}active{{/if}}" data-condition="burning" role="button" aria-pressed="{{system.conditions.burning}}" title="{{localize 'SLA.ActorSheet.ConditionBurning'}}" aria-label="{{localize 'SLA.ActorSheet.ConditionBurning'}}">
+                    <i class="fas fa-fire" aria-hidden="true"></i>
+                </a>
+                <a class="condition-toggle {{#if system.conditions.bleeding}}active{{/if}}" data-condition="bleeding" role="button" aria-pressed="{{system.conditions.bleeding}}" title="{{localize 'SLA.ActorSheet.ConditionBleeding'}}" aria-label="{{localize 'SLA.ActorSheet.ConditionBleeding'}}">
+                    <i class="fas fa-tint" aria-hidden="true"></i>
+                </a>
+                <a class="condition-toggle {{#if system.conditions.immobile}}active{{/if}}" data-condition="immobile" role="button" aria-pressed="{{system.conditions.immobile}}" title="{{localize 'SLA.ActorSheet.ConditionImmobile'}}" aria-label="{{localize 'SLA.ActorSheet.ConditionImmobile'}}">
+                    <i class="fas fa-lock" aria-hidden="true"></i>
+                </a>
+                <span class="condition-toggle condition-automatic{{#if system.conditions.critical}} active{{/if}}" title="{{localize 'SLA.ActorSheet.ConditionCritical'}}" aria-label="{{localize 'SLA.ActorSheet.ConditionCritical'}}">
+                    <i class="fas fa-skull" aria-hidden="true"></i>
+                </span>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>

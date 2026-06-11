@@ -26,27 +26,6 @@
         </div>
     </div>
 
-    <div class="sla-box {{#if hpBar.isCriticalHp}}sla-hp-bar is-critical-hp{{/if}}">
-        <div class="sla-box-header">{{localize "SLA.ActorSheet.Vitals"}}</div>
-        <div class="sla-hp-bar">
-            <div class="sla-hp-bar__track" role="presentation">
-                <div class="sla-hp-bar__fill is-{{hpBar.tone}}" style="width: {{hpBar.percent}}%;"></div>
-            </div>
-        </div>
-        <div class="compact-row">
-            <label title="{{localize 'SLA.ActorSheet.HitPoints'}}">{{localize "SLA.ActorSheet.HitPoints"}}</label>
-            <div class="flexrow sla-hp-inputs">
-                <input type="number" name="system.hp.value" value="{{system.hp.value}}" min="0" max="{{system.hp.max}}" class="sla-input-mini"/>
-                <span class="sla-hp-sep">/</span>
-                <input type="number" name="system.hp.max" value="{{system.hp.max}}" class="sla-input-mini" readonly />
-            </div>
-        </div>
-        <div class="compact-row">
-            <label title="{{localize 'SLA.ActorSheet.ArmorPV'}}">{{localize "SLA.ActorSheet.ArmorPV"}}</label>
-            <input type="number" name="system.armor.pv" value="{{system.armor.pv}}" class="sla-input-mini sla-armor-pv" readonly />
-        </div>
-    </div>
-
     <div class="sla-box {{encumbranceClass}}">
         <div class="sla-box-header">{{localize "SLA.ActorSheet.Status"}}</div>
         <div class="compact-row">
