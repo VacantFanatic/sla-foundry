@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.8.4] - 2026-06-11
+
+### Changed
+
+- **Vitals moved to Combat tab:** HP bar, Hit Points, and Armor PV now appear inside the Status & Wounds panel on the Combat tab. A horizontal flex row puts vitals on the left and the wound diagram + conditions on the right, grouping all combat-health state in one place.
+
 ## [2.8.3] - 2026-06-11
 
 ### Fixed
