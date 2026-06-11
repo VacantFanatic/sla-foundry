@@ -115,7 +115,7 @@ export function generateDiceTooltip(roll, baseModifier, luckBonus = 0, successDi
     const sdRaw = roll.terms[0] && roll.terms[0].results[0] ? roll.terms[0].results[0].result : 0;
     const sdTotal = sdRaw + baseModifier + luckBonus + successDieMod;
 
-    let html = `<div class="dice-tooltip" style="display:none; margin-top:10px; padding-top:5px; border-top:1px solid #444; font-size:0.8em; color:#ccc;">`;
+    let html = `<div class="dice-tooltip" hidden style="margin-top:10px; padding-top:5px; border-top:1px solid #444; font-size:0.8em; color:#ccc;">`;
     html += `<div><strong>Success Die:</strong> Raw ${sdRaw} + Base ${baseModifier}`;
     if (luckBonus > 0) html += ` + Luck ${luckBonus}`;
     if (successDieMod !== 0) html += ` + Mod ${successDieMod}`;
