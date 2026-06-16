@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.8.5] - 2026-06-16
+
+### Fixed
+
+- **Threat (NPC) sheet edits not saving:** The 2.8.4 "vitals moved to Combat tab" change added HP/Armor inputs to the shared wounds panel, but the Threat sheet header still rendered its own copy of those same fields. Duplicate `name` attributes in the same form corrupted the submitted data and silently dropped the whole update, so core stats, armor, HP, and movement edits appeared not to save. The header's redundant HP/Armor inputs are removed; the Combat tab's wounds panel is now the single source for those fields.
+
 ## [2.8.4] - 2026-06-11
 
 ### Changed
@@ -931,7 +937,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Damage application targeting both selected token and target.
 - Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.8.2...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.8.5...HEAD
+[2.8.5]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.8.5
 [2.8.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.8.2
 [2.5.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.4
 [2.5.3]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.3
