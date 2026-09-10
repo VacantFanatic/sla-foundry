@@ -28,9 +28,18 @@
                 {{#if system.ammoType}}
                 {{selectOptions @root.config.ammoTypes selected=system.ammoType localize=false}}
                 {{else}}
-                {{selectOptions @root.config.ammoTypes selected="std" localize=false}}
+                {{selectOptions @root.config.ammoTypes selected="standard" localize=false}}
                 {{/if}}
             </select>
+            {{#if system.ammoType}}
+            {{#with (lookup @root.config.ammoModifiers system.ammoType) as |mods|}}
+            {{#if mods.costMultiplier}}
+            <div class="sla-field__hint ammo-label__cost-hint">
+                {{localize "SLA.ItemSheet.Magazine.CostMultiplierHint" multiplier=mods.costMultiplier}}
+            </div>
+            {{/if}}
+            {{/with}}
+            {{/if}}
         </div>
     </div>
 

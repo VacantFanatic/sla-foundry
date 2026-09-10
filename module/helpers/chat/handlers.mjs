@@ -53,6 +53,7 @@ export async function onRollDamage(ev) {
         let rollFormula = '';
         let flavorText = '';
         let adValue = readDataNumber(btn, 'ad', 0);
+        const pvMod = readDataNumber(btn, 'pv-mod', 0);
 
         setButtonDisabled(btn, true);
 
@@ -126,6 +127,7 @@ export async function onRollDamage(ev) {
                 rollData: actor.getRollData?.(),
                 rollFormula,
                 adValue,
+                pvMod,
                 minDamage: minDmg,
                 flavorText,
                 parentTargets,
@@ -160,6 +162,7 @@ export async function onApplyDamage(ev) {
     try {
         const rawDamage = readDataNumber(btn, 'dmg', 0);
         const ad = readDataNumber(btn, 'ad', 0);
+        const pvMod = readDataNumber(btn, 'pv-mod', 0);
         const type = readDataString(btn, 'target');
         const targetUuid = readDataString(btn, 'target-uuid');
 
@@ -192,7 +195,7 @@ export async function onApplyDamage(ev) {
         });
         if (!victim) return;
 
-        await applyEbbOutcomeToActor(victim, rawDamage, ad, { isHeal, removeWoundsCount });
+        await applyEbbOutcomeToActor(victim, rawDamage, ad, { isHeal, removeWoundsCount, pvMod });
     } catch (err) {
         console.error('SLA | Error in onApplyDamage:', err);
         ui.notifications.error('SLA | Failed to apply damage. See console for details.');

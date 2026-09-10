@@ -4,6 +4,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+    applyPvModifierToArmor,
     buildDifficultyNotes,
     buildWoundClearUpdates,
     computeHealHpBounds,
@@ -33,6 +34,24 @@ describe('computeMitigatedDamage', () => {
     test('subtracts effective PV floored at zero', () => {
         assert.equal(computeMitigatedDamage(8, 3), 5);
         assert.equal(computeMitigatedDamage(2, 5), 0);
+    });
+});
+
+describe('applyPvModifierToArmor', () => {
+    test('AP rounds (-2) reduce the target armor PV', () => {
+        assert.equal(applyPvModifierToArmor(6, -2), 4);
+    });
+
+    test('floors at zero instead of going negative', () => {
+        assert.equal(applyPvModifierToArmor(1, -2), 0);
+    });
+
+    test('defaults to no change when pvMod is omitted', () => {
+        assert.equal(applyPvModifierToArmor(6), 6);
+    });
+
+    test('non-AP ammo (0 mod) leaves PV untouched', () => {
+        assert.equal(applyPvModifierToArmor(6, 0), 6);
     });
 });
 

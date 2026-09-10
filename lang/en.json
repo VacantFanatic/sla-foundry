@@ -177,6 +177,7 @@
     "SLA.ItemSheet.Magazine.Stamp": "Ammo Label",
     "SLA.ItemSheet.Magazine.Capacity": "Capacity",
     "SLA.ItemSheet.Magazine.AmmoType": "Ammo Type",
+    "SLA.ItemSheet.Magazine.CostMultiplierHint": "Clip Cost: ×{multiplier} of standard",
     "SLA.ItemSheet.Magazine.LinkedWeapon": "Linked",
     "SLA.ItemSheet.Armor.Stamp": "Powersuit Telemetry",
     "SLA.ItemSheet.Armor.ProtectionReadout": "Protection Readout",

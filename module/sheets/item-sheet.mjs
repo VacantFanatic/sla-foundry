@@ -231,7 +231,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         if (this.item?.type !== 'magazine' || !data || typeof data !== 'object') return;
         const raw = foundry.utils.getProperty(data, 'system.ammoType');
         if (raw === '' || raw === null || raw === undefined) {
-            foundry.utils.setProperty(data, 'system.ammoType', 'std');
+            foundry.utils.setProperty(data, 'system.ammoType', 'standard');
         }
     }
 

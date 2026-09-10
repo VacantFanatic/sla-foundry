@@ -2,6 +2,11 @@ import { SlaSimpleContentDialog } from '../../apps/sla-simple-dialog.mjs';
 import { calculateRollResult, createSLARoll, generateDiceTooltip } from '../../helpers/dice.mjs';
 import { shouldShowMosWoundChoice } from '../../helpers/wound-visibility.mjs';
 import {
+    getAmmoAdModifierForWeapon,
+    getAmmoDamageModifierForWeapon,
+    getAmmoPvModifierForWeapon
+} from './weapon-gates.mjs';
+import {
     applySuccessThroughExperience,
     buildSkillDiceResults,
     buildWeaponDamageFormula,
@@ -89,6 +94,7 @@ function buildWeaponRollTemplateData(
         showDamageButton,
         finalDamageFormula,
         adValue,
+        pvMod,
         rofRerollSD,
         isSuccess,
         skillSuccessCount,
@@ -118,6 +124,7 @@ function buildWeaponRollTemplateData(
         dmgDisplay: sheet._resolveDamageDisplay(finalDamageFormula),
         minDamage: Number(item.system.minDamage) || 0,
         adValue: adValue,
+        pvMod: pvMod,
         sdIsReroll: rofRerollSD,
         mos: {
             isSuccess: isSuccess,
@@ -322,8 +329,12 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
         await sheet._applyHeadshotSideEffect(notes);
     }
 
+    const ammoDamageMod = getAmmoDamageModifierForWeapon(sheet.actor, item);
+    const ammoAdMod = getAmmoAdModifierForWeapon(sheet.actor, item);
+    const pvMod = getAmmoPvModifierForWeapon(sheet.actor, item);
+
     const baseDmg = String(item.system.damage || item.system.dmg || '0');
-    const totalMod = mods.damage + mosDamageBonus;
+    const totalMod = mods.damage + mosDamageBonus + ammoDamageMod;
     const finalDmgFormula = buildWeaponDamageFormula(baseDmg, totalMod);
     const showButton = isSuccess && finalDmgFormula && finalDmgFormula !== '0';
 
@@ -334,6 +345,7 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
             adValue = Math.max(0, strValue - adFromStrMinus);
         }
     }
+    adValue = Math.max(0, adValue + ammoAdMod);
 
     const notesText = notes.join(' ');
     const templateData = buildWeaponRollTemplateData(sheet, {
@@ -348,6 +360,7 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
         showDamageButton: showButton,
         finalDamageFormula: finalDmgFormula,
         adValue,
+        pvMod,
         rofRerollSD,
         isSuccess,
         skillSuccessCount,
@@ -376,6 +389,7 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
                     damageBase: baseDmg,
                     damageMod: mods.damage,
                     adValue: adValue,
+                    pvMod: pvMod,
                     autoSkillSuccesses: mods.autoSkillSuccesses,
                     successDieModifier: mods.successDie,
                     isWeapon: true

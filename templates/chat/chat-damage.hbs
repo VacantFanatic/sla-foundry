@@ -22,21 +22,23 @@
 
     {{#unless hideApplyButtons}}
     <div style="display:flex; flex-direction:column; gap:4px;">
-        <button class="apply-damage-btn" 
-                data-target="target" 
-                data-dmg="{{damageTotal}}" 
+        <button class="apply-damage-btn"
+                data-target="target"
+                data-dmg="{{damageTotal}}"
                 data-ad="{{adValue}}"
+                data-pv-mod="{{pvMod}}"
                 data-is-heal="{{#if isHeal}}true{{else}}false{{/if}}"
                 data-remove-wounds-count="{{removeWoundsCount}}"
                 data-ebb-target="{{ebbTarget}}"
                 style="background:#333; border:1px solid #555; color:#fff;">
             <i class="fas fa-crosshairs"></i> {{localize "SLA.ApplyToTarget"}}
         </button>
-        
-        <button class="apply-damage-btn" 
-                data-target="selected" 
-                data-dmg="{{damageTotal}}" 
+
+        <button class="apply-damage-btn"
+                data-target="selected"
+                data-dmg="{{damageTotal}}"
                 data-ad="{{adValue}}"
+                data-pv-mod="{{pvMod}}"
                 data-is-heal="{{#if isHeal}}true{{else}}false{{/if}}"
                 data-remove-wounds-count="{{removeWoundsCount}}"
                 data-ebb-target="{{ebbTarget}}"

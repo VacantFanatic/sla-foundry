@@ -458,17 +458,19 @@ The ledger is displayed (newest-first) in the XP dialog and is purely a historic
 
 Source: `module/config.mjs` (`SLA.ammoTypes`, `SLA.ammoModifiers`)
 
-| Key            | Label                   | Damage mod | AD mod | PV mod         |
-| -------------- | ----------------------- | ---------- | ------ | -------------- |
-| `standard`     | Standard                | 0          | 0      | 0              |
-| `he`           | High Explosive (HE)     | +1         | +1     | 0              |
-| `ap`           | Armour Piercing (AP)    | 0          | 0      | −2 (at target) |
-| `shotgun_std`  | Shotgun Shot (Standard) | 0          | 0      | 0              |
-| `shotgun_slug` | Shotgun Slug            | +1         | −1     | 0              |
+| Key            | Label                   | Damage mod | AD mod | PV mod         | Clip cost |
+| -------------- | ----------------------- | ---------- | ------ | -------------- | --------- |
+| `standard`     | Standard                | 0          | 0      | 0              | ×1        |
+| `he`           | High Explosive (HE)     | +1         | +1     | 0              | ×1.5      |
+| `ap`           | Armour Piercing (AP)    | 0          | 0      | −2 (at target) | ×1.5      |
+| `shotgun_std`  | Shotgun Shot (Standard) | 0          | 0      | 0              | ×1        |
+| `shotgun_slug` | Shotgun Slug            | +1         | −1     | 0              | ×1.2      |
 
-`AD` (Armour Damage) reduces the target's armor resistance on hit. The AP −2 PV modifier is applied during damage resolution in `_applyDamageToTarget`, not pre-roll.
+`AD` (Armour Damage) reduces the target's armor resistance on hit; the ammo AD modifier is added on top of the weapon/powersuit AD in both `executeCombatLoadoutDamageRoll` (`weapon-gates.mjs`) and `processWeaponRoll` (`weapon-rolls.mjs`), floored at 0. The AP −2 PV modifier is resolved via `getAmmoPvModifierForWeapon` and threaded through the damage-roll chat card (`pvMod`) into `computeArmorMitigation` in `helpers/chat/damage.mjs`, which applies it (via the pure `applyPvModifierToArmor` helper, floored at 0) to the target's armor PV before resistance-based mitigation — i.e. during damage resolution, not pre-roll.
 
-Magazines carry an `ammoType` field that matches these keys. When a magazine is loaded into a weapon, the weapon inherits the ammo type for that firing session.
+`costMultiplier` is reference data only: the magazine item sheet shows it as a read-only hint next to the Ammo Type dropdown so whoever prices a magazine of that ammo type can apply it; it does not automatically modify `system.price`.
+
+Magazines carry an `ammoType` field that matches these keys (default `'standard'`). When a magazine is loaded into a weapon, the weapon inherits the ammo type for that firing session.
 
 ---
 

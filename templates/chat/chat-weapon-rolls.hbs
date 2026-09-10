@@ -60,14 +60,15 @@
             {{!-- Button 1: Inflict Wound --}}
             {{#if mos.showWoundChoice}}
             <button class="chat-btn-wound" data-action="wound" data-location="{{mos.choiceType}}"
-                data-damage-bonus="{{mos.choiceDmg}}" data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}">
+                data-damage-bonus="{{mos.choiceDmg}}" data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}"
+                data-pv-mod="{{pvMod}}">
                 Inflict {{capitalize mos.choiceType}} Wound
             </button>
             {{/if}}
 
             {{!-- Button 2: Extra Damage --}}
             <button class="chat-btn-damage" data-action="damage" data-damage-bonus="{{mos.choiceDmg}}"
-                data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}">
+                data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}" data-pv-mod="{{pvMod}}">
                 +{{mos.choiceDmg}} Damage
             </button>
         </div>
@@ -88,7 +89,8 @@
     {{#if showDamageButton}}
     <div style="margin-top:8px; text-align:center;">
         <div style="font-size:0.8em; color:#aaa; margin-bottom:2px;">{{#if isHealRoll}}{{localize "SLA.EbbHealRollLabel"}}{{else}}{{localize "SLA.EbbDamageRollLabel"}}{{/if}}</div>
-        <button class="damage-roll" data-formula="{{dmgFormula}}" data-ad="{{adValue}}" data-min="{{minDamage}}"
+        <button class="damage-roll" data-formula="{{dmgFormula}}" data-ad="{{adValue}}" data-pv-mod="{{pvMod}}"
+            data-min="{{minDamage}}"
             data-is-heal="{{#if isHealRoll}}true{{else}}false{{/if}}"
             data-remove-wounds-count="{{removeWoundsBundledWithHpRoll}}"
             data-ebb-target="{{ebbTarget}}"
