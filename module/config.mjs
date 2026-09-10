@@ -8,13 +8,14 @@ SLA.ammoTypes = {
     shotgun_slug: 'Shotgun Slug'
 };
 
-// Define the math for each type
+// Define the math for each type. costMultiplier is the clip cost relative to standard
+// ammo (e.g. 1.5 = +50%); it is reference data only — magazine price is set manually.
 SLA.ammoModifiers = {
-    standard: { damage: 0, ad: 0, pv: 0 },
-    he: { damage: 1, ad: 1, pv: 0 },
-    ap: { damage: 0, ad: 0, pv: -2 }, // Handled during damage application
-    shotgun_std: { damage: 0, ad: 0, pv: 0 },
-    shotgun_slug: { damage: 1, ad: -1, pv: 0 }
+    standard: { damage: 0, ad: 0, pv: 0, costMultiplier: 1 },
+    he: { damage: 1, ad: 1, pv: 0, costMultiplier: 1.5 },
+    ap: { damage: 0, ad: 0, pv: -2, costMultiplier: 1.5 }, // PV reduction applied during damage resolution
+    shotgun_std: { damage: 0, ad: 0, pv: 0, costMultiplier: 1 },
+    shotgun_slug: { damage: 1, ad: -1, pv: 0, costMultiplier: 1.2 }
 };
 
 // 1. STATS (Used by Skills & Drugs)

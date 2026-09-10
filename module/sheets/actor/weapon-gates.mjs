@@ -4,6 +4,8 @@ import { buildWeaponDamageFormula, computeMeleeStrDamageModifier } from './roll-
 import {
     requiresWeaponEquippedForAttack,
     getAmmoDamageModifierForWeapon as _getAmmoDamageModifier,
+    getAmmoAdModifierForWeapon as _getAmmoAdModifier,
+    getAmmoPvModifierForWeapon as _getAmmoPvModifier,
     resolveWeaponAdForDamageRoll
 } from './weapon-gates-pure.mjs';
 
@@ -40,6 +42,14 @@ export function canProceedWithWeaponAttack(sheet, item, { requireTarget = false 
 
 export function getAmmoDamageModifierForWeapon(actor, item) {
     return _getAmmoDamageModifier(actor, item, CONFIG.SLA?.ammoModifiers);
+}
+
+export function getAmmoAdModifierForWeapon(actor, item) {
+    return _getAmmoAdModifier(actor, item, CONFIG.SLA?.ammoModifiers);
+}
+
+export function getAmmoPvModifierForWeapon(actor, item) {
+    return _getAmmoPvModifier(actor, item, CONFIG.SLA?.ammoModifiers);
 }
 
 export function getActorTokenForRangeCheck(sheet) {
@@ -89,18 +99,22 @@ export async function executeCombatLoadoutDamageRoll(sheet, anchor) {
 
     const strValue = Number(sheet.actor.system.stats.str?.total ?? sheet.actor.system.stats.str?.value ?? 0);
     let damageMod = 0;
+    let pvMod = 0;
 
     if (item.type === 'weapon') {
         const isMelee = (item.system.attackType || 'melee') === 'melee';
         if (isMelee) damageMod += computeMeleeStrDamageModifier(strValue);
         damageMod += getAmmoDamageModifierForWeapon(sheet.actor, item);
+        pvMod = getAmmoPvModifierForWeapon(sheet.actor, item);
     }
 
     const rawBase = item.system.damage || item.system.dmg || '0';
     const rollFormula = buildWeaponDamageFormula(String(rawBase), damageMod);
     const minDamage = Number(item.system.minDamage) || 0;
-    const adValue =
+    const baseAdValue =
         item.type === 'explosive' ? Number(item.system.ad) || 0 : resolveWeaponAdForDamageRoll(sheet.actor, item);
+    const adAmmoMod = item.type === 'weapon' ? getAmmoAdModifierForWeapon(sheet.actor, item) : 0;
+    const adValue = Math.max(0, baseAdValue + adAmmoMod);
 
     const flavorText =
         item.type === 'explosive'
@@ -116,6 +130,7 @@ export async function executeCombatLoadoutDamageRoll(sheet, anchor) {
             rollData: rollData ?? sheet.actor.getRollData(),
             rollFormula,
             adValue,
+            pvMod,
             minDamage,
             flavorText,
             parentTargets

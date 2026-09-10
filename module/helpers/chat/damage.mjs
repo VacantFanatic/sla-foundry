@@ -1,4 +1,9 @@
-import { buildWoundClearUpdates, computeHealHpBounds, computeMitigatedDamage } from './pure.mjs';
+import {
+    applyPvModifierToArmor,
+    buildWoundClearUpdates,
+    computeHealHpBounds,
+    computeMitigatedDamage
+} from './pure.mjs';
 
 export function resolveDamageDisplay(formula, actor = null) {
     const formulaStr = String(formula ?? '0').trim();
@@ -23,6 +28,7 @@ export async function executeStandardDamageRoll({
     rollFormula,
     rollData = null,
     adValue = 0,
+    pvMod = 0,
     minDamage = 0,
     flavorText = 'Standard Damage Roll',
     parentTargets = [],
@@ -65,7 +71,7 @@ export async function executeStandardDamageRoll({
     const hideApplyButtons = ebbTarget === 'self';
     if (hideApplyButtons && !autoApplyWound) {
         try {
-            await applyEbbOutcomeToActor(actor, finalTotal, adValue, { isHeal, removeWoundsCount });
+            await applyEbbOutcomeToActor(actor, finalTotal, adValue, { isHeal, removeWoundsCount, pvMod });
             flavor += `<br/><span style="color:#9cf;font-size:0.9em;">${game.i18n.localize('SLA.EbbAppliedToCaster')}</span>`;
         } catch (err) {
             console.error('SLA | Ebb self-apply:', err);
@@ -76,6 +82,7 @@ export async function executeStandardDamageRoll({
     const templateData = {
         damageTotal: finalTotal,
         adValue,
+        pvMod,
         flavor,
         isHeal,
         hideApplyButtons,
@@ -99,7 +106,8 @@ export async function executeStandardDamageRoll({
                 ebbCasterUuid: actor.uuid,
                 ebbTarget,
                 ebbIsHeal: isHeal,
-                ebbRemoveWoundsCount: Math.max(0, Math.min(6, Math.floor(Number(removeWoundsCount) || 0)))
+                ebbRemoveWoundsCount: Math.max(0, Math.min(6, Math.floor(Number(removeWoundsCount) || 0))),
+                pvMod
             }
         }
     });
@@ -108,7 +116,7 @@ export async function executeStandardDamageRoll({
         await new Promise((resolve) => setTimeout(resolve, 100));
         const targetUuid = parentTargets[0];
         if (targetUuid) {
-            await applyDamageToTarget(finalTotal, adValue, targetUuid);
+            await applyDamageToTarget(finalTotal, adValue, targetUuid, pvMod);
         }
     }
 }
@@ -192,12 +200,12 @@ export async function applyHpHeal(victim, rawHeal) {
     };
 }
 
-export async function applyEbbOutcomeToActor(actor, rawAmount, ad, { isHeal, removeWoundsCount = 0 }) {
+export async function applyEbbOutcomeToActor(actor, rawAmount, ad, { isHeal, removeWoundsCount = 0, pvMod = 0 }) {
     if (isHeal) {
         const { finalHeal, hpData } = await applyHpHeal(actor, rawAmount);
         await postHealResultChat({ victim: actor, rawHeal: rawAmount, finalHeal, hpData });
     } else {
-        await applyDamageToVictim(actor, rawAmount, ad);
+        await applyDamageToVictim(actor, rawAmount, ad, pvMod);
     }
     const n = Math.max(0, Math.min(6, Math.floor(Number(removeWoundsCount) || 0)));
     if (n > 0) {
@@ -221,7 +229,7 @@ export async function postHealResultChat({ victim, rawHeal, finalHeal, hpData })
     ChatMessage.create({ content });
 }
 
-export async function computeArmorMitigation(victim, ad) {
+export async function computeArmorMitigation(victim, ad, pvMod = 0) {
     const armorItem = victim.items.find((i) => i.type === 'armor' && i.system.equipped);
 
     let targetPV = 0;
@@ -232,6 +240,8 @@ export async function computeArmorMitigation(victim, ad) {
     } else if (victim.system.armor?.pv) {
         targetPV = victim.system.armor.pv || 0;
     }
+
+    targetPV = applyPvModifierToArmor(targetPV, pvMod);
 
     let effectivePV = targetPV;
     if (armorItem && ad > 0) {
@@ -286,8 +296,8 @@ export async function postDamageResultChat({ victim, rawDamage, targetPV, finalD
     ChatMessage.create({ content });
 }
 
-export async function applyDamageToVictim(victim, rawDamage, ad) {
-    const { targetPV, effectivePV, armorData } = await computeArmorMitigation(victim, ad);
+export async function applyDamageToVictim(victim, rawDamage, ad, pvMod = 0) {
+    const { targetPV, effectivePV, armorData } = await computeArmorMitigation(victim, ad, pvMod);
     const { finalDamage, hpData } = await applyHpDamage(victim, rawDamage, effectivePV);
     await postDamageResultChat({
         victim,
@@ -299,11 +309,11 @@ export async function applyDamageToVictim(victim, rawDamage, ad) {
     });
 }
 
-export async function applyDamageToTarget(rawDamage, ad, targetUuid) {
+export async function applyDamageToTarget(rawDamage, ad, targetUuid, pvMod = 0) {
     const victim = await resolveActorFromUuid(targetUuid);
     if (!victim) {
         console.warn('SLA | Auto-apply: Target not found', targetUuid);
         return;
     }
-    await applyDamageToVictim(victim, rawDamage, ad);
+    await applyDamageToVictim(victim, rawDamage, ad, pvMod);
 }

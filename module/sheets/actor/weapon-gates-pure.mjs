@@ -14,22 +14,50 @@ export function requiresWeaponEquippedForAttack(actor) {
 }
 
 /**
- * Returns the flat damage modifier from the loaded magazine's ammo type.
- * Returns 0 when the weapon has no magazine, the magazine is not found, or the ammo
+ * Looks up the ammo modifier entry for the weapon's loaded magazine.
+ * Returns null when the weapon has no magazine, the magazine is not found, or the ammo
  * type has no configured modifier.
  *
  * @param {{ items: { get: (id: string) => object|null } }|null} actor
  * @param {{ system?: { magazineId?: string } }} item
- * @param {Record<string, { damage?: number }>} ammoModifiers - Caller injects CONFIG.SLA.ammoModifiers
+ * @param {Record<string, { damage?: number, ad?: number, pv?: number }>} ammoModifiers - Caller injects CONFIG.SLA.ammoModifiers
+ * @returns {{ damage?: number, ad?: number, pv?: number }|null}
+ */
+function resolveLoadedAmmoModifiers(actor, item, ammoModifiers) {
+    if (!item?.system?.magazineId || !actor) return null;
+    const magazine = actor.items.get(item.system.magazineId);
+    if (!magazine) return null;
+    const ammoType = magazine.system.ammoType || 'standard';
+    return ammoModifiers?.[ammoType] ?? null;
+}
+
+/**
+ * Returns the flat damage modifier from the loaded magazine's ammo type (e.g. HE +1).
  * @returns {number}
  */
 export function getAmmoDamageModifierForWeapon(actor, item, ammoModifiers) {
-    if (!item?.system?.magazineId || !actor) return 0;
-    const magazine = actor.items.get(item.system.magazineId);
-    if (!magazine) return 0;
-    const ammoType = magazine.system.ammoType || 'standard';
-    const configMods = ammoModifiers?.[ammoType];
-    return configMods ? Number(configMods.damage) || 0 : 0;
+    const mods = resolveLoadedAmmoModifiers(actor, item, ammoModifiers);
+    return mods ? Number(mods.damage) || 0 : 0;
+}
+
+/**
+ * Returns the AD (Armour Damage) modifier from the loaded magazine's ammo type
+ * (e.g. HE +1, Shotgun Slug -1).
+ * @returns {number}
+ */
+export function getAmmoAdModifierForWeapon(actor, item, ammoModifiers) {
+    const mods = resolveLoadedAmmoModifiers(actor, item, ammoModifiers);
+    return mods ? Number(mods.ad) || 0 : 0;
+}
+
+/**
+ * Returns the target-armour PV modifier from the loaded magazine's ammo type
+ * (e.g. AP -2). Applied at damage resolution, not pre-roll.
+ * @returns {number}
+ */
+export function getAmmoPvModifierForWeapon(actor, item, ammoModifiers) {
+    const mods = resolveLoadedAmmoModifiers(actor, item, ammoModifiers);
+    return mods ? Number(mods.pv) || 0 : 0;
 }
 
 /**

@@ -36,6 +36,17 @@ export function computeMitigatedDamage(rawDamage, effectivePV) {
 }
 
 /**
+ * Applies an ammo PV modifier (e.g. Armour Piercing's -2) to a target's armor PV,
+ * floored at zero. Positive/zero modifiers (or no modifier) leave the PV unchanged.
+ *
+ * @param {number} basePv
+ * @param {number} [pvMod=0]
+ */
+export function applyPvModifierToArmor(basePv, pvMod = 0) {
+    return Math.max(0, (Number(basePv) || 0) + (Number(pvMod) || 0));
+}
+
+/**
  * @param {number} currentHP
  * @param {number} maxHP
  * @param {number} rawHeal
