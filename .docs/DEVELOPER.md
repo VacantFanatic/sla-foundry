@@ -79,7 +79,7 @@ sla-industries/
 
 ## Tech Stack
 
-- **Foundry VTT v14** (minimum 14, verified 14.360)
+- **Foundry VTT v14** (minimum 14, verified 14.367)
 - **Application V2** (`ApplicationV2` + `HandlebarsApplicationMixin`) for all sheets and dialogs.
 - **TypeDataModel** (`foundry.abstract.TypeDataModel`) for all actor and item data schemas.
 - **SCSS** compiled to `css/sla-industries.css` via `npm run build:css` (or `npm run watch`). Compiled CSS is a **build artifact** (not committed); run `npm run build:css` or `npm run build` before local Foundry testing. `npm run build` also assembles **`dist/`** (Foundry-installable runtime files). `npm run package` produces `sla-industries.zip` for releases.

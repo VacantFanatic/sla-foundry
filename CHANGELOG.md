@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Bumped Foundry compatibility target (`compatibility.verified`) from 14.360 to 14.367. No system code changes were required — 14.364 through 14.367 introduced no breaking changes or removed APIs affecting this system. (Reviewed: editor/UI fixes, package manager changes, and a couple of new dev-facing hooks; verified this system's ActiveEffect ADD-mode summing logic is unaffected by 14.365's active-effect change priority fix.)
+
 ## [2.8.6] - 2026-09-11
 
 ### Fixed

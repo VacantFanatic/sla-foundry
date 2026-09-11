@@ -13,7 +13,7 @@ if compgen -G "${CACHE_DIR}/foundryvtt-"*.zip >/dev/null 2>&1; then
   exit 0
 fi
 
-build="$(sudo docker run --rm --entrypoint printenv "$IMAGE" FOUNDRY_VERSION 2>/dev/null || echo "14.363")"
+build="$(sudo docker run --rm --entrypoint printenv "$IMAGE" FOUNDRY_VERSION 2>/dev/null || echo "14.367")"
 zip_path="${CACHE_DIR}/foundryvtt-${build}.zip"
 
 release_url="${FOUNDRY_RELEASE_URL:-}"

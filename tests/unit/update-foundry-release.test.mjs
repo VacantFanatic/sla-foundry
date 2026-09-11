@@ -8,7 +8,7 @@ const manifest = {
     version: '2.5.4',
     compatibility: {
         minimum: '14',
-        verified: '14.360'
+        verified: '14.367'
     }
 };
 
@@ -41,7 +41,7 @@ describe('Foundry release updater', () => {
                 notes: 'https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.4',
                 compatibility: {
                     minimum: '14',
-                    verified: '14.360',
+                    verified: '14.367',
                     maximum: undefined
                 }
             }

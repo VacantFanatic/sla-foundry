@@ -170,7 +170,7 @@ Release builds use **`dist/`** (runtime files only). `npm run build` compiles SC
 
 If cloud secrets are not configured, export the same variables in your shell (or pass them only for that command) before running the script — Foundry cannot be downloaded without them.
 
-1. **Install Foundry VTT v14** (verified against **14.360** per `system.json`). This cloud VM uses Docker (`ghcr.io/felddy/foundryvtt:14`) when credentials are provided.
+1. **Install Foundry VTT v14** (verified against **14.367** per `system.json`). This cloud VM uses Docker (`ghcr.io/felddy/foundryvtt:14`) when credentials are provided.
 2. **Link this repo** into Foundry data as `Data/systems/sla-industries` (folder name must match `system.json` `id`). On this VM the symlink is already at `/home/ubuntu/foundry-data/Data/systems/sla-industries` → `/workspace`.
 3. **Create a world** using game system **SLA Industries 2nd Edition** and at least one user for `/join`.
 4. **Environment variables for Playwright** (see `playwright.config.js`):
