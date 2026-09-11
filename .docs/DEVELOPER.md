@@ -21,7 +21,9 @@ sla-industries/
 │   ├── data/
 │   │   ├── actor.mjs           # TypeDataModel subclasses for character, npc, vehicle
 │   │   ├── item.mjs            # TypeDataModel subclasses for all item types
-│   │   └── natural-weapons.mjs # Punch/Kick baseline definitions
+│   │   ├── natural-weapons.mjs # Punch/Kick baseline definitions
+│   │   ├── registry.mjs        # ACTOR_DATA_MODELS / ITEM_DATA_MODELS lookup maps
+│   │   └── model-type-keys.mjs # Document type key lists (kept in sync with system.json)
 │   ├── documents/
 │   │   ├── derived/            # Pure derived-data calculators (encumbrance, wounds, penalties)
 │   │   ├── actor.mjs           # SlaActor — derived data, active effects, HP sync
@@ -57,7 +59,8 @@ sla-industries/
 │       │   ├── stat-rolls.mjs    # Stat check rolls from sheet
 │       │   ├── sheet-rolls.mjs   # Routes item/stat/skill/init roll clicks
 │       │   ├── sheet-actions.mjs # Sheet click/change UI delegation
-│       │   └── sheet-actions-pure.mjs # Pure species-removal helpers (unit tested)
+│       │   ├── sheet-actions-pure.mjs # Pure species-removal helpers (unit tested)
+│       │   └── sheet-ux-pure.mjs # Pure wound-count and stat/HP-bar tone helpers (unit tested)
 │       ├── actor-sheet.mjs     # SlaActorSheet (operative/character, ApplicationV2)
 │       ├── actor-npc-sheet.mjs # SlaNPCSheet (threat/NPC, ApplicationV2)
 │       ├── actor-vehicle-sheet.mjs  # SlaVehicleSheet (vehicle, ApplicationV2)
