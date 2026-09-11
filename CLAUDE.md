@@ -1,5 +1,48 @@
 # CLAUDE.md
 
+## Documentation map
+
+Quick reference to every doc in this repo, grouped by purpose. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and [.docs/DEVELOPER.md](.docs/DEVELOPER.md) for day-to-day development.
+
+### Contributing
+
+| Doc                                      | Covers                                                                                          |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [CONTRIBUTING.md](CONTRIBUTING.md)       | Workflow, branching, TDD, code style, opening a PR                                              |
+| [.docs/DEVELOPER.md](.docs/DEVELOPER.md) | Architecture, project structure, data models, migration system, public API, common-task recipes |
+| [.docs/AGENTS.md](.docs/AGENTS.md)       | Cursor Cloud agent setup — Foundry secrets, Docker, E2E (mirrored inline below for Claude Code) |
+| [SECURITY.md](SECURITY.md)               | Private vulnerability reporting process                                                         |
+
+### Gameplay systems (for GMs and contributors)
+
+| Doc                                                | Covers                                                        |
+| -------------------------------------------------- | ------------------------------------------------------------- |
+| [.docs/EBB_SYSTEM.md](.docs/EBB_SYSTEM.md)         | Ebb powers: Ebonite detection, formula rolls, tab visibility  |
+| [.docs/WORLD_SETTINGS.md](.docs/WORLD_SETTINGS.md) | Every world setting: key, default, and behavior               |
+| [.docs/item_setup.md](.docs/item_setup.md)         | Drag-and-drop item linking guide (skills, weapons, ammo, Ebb) |
+
+### Release & CI
+
+| Doc / file                                          | Covers                                                                                |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [.docs/RELEASE.md](.docs/RELEASE.md)                | Two-stage pre-release/stable release process, version numbering                       |
+| [CHANGELOG.md](CHANGELOG.md)                        | Release history — update the `## [Unreleased]` section in every PR                    |
+| `.github/workflows/main.yml`                        | CI: version sync, Prettier, unit tests, dist build+validate (every push/PR to `main`) |
+| `.github/workflows/pre-release.yml` / `release.yml` | Build, package, and publish pre-release/stable GitHub Releases on tag push            |
+| `.github/workflows/foundry_manifest_update.yml`     | Notifies Foundry's package listing API when a release is published                    |
+
+### Config reference
+
+| File                              | Covers                                                         |
+| --------------------------------- | -------------------------------------------------------------- |
+| `system.json`                     | Foundry manifest — id, version, compatibility, `documentTypes` |
+| `package.json`                    | npm scripts (build/test/format/package), devDependencies       |
+| `.prettierrc` / `.prettierignore` | Code formatting rules                                          |
+| `.editorconfig`                   | Baseline editor settings (indent, line endings, final newline) |
+| `playwright.config.js`            | E2E test config                                                |
+
+---
+
 ## Code style
 
 All code changes must pass Prettier before being committed. Run the check with:

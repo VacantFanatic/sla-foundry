@@ -46,6 +46,8 @@ npm run format:check    # check only (what CI runs)
 
 CI blocks any PR that fails the format check.
 
+Baseline editor settings (4-space indent, LF line endings, final newline) are defined in [`.editorconfig`](.editorconfig) — most editors pick this up automatically.
+
 ### SCSS
 
 After editing `.scss` files under `src/scss/`, compile before testing in Foundry:
