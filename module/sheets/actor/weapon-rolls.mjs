@@ -332,10 +332,10 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
         await sheet._applyHeadshotSideEffect(notes);
     }
 
-    const ammoDamageMod = getAmmoDamageModifierForWeapon(sheet.actor, item);
-    const ammoAdMod = getAmmoAdModifierForWeapon(sheet.actor, item);
-    const pvMod = getAmmoPvModifierForWeapon(sheet.actor, item);
-    const ammoName = getLoadedAmmoNameForWeapon(sheet.actor, item);
+    const ammoDamageMod = getAmmoDamageModifierForWeapon(item);
+    const ammoAdMod = getAmmoAdModifierForWeapon(item);
+    const pvMod = getAmmoPvModifierForWeapon(item);
+    const ammoName = getLoadedAmmoNameForWeapon(item);
 
     const baseDmg = String(item.system.damage || item.system.dmg || '0');
     const totalMod = mods.damage + mosDamageBonus + ammoDamageMod;
