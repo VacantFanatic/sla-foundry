@@ -5,6 +5,9 @@
     <h3 style="color:{{headerColor}}; border-bottom:1px solid #555; margin:0 0 5px 0; font-size:1.1em;">
         {{itemName}} CHECK
     </h3>
+    {{#if ammoName}}
+    <div style="font-size:0.75em; color:#888; text-align:center; margin:-3px 0 5px;">Ammo: {{ammoName}}</div>
+    {{/if}}
     {{#if ebbFormulaRoll}}
     {{#if mos.isSuccess}}
     <div style="font-size:0.75em; color:#a78bfa; text-align:center; margin-bottom:6px;">
@@ -61,14 +64,15 @@
             {{#if mos.showWoundChoice}}
             <button class="chat-btn-wound" data-action="wound" data-location="{{mos.choiceType}}"
                 data-damage-bonus="{{mos.choiceDmg}}" data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}"
-                data-pv-mod="{{pvMod}}">
+                data-pv-mod="{{pvMod}}" data-ammo-name="{{ammoName}}">
                 Inflict {{capitalize mos.choiceType}} Wound
             </button>
             {{/if}}
 
             {{!-- Button 2: Extra Damage --}}
             <button class="chat-btn-damage" data-action="damage" data-damage-bonus="{{mos.choiceDmg}}"
-                data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}" data-pv-mod="{{pvMod}}">
+                data-base-formula="{{dmgFormula}}" data-ad="{{adValue}}" data-pv-mod="{{pvMod}}"
+                data-ammo-name="{{ammoName}}">
                 +{{mos.choiceDmg}} Damage
             </button>
         </div>
@@ -90,6 +94,7 @@
     <div style="margin-top:8px; text-align:center;">
         <div style="font-size:0.8em; color:#aaa; margin-bottom:2px;">{{#if isHealRoll}}{{localize "SLA.EbbHealRollLabel"}}{{else}}{{localize "SLA.EbbDamageRollLabel"}}{{/if}}</div>
         <button class="damage-roll" data-formula="{{dmgFormula}}" data-ad="{{adValue}}" data-pv-mod="{{pvMod}}"
+            data-ammo-name="{{ammoName}}"
             data-min="{{minDamage}}"
             data-is-heal="{{#if isHealRoll}}true{{else}}false{{/if}}"
             data-remove-wounds-count="{{removeWoundsBundledWithHpRoll}}"

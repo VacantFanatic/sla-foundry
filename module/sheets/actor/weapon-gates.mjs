@@ -6,6 +6,7 @@ import {
     getAmmoDamageModifierForWeapon as _getAmmoDamageModifier,
     getAmmoAdModifierForWeapon as _getAmmoAdModifier,
     getAmmoPvModifierForWeapon as _getAmmoPvModifier,
+    getLoadedAmmoNameForWeapon as _getLoadedAmmoName,
     resolveWeaponAdForDamageRoll
 } from './weapon-gates-pure.mjs';
 
@@ -50,6 +51,10 @@ export function getAmmoAdModifierForWeapon(actor, item) {
 
 export function getAmmoPvModifierForWeapon(actor, item) {
     return _getAmmoPvModifier(actor, item, CONFIG.SLA?.ammoModifiers);
+}
+
+export function getLoadedAmmoNameForWeapon(actor, item) {
+    return _getLoadedAmmoName(actor, item, CONFIG.SLA?.ammoTypes);
 }
 
 export function getActorTokenForRangeCheck(sheet) {
@@ -100,12 +105,14 @@ export async function executeCombatLoadoutDamageRoll(sheet, anchor) {
     const strValue = Number(sheet.actor.system.stats.str?.total ?? sheet.actor.system.stats.str?.value ?? 0);
     let damageMod = 0;
     let pvMod = 0;
+    let ammoName = null;
 
     if (item.type === 'weapon') {
         const isMelee = (item.system.attackType || 'melee') === 'melee';
         if (isMelee) damageMod += computeMeleeStrDamageModifier(strValue);
         damageMod += getAmmoDamageModifierForWeapon(sheet.actor, item);
         pvMod = getAmmoPvModifierForWeapon(sheet.actor, item);
+        ammoName = getLoadedAmmoNameForWeapon(sheet.actor, item);
     }
 
     const rawBase = item.system.damage || item.system.dmg || '0';
@@ -131,6 +138,7 @@ export async function executeCombatLoadoutDamageRoll(sheet, anchor) {
             rollFormula,
             adValue,
             pvMod,
+            ammoName,
             minDamage,
             flavorText,
             parentTargets

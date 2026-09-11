@@ -10,6 +10,7 @@ import {
     getAmmoDamageModifierForWeapon,
     getAmmoAdModifierForWeapon,
     getAmmoPvModifierForWeapon,
+    getLoadedAmmoNameForWeapon,
     resolveWeaponAdForDamageRoll
 } from '../../module/sheets/actor/weapon-gates-pure.mjs';
 
@@ -20,6 +21,15 @@ const AMMO_MODIFIERS = {
     ap: { damage: 0, ad: 0, pv: -2 },
     shotgun_std: { damage: 0, ad: 0, pv: 0 },
     shotgun_slug: { damage: 1, ad: -1, pv: 0 }
+};
+
+// Real ammo type display labels from module/config.mjs
+const AMMO_TYPES = {
+    standard: 'Standard',
+    he: 'High Explosive (HE)',
+    ap: 'Armour Piercing (AP)',
+    shotgun_std: 'Shotgun Shot (Standard)',
+    shotgun_slug: 'Shotgun Slug'
 };
 
 // ─── requiresWeaponEquippedForAttack ─────────────────────────────────────────
@@ -168,6 +178,66 @@ describe('getAmmoPvModifierForWeapon', () => {
     test('unknown ammo type not in config returns 0', () => {
         const mag = { id: 'm3', system: { ammoType: 'plasma' } };
         assert.equal(getAmmoPvModifierForWeapon(makeActor(mag), { system: { magazineId: 'm3' } }, AMMO_MODIFIERS), 0);
+    });
+});
+
+// ─── getLoadedAmmoNameForWeapon ──────────────────────────────────────────────
+
+describe('getLoadedAmmoNameForWeapon', () => {
+    function makeActor(magazine) {
+        return { items: { get: (id) => (id === magazine?.id ? magazine : null) } };
+    }
+
+    test('returns null when item has no magazineId', () => {
+        assert.equal(getLoadedAmmoNameForWeapon(makeActor(null), { system: {} }, AMMO_TYPES), null);
+    });
+
+    test('returns null when actor is null', () => {
+        assert.equal(getLoadedAmmoNameForWeapon(null, { system: { magazineId: 'x' } }, AMMO_TYPES), null);
+    });
+
+    test('returns null when magazine is not found in actor inventory', () => {
+        assert.equal(
+            getLoadedAmmoNameForWeapon(makeActor(null), { system: { magazineId: 'missing' } }, AMMO_TYPES),
+            null
+        );
+    });
+
+    test('returns display name for standard ammo', () => {
+        const mag = { id: 'm1', system: { ammoType: 'standard' } };
+        assert.equal(
+            getLoadedAmmoNameForWeapon(makeActor(mag), { system: { magazineId: 'm1' } }, AMMO_TYPES),
+            'Standard'
+        );
+    });
+
+    test('returns display name for HE ammo', () => {
+        const mag = { id: 'm2', system: { ammoType: 'he' } };
+        assert.equal(
+            getLoadedAmmoNameForWeapon(makeActor(mag), { system: { magazineId: 'm2' } }, AMMO_TYPES),
+            'High Explosive (HE)'
+        );
+    });
+
+    test('returns display name for AP ammo', () => {
+        const mag = { id: 'm3', system: { ammoType: 'ap' } };
+        assert.equal(
+            getLoadedAmmoNameForWeapon(makeActor(mag), { system: { magazineId: 'm3' } }, AMMO_TYPES),
+            'Armour Piercing (AP)'
+        );
+    });
+
+    test("missing ammoType on magazine defaults to standard's display name", () => {
+        const mag = { id: 'm4', system: {} };
+        assert.equal(
+            getLoadedAmmoNameForWeapon(makeActor(mag), { system: { magazineId: 'm4' } }, AMMO_TYPES),
+            'Standard'
+        );
+    });
+
+    test('unknown ammo type not in config returns null', () => {
+        const mag = { id: 'm5', system: { ammoType: 'plasma' } };
+        assert.equal(getLoadedAmmoNameForWeapon(makeActor(mag), { system: { magazineId: 'm5' } }, AMMO_TYPES), null);
     });
 });
 

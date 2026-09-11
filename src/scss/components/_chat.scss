@@ -251,6 +251,18 @@ $_sla-chat-dark-row-selectors: (
             color: #666;
         }
     }
+
+    .damage-ammo {
+        font-size: 0.85em;
+        color: #888;
+        margin-top: 4px;
+        @include flex-center;
+        gap: $padding-sm;
+
+        i {
+            color: #3ab0ff;
+        }
+    }
 }
 
 /* Drug Use Card */

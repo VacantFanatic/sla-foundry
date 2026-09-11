@@ -14,6 +14,21 @@ export function requiresWeaponEquippedForAttack(actor) {
 }
 
 /**
+ * Resolves the ammo type key of the weapon's loaded magazine.
+ * Returns null when the weapon has no magazine or the magazine is not found.
+ *
+ * @param {{ items: { get: (id: string) => object|null } }|null} actor
+ * @param {{ system?: { magazineId?: string } }} item
+ * @returns {string|null}
+ */
+function resolveLoadedAmmoType(actor, item) {
+    if (!item?.system?.magazineId || !actor) return null;
+    const magazine = actor.items.get(item.system.magazineId);
+    if (!magazine) return null;
+    return magazine.system.ammoType || 'standard';
+}
+
+/**
  * Looks up the ammo modifier entry for the weapon's loaded magazine.
  * Returns null when the weapon has no magazine, the magazine is not found, or the ammo
  * type has no configured modifier.
@@ -24,10 +39,8 @@ export function requiresWeaponEquippedForAttack(actor) {
  * @returns {{ damage?: number, ad?: number, pv?: number }|null}
  */
 function resolveLoadedAmmoModifiers(actor, item, ammoModifiers) {
-    if (!item?.system?.magazineId || !actor) return null;
-    const magazine = actor.items.get(item.system.magazineId);
-    if (!magazine) return null;
-    const ammoType = magazine.system.ammoType || 'standard';
+    const ammoType = resolveLoadedAmmoType(actor, item);
+    if (ammoType === null) return null;
     return ammoModifiers?.[ammoType] ?? null;
 }
 
@@ -58,6 +71,22 @@ export function getAmmoAdModifierForWeapon(actor, item, ammoModifiers) {
 export function getAmmoPvModifierForWeapon(actor, item, ammoModifiers) {
     const mods = resolveLoadedAmmoModifiers(actor, item, ammoModifiers);
     return mods ? Number(mods.pv) || 0 : 0;
+}
+
+/**
+ * Returns the display name of the loaded magazine's ammo type (e.g. "Armour Piercing (AP)").
+ * Returns null when the weapon has no magazine, the magazine is not found, or the ammo
+ * type has no configured display name.
+ *
+ * @param {{ items: { get: (id: string) => object|null } }|null} actor
+ * @param {{ system?: { magazineId?: string } }} item
+ * @param {Record<string, string>} ammoTypes - Caller injects CONFIG.SLA.ammoTypes
+ * @returns {string|null}
+ */
+export function getLoadedAmmoNameForWeapon(actor, item, ammoTypes) {
+    const ammoType = resolveLoadedAmmoType(actor, item);
+    if (ammoType === null) return null;
+    return ammoTypes?.[ammoType] ?? null;
 }
 
 /**

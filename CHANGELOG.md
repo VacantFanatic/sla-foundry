@@ -12,10 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Ammo AD/PV modifiers not applied in combat:** High Explosive's +1 AD, Shotgun Slug's -1 AD, and Armour Piercing's -2 target PV were all defined in `SLA.ammoModifiers` but never actually applied. The main Attack dialog ignored ammo type entirely, and the quick damage-roll button only applied the damage bonus — Armour Piercing rounds had no mechanical effect at all. All three ammo types now correctly apply their Damage/AD/PV modifiers in both attack flows and during armor mitigation.
 - **Magazine ammo type default:** New magazines defaulted to an ammo type (`'std'`) that didn't match any configured type (`'standard'`), silently breaking ammo modifiers on freshly created magazines.
+- **Ammo PV modifier lost on TN adjustment:** Adjusting an attack roll's target number (TN) after the fact rebuilt the chat card without preserving the loaded ammo's PV modifier, silently dropping Armour Piercing's effect on that roll.
 
 ### Added
 
 - **Clip cost reference hint:** The magazine item sheet now shows the ammo type's clip cost multiplier (e.g. "×1.5 of standard") next to the Ammo Type dropdown, reflecting the rulebook's High Explosive/Armour Piercing (+50%) and Shotgun Slug (+20%) costs. Informational only — magazine price is still set manually.
+- **Visible ammo modifiers on combat chat cards:** The attack roll, damage roll, and hit-result cards now show which ammo type fired and, when it changes anything, its PV modifier and the resulting armor PV before/after — so High Explosive, Armour Piercing, and Shotgun Slug rounds are verifiable in play, not just in the underlying math. Standard-ammo hits are unaffected.
 
 ## [2.8.5] - 2026-06-16
 

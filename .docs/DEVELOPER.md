@@ -472,6 +472,8 @@ Source: `module/config.mjs` (`SLA.ammoTypes`, `SLA.ammoModifiers`)
 
 Magazines carry an `ammoType` field that matches these keys (default `'standard'`). When a magazine is loaded into a weapon, the weapon inherits the ammo type for that firing session.
 
+**Chat card visibility:** `getLoadedAmmoNameForWeapon` (`weapon-gates-pure.mjs`/`weapon-gates.mjs`) resolves the loaded magazine's display name (e.g. `Armour Piercing (AP)`) and is threaded alongside the modifier values through both attack pipelines into the chat cards, so the ammo fix is verifiable in play rather than only in the roll math: the attack-roll card shows an "Ammo: `<name>`" line whenever a magazine is loaded, the damage-roll card adds a PV MOD box and ammo caption when `pvMod` is nonzero, and the hit-result card shows `Armor PV: <raw> → <adjusted> (<name>)` when `pvMod` is nonzero. Standard-ammo hits render unchanged. `onChangeDifficulty` (`helpers/chat/handlers.mjs`) also preserves `pvMod`/`ammoName` across a GM's TN adjustment on the same card — previously `pvMod` was silently dropped there.
+
 ---
 
 ## Powersuit Mechanics
