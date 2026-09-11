@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - **Threat (NPC) max HP could not be edited in the UI:** The max HP field on Threat sheets was hardcoded read-only, and even when bypassed, derived-data recalculation silently overwrote it every render with a `species base + STR` formula (defaulting to a base of 10 when no species item was present) — so any GM-entered value was immediately reset, and the wound diagram's "critical" state compared HP against that phantom value instead. Threat max HP is now a GM-authored, sheet-editable field like Luck/Flux, matching the rulebook's guidance that GMs may freely adjust NPC Hit Points. Character (PC) max HP is unchanged — still read-only and auto-derived from species + STR.
+- **Bonuses to STAT not being applied (e.g. Combat Drug):** Active Effect ADD changes on `system.stats.<key>.bonus`/`.value` were never applied to the stat total, regardless of whether the effect was enabled or disabled. The summing logic only recognized the deprecated numeric `mode` field; Foundry v14's canonical field is the string `type` (e.g. `"add"`), with no `mode` field on newly-authored effects, so every real v14-authored ADD change was silently ignored. ADD bonuses now apply correctly whether authored through the v14 ActiveEffectConfig UI or present as legacy numeric-`mode` data on old worlds.
 
 ### Changed
 

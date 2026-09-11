@@ -15,39 +15,44 @@ export function effectChangeRows(effect) {
 }
 
 /**
- * All numeric mode values that represent ADD across Foundry v10–v14.
- * @param {{ ACTIVE_EFFECT_CHANGE_TYPES?: Record<string, number>, ACTIVE_EFFECT_MODES?: Record<string, number> }} [constants]
- * @returns {Set<number>}
+ * Resolves how to recognize an ADD change across Foundry v14 (canonical string
+ * `type`) and pre-v14 worlds (deprecated numeric `mode`).
+ * @param {{ ACTIVE_EFFECT_CHANGE_TYPES?: Record<string, string>, ACTIVE_EFFECT_MODES?: Record<string, number> }} [constants]
+ * @returns {{ addType: string, legacyAddModes: Set<number> }}
  */
-export function resolveActiveEffectAddModes(constants = globalThis.CONST) {
-    const types = constants?.ACTIVE_EFFECT_CHANGE_TYPES;
-    const modes = constants?.ACTIVE_EFFECT_MODES;
-    const candidates = [types?.add, types?.ADD, modes?.ADD, 2];
-    return new Set(candidates.filter((v) => v !== undefined && v !== null));
+export function resolveActiveEffectAddMatcher(constants = globalThis.CONST) {
+    const addType = constants?.ACTIVE_EFFECT_CHANGE_TYPES?.ADD ?? 'add';
+    const legacyModes = constants?.ACTIVE_EFFECT_MODES;
+    const legacyAddModes = new Set([legacyModes?.ADD, 2].filter((v) => v !== undefined && v !== null));
+    return { addType, legacyAddModes };
 }
 
 /**
- * @param {number} mode
- * @param {Set<number>} addModes
+ * True when a single change row is an ADD change. Prefers the canonical v14
+ * string `type` field; falls back to the deprecated numeric `mode` field only
+ * when `type` is absent (old-world data created before the v14 migration).
+ * @param {{ type?: unknown, mode?: number }} change
+ * @param {{ addType: string, legacyAddModes: Set<number> }} addMatcher
  */
-export function isActiveEffectAddMode(mode, addModes) {
-    return addModes.has(mode);
+export function isActiveEffectAddChange(change, { addType, legacyAddModes }) {
+    if (typeof change?.type === 'string') return change.type === addType;
+    return legacyAddModes.has(change?.mode);
 }
 
 /**
  * Sum ADD modifiers from enabled effects on system.stats.<key>.bonus or legacy .value.
  * @param {Array<{ disabled?: boolean, changes?: unknown[], system?: { changes?: unknown[] } }>} effects
  * @param {string} statKey
- * @param {Set<number>} addModes
+ * @param {{ addType: string, legacyAddModes: Set<number> }} addMatcher
  */
-export function sumActiveEffectAddsForStat(effects, statKey, addModes) {
+export function sumActiveEffectAddsForStat(effects, statKey, addMatcher) {
     const kb = `system.stats.${statKey}.bonus`;
     const kv = `system.stats.${statKey}.value`;
     let sum = 0;
     for (const effect of effects ?? []) {
         if (effect.disabled) continue;
         for (const ch of effectChangeRows(effect)) {
-            if (!isActiveEffectAddMode(ch.mode, addModes)) continue;
+            if (!isActiveEffectAddChange(ch, addMatcher)) continue;
             if (ch.key === kb || ch.key === kv) sum += Number(ch.value) || 0;
         }
     }
