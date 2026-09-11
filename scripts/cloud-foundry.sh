@@ -45,7 +45,7 @@ ensure_world_json() {
   "title": "SLA Test World",
   "description": "Cloud agent E2E world for SLA Industries",
   "system": "sla-industries",
-  "coreVersion": "14.363",
+  "coreVersion": "14.367",
   "systemVersion": "${sys_version}"
 }
 EOF
