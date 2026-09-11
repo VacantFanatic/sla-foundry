@@ -1,4 +1,5 @@
 import { SlaSimpleContentDialog } from '../../apps/sla-simple-dialog.mjs';
+import { buildReloadWeaponUpdate } from './reload-pure.mjs';
 
 /**
  * @param {import('../actor-sheet.mjs').SlaActorSheet} sheet
@@ -50,10 +51,7 @@ export async function onReloadWeapon(sheet, event, reloadEl) {
 export async function performReload(sheet, weapon, magazine) {
     const capacity = magazine.system.ammoCapacity || 10;
 
-    await weapon.update({
-        'system.ammo': capacity,
-        'system.maxAmmo': capacity
-    });
+    await weapon.update(buildReloadWeaponUpdate(magazine.system));
 
     const newQty = (magazine.system.quantity || 1) - 1;
     const magazineDepleted = newQty <= 0;

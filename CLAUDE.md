@@ -43,6 +43,30 @@ Quick reference to every doc in this repo, grouped by purpose. Start with [CONTR
 
 ---
 
+## Before starting work
+
+Read `.docs/DEVELOPER.md` (architecture, data models, combat flow, migrations) and, for
+anything release-related, `.docs/RELEASE.md` (version numbering, pre-release/stable cycle)
+before making non-trivial changes. Both describe conventions and mechanisms that aren't
+obvious from the code alone.
+
+## Lessons learned
+
+- **A field referenced in code is not necessarily part of the data model.** The ammo
+  modifier system (`weapon-gates-pure.mjs`) was built around `item.system.magazineId` on
+  weapons, but `SlaWeaponData` (`module/data/item.mjs`) never declared that field in its
+  schema — Foundry `TypeDataModel`s silently drop undeclared properties, so nothing ever
+  persisted it, and no amount of unit-testing the consuming logic caught this. Before
+  trusting `item.system.<field>` anywhere, confirm it's actually declared in the relevant
+  `defineSchema()` in `module/data/item.mjs`.
+- **Test the full data lifecycle, not just the logic that consumes a value.** Pure-function
+  tests for the ammo modifier getters were thorough and all passed, but nothing ever tested
+  that the Reload flow (`reload.mjs`) actually produces the value those getters read. A
+  feature can be 100% correct and covered where you're looking and still be completely
+  unreachable in practice because the upstream step that feeds it was never wired up. When
+  a fix depends on another part of the system producing a value, add (or at least manually
+  trace) coverage for that producing step too, not only the consuming step.
+
 ## Code style
 
 All code changes must pass Prettier before being committed. Run the check with:
