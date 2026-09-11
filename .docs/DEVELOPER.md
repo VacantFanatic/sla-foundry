@@ -21,7 +21,9 @@ sla-industries/
 │   ├── data/
 │   │   ├── actor.mjs           # TypeDataModel subclasses for character, npc, vehicle
 │   │   ├── item.mjs            # TypeDataModel subclasses for all item types
-│   │   └── natural-weapons.mjs # Punch/Kick baseline definitions
+│   │   ├── natural-weapons.mjs # Punch/Kick baseline definitions
+│   │   ├── registry.mjs        # ACTOR_DATA_MODELS / ITEM_DATA_MODELS lookup maps
+│   │   └── model-type-keys.mjs # Document type key lists (kept in sync with system.json)
 │   ├── documents/
 │   │   ├── derived/            # Pure derived-data calculators (encumbrance, wounds, penalties)
 │   │   ├── actor.mjs           # SlaActor — derived data, active effects, HP sync
@@ -57,7 +59,8 @@ sla-industries/
 │       │   ├── stat-rolls.mjs    # Stat check rolls from sheet
 │       │   ├── sheet-rolls.mjs   # Routes item/stat/skill/init roll clicks
 │       │   ├── sheet-actions.mjs # Sheet click/change UI delegation
-│       │   └── sheet-actions-pure.mjs # Pure species-removal helpers (unit tested)
+│       │   ├── sheet-actions-pure.mjs # Pure species-removal helpers (unit tested)
+│       │   └── sheet-ux-pure.mjs # Pure wound-count and stat/HP-bar tone helpers (unit tested)
 │       ├── actor-sheet.mjs     # SlaActorSheet (operative/character, ApplicationV2)
 │       ├── actor-npc-sheet.mjs # SlaNPCSheet (threat/NPC, ApplicationV2)
 │       ├── actor-vehicle-sheet.mjs  # SlaVehicleSheet (vehicle, ApplicationV2)
@@ -530,6 +533,50 @@ The `SLATokenRuler` colors the movement ruler in real-time as a token is dragged
 ### Combat movement lock
 
 If the **Enable Combat Movement Lock** world setting is active and the actor has already used their movement action this turn, the entire ruler is rendered **red** regardless of distance.
+
+---
+
+## Common Tasks
+
+Step-by-step file checklists for the most frequent contribution types.
+
+### Add a new actor type
+
+1. `system.json` — add the type key under `documentTypes.Actor` (e.g. `"drone": {}`).
+2. `module/data/actor.mjs` — add a `Sla<Type>Data extends foundry.abstract.TypeDataModel` subclass with a `defineSchema()`.
+3. `module/data/model-type-keys.mjs` — add the key to `ACTOR_DATA_MODEL_TYPE_KEYS`.
+4. `module/data/registry.mjs` — import the new class and add it to `ACTOR_DATA_MODELS`.
+5. Add a sheet class under `module/sheets/` (or reuse an existing one) and register it in `module/sla-industries.mjs` via `foundry.documents.collections.Actors.registerSheet('sla-industries', <SheetClass>, { types: ['<type>'], makeDefault: true })`.
+6. Add the Handlebars template under `templates/actor/` and list it in `module/helpers/templates.mjs` (`preloadHandlebarsTemplates`).
+7. Add a unit test in `tests/unit/` for any new pure derived-data logic (see Test-driven development in [CLAUDE.md](../CLAUDE.md)).
+
+### Add a new item type
+
+1. `system.json` — add the type key under `documentTypes.Item`.
+2. `module/data/item.mjs` — add a `Sla<Type>Data extends foundry.abstract.TypeDataModel` subclass with a `defineSchema()`.
+3. `module/data/model-type-keys.mjs` — add the key to `ITEM_DATA_MODEL_TYPE_KEYS`.
+4. `module/data/registry.mjs` — import the new class and add it to `ITEM_DATA_MODELS`.
+5. `module/sheets/item-sheet.mjs` (`SlaItemSheet` handles all item types) — add any type-specific rendering branches; it is already registered for all `Item` types in `module/sla-industries.mjs`.
+6. Add the Handlebars partial under `templates/item/` and list it in `module/helpers/templates.mjs`.
+7. If the type needs drop-linking behaviour (like weapon→magazine), extend `module/helpers/drop-handlers.mjs`.
+8. Add a unit test in `tests/unit/` for any new pure logic.
+
+### Add a new hook
+
+1. Add the `Hooks.on(...)`/`Hooks.once(...)` registration in `module/sla-industries.mjs` (or a dedicated helper file under `module/helpers/` for chat-specific hooks, following the `chat.mjs` pattern).
+2. Document the hook in the **Hooks Used** table above (event name, file, purpose).
+3. If the hook drives derived data or pure logic, extract that logic into a testable pure function and cover it in `tests/unit/`.
+
+### Add a new `game.sla` public API function
+
+1. Implement the function in the relevant helper module (e.g. `module/helpers/sla-hotbar.mjs`).
+2. Register it on the `game.sla` object during the `init` hook in `module/sla-industries.mjs`.
+3. Document it under **`game.sla` Public API** above, including parameters and behavior.
+4. Add a unit test in `tests/unit/` if the function contains non-trivial logic.
+
+### Add a new migration step
+
+See **Adding a new migration step** under Migration System above.
 
 ---
 
