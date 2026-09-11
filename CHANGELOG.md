@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Threat (NPC) max HP could not be edited in the UI:** The max HP field on Threat sheets was hardcoded read-only, and even when bypassed, derived-data recalculation silently overwrote it every render with a `species base + STR` formula (defaulting to a base of 10 when no species item was present) — so any GM-entered value was immediately reset, and the wound diagram's "critical" state compared HP against that phantom value instead. Threat max HP is now a GM-authored, sheet-editable field like Luck/Flux, matching the rulebook's guidance that GMs may freely adjust NPC Hit Points. Character (PC) max HP is unchanged — still read-only and auto-derived from species + STR.
+
 ### Changed
 
 - Bumped Foundry compatibility target (`compatibility.verified`) from 14.360 to 14.367. No system code changes were required — 14.364 through 14.367 introduced no breaking changes or removed APIs affecting this system. (Reviewed: editor/UI fixes, package manager changes, and a couple of new dev-facing hooks; verified this system's ActiveEffect ADD-mode summing logic is unaffected by 14.365's active-effect change priority fix.)

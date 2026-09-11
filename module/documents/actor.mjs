@@ -13,6 +13,7 @@ import {
 import { applyStatPenalties } from './derived/penalties.mjs';
 import { clampHpValue } from '../sheets/actor/sheet-ux-pure.mjs';
 import { countWounds, deriveLogicConditions } from './derived/wounds.mjs';
+import { resolveDerivedHpMax } from './derived/hp.mjs';
 
 /**
  * Extend the basic Actor document.
@@ -181,7 +182,15 @@ export class SlaActor extends Actor {
         let hpBase = 10;
         const speciesItem = this.items.find((i) => i.type === 'species');
         if (speciesItem && speciesItem.system.hp) hpBase = Number(speciesItem.system.hp) || 10;
-        const projectedHpMax = Math.max(1, hpBase + (system.stats.str?.total || 0));
+        const projectedHpMax = Math.max(
+            1,
+            resolveDerivedHpMax({
+                type: this.type,
+                hpBase,
+                strTotal: system.stats.str?.total || 0,
+                storedMax: system.hp?.max
+            })
+        );
         const hpVal = Number(system.hp?.value) ?? 0;
 
         const logic = deriveLogicConditions(w, { hpValue: hpVal, woundCount, projectedHpMax });
@@ -297,8 +306,13 @@ export class SlaActor extends Actor {
             hpBase = speciesItem.system.hp;
         }
 
-        // HP Max = Base + Final STR
-        system.hp.max = hpBase + (system.stats.str?.total || 0);
+        // HP Max = Base + Final STR (Characters); GM-authored value preserved for NPCs/Threats
+        system.hp.max = resolveDerivedHpMax({
+            type: this.type,
+            hpBase,
+            strTotal: system.stats.str?.total || 0,
+            storedMax: system.hp.max
+        });
 
         // B. Initiative (Character Only)
         if (this.type === 'character') {
