@@ -210,7 +210,7 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
         test.skip(!gm, 'Requires GM — use a Gamemaster account for FOUNDRY_USER');
     });
 
-    test('v14 ADD change type (mode 20) increases core stat total', async ({ page }) => {
+    test('v14 ADD change type (type "add") increases core stat total', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();
             const [actor] = await Actor.createDocuments([
@@ -227,7 +227,7 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
                     changes: [
                         {
                             key: 'system.stats.str.bonus',
-                            mode: CONST.ACTIVE_EFFECT_CHANGE_TYPES.add,
+                            type: CONST.ACTIVE_EFFECT_CHANGE_TYPES.ADD,
                             value: 2
                         }
                     ]
@@ -287,7 +287,7 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
                     changes: [
                         {
                             key: 'system.stats.str.bonus',
-                            mode: CONST.ACTIVE_EFFECT_CHANGE_TYPES.add,
+                            type: CONST.ACTIVE_EFFECT_CHANGE_TYPES.ADD,
                             value: 2
                         }
                     ]

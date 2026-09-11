@@ -66,6 +66,19 @@ obvious from the code alone.
   unreachable in practice because the upstream step that feeds it was never wired up. When
   a fix depends on another part of the system producing a value, add (or at least manually
   trace) coverage for that producing step too, not only the consuming step.
+- **A test that hand-constructs its input can validate the wrong shape entirely.** The first
+  fix for Active Effect ADD-mode detection (commit `39e7fd9`) added tests and passed them,
+  but every test — unit and E2E — hand-built change rows using a numeric `mode`, including
+  one that assigned `mode: CONST.ACTIVE_EFFECT_CHANGE_TYPES.add` assuming that constant was
+  numeric. It isn't: Foundry v14 renamed the canonical field from `mode` (number) to `type`
+  (string, uppercase-keyed — `CONST.ACTIVE_EFFECT_CHANGE_TYPES.ADD === "add"`), and the E2E
+  test's constant access was even wrong-cased (`.add` vs. the real `.ADD`), so it silently
+  exercised `mode: undefined` instead of the v14 path it claimed to cover. The fix "worked"
+  against its own tests while leaving the real-world bug (#330) completely unfixed. When a
+  test constructs a data shape by hand instead of using the real producing API/UI, verify
+  that shape against the actual runtime's current schema/constants before trusting it — a
+  green test suite only proves the code satisfies its own tests, not that the tests match
+  reality.
 
 ## Code style
 

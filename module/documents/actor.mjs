@@ -7,7 +7,7 @@ import {
 } from './derived/encumbrance.mjs';
 import {
     effectChangeRows,
-    resolveActiveEffectAddModes,
+    resolveActiveEffectAddMatcher,
     sumActiveEffectAddsForStat
 } from './derived/active-effects.mjs';
 import { applyStatPenalties } from './derived/penalties.mjs';
@@ -35,8 +35,8 @@ export class SlaActor extends Actor {
      * @param {string} statKey  str, dex, know, conc, cha, cool
      */
     _sumActiveEffectAddsForCoreStat(statKey) {
-        const addModes = resolveActiveEffectAddModes();
-        return sumActiveEffectAddsForStat(this.effects, statKey, addModes);
+        const addMatcher = resolveActiveEffectAddMatcher();
+        return sumActiveEffectAddsForStat(this.effects, statKey, addMatcher);
     }
 
     /** @override */
