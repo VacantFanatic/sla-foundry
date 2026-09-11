@@ -446,3 +446,22 @@ async function migrateTo210() {
         }
     }
 }
+
+/**
+ * One-time, GM-only reminder for the 2.8.6 ammoType-on-Reload change: weapons already loaded
+ * before this fix have no ammoType recorded and won't show ammo modifiers until reloaded again.
+ * Not a data migration — nothing to compute from ammo/maxAmmo counts — so this is independent
+ * of DATA_MODEL_VERSION/migrateWorld().
+ */
+export async function notifyAmmoTypeReloadNeeded() {
+    if (!game.user.isGM) return;
+    if (game.settings.get('sla-industries', 'ammoReloadNoticeShown')) return;
+
+    ui.notifications.warn(
+        "SLA Industries 2.8.6 update: existing loaded weapons won't apply ammo-type bonuses " +
+            '(HE/AP/Shotgun Slug) until reloaded again. Re-run Reload on any weapon that should carry a special ammo type.',
+        { permanent: true }
+    );
+
+    await game.settings.set('sla-industries', 'ammoReloadNoticeShown', true);
+}

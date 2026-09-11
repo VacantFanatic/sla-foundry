@@ -10,6 +10,7 @@ import {
     getAmmoDamageModifierForWeapon,
     getAmmoAdModifierForWeapon,
     getAmmoPvModifierForWeapon,
+    getLoadedAmmoNameForWeapon,
     resolveWeaponAdForDamageRoll
 } from '../../module/sheets/actor/weapon-gates-pure.mjs';
 
@@ -20,6 +21,15 @@ const AMMO_MODIFIERS = {
     ap: { damage: 0, ad: 0, pv: -2 },
     shotgun_std: { damage: 0, ad: 0, pv: 0 },
     shotgun_slug: { damage: 1, ad: -1, pv: 0 }
+};
+
+// Real ammo type display labels from module/config.mjs
+const AMMO_TYPES = {
+    standard: 'Standard',
+    he: 'High Explosive (HE)',
+    ap: 'Armour Piercing (AP)',
+    shotgun_std: 'Shotgun Shot (Standard)',
+    shotgun_slug: 'Shotgun Slug'
 };
 
 // ─── requiresWeaponEquippedForAttack ─────────────────────────────────────────
@@ -41,133 +51,104 @@ describe('requiresWeaponEquippedForAttack', () => {
 // ─── getAmmoDamageModifierForWeapon ──────────────────────────────────────────
 
 describe('getAmmoDamageModifierForWeapon', () => {
-    function makeActor(magazine) {
-        return { items: { get: (id) => (id === magazine?.id ? magazine : null) } };
-    }
-
-    test('returns 0 when item has no magazineId', () => {
-        assert.equal(getAmmoDamageModifierForWeapon(makeActor(null), { system: {} }, AMMO_MODIFIERS), 0);
+    test('returns 0 when weapon has no ammoType set (never reloaded)', () => {
+        assert.equal(getAmmoDamageModifierForWeapon({ system: {} }, AMMO_MODIFIERS), 0);
     });
 
-    test('returns 0 when actor is null', () => {
-        assert.equal(getAmmoDamageModifierForWeapon(null, { system: { magazineId: 'x' } }, AMMO_MODIFIERS), 0);
-    });
-
-    test('returns 0 when magazine is not found in actor inventory', () => {
-        assert.equal(
-            getAmmoDamageModifierForWeapon(makeActor(null), { system: { magazineId: 'missing' } }, AMMO_MODIFIERS),
-            0
-        );
+    test('returns 0 when weapon ammoType is empty string', () => {
+        assert.equal(getAmmoDamageModifierForWeapon({ system: { ammoType: '' } }, AMMO_MODIFIERS), 0);
     });
 
     test('standard ammo gives 0 damage modifier', () => {
-        const mag = { id: 'm1', system: { ammoType: 'standard' } };
-        assert.equal(
-            getAmmoDamageModifierForWeapon(makeActor(mag), { system: { magazineId: 'm1' } }, AMMO_MODIFIERS),
-            0
-        );
+        assert.equal(getAmmoDamageModifierForWeapon({ system: { ammoType: 'standard' } }, AMMO_MODIFIERS), 0);
     });
 
     test('HE ammo gives +1 damage modifier', () => {
-        const mag = { id: 'm2', system: { ammoType: 'he' } };
-        assert.equal(
-            getAmmoDamageModifierForWeapon(makeActor(mag), { system: { magazineId: 'm2' } }, AMMO_MODIFIERS),
-            1
-        );
+        assert.equal(getAmmoDamageModifierForWeapon({ system: { ammoType: 'he' } }, AMMO_MODIFIERS), 1);
     });
 
     test('AP ammo gives 0 damage modifier (PV reduction is applied at target, not pre-roll)', () => {
-        const mag = { id: 'm3', system: { ammoType: 'ap' } };
-        assert.equal(
-            getAmmoDamageModifierForWeapon(makeActor(mag), { system: { magazineId: 'm3' } }, AMMO_MODIFIERS),
-            0
-        );
+        assert.equal(getAmmoDamageModifierForWeapon({ system: { ammoType: 'ap' } }, AMMO_MODIFIERS), 0);
     });
 
     test('shotgun_slug gives +1 damage modifier', () => {
-        const mag = { id: 'm4', system: { ammoType: 'shotgun_slug' } };
-        assert.equal(
-            getAmmoDamageModifierForWeapon(makeActor(mag), { system: { magazineId: 'm4' } }, AMMO_MODIFIERS),
-            1
-        );
+        assert.equal(getAmmoDamageModifierForWeapon({ system: { ammoType: 'shotgun_slug' } }, AMMO_MODIFIERS), 1);
     });
 
     test('shotgun_std gives 0 damage modifier', () => {
-        const mag = { id: 'm5', system: { ammoType: 'shotgun_std' } };
-        assert.equal(
-            getAmmoDamageModifierForWeapon(makeActor(mag), { system: { magazineId: 'm5' } }, AMMO_MODIFIERS),
-            0
-        );
+        assert.equal(getAmmoDamageModifierForWeapon({ system: { ammoType: 'shotgun_std' } }, AMMO_MODIFIERS), 0);
     });
 
     test('unknown ammo type not in config returns 0', () => {
-        const mag = { id: 'm6', system: { ammoType: 'plasma' } };
-        assert.equal(
-            getAmmoDamageModifierForWeapon(makeActor(mag), { system: { magazineId: 'm6' } }, AMMO_MODIFIERS),
-            0
-        );
-    });
-
-    test('missing ammoType on magazine defaults to standard (0)', () => {
-        const mag = { id: 'm7', system: {} };
-        assert.equal(
-            getAmmoDamageModifierForWeapon(makeActor(mag), { system: { magazineId: 'm7' } }, AMMO_MODIFIERS),
-            0
-        );
+        assert.equal(getAmmoDamageModifierForWeapon({ system: { ammoType: 'plasma' } }, AMMO_MODIFIERS), 0);
     });
 });
 
 // ─── getAmmoAdModifierForWeapon ──────────────────────────────────────────────
 
 describe('getAmmoAdModifierForWeapon', () => {
-    function makeActor(magazine) {
-        return { items: { get: (id) => (id === magazine?.id ? magazine : null) } };
-    }
-
-    test('returns 0 when item has no magazineId', () => {
-        assert.equal(getAmmoAdModifierForWeapon(makeActor(null), { system: {} }, AMMO_MODIFIERS), 0);
+    test('returns 0 when weapon has no ammoType set (never reloaded)', () => {
+        assert.equal(getAmmoAdModifierForWeapon({ system: {} }, AMMO_MODIFIERS), 0);
     });
 
     test('HE ammo gives +1 AD modifier', () => {
-        const mag = { id: 'm1', system: { ammoType: 'he' } };
-        assert.equal(getAmmoAdModifierForWeapon(makeActor(mag), { system: { magazineId: 'm1' } }, AMMO_MODIFIERS), 1);
+        assert.equal(getAmmoAdModifierForWeapon({ system: { ammoType: 'he' } }, AMMO_MODIFIERS), 1);
     });
 
     test('shotgun_slug gives -1 AD modifier', () => {
-        const mag = { id: 'm2', system: { ammoType: 'shotgun_slug' } };
-        assert.equal(getAmmoAdModifierForWeapon(makeActor(mag), { system: { magazineId: 'm2' } }, AMMO_MODIFIERS), -1);
+        assert.equal(getAmmoAdModifierForWeapon({ system: { ammoType: 'shotgun_slug' } }, AMMO_MODIFIERS), -1);
     });
 
     test('AP ammo gives 0 AD modifier', () => {
-        const mag = { id: 'm3', system: { ammoType: 'ap' } };
-        assert.equal(getAmmoAdModifierForWeapon(makeActor(mag), { system: { magazineId: 'm3' } }, AMMO_MODIFIERS), 0);
+        assert.equal(getAmmoAdModifierForWeapon({ system: { ammoType: 'ap' } }, AMMO_MODIFIERS), 0);
     });
 });
 
 // ─── getAmmoPvModifierForWeapon ──────────────────────────────────────────────
 
 describe('getAmmoPvModifierForWeapon', () => {
-    function makeActor(magazine) {
-        return { items: { get: (id) => (id === magazine?.id ? magazine : null) } };
-    }
-
-    test('returns 0 when item has no magazineId', () => {
-        assert.equal(getAmmoPvModifierForWeapon(makeActor(null), { system: {} }, AMMO_MODIFIERS), 0);
+    test('returns 0 when weapon has no ammoType set (never reloaded)', () => {
+        assert.equal(getAmmoPvModifierForWeapon({ system: {} }, AMMO_MODIFIERS), 0);
     });
 
     test('AP ammo gives -2 PV modifier', () => {
-        const mag = { id: 'm1', system: { ammoType: 'ap' } };
-        assert.equal(getAmmoPvModifierForWeapon(makeActor(mag), { system: { magazineId: 'm1' } }, AMMO_MODIFIERS), -2);
+        assert.equal(getAmmoPvModifierForWeapon({ system: { ammoType: 'ap' } }, AMMO_MODIFIERS), -2);
     });
 
     test('HE ammo gives 0 PV modifier', () => {
-        const mag = { id: 'm2', system: { ammoType: 'he' } };
-        assert.equal(getAmmoPvModifierForWeapon(makeActor(mag), { system: { magazineId: 'm2' } }, AMMO_MODIFIERS), 0);
+        assert.equal(getAmmoPvModifierForWeapon({ system: { ammoType: 'he' } }, AMMO_MODIFIERS), 0);
     });
 
     test('unknown ammo type not in config returns 0', () => {
-        const mag = { id: 'm3', system: { ammoType: 'plasma' } };
-        assert.equal(getAmmoPvModifierForWeapon(makeActor(mag), { system: { magazineId: 'm3' } }, AMMO_MODIFIERS), 0);
+        assert.equal(getAmmoPvModifierForWeapon({ system: { ammoType: 'plasma' } }, AMMO_MODIFIERS), 0);
+    });
+});
+
+// ─── getLoadedAmmoNameForWeapon ──────────────────────────────────────────────
+
+describe('getLoadedAmmoNameForWeapon', () => {
+    test('returns null when weapon has no ammoType set (never reloaded)', () => {
+        assert.equal(getLoadedAmmoNameForWeapon({ system: {} }, AMMO_TYPES), null);
+    });
+
+    test('returns null when weapon ammoType is empty string', () => {
+        assert.equal(getLoadedAmmoNameForWeapon({ system: { ammoType: '' } }, AMMO_TYPES), null);
+    });
+
+    test('returns display name for standard ammo', () => {
+        assert.equal(getLoadedAmmoNameForWeapon({ system: { ammoType: 'standard' } }, AMMO_TYPES), 'Standard');
+    });
+
+    test('returns display name for HE ammo', () => {
+        assert.equal(getLoadedAmmoNameForWeapon({ system: { ammoType: 'he' } }, AMMO_TYPES), 'High Explosive (HE)');
+    });
+
+    test('returns display name for AP ammo', () => {
+        assert.equal(getLoadedAmmoNameForWeapon({ system: { ammoType: 'ap' } }, AMMO_TYPES), 'Armour Piercing (AP)');
+    });
+
+    test('unknown ammo type not in config returns null', () => {
+        assert.equal(getLoadedAmmoNameForWeapon({ system: { ammoType: 'plasma' } }, AMMO_TYPES), null);
     });
 });
 

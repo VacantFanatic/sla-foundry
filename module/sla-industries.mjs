@@ -19,7 +19,7 @@ import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { SLAChat } from './helpers/chat.mjs';
 import { SLA } from './config.mjs';
 
-import { migrateWorld, DATA_MODEL_VERSION } from './migration.mjs';
+import { migrateWorld, DATA_MODEL_VERSION, notifyAmmoTypeReloadNeeded } from './migration.mjs';
 import { rollOwnedItem, addActorItemToHotbar, registerSlaHotbar } from './helpers/sla-hotbar.mjs';
 
 const movementActionState = new Map();
@@ -161,6 +161,14 @@ Hooks.once('init', async function () {
         config: false,
         type: Number,
         default: 0
+    });
+
+    game.settings.register('sla-industries', 'ammoReloadNoticeShown', {
+        name: 'Ammo Reload Notice Shown (internal)',
+        scope: 'world',
+        config: false,
+        type: Boolean,
+        default: false
     });
 
     game.settings.register('sla-industries', 'enableMigrationWorldBackup', {
@@ -350,6 +358,9 @@ Hooks.once('ready', async function () {
     if (DATA_MODEL_VERSION > currentSchemaVersion) {
         await migrateWorld();
     }
+
+    // 2b. One-time GM notice for the 2.8.6 ammoType-on-Reload caveat (not a schema migration)
+    await notifyAmmoTypeReloadNeeded();
 
     // 3. Initialize Global Chat Listeners
     SLAChat.init();

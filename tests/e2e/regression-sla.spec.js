@@ -41,7 +41,12 @@ test.describe('SLA regression — authenticated', () => {
     });
 
     test('boolean world settings are readable', async ({ page }) => {
-        const keys = ['enableCombatMovementLock', 'enableExplosiveThrowAutomation', 'enableMigrationWorldBackup'];
+        const keys = [
+            'enableCombatMovementLock',
+            'enableExplosiveThrowAutomation',
+            'enableMigrationWorldBackup',
+            'ammoReloadNoticeShown'
+        ];
         const ok = await page.evaluate((settingKeys) => {
             return settingKeys.every((k) => typeof game.settings.get('sla-industries', k) === 'boolean');
         }, keys);

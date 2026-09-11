@@ -17,8 +17,18 @@
             <div style="font-size:0.8em; color:#aaa;">AD</div>
             <div style="font-size:1.8em; font-weight:bold; color:#D05E1A;">{{adValue}}</div>
         </div>
+        {{#if pvMod}}
+        <div style="flex:0 0 60px; background:rgba(0,0,0,0.3); padding:5px; text-align:center; border:1px solid #555;">
+            <div style="font-size:0.8em; color:#aaa;">PV MOD</div>
+            <div style="font-size:1.8em; font-weight:bold; color:#3ab0ff;">{{pvMod}}</div>
+        </div>
+        {{/if}}
         {{/unless}}
     </div>
+
+    {{#if ammoName}}
+    <div style="font-size:0.75em; color:#888; text-align:center; margin:2px 0 6px;">Ammo: {{ammoName}}</div>
+    {{/if}}
 
     {{#unless hideApplyButtons}}
     <div style="display:flex; flex-direction:column; gap:4px;">
@@ -27,6 +37,7 @@
                 data-dmg="{{damageTotal}}"
                 data-ad="{{adValue}}"
                 data-pv-mod="{{pvMod}}"
+                data-ammo-name="{{ammoName}}"
                 data-is-heal="{{#if isHeal}}true{{else}}false{{/if}}"
                 data-remove-wounds-count="{{removeWoundsCount}}"
                 data-ebb-target="{{ebbTarget}}"
@@ -39,6 +50,7 @@
                 data-dmg="{{damageTotal}}"
                 data-ad="{{adValue}}"
                 data-pv-mod="{{pvMod}}"
+                data-ammo-name="{{ammoName}}"
                 data-is-heal="{{#if isHeal}}true{{else}}false{{/if}}"
                 data-remove-wounds-count="{{removeWoundsCount}}"
                 data-ebb-target="{{ebbTarget}}"

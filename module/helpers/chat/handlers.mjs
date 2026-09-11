@@ -54,6 +54,7 @@ export async function onRollDamage(ev) {
         let flavorText = '';
         let adValue = readDataNumber(btn, 'ad', 0);
         const pvMod = readDataNumber(btn, 'pv-mod', 0);
+        const ammoName = readDataString(btn, 'ammo-name') || null;
 
         setButtonDisabled(btn, true);
 
@@ -128,6 +129,7 @@ export async function onRollDamage(ev) {
                 rollFormula,
                 adValue,
                 pvMod,
+                ammoName,
                 minDamage: minDmg,
                 flavorText,
                 parentTargets,
@@ -171,6 +173,7 @@ export async function onApplyDamage(ev) {
         const messageId = getChatMessageId(card);
         const message = game.messages.get(messageId);
         const mflags = message?.flags?.sla ?? {};
+        const ammoName = readDataString(btn, 'ammo-name') || mflags.ammoName || null;
 
         const rollingUuid = readDataString(card, 'actor-uuid') || mflags.ebbCasterUuid;
         const rollingActor = rollingUuid ? await fromUuid(rollingUuid) : null;
@@ -195,7 +198,7 @@ export async function onApplyDamage(ev) {
         });
         if (!victim) return;
 
-        await applyEbbOutcomeToActor(victim, rawDamage, ad, { isHeal, removeWoundsCount, pvMod });
+        await applyEbbOutcomeToActor(victim, rawDamage, ad, { isHeal, removeWoundsCount, pvMod, ammoName });
     } catch (err) {
         console.error('SLA | Error in onApplyDamage:', err);
         ui.notifications.error('SLA | Failed to apply damage. See console for details.');
@@ -484,6 +487,8 @@ export async function onChangeDifficulty(ev) {
             dmgDisplay: resolveDamageDisplay(finalDmgFormula, actor ?? null),
             minDamage: minDamage,
             adValue: flags.adValue || 0,
+            pvMod: flags.pvMod || 0,
+            ammoName: flags.ammoName || null,
             sdIsReroll: flags.rofRerollSD,
             mos: {
                 isSuccess: isSuccess,

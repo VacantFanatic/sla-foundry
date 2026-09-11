@@ -4,7 +4,8 @@ import { shouldShowMosWoundChoice } from '../../helpers/wound-visibility.mjs';
 import {
     getAmmoAdModifierForWeapon,
     getAmmoDamageModifierForWeapon,
-    getAmmoPvModifierForWeapon
+    getAmmoPvModifierForWeapon,
+    getLoadedAmmoNameForWeapon
 } from './weapon-gates.mjs';
 import {
     applySuccessThroughExperience,
@@ -95,6 +96,7 @@ function buildWeaponRollTemplateData(
         finalDamageFormula,
         adValue,
         pvMod,
+        ammoName,
         rofRerollSD,
         isSuccess,
         skillSuccessCount,
@@ -125,6 +127,7 @@ function buildWeaponRollTemplateData(
         minDamage: Number(item.system.minDamage) || 0,
         adValue: adValue,
         pvMod: pvMod,
+        ammoName: ammoName,
         sdIsReroll: rofRerollSD,
         mos: {
             isSuccess: isSuccess,
@@ -329,9 +332,10 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
         await sheet._applyHeadshotSideEffect(notes);
     }
 
-    const ammoDamageMod = getAmmoDamageModifierForWeapon(sheet.actor, item);
-    const ammoAdMod = getAmmoAdModifierForWeapon(sheet.actor, item);
-    const pvMod = getAmmoPvModifierForWeapon(sheet.actor, item);
+    const ammoDamageMod = getAmmoDamageModifierForWeapon(item);
+    const ammoAdMod = getAmmoAdModifierForWeapon(item);
+    const pvMod = getAmmoPvModifierForWeapon(item);
+    const ammoName = getLoadedAmmoNameForWeapon(item);
 
     const baseDmg = String(item.system.damage || item.system.dmg || '0');
     const totalMod = mods.damage + mosDamageBonus + ammoDamageMod;
@@ -361,6 +365,7 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
         finalDamageFormula: finalDmgFormula,
         adValue,
         pvMod,
+        ammoName,
         rofRerollSD,
         isSuccess,
         skillSuccessCount,
@@ -390,6 +395,7 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
                     damageMod: mods.damage,
                     adValue: adValue,
                     pvMod: pvMod,
+                    ammoName: ammoName,
                     autoSkillSuccesses: mods.autoSkillSuccesses,
                     successDieModifier: mods.successDie,
                     isWeapon: true
