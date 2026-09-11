@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.8.7] - Unreleased
+
 ### Fixed
 
 - **Threat (NPC) max HP could not be edited in the UI:** The max HP field on Threat sheets was hardcoded read-only, and even when bypassed, derived-data recalculation silently overwrote it every render with a `species base + STR` formula (defaulting to a base of 10 when no species item was present) — so any GM-entered value was immediately reset, and the wound diagram's "critical" state compared HP against that phantom value instead. Threat max HP is now a GM-authored, sheet-editable field like Luck/Flux, matching the rulebook's guidance that GMs may freely adjust NPC Hit Points. Character (PC) max HP is unchanged — still read-only and auto-derived from species + STR.
