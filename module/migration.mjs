@@ -359,7 +359,7 @@ const MIGRATION_200_ACTOR_HTML_FIELDS = {
  * 2.0.0: Application V2 sheets use `<prose-mirror>` for these fields; undefined/null in the database
  * can prevent clean binding. Normalize once so migrated worlds have explicit empty HTML strings.
  */
-async function migrateTo200() {
+export async function migrateTo200() {
     console.log('SLA Industries | Migration 2.0.0: HTML field normalization for V2 sheets');
 
     for (const actor of game.actors) {
@@ -402,7 +402,7 @@ async function migrateTo200() {
  * 2.1.0: Drug items no longer use `system.mods` or `system.damageReduction` (use embedded Active Effects).
  * Drop those keys from persisted data so it matches the current drug item schema.
  */
-async function migrateTo210() {
+export async function migrateTo210() {
     console.log('SLA Industries | Migration 2.1.0: Remove legacy drug mod/damageReduction fields');
 
     /**
