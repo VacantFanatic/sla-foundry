@@ -21,6 +21,11 @@ ensure_docker_daemon
 
 mkdir -p "$DATA_DIR/container_cache" "$DATA_DIR/Data/systems" "$DATA_DIR/Data/worlds"
 
+# The felddy/foundryvtt image runs internally as a fixed non-root uid:gid 1000:1000 and
+# aborts (permission-denied backoff-sleep loop) if its mounted /data volume isn't writable
+# by that uid — match ownership regardless of what user/uid created DATA_DIR on the host.
+sudo chown -R 1000:1000 "$DATA_DIR"
+
 ENV_ARGS=(
   -e "FOUNDRY_TELEMETRY=false"
   -e "FOUNDRY_WORLD=${WORLD}"
@@ -31,6 +36,17 @@ ENV_ARGS=(
 [[ -n "${FOUNDRY_LICENSE_KEY:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_LICENSE_KEY=${FOUNDRY_LICENSE_KEY}")
 [[ -n "${FOUNDRY_USERNAME:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_USERNAME=${FOUNDRY_USERNAME}")
 [[ -n "${FOUNDRY_ACCOUNT_PASSWORD:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_PASSWORD=${FOUNDRY_ACCOUNT_PASSWORD}")
+
+# Some Claude Code Remote sandboxes transparently re-terminate outbound TLS through a
+# policy-enforcing proxy (see /root/.ccr/README.md); the container's Node process needs to
+# be told to trust that CA or foundryvtt.com auth fails with "self-signed certificate in
+# certificate chain". No-op (and no such path) on Cursor Cloud/CI/any other host.
+if [[ -f /root/.ccr/ca-bundle.crt ]]; then
+  ENV_ARGS+=(
+    -v /root/.ccr/ca-bundle.crt:/data/ccr-ca-bundle.crt:ro
+    -e NODE_EXTRA_CA_CERTS=/data/ccr-ca-bundle.crt
+  )
+fi
 
 # Prefer cached zip; only pass timed URL when cache is missing and URL still works.
 cache_zip="$(compgen -G "${DATA_DIR}/container_cache/foundryvtt-"*.zip 2>/dev/null | head -1 || true)"
