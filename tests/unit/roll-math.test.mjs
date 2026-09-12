@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import {
     applyExplosiveRollAdjustments,
     applySuccessThroughExperience,
+    applyWeaponAimAndConditionMods,
     buildEbbDamageFormula,
     buildExplosiveMods,
     buildSkillDiceResults,
@@ -361,5 +362,36 @@ describe('readExplosiveRollForm', () => {
 
     test('defaults aiming to "none" and blind to false when absent', () => {
         assert.deepEqual(readExplosiveRollForm({}), { mod: 0, cover: 0, aiming: 'none', blind: false });
+    });
+});
+
+describe('applyWeaponAimAndConditionMods', () => {
+    function baseMods(overrides = {}) {
+        return { allDice: 0, successDie: 0, autoSkillSuccesses: 0, aimSd: 0, aimAuto: 0, ...overrides };
+    }
+
+    test('rejects an aim total exceeding rank and leaves mods untouched', () => {
+        const mods = baseMods({ aimSd: 2, aimAuto: 2, allDice: 5 });
+        const result = applyWeaponAimAndConditionMods({ mods, rank: 3, prone: false, stunned: false });
+        assert.equal(result, null);
+        assert.deepEqual(mods, baseMods({ aimSd: 2, aimAuto: 2, allDice: 5 }));
+    });
+
+    test('applies prone/stunned penalties and aim bonuses when within rank', () => {
+        const mods = baseMods({ aimSd: 1, aimAuto: 1 });
+        const result = applyWeaponAimAndConditionMods({ mods, rank: 3, prone: true, stunned: true });
+        assert.deepEqual(result, { totalAim: 2 });
+        assert.equal(mods.allDice, -2);
+        assert.equal(mods.successDie, 1);
+        assert.equal(mods.autoSkillSuccesses, 1);
+    });
+
+    test('a zero aim total applies no aim bonus even when prone/stunned adjust allDice', () => {
+        const mods = baseMods();
+        const result = applyWeaponAimAndConditionMods({ mods, rank: 0, prone: true, stunned: false });
+        assert.deepEqual(result, { totalAim: 0 });
+        assert.equal(mods.allDice, -1);
+        assert.equal(mods.successDie, 0);
+        assert.equal(mods.autoSkillSuccesses, 0);
     });
 });

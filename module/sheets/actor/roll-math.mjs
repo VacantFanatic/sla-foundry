@@ -255,6 +255,26 @@ export function applyExplosiveRollAdjustments({ prone, stunned, woundPenalty, ap
 }
 
 /**
+ * Validates the requested aim total against skill rank, and -- only when valid -- applies the
+ * prone/stunned dice penalty and aim bonuses to `mods` in place. Leaves `mods` untouched and
+ * returns null when the aim total exceeds rank; callers should warn and abort the roll in that
+ * case rather than proceed with a partially-applied modifier set.
+ * @param {{ mods: { allDice: number, successDie: number, autoSkillSuccesses: number, aimSd: number, aimAuto: number }, rank: number, prone: boolean, stunned: boolean }}
+ * @returns {{ totalAim: number } | null}
+ */
+export function applyWeaponAimAndConditionMods({ mods, rank, prone, stunned }) {
+    const totalAim = mods.aimSd + mods.aimAuto;
+    if (totalAim > rank) return null;
+
+    if (prone) mods.allDice -= 1;
+    if (stunned) mods.allDice -= 1;
+    if (mods.aimSd > 0) mods.successDie += mods.aimSd;
+    if (mods.aimAuto > 0) mods.autoSkillSuccesses += mods.aimAuto;
+
+    return { totalAim };
+}
+
+/**
  * @param {string} disciplineName
  * @param {Record<string, string>} [ebbDisciplines]
  */
