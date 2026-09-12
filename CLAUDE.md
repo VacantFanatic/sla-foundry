@@ -154,7 +154,24 @@ window.innerWidth)` inside a running test), and it explains genuine "element is 
   fix — `await locator.evaluate((el) => el.click())` dispatches a real DOM `click` event without
   requiring on-screen mouse coordinates — over widening the viewport to chase it; don't assume a
   config value documented as "intended" is safe to actually apply without testing for exactly this
-  kind of environment-specific regression first.
+  kind of environment-specific regression first. **Update, same investigation:** the accidental
+  1280x720 isn't just a Playwright-actionability quirk — it's genuinely below Foundry's own
+  minimum supported resolution, so Foundry displays a persistent "screen resolution too small"
+  warning toast that intercepts pointer events for anything behind it. This directly broke
+  `regression-sla.spec.js`'s Settings test (clicking into the settings config app hung at
+  1280x720) — not a stale selector as first suspected. Scoping `test.use({ viewport: { width:
+  1920, height: 1080 } })` to just that one test _did_ make the warning go away, but it also
+  reproduced the same rendering flakiness the paragraph above warns about (two separate runs of
+  the identical scoped-viewport test gave different, non-deterministic results — one found every
+  setting label instantly, the next couldn't find even the first one after 15s), so it's not a
+  safe fix either, even scoped to a single test. The warning toast renders into `#notifications` —
+  the exact container `dismissFoundryNotifications()` already knows how to clear — and can
+  reappear after the initial dismissal; re-calling `dismissFoundryNotifications(page)` immediately
+  before the click it was blocking fixed it reliably (confirmed clean twice in a row) at the
+  ordinary, stable 1280x720 viewport, no viewport change needed at all. When something a viewport-
+  driven Foundry warning is blocking, look for a way to dismiss the warning itself before reaching
+  for a bigger viewport — this sandbox's software rendering makes viewport size itself the least
+  reliable lever to pull.
 
 ## Code style
 
