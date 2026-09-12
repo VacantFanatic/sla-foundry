@@ -104,23 +104,27 @@ async function clickItemSheetTab(sheet, tabId) {
 }
 
 /**
- * Create a character actor for sheet UI tests.
+ * Create an actor for sheet UI tests.
  * @param {import('@playwright/test').Page} page
  * @param {object} [system]
+ * @param {"character"|"npc"|"vehicle"} [type]
  * @returns {Promise<string>} actor id
  */
-async function createTestActor(page, system = {}) {
-    return page.evaluate(async (actorSystem) => {
-        const stamp = Date.now();
-        const [actor] = await Actor.createDocuments([
-            {
-                name: `E2E Actor ${stamp}`,
-                type: 'character',
-                system: actorSystem
-            }
-        ]);
-        return actor.id;
-    }, system);
+async function createTestActor(page, system = {}, type = 'character') {
+    return page.evaluate(
+        async ({ actorSystem, actorType }) => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Actor ${stamp}`,
+                    type: actorType,
+                    system: actorSystem
+                }
+            ]);
+            return actor.id;
+        },
+        { actorSystem: system, actorType: type }
+    );
 }
 
 /**

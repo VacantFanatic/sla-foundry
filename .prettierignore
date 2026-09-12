@@ -8,3 +8,4 @@ sla-industries.zip
 playwright-report/
 test-results/
 playwright/.cache/
+coverage/

@@ -63,6 +63,7 @@ export class SlaSimpleContentDialog extends HandlebarsApplicationMixin(Applicati
             classes: ['sla-dialog-window', 'dialog', ...classes]
         });
 
+        this._title = title;
         this._contentHtml = contentHtml;
         this._actionLabel = actionLabel;
         this._showCancel = showCancel;
@@ -73,6 +74,7 @@ export class SlaSimpleContentDialog extends HandlebarsApplicationMixin(Applicati
     /** @override */
     async _prepareContext() {
         const context = await super._prepareContext();
+        context.title = this._title;
         context.html = this._contentHtml;
         context.actionLabel = this._actionLabel;
         context.showCancel = this._showCancel;

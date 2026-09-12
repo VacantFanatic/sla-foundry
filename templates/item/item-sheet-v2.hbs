@@ -13,13 +13,13 @@
 
     {{#if useTwoTabs}}
 
-    <nav class="sheet-tabs tabs sla-item-tab-nav" data-group="primary">
-        <a class="item {{tabs.attributes.cssClass}}" data-group="primary" data-tab="attributes">{{localize "SLA.ItemSheet.Tab.Details"}}</a>
-        <a class="item {{tabs.description.cssClass}}" data-group="primary" data-tab="description">{{localize "SLA.ItemSheet.Tab.Description"}}</a>
+    <nav class="sheet-tabs tabs sla-item-tab-nav" data-group="primary" role="tablist" aria-label="{{localize 'SLA.ItemSheet.TabNavLabel'}}">
+        <a class="item {{tabs.attributes.cssClass}}" href="#" id="sla-item-tab-attributes" role="tab" data-group="primary" data-tab="attributes" aria-controls="sla-item-tabpanel-attributes">{{localize "SLA.ItemSheet.Tab.Details"}}</a>
+        <a class="item {{tabs.description.cssClass}}" href="#" id="sla-item-tab-description" role="tab" data-group="primary" data-tab="description" aria-controls="sla-item-tabpanel-description">{{localize "SLA.ItemSheet.Tab.Description"}}</a>
     </nav>
 
     <section class="sheet-body">
-        <div class="tab attributes {{tabs.attributes.cssClass}}" data-group="primary" data-tab="attributes">
+        <div class="tab attributes {{tabs.attributes.cssClass}}" data-group="primary" data-tab="attributes" role="tabpanel" id="sla-item-tabpanel-attributes" aria-labelledby="sla-item-tab-attributes">
             {{#if (eq item.type "skill")}}
             {{> "systems/sla-industries/templates/item/parts/item-skill.hbs"}}
             {{/if}}
@@ -33,7 +33,7 @@
             {{/if}}
         </div>
 
-        <div class="tab description {{tabs.description.cssClass}}" data-group="primary" data-tab="description">
+        <div class="tab description {{tabs.description.cssClass}}" data-group="primary" data-tab="description" role="tabpanel" id="sla-item-tabpanel-description" aria-labelledby="sla-item-tab-description">
             {{#if editable}}
             <prose-mirror class="editor" name="system.description" toggled value="{{system.description}}">{{{enrichedDescription}}}</prose-mirror>
             {{else}}
@@ -44,14 +44,14 @@
 
     {{else}}
 
-    <nav class="sheet-tabs tabs sla-item-tab-nav" data-group="primary">
-        <a class="item {{tabs.attributes.cssClass}}" data-group="primary" data-tab="attributes">{{localize "SLA.ItemSheet.Tab.Details"}}</a>
-        <a class="item {{tabs.description.cssClass}}" data-group="primary" data-tab="description">{{localize "SLA.ItemSheet.Tab.Description"}}</a>
-        <a class="item {{tabs.effects.cssClass}}" data-group="primary" data-tab="effects">{{localize "SLA.ItemSheet.Tab.Effects"}}</a>
+    <nav class="sheet-tabs tabs sla-item-tab-nav" data-group="primary" role="tablist" aria-label="{{localize 'SLA.ItemSheet.TabNavLabel'}}">
+        <a class="item {{tabs.attributes.cssClass}}" href="#" id="sla-item-tab-attributes" role="tab" data-group="primary" data-tab="attributes" aria-controls="sla-item-tabpanel-attributes">{{localize "SLA.ItemSheet.Tab.Details"}}</a>
+        <a class="item {{tabs.description.cssClass}}" href="#" id="sla-item-tab-description" role="tab" data-group="primary" data-tab="description" aria-controls="sla-item-tabpanel-description">{{localize "SLA.ItemSheet.Tab.Description"}}</a>
+        <a class="item {{tabs.effects.cssClass}}" href="#" id="sla-item-tab-effects" role="tab" data-group="primary" data-tab="effects" aria-controls="sla-item-tabpanel-effects">{{localize "SLA.ItemSheet.Tab.Effects"}}</a>
     </nav>
 
     <section class="sheet-body">
-        <div class="tab attributes {{tabs.attributes.cssClass}}" data-group="primary" data-tab="attributes">
+        <div class="tab attributes {{tabs.attributes.cssClass}}" data-group="primary" data-tab="attributes" role="tabpanel" id="sla-item-tabpanel-attributes" aria-labelledby="sla-item-tab-attributes">
             {{#if useCataloguePart}}
             {{> "systems/sla-industries/templates/item/parts/item-catalogue.hbs"}}
             {{/if}}
@@ -69,7 +69,7 @@
             {{/if}}
         </div>
 
-        <div class="tab description {{tabs.description.cssClass}}" data-group="primary" data-tab="description">
+        <div class="tab description {{tabs.description.cssClass}}" data-group="primary" data-tab="description" role="tabpanel" id="sla-item-tabpanel-description" aria-labelledby="sla-item-tab-description">
             {{#if editable}}
             <prose-mirror class="editor" name="system.description" toggled value="{{system.description}}">{{{enrichedDescription}}}</prose-mirror>
             {{else}}
@@ -77,7 +77,7 @@
             {{/if}}
         </div>
 
-        <div class="tab effects {{tabs.effects.cssClass}}" data-group="primary" data-tab="effects">
+        <div class="tab effects {{tabs.effects.cssClass}}" data-group="primary" data-tab="effects" role="tabpanel" id="sla-item-tabpanel-effects" aria-labelledby="sla-item-tab-effects">
             {{> "systems/sla-industries/templates/item/parts/item-effects.hbs"}}
         </div>
     </section>

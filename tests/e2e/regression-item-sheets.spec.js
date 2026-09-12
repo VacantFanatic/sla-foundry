@@ -138,4 +138,26 @@ test.describe('SLA item sheet UI — regression', () => {
         await expect(sheet.locator('.sla-item-effect-row')).toHaveCount(1);
         await expect(sheet.getByText('No active effects.')).toHaveCount(0);
     });
+
+    test('tab rail exposes accessibility attributes', async ({ page }) => {
+        const itemId = await createWorldItem(page, 'weapon', {});
+        const sheet = await openItemSheet(page, itemId);
+
+        const tablist = sheet.locator('nav.sheet-tabs[role="tablist"]');
+        await expect(tablist).toBeVisible();
+
+        const attributesTab = sheet.locator('nav.sheet-tabs a[data-tab="attributes"]');
+        await expect(attributesTab).toHaveAttribute('aria-selected', 'true');
+        await expect(attributesTab).toHaveAttribute('aria-controls', 'sla-item-tabpanel-attributes');
+
+        await clickItemSheetTab(sheet, 'description');
+        await expect(sheet.locator('nav.sheet-tabs a[data-tab="description"]')).toHaveAttribute(
+            'aria-selected',
+            'true'
+        );
+        await expect(sheet.locator('nav.sheet-tabs a[data-tab="attributes"]')).toHaveAttribute(
+            'aria-selected',
+            'false'
+        );
+    });
 });
