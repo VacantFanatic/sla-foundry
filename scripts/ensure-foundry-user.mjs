@@ -3,7 +3,15 @@
  * Ensure FOUNDRY_USER exists on the join page (creates GM user if missing).
  * Uses Gamemaster (default, no password) when the world is already running.
  */
+import { existsSync } from 'node:fs';
 import { chromium } from '@playwright/test';
+
+// Some Claude Code Remote sandboxes pre-install a Chromium build pinned to a different
+// revision than this repo's @playwright/test version expects, so chromium.launch()'s default
+// executable-path resolution fails with "Executable doesn't exist". Prefer the pre-installed
+// build when present; falls through to Playwright's normal resolution everywhere else
+// (Cursor Cloud, CI, a fresh `npx playwright install`).
+const PLAYWRIGHT_EXECUTABLE_PATH = existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined;
 
 const base = process.env.FOUNDRY_URL || 'http://127.0.0.1:30000';
 const targetName = process.env.FOUNDRY_USER;
@@ -41,7 +49,7 @@ function pickBootstrapUser(names) {
     return names[0];
 }
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, executablePath: PLAYWRIGHT_EXECUTABLE_PATH });
 const page = await browser.newPage();
 await page.setViewportSize({ width: 1920, height: 1080 });
 

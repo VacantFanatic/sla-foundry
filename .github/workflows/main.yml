@@ -86,6 +86,12 @@ jobs:
                     echo "present=true" >> "$GITHUB_OUTPUT"
                   fi
 
+            # scripts/cloud-foundry.sh's readiness check (foundry_join_ready) shells out to
+            # ripgrep, which isn't preinstalled on ubuntu-latest runners.
+            - name: Install ripgrep
+              if: steps.creds.outputs.present == 'true'
+              run: sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
+
             - name: Install Playwright browsers
               if: steps.creds.outputs.present == 'true'
               run: npm run test:e2e:install

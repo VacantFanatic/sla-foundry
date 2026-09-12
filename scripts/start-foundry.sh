@@ -38,13 +38,15 @@ ENV_ARGS=(
 [[ -n "${FOUNDRY_ACCOUNT_PASSWORD:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_PASSWORD=${FOUNDRY_ACCOUNT_PASSWORD}")
 
 # Some Claude Code Remote sandboxes transparently re-terminate outbound TLS through a
-# policy-enforcing proxy (see /root/.ccr/README.md); the container's Node process needs to
-# be told to trust that CA or foundryvtt.com auth fails with "self-signed certificate in
-# certificate chain". No-op (and no such path) on Cursor Cloud/CI/any other host.
+# policy-enforcing proxy (see /root/.ccr/README.md); both the container's Node process
+# (auth) and its curl calls (release download) need to be told to trust that CA, or
+# foundryvtt.com requests fail with "self-signed certificate in certificate chain". No-op
+# (and no such path) on Cursor Cloud/CI/any other host.
 if [[ -f /root/.ccr/ca-bundle.crt ]]; then
   ENV_ARGS+=(
     -v /root/.ccr/ca-bundle.crt:/data/ccr-ca-bundle.crt:ro
     -e NODE_EXTRA_CA_CERTS=/data/ccr-ca-bundle.crt
+    -e CURL_CA_BUNDLE=/data/ccr-ca-bundle.crt
   )
 fi
 
