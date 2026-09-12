@@ -205,6 +205,23 @@ npm run test:unit
 
 Tests use Node's built-in test runner (`node --test`) — no Foundry required. Pure helper functions and data-model logic are the primary targets; UI and Foundry-API-dependent code is covered by E2E specs instead.
 
+## Keep tests in sync with the code
+
+When a change moves markup, renames a `data-*` attribute or CSS class, relocates content to a
+different tab/panel, or otherwise changes a sheet/dialog's structure, update every test that
+touches that structure in the **same** change — don't leave it for a later pass. A test left
+behind doesn't fail loudly and get noticed; it fails much later, looking like a mystery
+regression, when the actual cause was simply that the test still assumes the old layout.
+
+This is not hypothetical: several `tests/e2e/regression-actor-sheets.spec.js` and
+`regression-sla.spec.js` failures diagnosed in this session's CI runs (job `103622272003`) turned
+out to be exactly this — a wound-diagram locator using an attribute name (`data-area`) the markup
+had never actually used, and an HP-bar assertion missing a tab switch after the HP bar moved into
+`combat-tab.hbs`. Both tests were stale against the current layout, not testing a real bug; they'd
+clearly been failing since whenever the layout last changed, just unnoticed because the E2E suite
+had no CI gate until this session added one. Update the test in the same PR that changes the
+markup it depends on, so drift like this can't accumulate silently again.
+
 ---
 
 # AGENTS.md
