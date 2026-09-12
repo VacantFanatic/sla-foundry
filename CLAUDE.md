@@ -112,6 +112,28 @@ current.
   than guessing at an internal API shape; `canvas.grid`, by contrast, is safe to
   temporarily overwrite wholesale for a deterministic distance stub since it's a plain
   object property, not a derived/live collection.
+- **A shared accessibility helper only fixes the markup it's given — copy/pasted templates
+  can apply it inconsistently and nothing will flag the gap.** `actor-sheet.mjs`'s
+  `#syncTabAccessibility` (queries `nav.sheet-tabs [role="tab"]` and syncs
+  `aria-selected`/`tabindex`) works correctly, but `actor-npc-sheet-v2.hbs` only gave the
+  `combat` tab the full `id`/`role="tab"`/`aria-controls` markup the character sheet gives
+  every tab — the other four NPC tabs (`inventory`, `effects`, `skills`, `notes`) had no
+  `role="tab"` at all, so the shared JS silently skipped them every render. The one existing
+  aria E2E assertion (`regression-actor-sheets.spec.js`) only ever exercised the character
+  sheet, so this went unnoticed. When a JS helper is written against a markup contract
+  (`[role="tab"]`, a specific `id` naming scheme), audit every template that's supposed to
+  satisfy that contract, not just the one the helper was originally built for — and add an
+  aria assertion per sheet type, not just one for the "primary" sheet.
+- **A weapon-attack code path can be gated behind a world setting, not just canvas state.**
+  `renderAttackDialog`/`processWeaponRoll` (`weapon-rolls.mjs`) call
+  `canProceedWithWeaponAttack(sheet, item, { requireTarget: true })`, which blocks on
+  `game.user.targets.size === 0` only when the `enableTargetRequiredFeatures` world setting
+  is on — and it defaults to on. E2E specs for the Attack dialog therefore don't need a
+  placed scene token/target at all (which the canvas-state lesson above warns against
+  faking); temporarily setting that world setting to `false` for the test (capturing and
+  restoring it per the shared-state lesson above) reaches the melee attack path with zero
+  canvas setup. Before assuming a gated flow requires unreliable canvas/token state, check
+  whether the gate is actually a `game.settings.get(...)` world setting instead.
 
 ## Code style
 
