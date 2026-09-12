@@ -6,8 +6,12 @@ async function joinGame(page) {
     const user = process.env.FOUNDRY_USER;
     if (!user) throw new Error('FOUNDRY_USER is required');
     await page.goto('/join');
-    await page.getByRole('combobox').selectOption({ label: user });
-    await page.getByRole('textbox', { name: /password/i }).fill(process.env.FOUNDRY_PASSWORD ?? '');
+    // Foundry v14's Join Game form is an autocomplete text input (`input[name="username"]`),
+    // not the classic `<select name="userid">` dropdown earlier Foundry versions used —
+    // confirmed directly from the served client source (JoinGameForm in scripts/foundry.mjs).
+    await page.locator('input[name="username"]').fill(user);
+    const passwordField = page.locator('input[name="password"]');
+    if (await passwordField.count()) await passwordField.fill(process.env.FOUNDRY_PASSWORD ?? '');
     await page.getByRole('button', { name: /join game session/i }).click();
     await page.waitForURL(/\/game/, { timeout: 60_000 });
 }
