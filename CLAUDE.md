@@ -52,6 +52,13 @@ obvious from the code alone.
 
 ## Lessons learned
 
+When you discover a new non-obvious lesson during a session — a bug class, a testing
+pitfall, a footgun in this codebase or in Foundry's API — add it as a new bullet here
+before ending your turn, in the same style as the entries below: concrete, evidenced by a
+specific file/commit, and generalized into an actionable rule for next time. Do this even
+if the session's main task was something else; this section is only useful if it stays
+current.
+
 - **A field referenced in code is not necessarily part of the data model.** The ammo
   modifier system (`weapon-gates-pure.mjs`) was built around `item.system.magazineId` on
   weapons, but `SlaWeaponData` (`module/data/item.mjs`) never declared that field in its
@@ -79,6 +86,32 @@ obvious from the code alone.
   that shape against the actual runtime's current schema/constants before trusting it — a
   green test suite only proves the code satisfies its own tests, not that the tests match
   reality.
+- **A test mock that doesn't reference the real schema can drift from it silently.**
+  `tests/unit/roll-math.test.mjs`'s `buildEbbDamageFormula` tests mocked
+  `item.system.dmg` — a field never declared on `SlaEbbFormulaData` (the real field is
+  `damage`) — and only passed because of a dead `item.system.dmg || item.system.damage`
+  fallback in `roll-math.mjs`/`weapon-gates.mjs`/`weapon-rolls.mjs`. Removing that fallback
+  (itself flagged because `dmg` was never declared anywhere) broke the test, which is what
+  surfaced the mismatch. A green test that only passes because of a dead code path is a
+  sign the test's input shape is wrong, not that the dead path is safe to keep — when
+  deleting a fallback or branch believed unreachable, re-run the full suite and treat any
+  resulting failure as a bug in the test, not a reason to keep the fallback.
+- **Not all Foundry state is per-test.** Actors and items created in a test are cleanly
+  scoped (create, assert, delete), but world settings (`game.settings.get`/`set`),
+  `game.user.hotbar`, and world-level Macros are shared, persistent state — a test that
+  flips a setting or assigns a hotbar slot without restoring/clearing it afterward leaks
+  into every later test and into the GM's real session. Capture the original value before
+  changing shared state and restore it in the same test (see the `applyRangedModifiers` and
+  `executeEbbRoll` E2E specs), and delete any Macro or clear any hotbar slot a test creates.
+- **Don't fake canvas/token state you can't verify against a live Foundry instance.**
+  Functions that read `game.user.targets` or `canvas.tokens.controlled` (target/token-
+  dependent gating, range checks) can't be safely tested by constructing fake Set-like
+  objects without a running instance to confirm the override actually works. Prefer testing
+  the real default (no target/token selected — often the only state reachable without a
+  placed scene token anyway) and leave the token-present branch as a documented gap rather
+  than guessing at an internal API shape; `canvas.grid`, by contrast, is safe to
+  temporarily overwrite wholesale for a deterministic distance stub since it's a plain
+  object property, not a derived/live collection.
 
 ## Code style
 

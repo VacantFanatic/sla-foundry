@@ -115,7 +115,7 @@ export async function executeCombatLoadoutDamageRoll(sheet, anchor) {
         ammoName = getLoadedAmmoNameForWeapon(item);
     }
 
-    const rawBase = item.system.damage || item.system.dmg || '0';
+    const rawBase = item.system.damage || '0';
     const rollFormula = buildWeaponDamageFormula(String(rawBase), damageMod);
     const minDamage = Number(item.system.minDamage) || 0;
     const baseAdValue =

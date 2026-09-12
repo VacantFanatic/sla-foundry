@@ -9,6 +9,7 @@ import {
 } from './weapon-gates.mjs';
 import {
     applySuccessThroughExperience,
+    applyWeaponAimAndConditionMods,
     buildSkillDiceResults,
     buildWeaponDamageFormula,
     buildWeaponRollMods,
@@ -226,17 +227,17 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
     const notes = [];
     const flags = { rerollSD: false, rerollAll: false };
 
-    const totalAim = mods.aimSd + mods.aimAuto;
-    if (totalAim > rank) {
+    const aimResult = applyWeaponAimAndConditionMods({
+        mods,
+        rank,
+        prone: Boolean(sheet.actor.system.conditions?.prone),
+        stunned: Boolean(sheet.actor.system.conditions?.stunned)
+    });
+    if (!aimResult) {
+        const totalAim = mods.aimSd + mods.aimAuto;
         ui.notifications.warn(`Total Aiming rounds (${totalAim}) cannot exceed Skill Rank (${rank}).`);
         return;
     }
-
-    if (sheet.actor.system.conditions?.prone) mods.allDice -= 1;
-    if (sheet.actor.system.conditions?.stunned) mods.allDice -= 1;
-
-    if (mods.aimSd > 0) mods.successDie += mods.aimSd;
-    if (mods.aimAuto > 0) mods.autoSkillSuccesses += mods.aimAuto;
 
     const rangedContext = sheet._resolveRangedAttackContext(item, isMelee);
 
@@ -337,7 +338,7 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
     const pvMod = getAmmoPvModifierForWeapon(item);
     const ammoName = getLoadedAmmoNameForWeapon(item);
 
-    const baseDmg = String(item.system.damage || item.system.dmg || '0');
+    const baseDmg = String(item.system.damage || '0');
     const totalMod = mods.damage + mosDamageBonus + ammoDamageMod;
     const finalDmgFormula = buildWeaponDamageFormula(baseDmg, totalMod);
     const showButton = isSuccess && finalDmgFormula && finalDmgFormula !== '0';

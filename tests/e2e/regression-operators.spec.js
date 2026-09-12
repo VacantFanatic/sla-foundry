@@ -113,6 +113,142 @@ test.describe('GM: operative creation and weapon item (document API)', () => {
     });
 });
 
+test.describe('GM: reload pipeline persists ammo modifiers (document API)', () => {
+    test.beforeEach(async ({ page }) => {
+        needsAuth();
+        await joinGame(page);
+        await waitForSLASystem(page);
+        const gm = await page.evaluate(() => game.user?.isGM === true);
+        test.skip(!gm, 'Requires GM — use a Gamemaster account for FOUNDRY_USER');
+    });
+
+    test('performReload persists magazine ammoType onto the weapon, and modifiers apply', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([{ name: `E2E Reload Test ${stamp}`, type: 'character' }]);
+            const weaponName = `E2E Reload Rifle ${stamp}`;
+            const [weapon] = await actor.createEmbeddedDocuments('Item', [
+                { name: weaponName, type: 'weapon', system: { skill: 'rifle', damage: '1d10' } }
+            ]);
+            const [magazine] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E HE Magazine ${stamp}`,
+                    type: 'magazine',
+                    system: { linkedWeapon: weaponName, ammoType: 'he', ammoCapacity: 12, quantity: 1 }
+                }
+            ]);
+
+            const { performReload } = await import('/systems/sla-industries/module/sheets/actor/reload.mjs');
+            await performReload({ actor }, weapon, magazine);
+
+            const reloadedWeapon = actor.items.get(weapon.id);
+            const persistedAmmoType = reloadedWeapon.system.ammoType;
+
+            const { getAmmoDamageModifierForWeapon, getAmmoAdModifierForWeapon, getAmmoPvModifierForWeapon } =
+                await import('/systems/sla-industries/module/sheets/actor/weapon-gates.mjs');
+
+            const damageMod = getAmmoDamageModifierForWeapon(reloadedWeapon);
+            const adMod = getAmmoAdModifierForWeapon(reloadedWeapon);
+            const pvMod = getAmmoPvModifierForWeapon(reloadedWeapon);
+
+            const magazineConsumed = actor.items.get(magazine.id) === undefined;
+
+            await actor.delete();
+
+            return { persistedAmmoType, damageMod, adMod, pvMod, magazineConsumed };
+        });
+
+        expect(result.persistedAmmoType).toBe('he');
+        expect(result.damageMod).toBe(1);
+        expect(result.adMod).toBe(1);
+        expect(result.pvMod).toBe(0);
+        expect(result.magazineConsumed).toBe(true);
+    });
+});
+
+test.describe('GM: TN adjustment preserves ammo PV modifier (document API)', () => {
+    test.beforeEach(async ({ page }) => {
+        needsAuth();
+        await joinGame(page);
+        await waitForSLASystem(page);
+        const gm = await page.evaluate(() => game.user?.isGM === true);
+        test.skip(!gm, 'Requires GM — use a Gamemaster account for FOUNDRY_USER');
+    });
+
+    test('onChangeDifficulty rebuilds the card without dropping flags.sla.pvMod/ammoName', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                { name: `E2E TN Adjust Test ${stamp}`, type: 'character', system: { stats: { luck: { value: 1 } } } }
+            ]);
+
+            // baseModifier is set high enough that the recalculated roll always succeeds,
+            // regardless of the actual dice — this test is about the flags round-trip, not
+            // about roll-success math (already covered by tests/unit/chat-difficulty.test.mjs).
+            const roll = new Roll('1d10 + 2d10');
+            await roll.evaluate();
+
+            const message = await ChatMessage.create({
+                speaker: ChatMessage.getSpeaker({ actor }),
+                content: '<div class="sla-chat-card"></div>',
+                rolls: [roll],
+                flags: {
+                    sla: {
+                        isWeapon: true,
+                        baseModifier: 20,
+                        itemName: 'E2E AP Rifle',
+                        notes: 'Attack',
+                        tn: 10,
+                        damageBase: '1d10',
+                        damageMod: 0,
+                        adValue: 5,
+                        pvMod: -2,
+                        ammoName: 'Armour Piercing (AP)',
+                        autoSkillSuccesses: 0,
+                        successDieModifier: 0,
+                        targets: []
+                    }
+                }
+            });
+
+            const card = document.createElement('div');
+            card.className = 'sla-chat-card';
+            card.dataset.actorUuid = actor.uuid;
+
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = 'message';
+            messageWrapper.dataset.messageId = message.id;
+            messageWrapper.appendChild(card);
+
+            const damageRollBtn = document.createElement('button');
+            damageRollBtn.className = 'damage-roll';
+            damageRollBtn.dataset.min = '0';
+            card.appendChild(damageRollBtn);
+
+            const tnBtn = document.createElement('button');
+            tnBtn.className = 'diff-btn sla-diff-btn';
+            tnBtn.dataset.tn = '13';
+            card.appendChild(tnBtn);
+
+            const { onChangeDifficulty } = await import('/systems/sla-industries/module/helpers/chat/handlers.mjs');
+            await onChangeDifficulty({ preventDefault: () => {}, currentTarget: tnBtn });
+
+            const updated = game.messages.get(message.id);
+            const persistedTn = updated.flags.sla.tn;
+            const content = updated.content;
+
+            await message.delete();
+            await actor.delete();
+
+            return { persistedTn, content };
+        });
+
+        expect(result.persistedTn).toBe(13);
+        expect(result.content).toContain('data-pv-mod="-2"');
+        expect(result.content).toContain('data-ammo-name="Armour Piercing (AP)"');
+    });
+});
+
 test.describe('GM: Ebb formula active effects (document API)', () => {
     test.beforeEach(async ({ page }) => {
         needsAuth();

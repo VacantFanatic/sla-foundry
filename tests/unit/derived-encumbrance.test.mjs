@@ -4,6 +4,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+    computeArmorPiecePv,
     computeCarriedItemWeight,
     computeEncumbranceState,
     computeEffectiveArmorPv
@@ -63,5 +64,25 @@ describe('computeEffectiveArmorPv', () => {
     test('returns max of base and equipped armor PV', () => {
         assert.equal(computeEffectiveArmorPv(2, 5), 5);
         assert.equal(computeEffectiveArmorPv(10, 5), 10);
+    });
+});
+
+describe('computeArmorPiecePv', () => {
+    test('no resistance data returns raw PV unchanged', () => {
+        assert.equal(computeArmorPiecePv({ pv: 6 }), 6);
+    });
+
+    test('resistance at or below 0 zeroes the PV', () => {
+        assert.equal(computeArmorPiecePv({ pv: 6, resistance: { value: 0, max: 10 } }), 0);
+        assert.equal(computeArmorPiecePv({ pv: 6, resistance: { value: -1, max: 10 } }), 0);
+    });
+
+    test('resistance below half max halves PV (floored)', () => {
+        assert.equal(computeArmorPiecePv({ pv: 7, resistance: { value: 4, max: 10 } }), 3);
+    });
+
+    test('resistance at or above half max leaves PV unchanged', () => {
+        assert.equal(computeArmorPiecePv({ pv: 6, resistance: { value: 5, max: 10 } }), 6);
+        assert.equal(computeArmorPiecePv({ pv: 6, resistance: { value: 10, max: 10 } }), 6);
     });
 });

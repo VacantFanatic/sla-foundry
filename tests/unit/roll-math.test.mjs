@@ -6,10 +6,12 @@ import assert from 'node:assert/strict';
 import {
     applyExplosiveRollAdjustments,
     applySuccessThroughExperience,
+    applyWeaponAimAndConditionMods,
     buildEbbDamageFormula,
     buildExplosiveMods,
     buildSkillDiceResults,
     buildSkillRollFormula,
+    buildWeaponRollMods,
     calculateEbbModifier,
     computeExplosiveMaxRange,
     computeMeleeStrDamageModifier,
@@ -18,6 +20,8 @@ import {
     isStatCheckSuccess,
     computeWeaponSkillDiceCount,
     buildWeaponDamageFormula,
+    readExplosiveRollForm,
+    readWeaponRollFormState,
     resolveEbbDisciplineName,
     resolveEbbOutcomeText,
     resolveExplosiveBlastData,
@@ -238,7 +242,7 @@ describe('buildEbbDamageFormula', () => {
     test('adds MOS bonus for successful damage formula', () => {
         const item = {
             system: {
-                dmg: '2d10',
+                damage: '2d10',
                 ebbEffect: 'damage',
                 removeWounds: 0
             }
@@ -252,7 +256,7 @@ describe('buildEbbDamageFormula', () => {
     test('effect-only heal wounds shows remove wounds without HP roll', () => {
         const item = {
             system: {
-                dmg: '0',
+                damage: '0',
                 ebbEffect: 'effect',
                 removeWounds: 2
             }
@@ -282,5 +286,112 @@ describe('resolveWeaponMosOutcome', () => {
         });
         assert.equal(mos.mosDamageBonus, 6);
         assert.equal(mos.shouldApplyHeadWound, true);
+    });
+});
+
+describe('readWeaponRollFormState', () => {
+    test('reads numeric fields and coerces missing inputs to 0', () => {
+        const form = {
+            modifier: { value: '2' },
+            aim_sd: { value: '1' },
+            aim_auto: { value: '' },
+            combatDef: { value: '3' },
+            acroDef: { value: undefined },
+            prone: { checked: true }
+        };
+        const state = readWeaponRollFormState(form);
+        assert.deepEqual(state, {
+            modifier: 2,
+            aimSd: 1,
+            aimAuto: 0,
+            combatDef: 3,
+            acroDef: 0,
+            targetProne: true
+        });
+    });
+
+    test('defaults to 0/false when the form is empty', () => {
+        const state = readWeaponRollFormState({});
+        assert.deepEqual(state, {
+            modifier: 0,
+            aimSd: 0,
+            aimAuto: 0,
+            combatDef: 0,
+            acroDef: 0,
+            targetProne: false
+        });
+    });
+});
+
+describe('buildWeaponRollMods', () => {
+    test('carries form-derived values through, zeroing the roll-computed fields', () => {
+        const mods = buildWeaponRollMods({
+            modifier: 2,
+            aimSd: 1,
+            aimAuto: 3,
+            combatDef: 1,
+            acroDef: 2,
+            targetProne: true
+        });
+        assert.deepEqual(mods, {
+            successDie: 0,
+            allDice: 2,
+            rank: 0,
+            damage: 0,
+            autoSkillSuccesses: 0,
+            reservedDice: 0,
+            aimSd: 1,
+            aimAuto: 3,
+            combatDef: 1,
+            acroDef: 2,
+            targetProne: true
+        });
+    });
+});
+
+describe('readExplosiveRollForm', () => {
+    test('reads numeric/string/checkbox fields and coerces missing inputs', () => {
+        const form = {
+            modifier: { value: '1' },
+            cover: { value: '2' },
+            aiming: { value: 'careful' },
+            blind: { checked: true }
+        };
+        assert.deepEqual(readExplosiveRollForm(form), { mod: 1, cover: 2, aiming: 'careful', blind: true });
+    });
+
+    test('defaults aiming to "none" and blind to false when absent', () => {
+        assert.deepEqual(readExplosiveRollForm({}), { mod: 0, cover: 0, aiming: 'none', blind: false });
+    });
+});
+
+describe('applyWeaponAimAndConditionMods', () => {
+    function baseMods(overrides = {}) {
+        return { allDice: 0, successDie: 0, autoSkillSuccesses: 0, aimSd: 0, aimAuto: 0, ...overrides };
+    }
+
+    test('rejects an aim total exceeding rank and leaves mods untouched', () => {
+        const mods = baseMods({ aimSd: 2, aimAuto: 2, allDice: 5 });
+        const result = applyWeaponAimAndConditionMods({ mods, rank: 3, prone: false, stunned: false });
+        assert.equal(result, null);
+        assert.deepEqual(mods, baseMods({ aimSd: 2, aimAuto: 2, allDice: 5 }));
+    });
+
+    test('applies prone/stunned penalties and aim bonuses when within rank', () => {
+        const mods = baseMods({ aimSd: 1, aimAuto: 1 });
+        const result = applyWeaponAimAndConditionMods({ mods, rank: 3, prone: true, stunned: true });
+        assert.deepEqual(result, { totalAim: 2 });
+        assert.equal(mods.allDice, -2);
+        assert.equal(mods.successDie, 1);
+        assert.equal(mods.autoSkillSuccesses, 1);
+    });
+
+    test('a zero aim total applies no aim bonus even when prone/stunned adjust allDice', () => {
+        const mods = baseMods();
+        const result = applyWeaponAimAndConditionMods({ mods, rank: 0, prone: true, stunned: false });
+        assert.deepEqual(result, { totalAim: 0 });
+        assert.equal(mods.allDice, -1);
+        assert.equal(mods.successDie, 0);
+        assert.equal(mods.autoSkillSuccesses, 0);
     });
 });
