@@ -134,6 +134,27 @@ current.
   restoring it per the shared-state lesson above) reaches the melee attack path with zero
   canvas setup. Before assuming a gated flow requires unreliable canvas/token state, check
   whether the gate is actually a `game.settings.get(...)` world setting instead.
+- **`devices['Desktop Chrome']` in `playwright.config.js` silently overrides the top-level
+  `use.viewport`, and "fixing" that to the documented 1920x1080 can destabilize the whole suite
+  in a GPU-less sandbox.** `playwright.config.js`'s top-level `use` declares
+  `viewport: { width: 1920, height: 1080 }`, but the `chromium` project's `use: { ...devices['Desktop
+Chrome'] }` spreads in that device preset's own `viewport: { width: 1280, height: 720 }` —
+  project-level `use` wins the merge, so every E2E test has actually always run at 1280x720, not
+  1920x1080. This is real and reproducible (confirmed via a live `page.evaluate(() =>
+window.innerWidth)` inside a running test), and it explains genuine "element is outside of the
+  viewport" failures for UI docked near the right edge (e.g. the chat sidebar's per-message action
+  buttons in `regression-dialogs.spec.js`'s Luck dialog test). The instinctive fix — re-asserting
+  `viewport: { width: 1920, height: 1080 }` in the project's `use` to match the documented intent —
+  is _not_ safe to apply blindly: in this sandbox's software-rendered, GPU-less headless Chromium
+  (`--use-angle=swiftshader-webgl`), doubling the rendered pixel count reproducibly broke the
+  _entire_ suite (two independent clean `nohup`-backgrounded runs both went from 7-9/10 passing to
+  3/10, with page/browser crashes and "element was detached from the DOM" errors), while reverting
+  the viewport back to the accidental 1280x720 immediately restored full stability. When an element
+  is genuinely visible but sits outside whatever viewport is in effect, prefer a viewport-independent
+  fix — `await locator.evaluate((el) => el.click())` dispatches a real DOM `click` event without
+  requiring on-screen mouse coordinates — over widening the viewport to chase it; don't assume a
+  config value documented as "intended" is safe to actually apply without testing for exactly this
+  kind of environment-specific regression first.
 
 ## Code style
 

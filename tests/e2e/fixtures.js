@@ -37,6 +37,13 @@ async function waitForSLASystem(page) {
  * Close Foundry toast notifications (`#notifications`). They use fixed positioning and can sit over
  * sidebar/settings; Playwright will refuse (or time out) real clicks when a `<p>` in the toast
  * intercepts pointer events — dismiss first, then interact with the UI.
+ *
+ * Also exits any in-progress core "tour" (`game.tours`). Foundry auto-starts its "welcome" tour
+ * the first time a GM logs into a freshly created world — confirmed live via `game.tours`, whose
+ * entries carry `status`/`exit()` (CONST.TOUR_STATUS). The tour renders as a full-screen overlay
+ * (`aside.tour-center-step`) that intercepts pointer events for anything behind it until exited,
+ * so any test whose first UI interaction is the first click of the run can hang on this. CI
+ * provisions a fresh `sla-test-world` on every run, so the tour fires deterministically there.
  * @param {import('@playwright/test').Page} page
  */
 async function dismissFoundryNotifications(page) {
@@ -55,6 +62,14 @@ async function dismissFoundryNotifications(page) {
             document.querySelector('#notifications')?.replaceChildren();
         });
     }
+
+    await page
+        .evaluate(() => {
+            for (const tour of globalThis.game?.tours?.values?.() ?? []) {
+                if (tour.status === 'in-progress') tour.exit();
+            }
+        })
+        .catch(() => {});
 }
 
 /**
@@ -178,7 +193,7 @@ async function deleteTestActors(page) {
 async function closeApplicationWindows(page) {
     await page
         .evaluate(() => {
-            for (const app of globalThis.ui?.applications?.values?.() ?? []) {
+            for (const app of globalThis.foundry?.applications?.instances?.values?.() ?? []) {
                 app.close?.();
             }
         })

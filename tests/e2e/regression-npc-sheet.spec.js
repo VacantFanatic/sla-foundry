@@ -92,7 +92,7 @@ test.describe('SLA NPC/Threat sheet UI — regression', () => {
         await openActorSheet(page, actorId);
 
         const duplicates = await page.evaluate((id) => {
-            const app = Array.from(globalThis.ui.applications.values()).find((a) => a.actor?.id === id);
+            const app = Array.from(globalThis.foundry.applications.instances.values()).find((a) => a.actor?.id === id);
             const names = Array.from(app.element.querySelectorAll('[name]')).map((el) => el.getAttribute('name'));
             const seen = new Map();
             for (const name of names) seen.set(name, (seen.get(name) ?? 0) + 1);

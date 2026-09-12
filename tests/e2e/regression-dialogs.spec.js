@@ -83,9 +83,15 @@ test.describe('SLA dialogs UI — regression', () => {
             )
             .toBe(true);
 
+        // The chat sidebar's message cards render partially past the browser viewport's right
+        // edge (confirmed live via getBoundingClientRect()) — Foundry's own chrome, not something
+        // this system's markup controls. The button is genuinely visible and clickable, but
+        // Playwright's mouse-simulated click requires real on-screen coordinates to land a pointer
+        // event, which `force: true` does not provide for an off-viewport element. Dispatch the
+        // click directly in-page instead — still a real DOM `click` event, just not mouse-driven.
         const luckBtn = page.locator('.chat-btn-luck').last();
         await expect(luckBtn).toBeVisible();
-        await luckBtn.click();
+        await luckBtn.evaluate((el) => el.click());
 
         const dialog = page.locator('.luck-dialog').last();
         await expect(dialog).toBeVisible();
@@ -118,7 +124,11 @@ test.describe('SLA dialogs UI — regression', () => {
             const sheet = await openActorSheet(page, actorId);
             await clickActorSheetTab(sheet, 'combat');
 
-            await sheet.locator('.item.sla-combat-row a.rollable.sla-combat-action[data-roll-type="item"]').click();
+            await sheet
+                .locator('.item.sla-combat-row')
+                .filter({ hasText: 'Combat Knife' })
+                .locator('a.rollable.sla-combat-action[data-roll-type="item"]')
+                .click();
 
             const dialog = page.locator('.sla-dialog-window.dialog').last();
             await expect(dialog).toBeVisible();
@@ -180,7 +190,12 @@ test.describe('SLA dialogs UI — regression', () => {
             .toBeGreaterThan(0);
     });
 
-    test('Simple content dialog — Cancel closes without invoking the confirm callback', async ({ page }) => {
+    // The Reload dialog is a SlaSimpleContentDialog constructed without `showCancel: true`
+    // (see module/apps/sla-simple-dialog.mjs `_onRender()`), so its Cancel button is
+    // intentionally hidden — dismissal only happens via the window's native close control.
+    test('Simple content dialog — closing via the window control does not invoke the confirm callback', async ({
+        page
+    }) => {
         const actorId = await createTestActor(page, {});
         await page.evaluate(async (id) => {
             const actor = game.actors.get(id);
@@ -204,7 +219,11 @@ test.describe('SLA dialogs UI — regression', () => {
         const dialog = page.locator('.sla-dialog-window').last();
         await expect(dialog).toBeVisible();
 
-        await dialog.locator('[data-action="closeDialog"]').click();
+        await expect(dialog.locator('[data-action="closeDialog"]')).toBeHidden();
+
+        // ApplicationV2's native window-close control is a header-control button identified by
+        // `data-action="close"` (confirmed from the rendered dialog markup), not a `.close` class.
+        await dialog.locator('.window-header [data-action="close"]').click();
         await expect(dialog).toHaveCount(0);
 
         expect(
