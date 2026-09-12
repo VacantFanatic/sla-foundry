@@ -165,11 +165,20 @@ async function openActorSheet(page, actorId) {
 
 /**
  * Switch actor sheet tabs (App V2 rail uses data-tab anchors).
+ *
+ * Uses an in-page `el.click()` rather than a mouse-simulated Playwright click: CI has shown a
+ * real (if rare) race where the tab rail gets rebuilt between Playwright's multi-step
+ * actionability check (visible, stable, scrolled into view, receives pointer events) and the
+ * actual click, surfacing as "element was detached from the DOM, retrying" until the test
+ * timeout. A locator-scoped `evaluate()` still waits for the element to be attached, then
+ * resolves and clicks it in one synchronous in-page step, closing that window.
  * @param {import('@playwright/test').Locator} sheet
  * @param {string} tabId
  */
 async function clickActorSheetTab(sheet, tabId) {
-    await sheet.locator(`nav.sheet-tabs a[data-tab="${tabId}"]`).click();
+    const tab = sheet.locator(`nav.sheet-tabs a[data-tab="${tabId}"]`);
+    await tab.waitFor({ state: 'visible', timeout: 15_000 });
+    await tab.evaluate((el) => el.click());
 }
 
 /**
