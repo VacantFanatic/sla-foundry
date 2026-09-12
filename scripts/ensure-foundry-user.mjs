@@ -24,14 +24,26 @@ if (!targetName) {
     process.exit(1);
 }
 
+/**
+ * Foundry v14's Join Game form is an autocomplete text input (`input[name="username"]`),
+ * not the classic `<select name="userid">` dropdown earlier Foundry versions used — confirmed
+ * directly from the served client source (JoinGameForm._prepareContext() in scripts/foundry.mjs
+ * sets `context.users = game.users`). Read the live user list straight from the `game` global
+ * instead of scraping DOM markup that no longer exists.
+ */
 async function waitForJoinUsers(page) {
     const deadline = Date.now() + maxWaitMs;
     while (Date.now() < deadline) {
         await page.goto(`${base}/join`, { waitUntil: 'networkidle', timeout: 60_000 });
-        const labels = await page.locator("select[name='userid'] option").allTextContents();
-        const names = labels.map((l) => l.trim()).filter(Boolean);
-        if (names.length) {
-            return names;
+        const hasForm = await page.locator('input[name="username"]').count();
+        if (hasForm) {
+            await page.waitForFunction(() => globalThis.game?.users != null, null, { timeout: 15_000 }).catch(() => {});
+            const names = await page.evaluate(() =>
+                globalThis.game?.users ? Array.from(globalThis.game.users).map((u) => u.name) : []
+            );
+            if (names.length) {
+                return names;
+            }
         }
         console.log('Waiting for /join user list...');
         await page.waitForTimeout(pollMs);
@@ -62,8 +74,9 @@ if (joinUsers.includes(targetName)) {
 
 const bootstrapUser = pickBootstrapUser(joinUsers);
 console.log(`Creating join user "${targetName}" via "${bootstrapUser}" session...`);
-await page.locator("select[name='userid']").selectOption({ label: bootstrapUser });
-await page.getByRole('textbox', { name: /password/i }).fill('');
+await page.locator('input[name="username"]').fill(bootstrapUser);
+const passwordField = page.locator('input[name="password"]');
+if (await passwordField.count()) await passwordField.fill('');
 await page.getByRole('button', { name: /join game session/i }).click();
 await page.waitForURL(/\/game/, { timeout: 90_000 });
 
