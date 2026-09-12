@@ -10,6 +10,7 @@ import {
     buildExplosiveMods,
     buildSkillDiceResults,
     buildSkillRollFormula,
+    buildWeaponRollMods,
     calculateEbbModifier,
     computeExplosiveMaxRange,
     computeMeleeStrDamageModifier,
@@ -18,6 +19,8 @@ import {
     isStatCheckSuccess,
     computeWeaponSkillDiceCount,
     buildWeaponDamageFormula,
+    readExplosiveRollForm,
+    readWeaponRollFormState,
     resolveEbbDisciplineName,
     resolveEbbOutcomeText,
     resolveExplosiveBlastData,
@@ -282,5 +285,81 @@ describe('resolveWeaponMosOutcome', () => {
         });
         assert.equal(mos.mosDamageBonus, 6);
         assert.equal(mos.shouldApplyHeadWound, true);
+    });
+});
+
+describe('readWeaponRollFormState', () => {
+    test('reads numeric fields and coerces missing inputs to 0', () => {
+        const form = {
+            modifier: { value: '2' },
+            aim_sd: { value: '1' },
+            aim_auto: { value: '' },
+            combatDef: { value: '3' },
+            acroDef: { value: undefined },
+            prone: { checked: true }
+        };
+        const state = readWeaponRollFormState(form);
+        assert.deepEqual(state, {
+            modifier: 2,
+            aimSd: 1,
+            aimAuto: 0,
+            combatDef: 3,
+            acroDef: 0,
+            targetProne: true
+        });
+    });
+
+    test('defaults to 0/false when the form is empty', () => {
+        const state = readWeaponRollFormState({});
+        assert.deepEqual(state, {
+            modifier: 0,
+            aimSd: 0,
+            aimAuto: 0,
+            combatDef: 0,
+            acroDef: 0,
+            targetProne: false
+        });
+    });
+});
+
+describe('buildWeaponRollMods', () => {
+    test('carries form-derived values through, zeroing the roll-computed fields', () => {
+        const mods = buildWeaponRollMods({
+            modifier: 2,
+            aimSd: 1,
+            aimAuto: 3,
+            combatDef: 1,
+            acroDef: 2,
+            targetProne: true
+        });
+        assert.deepEqual(mods, {
+            successDie: 0,
+            allDice: 2,
+            rank: 0,
+            damage: 0,
+            autoSkillSuccesses: 0,
+            reservedDice: 0,
+            aimSd: 1,
+            aimAuto: 3,
+            combatDef: 1,
+            acroDef: 2,
+            targetProne: true
+        });
+    });
+});
+
+describe('readExplosiveRollForm', () => {
+    test('reads numeric/string/checkbox fields and coerces missing inputs', () => {
+        const form = {
+            modifier: { value: '1' },
+            cover: { value: '2' },
+            aiming: { value: 'careful' },
+            blind: { checked: true }
+        };
+        assert.deepEqual(readExplosiveRollForm(form), { mod: 1, cover: 2, aiming: 'careful', blind: true });
+    });
+
+    test('defaults aiming to "none" and blind to false when absent', () => {
+        assert.deepEqual(readExplosiveRollForm({}), { mod: 0, cover: 0, aiming: 'none', blind: false });
     });
 });
