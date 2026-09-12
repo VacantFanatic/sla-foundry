@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Reload → ammo-modifier pipeline E2E coverage:** New regression test creates a real weapon and magazine item, calls the production `performReload()` handler, and verifies the weapon's `ammoType` persists through the real `SlaWeaponData` schema and that the ammo damage/AD/PV modifiers apply — closing a gap where the producing (Reload) and consuming (ammo modifier getters) sides were only unit-tested in isolation against hand-built mock objects.
+- **Schema field-conformance guard:** New unit test (`tests/unit/schema-field-conformance.test.mjs`) asserts the item fields the Reload/ammo-modifier pipeline depends on (`ammoType`, `ammoCapacity`, `linkedWeapon`) are actually declared in `SlaWeaponData`/`SlaMagazineData`, and that the undeclared fields from a previous bug (`magazineId`, `attackDice`) stay out of the schema.
+
+### Removed
+
+- **Dead roll boilerplate referencing undeclared item fields:** `SlaItem.roll()` was leftover Foundry template code, unreachable in practice (weapon attacks route through the Attack dialog, not this method), and read `system.magazineId`/`system.attackDice` — neither of which was ever declared on the weapon schema. Removed it, along with a dead `item.system.dmg` fallback (the real field is `damage`) left over in three damage-formula call sites.
+
 ## [2.8.7] - 2026-09-11
 
 ### Fixed

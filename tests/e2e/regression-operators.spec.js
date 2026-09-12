@@ -113,6 +113,59 @@ test.describe('GM: operative creation and weapon item (document API)', () => {
     });
 });
 
+test.describe('GM: reload pipeline persists ammo modifiers (document API)', () => {
+    test.beforeEach(async ({ page }) => {
+        needsAuth();
+        await joinGame(page);
+        await waitForSLASystem(page);
+        const gm = await page.evaluate(() => game.user?.isGM === true);
+        test.skip(!gm, 'Requires GM — use a Gamemaster account for FOUNDRY_USER');
+    });
+
+    test('performReload persists magazine ammoType onto the weapon, and modifiers apply', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([{ name: `E2E Reload Test ${stamp}`, type: 'character' }]);
+            const weaponName = `E2E Reload Rifle ${stamp}`;
+            const [weapon] = await actor.createEmbeddedDocuments('Item', [
+                { name: weaponName, type: 'weapon', system: { skill: 'rifle', damage: '1d10' } }
+            ]);
+            const [magazine] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E HE Magazine ${stamp}`,
+                    type: 'magazine',
+                    system: { linkedWeapon: weaponName, ammoType: 'he', ammoCapacity: 12, quantity: 1 }
+                }
+            ]);
+
+            const { performReload } = await import('/systems/sla-industries/module/sheets/actor/reload.mjs');
+            await performReload({ actor }, weapon, magazine);
+
+            const reloadedWeapon = actor.items.get(weapon.id);
+            const persistedAmmoType = reloadedWeapon.system.ammoType;
+
+            const { getAmmoDamageModifierForWeapon, getAmmoAdModifierForWeapon, getAmmoPvModifierForWeapon } =
+                await import('/systems/sla-industries/module/sheets/actor/weapon-gates.mjs');
+
+            const damageMod = getAmmoDamageModifierForWeapon(reloadedWeapon);
+            const adMod = getAmmoAdModifierForWeapon(reloadedWeapon);
+            const pvMod = getAmmoPvModifierForWeapon(reloadedWeapon);
+
+            const magazineConsumed = actor.items.get(magazine.id) === undefined;
+
+            await actor.delete();
+
+            return { persistedAmmoType, damageMod, adMod, pvMod, magazineConsumed };
+        });
+
+        expect(result.persistedAmmoType).toBe('he');
+        expect(result.damageMod).toBe(1);
+        expect(result.adMod).toBe(1);
+        expect(result.pvMod).toBe(0);
+        expect(result.magazineConsumed).toBe(true);
+    });
+});
+
 test.describe('GM: Ebb formula active effects (document API)', () => {
     test.beforeEach(async ({ page }) => {
         needsAuth();

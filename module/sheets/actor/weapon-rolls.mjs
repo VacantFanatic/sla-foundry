@@ -337,7 +337,7 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
     const pvMod = getAmmoPvModifierForWeapon(item);
     const ammoName = getLoadedAmmoNameForWeapon(item);
 
-    const baseDmg = String(item.system.damage || item.system.dmg || '0');
+    const baseDmg = String(item.system.damage || '0');
     const totalMod = mods.damage + mosDamageBonus + ammoDamageMod;
     const finalDmgFormula = buildWeaponDamageFormula(baseDmg, totalMod);
     const showButton = isSuccess && finalDmgFormula && finalDmgFormula !== '0';

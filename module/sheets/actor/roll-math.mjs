@@ -319,7 +319,7 @@ export function resolveEbbOutcomeText(isBaseSuccess, skillSuccesses, ebbEffectRa
  * @param {number} skillSuccesses
  */
 export function buildEbbDamageFormula(item, isSuccessful, skillSuccesses) {
-    const rawBase = item.system.dmg || item.system.damage || '0';
+    const rawBase = item.system.damage || '0';
     const baseDmg = String(rawBase);
     const ebbEffect = normalizeEbbEffect(item.system.ebbEffect);
     const mosDamageBonus = getEbbMosDamageBonus(isSuccessful, skillSuccesses, item.system.ebbEffect);

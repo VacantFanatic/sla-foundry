@@ -238,7 +238,7 @@ describe('buildEbbDamageFormula', () => {
     test('adds MOS bonus for successful damage formula', () => {
         const item = {
             system: {
-                dmg: '2d10',
+                damage: '2d10',
                 ebbEffect: 'damage',
                 removeWounds: 0
             }
@@ -252,7 +252,7 @@ describe('buildEbbDamageFormula', () => {
     test('effect-only heal wounds shows remove wounds without HP roll', () => {
         const item = {
             system: {
-                dmg: '0',
+                damage: '0',
                 ebbEffect: 'effect',
                 removeWounds: 2
             }

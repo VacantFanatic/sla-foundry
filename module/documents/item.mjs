@@ -1,4 +1,3 @@
-import { SlaSimpleContentDialog } from '../apps/sla-simple-dialog.mjs';
 import { createSLARoll } from '../helpers/dice.mjs';
 import {
     getSlaEncounterScopeId,
@@ -20,84 +19,6 @@ export class SlaItem extends Item {
         const rollData = this.actor.getRollData();
         rollData.item = foundry.utils.deepClone(this.system);
         return rollData;
-    }
-
-    /* -------------------------------------------- */
-    /* NEW: Roll Function                          */
-    /* -------------------------------------------- */
-
-    /**
-     * Handle clickable rolls.
-     * @param {Object} options   Options which configure how the roll is handled
-     */
-    async roll(options = {}) {
-        const item = this;
-        const system = this.system;
-        const actor = this.actor;
-
-        // 1. Initialize Base Stats (Change these property names to match your schema)
-        let baseDamage = system.damage || 0;
-        let baseAD = system.attackDice || 0; // Attack Dice
-        let modifiers = { damage: 0, ad: 0, pv: 0, name: 'Standard' };
-
-        // 2. Find Loaded Magazine
-        if (system.magazineId) {
-            const magazine = actor.items.get(system.magazineId);
-
-            if (magazine) {
-                const ammoType = magazine.system.ammoType || 'standard';
-                const configMods = CONFIG.SLA.ammoModifiers[ammoType];
-
-                if (configMods) {
-                    modifiers = {
-                        ...configMods,
-                        name: CONFIG.SLA.ammoTypes[ammoType]
-                    };
-                }
-            }
-        }
-
-        const finalDamage = baseDamage + modifiers.damage;
-        const finalAD = baseAD + modifiers.ad;
-
-        const content = await foundry.applications.handlebars.renderTemplate(
-            'systems/sla-industries/templates/chat/roll-dialog.hbs',
-            {
-                item: item,
-                stats: { damage: finalDamage, ad: finalAD },
-                ammoName: modifiers.name
-            }
-        );
-
-        return new Promise((resolve) => {
-            const dlg = new SlaSimpleContentDialog({
-                title: `${item.name}: Attack Roll`,
-                contentHtml: content,
-                width: 400,
-                classes: ['sla-dialog', 'sla-sheet'],
-                actionLabel: 'Roll',
-                onConfirm: () => {
-                    const rollFormula = `${finalAD}d10 + @skills.guns.value`;
-                    const roll = new Roll(rollFormula, actor.getRollData());
-                    roll.toMessage({
-                        speaker: ChatMessage.getSpeaker({ actor: actor }),
-                        flavor: `
-                  <h3>${item.name} Attack</h3>
-                  <p><strong>Ammo:</strong> ${modifiers.name}</p>
-                  <p><strong>Damage:</strong> ${finalDamage} (PV ${modifiers.pv})</p>
-                `,
-                        flags: {
-                            sla: {
-                                isAP: modifiers.pv < 0 ? true : false,
-                                pvMod: modifiers.pv
-                            }
-                        }
-                    });
-                    resolve(roll);
-                }
-            });
-            void dlg.render(true);
-        });
     }
 
     /**
