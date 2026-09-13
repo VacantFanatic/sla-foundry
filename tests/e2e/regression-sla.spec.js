@@ -84,11 +84,25 @@ test.describe('SLA regression — authenticated', () => {
         expect(classes.configItem).toBe('SlaItem');
     });
 
+    // Foundry shows a persistent "screen resolution too small" warning toast below its own
+    // minimum supported resolution, and that toast — rendered into `#notifications`, the same
+    // container `dismissFoundryNotifications()` already clears — intercepts pointer events for
+    // anything behind it. It can (re)appear after the initial dismissal (confirmed live: the SLA
+    // Industries button click hangs at the project's actual 1280x720 viewport otherwise), so
+    // re-dismiss immediately before that click rather than widening the viewport to route around
+    // it — a scoped viewport override was tried first and reproduced the same kind of rendering
+    // flakiness documented in CLAUDE.md's viewport lessons-learned entry, even limited to one test.
     test('Configure Settings lists SLA Industries section', async ({ page }) => {
+        // More UI round-trips than this file's other tests (4 sequential clicks plus a
+        // notification re-check before each) — the default 30s test timeout is too tight here.
+        test.setTimeout(60_000);
         await dismissFoundryNotifications(page);
         await page.getByRole('tab', { name: /^settings$/i }).click();
+        await dismissFoundryNotifications(page);
         await page.getByRole('button', { name: /^game settings$/i }).click();
+        await dismissFoundryNotifications(page);
         await page.getByRole('button', { name: /SLA Industries 2nd Edition/i }).click();
+        await dismissFoundryNotifications(page);
         await expect(page.getByText(/Enable Combat Movement Lock/i).first()).toBeVisible({ timeout: 15_000 });
         await expect(page.getByText(/Enable Explosive Throw Automation/i).first()).toBeVisible();
         await expect(page.getByText(/Explosive Blast Region Visibility/i).first()).toBeVisible();

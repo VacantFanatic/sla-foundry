@@ -122,6 +122,11 @@ test.describe('SLA actor sheet UI — regression', () => {
         const sheet = await openActorSheet(page, actorId);
 
         await expect(sheet.locator('.sla-stat-mode-banner')).toBeVisible();
+
+        // The HP bar lives in combat-tab.hbs (via wounds.hbs), not the default "main" tab —
+        // confirmed live: .sla-hp-bar__fill has a real, non-empty bounding box only after
+        // switching tabs (it's found-but-hidden beforehand, not simply slow to render).
+        await clickActorSheetTab(sheet, 'combat');
         await expect(sheet.locator('.sla-hp-bar__fill.is-critical')).toBeVisible();
     });
 
@@ -164,9 +169,9 @@ test.describe('SLA actor sheet UI — regression', () => {
         await clickActorSheetTab(sheet, 'combat');
 
         await expect(sheet.locator('.sla-wound-summary')).toBeVisible();
-        await expect(sheet.locator('.sla-wound-diagram__slot[data-area="head"].is-wounded')).toBeVisible();
-        await expect(sheet.locator('.sla-wound-diagram__slot[data-area="larm"].is-wounded')).toBeVisible();
-        await expect(sheet.locator('.sla-wound-diagram__slot[data-area="torso"].is-wounded')).toHaveCount(0);
+        await expect(sheet.locator('.sla-wound-diagram__slot[data-wound="head"].is-wounded')).toBeVisible();
+        await expect(sheet.locator('.sla-wound-diagram__slot[data-wound="lArm"].is-wounded')).toBeVisible();
+        await expect(sheet.locator('.sla-wound-diagram__slot[data-wound="torso"].is-wounded')).toHaveCount(0);
     });
 
     test('character sheet — tab rail exposes accessibility attributes', async ({ page }) => {

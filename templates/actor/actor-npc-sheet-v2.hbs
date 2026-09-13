@@ -104,7 +104,7 @@
                     </div>
                 </div>
 
-                <div class="tab {{tabs.notes.cssClass}}" data-group="primary" data-tab="notes">
+                <div class="tab {{tabs.notes.cssClass}}" data-group="primary" data-tab="notes" role="tabpanel" id="sla-npc-tabpanel-notes" aria-labelledby="sla-npc-tab-notes">
                     <div class="threat-section-bar">NOTES</div>
                     <div class="threat-content-box threat-notes-editor">
                         {{#if editable}}
@@ -115,11 +115,11 @@
                     </div>
                 </div>
 
-                <div class="tab {{tabs.inventory.cssClass}}" data-group="primary" data-tab="inventory">
+                <div class="tab {{tabs.inventory.cssClass}}" data-group="primary" data-tab="inventory" role="tabpanel" id="sla-npc-tabpanel-inventory" aria-labelledby="sla-npc-tab-inventory">
                     {{> "systems/sla-industries/templates/actor/parts/inventory-tab.hbs"}}
                 </div>
 
-                <div class="tab {{tabs.effects.cssClass}}" data-group="primary" data-tab="effects">
+                <div class="tab {{tabs.effects.cssClass}}" data-group="primary" data-tab="effects" role="tabpanel" id="sla-npc-tabpanel-effects" aria-labelledby="sla-npc-tab-effects">
                     {{> "systems/sla-industries/templates/actor/parts/effects-tab.hbs"}}
                 </div>
             </section>
@@ -130,24 +130,24 @@
                     <i class="fas {{tabs.combat.icon}}" aria-hidden="true"></i>
                     <span class="sla-tab-rail-tooltip">{{tabs.combat.label}}</span>
                 </a>
-                <a class="item sla-tab-rail-btn {{tabs.inventory.cssClass}}" href="#" data-group="primary" data-tab="inventory"
-                    title="{{tabs.inventory.label}}">
-                    <i class="fas {{tabs.inventory.icon}}"></i>
+                <a class="item sla-tab-rail-btn {{tabs.inventory.cssClass}}" href="#" id="sla-npc-tab-inventory" role="tab" data-group="primary" data-tab="inventory"
+                    title="{{tabs.inventory.label}}" aria-label="{{tabs.inventory.label}}" aria-controls="sla-npc-tabpanel-inventory">
+                    <i class="fas {{tabs.inventory.icon}}" aria-hidden="true"></i>
                     <span class="sla-tab-rail-tooltip">{{tabs.inventory.label}}</span>
                 </a>
-                <a class="item sla-tab-rail-btn {{tabs.effects.cssClass}}" href="#" data-group="primary" data-tab="effects"
-                    title="{{tabs.effects.label}}">
-                    <i class="fas {{tabs.effects.icon}}"></i>
+                <a class="item sla-tab-rail-btn {{tabs.effects.cssClass}}" href="#" id="sla-npc-tab-effects" role="tab" data-group="primary" data-tab="effects"
+                    title="{{tabs.effects.label}}" aria-label="{{tabs.effects.label}}" aria-controls="sla-npc-tabpanel-effects">
+                    <i class="fas {{tabs.effects.icon}}" aria-hidden="true"></i>
                     <span class="sla-tab-rail-tooltip">{{tabs.effects.label}}</span>
                 </a>
-                <a class="item sla-tab-rail-btn {{tabs.skills.cssClass}}" href="#" data-group="primary" data-tab="skills"
-                    title="{{tabs.skills.label}}">
-                    <i class="fas {{tabs.skills.icon}}"></i>
+                <a class="item sla-tab-rail-btn {{tabs.skills.cssClass}}" href="#" id="sla-npc-tab-skills" role="tab" data-group="primary" data-tab="skills"
+                    title="{{tabs.skills.label}}" aria-label="{{tabs.skills.label}}" aria-controls="sla-npc-tabpanel-skills">
+                    <i class="fas {{tabs.skills.icon}}" aria-hidden="true"></i>
                     <span class="sla-tab-rail-tooltip">{{tabs.skills.label}}</span>
                 </a>
-                <a class="item sla-tab-rail-btn {{tabs.notes.cssClass}}" href="#" data-group="primary" data-tab="notes"
-                    title="{{tabs.notes.label}}">
-                    <i class="fas {{tabs.notes.icon}}"></i>
+                <a class="item sla-tab-rail-btn {{tabs.notes.cssClass}}" href="#" id="sla-npc-tab-notes" role="tab" data-group="primary" data-tab="notes"
+                    title="{{tabs.notes.label}}" aria-label="{{tabs.notes.label}}" aria-controls="sla-npc-tabpanel-notes">
+                    <i class="fas {{tabs.notes.icon}}" aria-hidden="true"></i>
                     <span class="sla-tab-rail-tooltip">{{tabs.notes.label}}</span>
                 </a>
             </nav>

@@ -268,22 +268,29 @@ Source: `module/migration.mjs`
 ### Unit tests (no Foundry required)
 
 ```bash
-npm run test:unit
+npm run test:unit            # run the suite
+npm run test:unit:coverage   # same, with a c8 coverage report (text + lcov)
 ```
 
-Covers:
+One file per pure-logic module — see `tests/unit/` for the full, current list (it grows
+with every TDD change, so don't rely on a hardcoded list here). Representative examples
+spanning the main categories:
 
-- `inventory-stack.mjs` — stackKey identity, merge logic, consolidation.
-- `dice.mjs` — `calculateRollResult`, `getMOS`.
-- `ebb-mos.mjs` — `getEbbMosDamageBonus`.
-- `wound-visibility.mjs` — `shouldShowMosWoundChoice`.
-- `system.json` — validates version, manifest URL, compatibility fields.
+- Derived actor data — `derived-hp.test.mjs`, `derived-wounds.test.mjs`, `derived-encumbrance.test.mjs`.
+- Combat/roll math — `dice.test.mjs`, `roll-math.test.mjs`, `modifiers.test.mjs`, `weapon-gates-pure.test.mjs`.
+- Migrations — `migration-pure.test.mjs`, `natural-weapons-migration.test.mjs`.
+- Sheet/UI helpers — `sheet-ux-pure.test.mjs`, `sheet-actions-pure.test.mjs`, `reload-pure.test.mjs`.
+- Config/manifest — `system-manifest.test.mjs`, `data-model-registry.test.mjs`, `schema-field-conformance.test.mjs`.
 
 ### End-to-end tests (requires running Foundry instance)
 
 ```bash
-npm run test:e2e:regression   # SLA API and settings smoke tests
-npm run test:e2e:operators    # Operative CRUD, weapon items, roll integration
+npm run test:e2e              # full suite
+npm run test:e2e:regression   # curated smoke/regression set (SLA API, item/actor/NPC/vehicle sheets, dialogs)
+npm run test:e2e:operators    # Operative CRUD, weapon items, roll integration (GM-only)
+npm run test:e2e:visual       # screenshot diffing for the three actor sheet types (needs committed baselines)
+npm run test:e2e:ui           # Playwright UI mode
+npm run test:e2e:headed       # headed browser run
 ```
 
 E2E tests require:
@@ -291,6 +298,11 @@ E2E tests require:
 - A running Foundry VTT instance accessible at the configured URL.
 - `FOUNDRY_USER` environment variable set to the username.
 - GM-only steps skip automatically if the user is not a Gamemaster.
+
+`tests/e2e/regression-visual-actor-sheets.spec.js` uses Playwright's `toHaveScreenshot`
+(config in `playwright.config.js`) instead of the old manual PNG capture. Baselines aren't
+generated automatically — run `npx playwright test regression-visual-actor-sheets --update-snapshots`
+against a live instance and commit the resulting `*-snapshots/` directory before relying on it.
 
 ### SCSS compilation
 

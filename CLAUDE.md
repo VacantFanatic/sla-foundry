@@ -112,6 +112,66 @@ current.
   than guessing at an internal API shape; `canvas.grid`, by contrast, is safe to
   temporarily overwrite wholesale for a deterministic distance stub since it's a plain
   object property, not a derived/live collection.
+- **A shared accessibility helper only fixes the markup it's given — copy/pasted templates
+  can apply it inconsistently and nothing will flag the gap.** `actor-sheet.mjs`'s
+  `#syncTabAccessibility` (queries `nav.sheet-tabs [role="tab"]` and syncs
+  `aria-selected`/`tabindex`) works correctly, but `actor-npc-sheet-v2.hbs` only gave the
+  `combat` tab the full `id`/`role="tab"`/`aria-controls` markup the character sheet gives
+  every tab — the other four NPC tabs (`inventory`, `effects`, `skills`, `notes`) had no
+  `role="tab"` at all, so the shared JS silently skipped them every render. The one existing
+  aria E2E assertion (`regression-actor-sheets.spec.js`) only ever exercised the character
+  sheet, so this went unnoticed. When a JS helper is written against a markup contract
+  (`[role="tab"]`, a specific `id` naming scheme), audit every template that's supposed to
+  satisfy that contract, not just the one the helper was originally built for — and add an
+  aria assertion per sheet type, not just one for the "primary" sheet.
+- **A weapon-attack code path can be gated behind a world setting, not just canvas state.**
+  `renderAttackDialog`/`processWeaponRoll` (`weapon-rolls.mjs`) call
+  `canProceedWithWeaponAttack(sheet, item, { requireTarget: true })`, which blocks on
+  `game.user.targets.size === 0` only when the `enableTargetRequiredFeatures` world setting
+  is on — and it defaults to on. E2E specs for the Attack dialog therefore don't need a
+  placed scene token/target at all (which the canvas-state lesson above warns against
+  faking); temporarily setting that world setting to `false` for the test (capturing and
+  restoring it per the shared-state lesson above) reaches the melee attack path with zero
+  canvas setup. Before assuming a gated flow requires unreliable canvas/token state, check
+  whether the gate is actually a `game.settings.get(...)` world setting instead.
+- **`devices['Desktop Chrome']` in `playwright.config.js` silently overrides the top-level
+  `use.viewport`, and "fixing" that to the documented 1920x1080 can destabilize the whole suite
+  in a GPU-less sandbox.** `playwright.config.js`'s top-level `use` declares
+  `viewport: { width: 1920, height: 1080 }`, but the `chromium` project's `use: { ...devices['Desktop
+Chrome'] }` spreads in that device preset's own `viewport: { width: 1280, height: 720 }` —
+  project-level `use` wins the merge, so every E2E test has actually always run at 1280x720, not
+  1920x1080. This is real and reproducible (confirmed via a live `page.evaluate(() =>
+window.innerWidth)` inside a running test), and it explains genuine "element is outside of the
+  viewport" failures for UI docked near the right edge (e.g. the chat sidebar's per-message action
+  buttons in `regression-dialogs.spec.js`'s Luck dialog test). The instinctive fix — re-asserting
+  `viewport: { width: 1920, height: 1080 }` in the project's `use` to match the documented intent —
+  is _not_ safe to apply blindly: in this sandbox's software-rendered, GPU-less headless Chromium
+  (`--use-angle=swiftshader-webgl`), doubling the rendered pixel count reproducibly broke the
+  _entire_ suite (two independent clean `nohup`-backgrounded runs both went from 7-9/10 passing to
+  3/10, with page/browser crashes and "element was detached from the DOM" errors), while reverting
+  the viewport back to the accidental 1280x720 immediately restored full stability. When an element
+  is genuinely visible but sits outside whatever viewport is in effect, prefer a viewport-independent
+  fix — `await locator.evaluate((el) => el.click())` dispatches a real DOM `click` event without
+  requiring on-screen mouse coordinates — over widening the viewport to chase it; don't assume a
+  config value documented as "intended" is safe to actually apply without testing for exactly this
+  kind of environment-specific regression first. **Update, same investigation:** the accidental
+  1280x720 isn't just a Playwright-actionability quirk — it's genuinely below Foundry's own
+  minimum supported resolution, so Foundry displays a persistent "screen resolution too small"
+  warning toast that intercepts pointer events for anything behind it. This directly broke
+  `regression-sla.spec.js`'s Settings test (clicking into the settings config app hung at
+  1280x720) — not a stale selector as first suspected. Scoping `test.use({ viewport: { width:
+  1920, height: 1080 } })` to just that one test _did_ make the warning go away, but it also
+  reproduced the same rendering flakiness the paragraph above warns about (two separate runs of
+  the identical scoped-viewport test gave different, non-deterministic results — one found every
+  setting label instantly, the next couldn't find even the first one after 15s), so it's not a
+  safe fix either, even scoped to a single test. The warning toast renders into `#notifications` —
+  the exact container `dismissFoundryNotifications()` already knows how to clear — and can
+  reappear after the initial dismissal; re-calling `dismissFoundryNotifications(page)` immediately
+  before the click it was blocking fixed it reliably (confirmed clean twice in a row) at the
+  ordinary, stable 1280x720 viewport, no viewport change needed at all. When something a viewport-
+  driven Foundry warning is blocking, look for a way to dismiss the warning itself before reaching
+  for a bigger viewport — this sandbox's software rendering makes viewport size itself the least
+  reliable lever to pull.
 
 ## Code style
 
@@ -144,6 +204,23 @@ npm run test:unit
 ```
 
 Tests use Node's built-in test runner (`node --test`) — no Foundry required. Pure helper functions and data-model logic are the primary targets; UI and Foundry-API-dependent code is covered by E2E specs instead.
+
+## Keep tests in sync with the code
+
+When a change moves markup, renames a `data-*` attribute or CSS class, relocates content to a
+different tab/panel, or otherwise changes a sheet/dialog's structure, update every test that
+touches that structure in the **same** change — don't leave it for a later pass. A test left
+behind doesn't fail loudly and get noticed; it fails much later, looking like a mystery
+regression, when the actual cause was simply that the test still assumes the old layout.
+
+This is not hypothetical: several `tests/e2e/regression-actor-sheets.spec.js` and
+`regression-sla.spec.js` failures diagnosed in this session's CI runs (job `103622272003`) turned
+out to be exactly this — a wound-diagram locator using an attribute name (`data-area`) the markup
+had never actually used, and an HP-bar assertion missing a tab switch after the HP bar moved into
+`combat-tab.hbs`. Both tests were stale against the current layout, not testing a real bug; they'd
+clearly been failing since whenever the layout last changed, just unnoticed because the E2E suite
+had no CI gate until this session added one. Update the test in the same PR that changes the
+markup it depends on, so drift like this can't accumulate silently again.
 
 ---
 

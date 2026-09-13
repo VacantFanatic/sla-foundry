@@ -13,9 +13,11 @@
         "format:check": "prettier --check .",
         "watch": "sass src/scss/sla-industries.scss css/sla-industries.css --style=expanded --no-source-map --watch",
         "test:unit": "node --test --test-concurrency=1 tests/unit/*.test.mjs",
+        "test:unit:coverage": "c8 --reporter=text --reporter=lcov node --test --test-concurrency=1 tests/unit/*.test.mjs",
         "test:e2e": "playwright test",
-        "test:e2e:regression": "playwright test tests/e2e/regression-sla.spec.js tests/e2e/regression-item-sheets.spec.js tests/e2e/regression-actor-sheets.spec.js",
+        "test:e2e:regression": "playwright test tests/e2e/regression-sla.spec.js tests/e2e/regression-item-sheets.spec.js tests/e2e/regression-actor-sheets.spec.js tests/e2e/regression-npc-sheet.spec.js tests/e2e/regression-vehicle-sheet.spec.js tests/e2e/regression-dialogs.spec.js",
         "test:e2e:operators": "playwright test tests/e2e/regression-operators.spec.js",
+        "test:e2e:visual": "playwright test tests/e2e/regression-visual-actor-sheets.spec.js",
         "test:e2e:ui": "playwright test --ui",
         "test:e2e:headed": "playwright test --headed",
         "test:e2e:install": "playwright install chromium",
@@ -33,6 +35,7 @@
     "private": true,
     "devDependencies": {
         "@playwright/test": "^1.49.0",
+        "c8": "^12.0.0",
         "glob": "^10.3.10",
         "prettier": "^3.5.3",
         "sass": "^1.53.0"

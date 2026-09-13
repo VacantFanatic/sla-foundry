@@ -167,6 +167,29 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         ];
     }
 
+    /** @override */
+    changeTab(tab, group, options) {
+        const result = super.changeTab(tab, group, options);
+        if (this.element instanceof HTMLElement) this.#syncTabAccessibility(this.element);
+        return result;
+    }
+
+    /** @param {HTMLElement} root */
+    #syncTabAccessibility(root) {
+        const tabs = root.querySelectorAll('nav.sheet-tabs [role="tab"]');
+        for (const tab of tabs) {
+            if (!(tab instanceof HTMLElement)) continue;
+            const selected = tab.classList.contains('active');
+            tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+            tab.setAttribute('tabindex', selected ? '0' : '-1');
+            const panelId = tab.getAttribute('aria-controls');
+            const panel = panelId ? root.querySelector(`#${panelId}`) : null;
+            if (panel instanceof HTMLElement) {
+                panel.hidden = !selected;
+            }
+        }
+    }
+
     /** @type {AbortController | null} */
     #dropListenersAbort = null;
 
@@ -494,6 +517,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         }
 
         root.addEventListener('click', this.#onItemEffectUiClick, { signal });
+        this.#syncTabAccessibility(root);
 
         const itemFxSearch = root.querySelector('.sla-item-effect-search');
         if (itemFxSearch instanceof HTMLInputElement) {

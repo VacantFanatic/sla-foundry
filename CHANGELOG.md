@@ -8,6 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Testing-coverage expansion (vehicle/NPC sheets, dialogs, accessibility, visual regression, unit coverage reporting):**
+  New E2E regression specs for the previously-untested vehicle sheet (`regression-vehicle-sheet.spec.js`), a
+  dedicated NPC/Threat sheet spec (`regression-npc-sheet.spec.js`, including regression guards for the 2.8.5
+  duplicate-`name`-attribute and 2.8.7 read-only-max-HP bugs), and the five sheet-triggered dialogs — XP, Luck,
+  Attack, Reload, and the generic Simple Content dialog (`regression-dialogs.spec.js`) — none of which previously
+  had any UI-level test coverage. The item sheet's tab rail now gets the same `role="tablist"`/`aria-selected`
+  accessibility treatment the actor sheet already had (`module/sheets/item-sheet.mjs`,
+  `templates/item/item-sheet-v2.hbs`), the NPC sheet's tab rail/panels get the same treatment consistently across
+  all five tabs (previously only the Combat tab had it), and the Luck/XP/Simple Content dialogs gained
+  `role="dialog"`/`aria-label`. The old manual actor-sheet screenshot capture spec is replaced by
+  `regression-visual-actor-sheets.spec.js`, using Playwright's `toHaveScreenshot` diffing (now also covering the
+  vehicle sheet) instead of just saving PNGs for manual review. Unit test coverage is now measurable via
+  `npm run test:unit:coverage` (c8), reported non-blocking in CI. A new, opt-in `e2e` CI job runs the E2E
+  regression suite against a live Foundry instance when a maintainer configures Foundry license secrets (see
+  `.docs/AGENTS.md`); it's scoped to same-repo branches/PRs only and starts `continue-on-error` during a trial
+  period. No production behavior changes.
 - **Reload → ammo-modifier pipeline E2E coverage:** New regression test creates a real weapon and magazine item, calls the production `performReload()` handler, and verifies the weapon's `ammoType` persists through the real `SlaWeaponData` schema and that the ammo damage/AD/PV modifiers apply — closing a gap where the producing (Reload) and consuming (ammo modifier getters) sides were only unit-tested in isolation against hand-built mock objects.
 - **Schema field-conformance guard:** New unit test (`tests/unit/schema-field-conformance.test.mjs`) asserts the item fields the Reload/ammo-modifier pipeline depends on (`ammoType`, `ammoCapacity`, `linkedWeapon`) are actually declared in `SlaWeaponData`/`SlaMagazineData`, and that the undeclared fields from a previous bug (`magazineId`, `attackDice`) stay out of the schema.
 - **Broad test-coverage expansion:** Followed the audit above out to essentially every previously-untested exported function across `module/helpers/`, `module/sheets/actor/`, and `module/migration/` — the damage/heal/wound-clear/armor-mitigation pipeline, inventory stacking and item-link drop handlers, Active Effect application (drugs and Ebb formulas), the TN-adjustment and chat-card render flag round-trips, ranged-attack modifiers and range penalties, Ebb casting, weapon combat gating and the quick damage-roll assembly, actor-sheet drop handling (species/package/skills), inline sheet edits and the reload magazine-selection logic, the skill/explosive/sheet roll dispatchers, item categorization (`prepareItems`), the hotbar macro helpers, two migration steps, the `handleSheetClick` dispatcher, and the core attack-roll orchestrator (`processWeaponRoll`). 22 new or extended unit/E2E test files; no behavior changes except where noted below.

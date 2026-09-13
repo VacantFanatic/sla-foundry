@@ -1,0 +1,5 @@
+{
+    "all": false,
+    "exclude": ["scripts/**", "dist/**", "tests/**", "css/**"],
+    "reporter": ["text", "lcov"]
+}

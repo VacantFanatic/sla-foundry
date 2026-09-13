@@ -138,6 +138,10 @@ start_container() {
   if has_cache_zip; then
     echo "Starting Foundry from container cache (world=$FOUNDRY_WORLD)..."
     sudo docker rm -f foundry 2>/dev/null || true
+    # felddy/foundryvtt runs internally as uid:gid 1000:1000 and aborts if /data isn't
+    # writable by that uid (see scripts/start-foundry.sh for the same fix, applied there
+    # too since that's the path used whenever download credentials are configured).
+    sudo chown -R 1000:1000 "$DATA_DIR"
     ENV_ARGS=(-e "FOUNDRY_TELEMETRY=false" -e "FOUNDRY_WORLD=${FOUNDRY_WORLD}")
     [[ -n "${FOUNDRY_LICENSE_KEY:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_LICENSE_KEY=${FOUNDRY_LICENSE_KEY}")
     [[ -n "${FOUNDRY_RELEASE_URL:-}" ]] && ENV_ARGS+=(-e "FOUNDRY_RELEASE_URL=${FOUNDRY_RELEASE_URL}")

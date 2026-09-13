@@ -3,7 +3,15 @@
  * First-boot UI steps: EULA, license key (if needed), launch sla-test-world.
  * World JSON is created on disk by cloud-foundry.sh; user creation is ensure-foundry-user.mjs.
  */
+import { existsSync } from 'node:fs';
 import { chromium } from '@playwright/test';
+
+// Some Claude Code Remote sandboxes pre-install a Chromium build pinned to a different
+// revision than this repo's @playwright/test version expects, so chromium.launch()'s default
+// executable-path resolution fails with "Executable doesn't exist". Prefer the pre-installed
+// build when present; falls through to Playwright's normal resolution everywhere else
+// (Cursor Cloud, CI, a fresh `npx playwright install`).
+const PLAYWRIGHT_EXECUTABLE_PATH = existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined;
 
 const FOUNDRY_URL = process.env.FOUNDRY_URL || 'http://127.0.0.1:30000';
 const LICENSE_KEY = process.env.FOUNDRY_LICENSE_KEY;
@@ -45,9 +53,16 @@ async function acceptLicense(page) {
     }
 }
 
+/**
+ * Foundry v14's Join Game form is an autocomplete text input (`input[name="username"]`),
+ * not the classic `<select name="userid">` dropdown earlier Foundry versions used — confirmed
+ * directly from the served client source (JoinGameForm._prepareContext() in scripts/foundry.mjs
+ * sets `context.users = game.users`). Read the live user list straight from the `game` global
+ * instead of scraping DOM markup that no longer exists.
+ */
 async function joinUserNames(page) {
-    const labels = await page.locator("select[name='userid'] option").allTextContents();
-    return labels.map((l) => l.trim()).filter(Boolean);
+    await page.waitForFunction(() => globalThis.game?.users != null, null, { timeout: 15_000 }).catch(() => {});
+    return page.evaluate(() => (globalThis.game?.users ? Array.from(globalThis.game.users).map((u) => u.name) : []));
 }
 
 async function waitForJoinUsers(page) {
@@ -125,7 +140,7 @@ async function launchFromSetup(page) {
 
 async function bootstrap() {
     console.log('Starting Foundry first-boot bootstrap...');
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ headless: true, executablePath: PLAYWRIGHT_EXECUTABLE_PATH });
     const page = await browser.newPage();
     await page.setViewportSize({ width: 1920, height: 1080 });
 

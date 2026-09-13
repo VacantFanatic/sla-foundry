@@ -6,8 +6,12 @@ async function joinGame(page) {
     const user = process.env.FOUNDRY_USER;
     if (!user) throw new Error('FOUNDRY_USER is required');
     await page.goto('/join');
-    await page.getByRole('combobox').selectOption({ label: user });
-    await page.getByRole('textbox', { name: /password/i }).fill(process.env.FOUNDRY_PASSWORD ?? '');
+    // Foundry v14's Join Game form is an autocomplete text input (`input[name="username"]`),
+    // not the classic `<select name="userid">` dropdown earlier Foundry versions used —
+    // confirmed directly from the served client source (JoinGameForm in scripts/foundry.mjs).
+    await page.locator('input[name="username"]').fill(user);
+    const passwordField = page.locator('input[name="password"]');
+    if (await passwordField.count()) await passwordField.fill(process.env.FOUNDRY_PASSWORD ?? '');
     await page.getByRole('button', { name: /join game session/i }).click();
     await page.waitForURL(/\/game/, { timeout: 60_000 });
 }
@@ -33,6 +37,13 @@ async function waitForSLASystem(page) {
  * Close Foundry toast notifications (`#notifications`). They use fixed positioning and can sit over
  * sidebar/settings; Playwright will refuse (or time out) real clicks when a `<p>` in the toast
  * intercepts pointer events — dismiss first, then interact with the UI.
+ *
+ * Also exits any in-progress core "tour" (`game.tours`). Foundry auto-starts its "welcome" tour
+ * the first time a GM logs into a freshly created world — confirmed live via `game.tours`, whose
+ * entries carry `status`/`exit()` (CONST.TOUR_STATUS). The tour renders as a full-screen overlay
+ * (`aside.tour-center-step`) that intercepts pointer events for anything behind it until exited,
+ * so any test whose first UI interaction is the first click of the run can hang on this. CI
+ * provisions a fresh `sla-test-world` on every run, so the tour fires deterministically there.
  * @param {import('@playwright/test').Page} page
  */
 async function dismissFoundryNotifications(page) {
@@ -51,6 +62,14 @@ async function dismissFoundryNotifications(page) {
             document.querySelector('#notifications')?.replaceChildren();
         });
     }
+
+    await page
+        .evaluate(() => {
+            for (const tour of globalThis.game?.tours?.values?.() ?? []) {
+                if (tour.status === 'in-progress') tour.exit();
+            }
+        })
+        .catch(() => {});
 }
 
 /**
@@ -104,23 +123,27 @@ async function clickItemSheetTab(sheet, tabId) {
 }
 
 /**
- * Create a character actor for sheet UI tests.
+ * Create an actor for sheet UI tests.
  * @param {import('@playwright/test').Page} page
  * @param {object} [system]
+ * @param {"character"|"npc"|"vehicle"} [type]
  * @returns {Promise<string>} actor id
  */
-async function createTestActor(page, system = {}) {
-    return page.evaluate(async (actorSystem) => {
-        const stamp = Date.now();
-        const [actor] = await Actor.createDocuments([
-            {
-                name: `E2E Actor ${stamp}`,
-                type: 'character',
-                system: actorSystem
-            }
-        ]);
-        return actor.id;
-    }, system);
+async function createTestActor(page, system = {}, type = 'character') {
+    return page.evaluate(
+        async ({ actorSystem, actorType }) => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Actor ${stamp}`,
+                    type: actorType,
+                    system: actorSystem
+                }
+            ]);
+            return actor.id;
+        },
+        { actorSystem: system, actorType: type }
+    );
 }
 
 /**
@@ -142,11 +165,20 @@ async function openActorSheet(page, actorId) {
 
 /**
  * Switch actor sheet tabs (App V2 rail uses data-tab anchors).
+ *
+ * Uses an in-page `el.click()` rather than a mouse-simulated Playwright click: CI has shown a
+ * real (if rare) race where the tab rail gets rebuilt between Playwright's multi-step
+ * actionability check (visible, stable, scrolled into view, receives pointer events) and the
+ * actual click, surfacing as "element was detached from the DOM, retrying" until the test
+ * timeout. A locator-scoped `evaluate()` still waits for the element to be attached, then
+ * resolves and clicks it in one synchronous in-page step, closing that window.
  * @param {import('@playwright/test').Locator} sheet
  * @param {string} tabId
  */
 async function clickActorSheetTab(sheet, tabId) {
-    await sheet.locator(`nav.sheet-tabs a[data-tab="${tabId}"]`).click();
+    const tab = sheet.locator(`nav.sheet-tabs a[data-tab="${tabId}"]`);
+    await tab.waitFor({ state: 'visible', timeout: 15_000 });
+    await tab.evaluate((el) => el.click());
 }
 
 /**
@@ -170,7 +202,7 @@ async function deleteTestActors(page) {
 async function closeApplicationWindows(page) {
     await page
         .evaluate(() => {
-            for (const app of globalThis.ui?.applications?.values?.() ?? []) {
+            for (const app of globalThis.foundry?.applications?.instances?.values?.() ?? []) {
                 app.close?.();
             }
         })

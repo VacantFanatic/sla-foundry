@@ -34,8 +34,81 @@ jobs:
             - name: Run unit tests
               run: npm run test:unit
 
+            - name: Report unit test coverage
+              run: npm run test:unit:coverage
+              continue-on-error: true
+
             - name: Build dist
               run: npm run build
 
             - name: Validate dist artifacts
               run: npm run validate:dist
+
+    # Optional, best-effort E2E gate: only runs when Foundry download credentials are
+    # configured as repo secrets (see .docs/AGENTS.md), and only against same-repo
+    # branches/PRs so those secrets are never exposed to a fork. Starts as
+    # continue-on-error while it proves out; a maintainer can drop that once it's
+    # reliably green. Foundry VTT requires a maintainer-owned license — set
+    # FOUNDRY_RELEASE_URL (or FOUNDRY_USERNAME + FOUNDRY_ACCOUNT_PASSWORD),
+    # FOUNDRY_LICENSE_KEY, FOUNDRY_USER and FOUNDRY_PASSWORD under repo Settings → Secrets
+    # to enable it; without them this job no-ops.
+    e2e:
+        needs: build
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        runs-on: ubuntu-latest
+        continue-on-error: true
+        env:
+            FOUNDRY_DATA_DIR: ${{ github.workspace }}/.foundry-data
+            FOUNDRY_USER: ${{ secrets.FOUNDRY_USER }}
+            FOUNDRY_PASSWORD: ${{ secrets.FOUNDRY_PASSWORD }}
+            FOUNDRY_RELEASE_URL: ${{ secrets.FOUNDRY_RELEASE_URL }}
+            FOUNDRY_USERNAME: ${{ secrets.FOUNDRY_USERNAME }}
+            FOUNDRY_ACCOUNT_PASSWORD: ${{ secrets.FOUNDRY_ACCOUNT_PASSWORD }}
+            FOUNDRY_LICENSE_KEY: ${{ secrets.FOUNDRY_LICENSE_KEY }}
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: npm
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Check for Foundry credentials
+              id: creds
+              run: |
+                  if [[ -z "${FOUNDRY_RELEASE_URL}" && -z "${FOUNDRY_USERNAME}" ]]; then
+                    echo "No Foundry download credentials configured (FOUNDRY_RELEASE_URL / FOUNDRY_USERNAME) — skipping E2E. See .docs/AGENTS.md." >&2
+                    echo "present=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "present=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+            # scripts/cloud-foundry.sh's readiness check (foundry_join_ready) shells out to
+            # ripgrep, which isn't preinstalled on ubuntu-latest runners.
+            - name: Install ripgrep
+              if: steps.creds.outputs.present == 'true'
+              run: sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
+
+            - name: Install Playwright browsers
+              if: steps.creds.outputs.present == 'true'
+              run: npm run test:e2e:install
+
+            # Caches the downloaded Foundry release zip so repeat runs don't depend on
+            # FOUNDRY_RELEASE_URL's timed URL, which expires within minutes.
+            - name: Cache Foundry release download
+              if: steps.creds.outputs.present == 'true'
+              uses: actions/cache@v4
+              with:
+                  path: ${{ env.FOUNDRY_DATA_DIR }}/container_cache
+                  key: foundry-release-${{ hashFiles('system.json') }}
+
+            - name: Start Foundry
+              if: steps.creds.outputs.present == 'true'
+              run: bash scripts/cloud-foundry.sh start
+
+            - name: Run E2E regression suite
+              if: steps.creds.outputs.present == 'true'
+              run: npm run test:e2e:regression

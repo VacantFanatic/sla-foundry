@@ -26,6 +26,11 @@ module.exports = defineConfig({
         screenshot: 'only-on-failure',
         video: 'retain-on-failure'
     },
+    // Visual regression baselines (tests/e2e/regression-visual-actor-sheets.spec.js). Generate/refresh
+    // baselines against a live Foundry instance with: npx playwright test regression-visual-actor-sheets --update-snapshots
+    expect: {
+        toHaveScreenshot: { maxDiffPixelRatio: 0.02 }
+    },
     projects: [
         {
             name: 'chromium',

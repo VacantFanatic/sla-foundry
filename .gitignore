@@ -13,6 +13,9 @@ sla-industries.zip
 /test-results/
 /playwright/.cache/
 
+# c8 coverage output
+/coverage/
+
 .agent/
 .cursor/*
 !.cursor/environment.json
