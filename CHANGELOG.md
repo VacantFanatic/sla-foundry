@@ -54,6 +54,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   merges on.
 - **`processWeaponRoll`'s aim-limit/condition-modifier logic extracted:** The inline aim-total-vs-skill-rank validation and prone/stunned/aim modifier application in `module/sheets/actor/weapon-rolls.mjs` moved into a new pure function, `applyWeaponAimAndConditionMods` (`module/sheets/actor/roll-math.mjs`), matching the existing `applyExplosiveRollAdjustments` pattern. Same behavior, now independently unit-tested.
 - **`migrateTo200`/`migrateTo210` exported:** These two version-specific migration steps (`module/migration.mjs`) are no longer module-private, so they can be tested directly without invoking the full `migrateWorld()` orchestrator (which downloads a world backup file by default). No behavior change.
+- **Stable releases no longer need a manual `download` URL edit:** `.github/workflows/release.yml` now patches `system.json`'s `download` URL to the exact tag being released at build time, mirroring the pattern `pre-release.yml` already uses for the pre-release channel. Removes a manually-maintained, version-bearing value from `.docs/RELEASE.md`'s stable-promotion checklist — the same class of drift this release already fixed once for `package-lock.json`'s version field.
 
 ### Removed
 
