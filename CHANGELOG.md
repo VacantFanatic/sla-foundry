@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.8.8] - Unreleased
+
 ### Added
 
 - **Testing-coverage expansion (vehicle/NPC sheets, dialogs, accessibility, visual regression, unit coverage reporting):**
