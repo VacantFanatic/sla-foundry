@@ -90,8 +90,11 @@ test.describe('SLA vehicle sheet UI — regression', () => {
         const actorId = await createTestActor(page, {}, 'vehicle');
         const sheet = await openActorSheet(page, actorId);
 
+        // Scoped to the weapons section specifically: the vehicle sheet's Notes panel also has
+        // its own .sla-empty-state (for empty notes), so an unscoped locator matches both.
+        const weaponsEmptyState = sheet.locator('.sla-vehicle-weapons .sla-empty-state');
         await expect(sheet.locator('.vehicle-weapon-drop')).toBeVisible();
-        await expect(sheet.locator('.sla-empty-state')).toBeVisible();
+        await expect(weaponsEmptyState).toBeVisible();
 
         await page.evaluate(async (id) => {
             const actor = game.actors.get(id);
@@ -104,7 +107,7 @@ test.describe('SLA vehicle sheet UI — regression', () => {
         const row = sheet.locator('.threat-item[data-item-id]');
         await expect(row).toHaveCount(1);
         await expect(row.locator('.item-name')).toHaveText('Mounted Autocannon');
-        await expect(sheet.locator('.sla-empty-state')).toHaveCount(0);
+        await expect(weaponsEmptyState).toHaveCount(0);
         await expect(row.locator('.item-edit')).toBeVisible();
         await expect(row.locator('.item-delete')).toBeVisible();
     });

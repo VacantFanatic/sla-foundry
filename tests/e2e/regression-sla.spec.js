@@ -114,7 +114,11 @@ test.describe('SLA regression — authenticated', () => {
     // that UI and confirms the value round-trips through game.settings, closing that coverage gap.
     // Restores the original value afterward per the shared-world-state lesson in CLAUDE.md.
     test('Configure Settings — toggling a checkbox persists through game.settings', async ({ page }) => {
-        test.setTimeout(60_000);
+        // Same 4-click Settings-navigation chain as the test above (which alone takes ~50s of its
+        // 60s budget in CI), plus a checkbox click, Save, and a game.settings poll on top - 60s
+        // isn't enough headroom under CI's runner (confirmed: this test failed all 3 attempts on
+        // two consecutive main pushes with a clean 60000ms timeout, not an intermittent flake).
+        test.setTimeout(120_000);
         const key = 'enableExplosiveThrowAutomation';
         const original = await page.evaluate((k) => game.settings.get('sla-industries', k), key);
 
