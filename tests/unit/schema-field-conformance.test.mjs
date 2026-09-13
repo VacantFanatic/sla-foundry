@@ -44,6 +44,26 @@ describe('SlaWeaponData schema — Reload/ammo-modifier field contract', () => {
     });
 });
 
+describe('SlaWeaponData/SlaEbbFormulaData schema — drop-zone fields start empty', () => {
+    // Regression guard: these two fields are rendered as drag-and-drop link zones
+    // (.docs/item_setup.md — "Required Skill", "Required Discipline"), so a non-empty
+    // `initial` silently pre-links every new item to the wrong skill/discipline unless
+    // a GM notices and clears it. SlaMagazineData.linkedWeapon and SlaEbbFormulaData's
+    // own `skill` field are the same kind of drop zone and correctly declare no initial.
+    const weaponBody = extractClassBody(itemDataSrc, 'SlaWeaponData');
+    const ebbFormulaBody = extractClassBody(itemDataSrc, 'SlaEbbFormulaData');
+
+    test('SlaWeaponData.skill has no pre-filled initial value', () => {
+        assert.match(weaponBody, /skill:\s*new fields\.StringField\(\)/);
+        assert.doesNotMatch(weaponBody, /skill:\s*new fields\.StringField\(\s*\{\s*initial:/);
+    });
+
+    test('SlaEbbFormulaData.discipline has no pre-filled initial value', () => {
+        assert.match(ebbFormulaBody, /discipline:\s*new fields\.StringField\(\)/);
+        assert.doesNotMatch(ebbFormulaBody, /discipline:\s*new fields\.StringField\(\s*\{\s*initial:/);
+    });
+});
+
 describe('SlaMagazineData schema — Reload producer field contract', () => {
     const body = extractClassBody(itemDataSrc, 'SlaMagazineData');
 

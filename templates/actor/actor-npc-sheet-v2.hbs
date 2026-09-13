@@ -106,6 +106,9 @@
 
                 <div class="tab {{tabs.notes.cssClass}}" data-group="primary" data-tab="notes" role="tabpanel" id="sla-npc-tabpanel-notes" aria-labelledby="sla-npc-tab-notes">
                     <div class="threat-section-bar">NOTES</div>
+                    {{#unless system.notes}}
+                    <div class="sla-empty-state">{{localize "SLA.ActorSheet.NotesEmpty"}}</div>
+                    {{/unless}}
                     <div class="threat-content-box threat-notes-editor">
                         {{#if editable}}
                         <prose-mirror class="editor" name="system.notes" toggled value="{{system.notes}}">{{{enrichedNotes}}}</prose-mirror>

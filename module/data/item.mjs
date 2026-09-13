@@ -106,7 +106,7 @@ export class SlaWeaponData extends foundry.abstract.TypeDataModel {
             range: new fields.StringField({ initial: '10m' }),
             maxAmmo: new fields.NumberField({ initial: 10, integer: true }),
             ammo: new fields.NumberField({ initial: 10, integer: true }),
-            skill: new fields.StringField({ initial: 'pistol' }),
+            skill: new fields.StringField(),
             weight: new fields.NumberField({ initial: 1, min: 0 }),
             price: new fields.NumberField({ initial: 100, min: 0 }),
             equipped: new fields.BooleanField({ initial: false }),
@@ -154,7 +154,7 @@ export class SlaEbbFormulaData extends foundry.abstract.TypeDataModel {
         return {
             cost: new fields.NumberField({ initial: 1, min: 0 }),
             formulaRating: new fields.NumberField({ initial: 7 }),
-            discipline: new fields.StringField({ initial: 'blast' }),
+            discipline: new fields.StringField(),
             description: new fields.HTMLField(),
             damage: new fields.StringField(),
             minDamage: new fields.StringField(),

@@ -1,3 +1,5 @@
+import { bindEscapeToClose } from '../helpers/dialog-keyboard.mjs';
+
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
 /**
@@ -81,10 +83,24 @@ export class SlaSimpleContentDialog extends HandlebarsApplicationMixin(Applicati
         return context;
     }
 
+    /** @type {AbortController | null} */
+    #uiAbort = null;
+
+    /** @override */
+    async _onClose(options) {
+        this.#uiAbort?.abort();
+        this.#uiAbort = null;
+        return super._onClose(options);
+    }
+
     /** @override */
     async _onRender(context, options) {
         await super._onRender(context, options);
         const cancel = this.element.querySelector("[data-action='closeDialog']");
         if (cancel) cancel.style.display = this._showCancel ? '' : 'none';
+
+        this.#uiAbort?.abort();
+        this.#uiAbort = new AbortController();
+        bindEscapeToClose(this.element, this.#uiAbort.signal, () => this.close());
     }
 }

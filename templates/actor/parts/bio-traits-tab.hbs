@@ -82,6 +82,9 @@
     {{!-- Notes Section --}}
     <div class="sla-panel" style="flex: 1; min-height: 300px; display: flex; flex-direction: column;">
         <div class="sla-header-bar">NOTES</div>
+        {{#unless system.notes}}
+        <div class="sla-empty-state">{{localize "SLA.ActorSheet.NotesEmpty"}}</div>
+        {{/unless}}
         {{!-- Added class 'sla-editor-container' and forced height --}}
         <div class="sla-editor-container" style="flex: 1; height: 100%; border: none; padding: 5px; background: #000;">
             {{!-- {{editor}} is non-functional on Application V2 — use HTMLProseMirrorElement (Foundry #12989) --}}

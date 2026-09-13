@@ -4,6 +4,7 @@
  */
 import { prepareFiringModes, getLinkedDisciplineImage, enrichItemDescription } from '../helpers/item-sheet.mjs';
 import { normalizeEbbEffect } from '../helpers/items.mjs';
+import { bindTabKeyboardNav } from '../helpers/tab-keyboard-nav.mjs';
 import {
     handleWeaponDrop,
     handleWeaponSkillDrop,
@@ -514,6 +515,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
         if (root.querySelector?.('nav.sheet-tabs.tabs[data-group="primary"]')) {
             root.addEventListener('click', this.#onItemTabNavClick, { signal, capture: true });
+            bindTabKeyboardNav(root, signal);
         }
 
         root.addEventListener('click', this.#onItemEffectUiClick, { signal });

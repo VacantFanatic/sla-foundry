@@ -109,6 +109,40 @@ test.describe('SLA regression — authenticated', () => {
         await page.keyboard.press('Escape');
     });
 
+    // Regression guard: every other setting test reads/writes game.settings directly, bypassing
+    // the Configure Settings form entirely — this is the only one that flips a real checkbox in
+    // that UI and confirms the value round-trips through game.settings, closing that coverage gap.
+    // Restores the original value afterward per the shared-world-state lesson in CLAUDE.md.
+    test('Configure Settings — toggling a checkbox persists through game.settings', async ({ page }) => {
+        test.setTimeout(60_000);
+        const key = 'enableExplosiveThrowAutomation';
+        const original = await page.evaluate((k) => game.settings.get('sla-industries', k), key);
+
+        try {
+            await dismissFoundryNotifications(page);
+            await page.getByRole('tab', { name: /^settings$/i }).click();
+            await dismissFoundryNotifications(page);
+            await page.getByRole('button', { name: /^game settings$/i }).click();
+            await dismissFoundryNotifications(page);
+            await page.getByRole('button', { name: /SLA Industries 2nd Edition/i }).click();
+            await dismissFoundryNotifications(page);
+
+            const checkbox = page.locator('input[name="sla-industries.enableExplosiveThrowAutomation"]');
+            await expect(checkbox).toBeVisible({ timeout: 15_000 });
+            // A real click, not .setChecked() — Foundry's category-browser settings form only
+            // seems to pick up the state change reliably from an actual click event here.
+            await checkbox.click();
+            await expect(checkbox).toBeChecked({ checked: !original });
+            await page.getByRole('button', { name: /save changes/i }).click();
+
+            await expect
+                .poll(async () => page.evaluate((k) => game.settings.get('sla-industries', k), key))
+                .toBe(!original);
+        } finally {
+            await page.evaluate(({ k, v }) => game.settings.set('sla-industries', k, v), { k: key, v: original });
+        }
+    });
+
     test('Actors sidebar tab opens directory', async ({ page }) => {
         await page.getByRole('tab', { name: /^actors$/i }).click();
         await expect(page.getByRole('searchbox', { name: /search actors/i })).toBeVisible();

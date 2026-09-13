@@ -4,6 +4,7 @@
 import { prepareItems } from '../helpers/items.mjs';
 import { applyMeleeModifiers, applyRangedModifiers } from '../helpers/modifiers.mjs';
 import { addActorItemToHotbar } from '../helpers/sla-hotbar.mjs';
+import { bindTabKeyboardNav } from '../helpers/tab-keyboard-nav.mjs';
 import { onDropItem, onDropVehicleWeapon, onItemCreate } from './actor/actor-drops.mjs';
 import { triggerItemRoll } from './actor/item-actions.mjs';
 import { handleSheetChange, handleSheetClick } from './actor/sheet-actions.mjs';
@@ -510,6 +511,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         // Also register even when !isEditable so observers can switch tabs.
         if (primaryTabs.length) {
             root.addEventListener('click', this.#onTabNavClick, { signal, capture: true });
+            bindTabKeyboardNav(root, signal);
         }
         const fxSearch = root.querySelector('.sla-effect-search');
         if (fxSearch instanceof HTMLInputElement) {

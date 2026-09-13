@@ -17,13 +17,18 @@ export function effectChangeRows(effect) {
 /**
  * Resolves how to recognize an ADD change across Foundry v14 (canonical string
  * `type`) and pre-v14 worlds (deprecated numeric `mode`).
- * @param {{ ACTIVE_EFFECT_CHANGE_TYPES?: Record<string, string>, ACTIVE_EFFECT_MODES?: Record<string, number> }} [constants]
+ *
+ * Deliberately does not read `CONST.ACTIVE_EFFECT_MODES`: Foundry v14 wraps that
+ * property in a deprecation-warning getter that logs on every *read*, not just
+ * writes, which would otherwise fire on every derived-data pass for any actor with
+ * active effects. The legacy numeric ADD value (2) is a stable historical constant,
+ * so it's hardcoded instead.
+ * @param {{ ACTIVE_EFFECT_CHANGE_TYPES?: Record<string, string> }} [constants]
  * @returns {{ addType: string, legacyAddModes: Set<number> }}
  */
 export function resolveActiveEffectAddMatcher(constants = globalThis.CONST) {
     const addType = constants?.ACTIVE_EFFECT_CHANGE_TYPES?.ADD ?? 'add';
-    const legacyModes = constants?.ACTIVE_EFFECT_MODES;
-    const legacyAddModes = new Set([legacyModes?.ADD, 2].filter((v) => v !== undefined && v !== null));
+    const legacyAddModes = new Set([2]);
     return { addType, legacyAddModes };
 }
 
