@@ -232,6 +232,20 @@ here was exercised end-to-end in a real session: building `dist/`, starting Foun
 real credentials, and running the full `test:e2e:regression` suite (43/43) against it, driving
 PR #336's `e2e` CI job green.
 
+**Foundry credentials are configured per Claude Code _environment_, not account-wide or
+repo-wide.** A session running in an environment where nobody has ever added the variables below
+genuinely cannot run Foundry — no script or workaround changes that, and it is the expected,
+normal state, not a broken setup or a regression from the session that got this working. Don't
+assume every session automatically has Foundry access just because a past session on this repo
+did; check first (`bash scripts/cloud-foundry.sh status`, or a redacted `env | grep -c
+FOUNDRY_USERNAME`) rather than assuming either way. Everything **not** Foundry-dependent —
+`npm ci`, `npm run build`, `npm run format:check`, `npm run test:unit` — works in any environment
+regardless of credentials; only `npm run test:e2e*` and anything driving a real browser against
+`/join` needs them. If a task genuinely requires Foundry and this environment doesn't have it,
+say so plainly rather than guessing around it — getting it working means adding the credentials
+below to _this specific environment's_ settings (which only someone with access to that
+environment's configuration can do), not something fixable from inside a session.
+
 ### Getting Foundry running
 
 1. **Configure credentials as environment variables on the Claude Code environment itself**
