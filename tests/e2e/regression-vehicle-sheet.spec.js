@@ -60,6 +60,19 @@ test.describe('SLA vehicle sheet UI — regression', () => {
         await expect(sheet.locator('input[name="system.mountedWeaponsIgnoreSkillReq"]')).toBeVisible();
     });
 
+    test('vehicle sheet — max HP field is editable and persists', async ({ page }) => {
+        const actorId = await createTestActor(page, { hp: { value: 20, max: 20 } }, 'vehicle');
+        const sheet = await openActorSheet(page, actorId);
+
+        const maxHp = sheet.locator('input[name="system.hp.max"]');
+        await expect(maxHp).not.toHaveAttribute('readonly', '');
+
+        await maxHp.fill('30');
+        await maxHp.blur();
+
+        await expect.poll(async () => page.evaluate((id) => game.actors.get(id)?.system.hp.max, actorId)).toBe(30);
+    });
+
     test('vehicle sheet — combat rules checkboxes persist a toggle', async ({ page }) => {
         const actorId = await createTestActor(page, {}, 'vehicle');
         const sheet = await openActorSheet(page, actorId);
