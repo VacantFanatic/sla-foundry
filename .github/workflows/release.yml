@@ -53,6 +53,16 @@ jobs:
                     exit 1
                   fi
 
+            - name: Patch manifest download URL for this release
+              run: |
+                  python3 -c "
+                  import json, sys
+                  version = sys.argv[1]
+                  manifest = json.load(open('system.json'))
+                  manifest['download'] = f'https://github.com/VacantFanatic/sla-foundry/releases/download/{version}/sla-industries.zip'
+                  open('system.json', 'w').write(json.dumps(manifest, indent=4) + '\n')
+                  " "${{ steps.get-version.outputs.version }}"
+
             - name: Run unit tests
               run: npm run test:unit
 
