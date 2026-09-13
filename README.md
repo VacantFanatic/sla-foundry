@@ -2,7 +2,7 @@
 
 A custom game system implementation for playing **SLA Industries 2nd Edition** on Foundry Virtual Tabletop. This system features a high-contrast dark UI, automated combat mechanics, and drag-and-drop character creation tools.
 
-Key Features
+## Key Features
 
 ### Character Sheet
 
