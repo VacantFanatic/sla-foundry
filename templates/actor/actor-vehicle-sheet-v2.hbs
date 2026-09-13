@@ -98,6 +98,9 @@
         </div>
 
         <div class="threat-section-bar">{{localize "SLA.ActorSheet.Notes"}}</div>
+        {{#unless system.notes}}
+        <div class="sla-empty-state">{{localize "SLA.ActorSheet.NotesEmpty"}}</div>
+        {{/unless}}
         <div class="threat-content-box threat-notes-editor">
             {{#if editable}}
             <prose-mirror class="editor" name="system.notes" toggled value="{{system.notes}}">{{{enrichedNotes}}}</prose-mirror>

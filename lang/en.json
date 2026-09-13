@@ -87,6 +87,7 @@
     "SLA.ActorSheet.InfectionsEmpty": "No active infection entries. Drag a toxicant here or add one.",
     "SLA.ActorSheet.InfectionTest": "Infection test",
     "SLA.ActorSheet.Notes": "Notes",
+    "SLA.ActorSheet.NotesEmpty": "No notes yet. Click below to start writing.",
     "SLA.ActorSheet.WoundsStatus": "Status & wounds",
     "SLA.ActorSheet.WoundCount": "{count} wound(s)",
     "SLA.ActorSheet.WoundHead": "Head",

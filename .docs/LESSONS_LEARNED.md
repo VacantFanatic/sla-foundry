@@ -121,4 +121,15 @@ window.innerWidth)` inside a running test), and it explains genuine "element is 
   ordinary, stable 1280x720 viewport, no viewport change needed at all. When something a viewport-
   driven Foundry warning is blocking, look for a way to dismiss the warning itself before reaching
   for a bigger viewport — this sandbox's software rendering makes viewport size itself the least
-  reliable lever to pull.
+  reliable lever to pull. **Update, later session:** that instability was specific to the full jump
+  to 1920x1080 (a ~2.25x increase in rendered pixels), not to changing the viewport at all. Raising
+  it only to Foundry's own documented minimum (1366x768, a ~1.13x increase — enough to clear the
+  "screen resolution too small" warning permanently, not just paper over one blocked click) was
+  confirmed safe: 23 UI-heavy tests across `regression-accessibility`, `regression-actor-sheets`,
+  and `regression-dialogs` ran back-to-back with zero failures, and the warning was confirmed gone
+  via direct console capture. `playwright.config.js` now sets `1366x768` in both the top-level
+  `use.viewport` and (since the `chromium` project's `devices['Desktop Chrome']` spread still wins
+  the merge) the project's own `use.viewport`. The dismiss-the-warning workaround above is still the
+  right call for one-off blocked clicks discovered mid-session, but for the suite as a whole, a
+  small, deliberately-sized viewport bump is a legitimate fix — don't assume all viewport changes
+  are equally risky just because one large one was.

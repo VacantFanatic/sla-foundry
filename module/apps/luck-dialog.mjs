@@ -1,4 +1,5 @@
 import { calculateRollResult, getMOS, generateDiceTooltip } from '../helpers/dice.mjs';
+import { bindEscapeToClose } from '../helpers/dialog-keyboard.mjs';
 import { syncEbbCriticalFlux } from '../helpers/ebb-flux.mjs';
 import { normalizeEbbEffect } from '../helpers/items.mjs';
 
@@ -55,6 +56,9 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         { inplace: false }
     );
 
+    /** @type {AbortController | null} */
+    #uiAbort = null;
+
     /**
      * @param {Actor} actor
      * @param {Roll} roll
@@ -74,6 +78,21 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
     async _prepareContext() {
         const context = await super._prepareContext();
         return foundry.utils.mergeObject(context, this._luckContext);
+    }
+
+    /** @override */
+    async _onClose(options) {
+        this.#uiAbort?.abort();
+        this.#uiAbort = null;
+        return super._onClose(options);
+    }
+
+    /** @override */
+    async _onRender(context, options) {
+        await super._onRender(context, options);
+        this.#uiAbort?.abort();
+        this.#uiAbort = new AbortController();
+        bindEscapeToClose(this.element, this.#uiAbort.signal, () => this.close());
     }
 
     /**

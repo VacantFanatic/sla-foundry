@@ -3,6 +3,8 @@
  * - GM Mode: Add/remove XP directly
  * - Player Mode: Purchase stat/skill/discipline upgrades
  */
+import { bindEscapeToClose } from '../helpers/dialog-keyboard.mjs';
+
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
 export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -77,6 +79,8 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         this.#uiAbort = new AbortController();
         const { signal } = this.#uiAbort;
         const el = this.element;
+
+        bindEscapeToClose(el, signal, () => this.close());
 
         if (this.isGM) {
             for (const name of ['xpChange', 'xpReason']) {

@@ -37,6 +37,27 @@ describe('resolveActiveEffectAddMatcher', () => {
         assert.equal(matcher.addType, 'add');
         assert.equal(matcher.legacyAddModes.has(2), true);
     });
+
+    // Regression guard: Foundry v14 wraps CONST.ACTIVE_EFFECT_MODES in a deprecation-warning
+    // getter that logs on every read, not just writes. The legacy ADD value (2) is a stable
+    // historical constant, so this function must resolve it without ever touching that
+    // property — reading `constants` for ACTIVE_EFFECT_CHANGE_TYPES only.
+    test('never reads the deprecated ACTIVE_EFFECT_MODES property off the passed constants', () => {
+        let accessed = false;
+        const constants = { ACTIVE_EFFECT_CHANGE_TYPES: { ADD: 'add' } };
+        Object.defineProperty(constants, 'ACTIVE_EFFECT_MODES', {
+            enumerable: true,
+            get() {
+                accessed = true;
+                return { ADD: 2 };
+            }
+        });
+
+        const matcher = resolveActiveEffectAddMatcher(constants);
+
+        assert.equal(accessed, false);
+        assert.equal(matcher.legacyAddModes.has(2), true);
+    });
 });
 
 describe('isActiveEffectAddChange', () => {
