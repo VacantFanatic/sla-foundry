@@ -12,7 +12,7 @@ import {
 } from './derived/active-effects.mjs';
 import { applyStatPenalties } from './derived/penalties.mjs';
 import { clampHpValue } from '../sheets/actor/sheet-ux-pure.mjs';
-import { countWounds, deriveLogicConditions } from './derived/wounds.mjs';
+import { countWounds, deriveLogicConditions, resolveStunnedFromHeadWound } from './derived/wounds.mjs';
 import { resolveDerivedHpMax } from './derived/hp.mjs';
 
 /**
@@ -196,7 +196,11 @@ export class SlaActor extends Actor {
         const logic = deriveLogicConditions(w, { hpValue: hpVal, woundCount, projectedHpMax });
         system.conditions.dead = logic.dead;
         system.conditions.critical = logic.critical;
-        if (logic.stunned) system.conditions.stunned = true;
+        // Stunned is intentionally NOT force-derived from the head wound here: it's the actual
+        // Stunned effect (hasEffect above) that must drive display, so a manually-cleared Stunned
+        // (rest/drugs/medical intervention) stays cleared while the head wound persists, per the
+        // rulebook's wound-vs-condition removal rules. _handleWoundEffects() below is what applies
+        // Stunned when the head wound first appears.
         if (logic.immobile) system.conditions.immobile = true;
     }
 
@@ -785,30 +789,27 @@ export class SlaActor extends Actor {
         }
 
         // B. Handle Wound Logic (Head -> Stunned, Legs -> Immobile, Any -> Bleeding)
-        // Check if ANY wound field changed - Foundry uses flat keys like "system.wounds.head"
+        // Track exactly which wound fields changed - Foundry uses flat keys like "system.wounds.head"
         const woundFieldNames = ['head', 'torso', 'lArm', 'rArm', 'lLeg', 'rLeg'];
-        let hasWoundChange = false;
+        const changedWoundFields = new Set();
 
         // Check if woundChanges object exists (nested update)
         if (woundChanges) {
-            hasWoundChange = true;
+            for (const fieldName of woundFieldNames) {
+                if (Object.hasOwn(woundChanges, fieldName)) changedWoundFields.add(fieldName);
+            }
         } else {
             // Check for flat path updates (e.g., "system.wounds.head")
-            // Also check if any key in changed starts with "system.wounds."
-            const changedKeys = Object.keys(changed);
-            for (const key of changedKeys) {
+            for (const key of Object.keys(changed)) {
                 if (key.startsWith('system.wounds.')) {
                     const fieldName = key.replace('system.wounds.', '');
-                    if (woundFieldNames.includes(fieldName)) {
-                        hasWoundChange = true;
-                        break;
-                    }
+                    if (woundFieldNames.includes(fieldName)) changedWoundFields.add(fieldName);
                 }
             }
         }
 
-        if (hasWoundChange) {
-            await this._handleWoundEffects(woundChanges || {});
+        if (changedWoundFields.size > 0) {
+            await this._handleWoundEffects(changedWoundFields);
         }
 
         // 2. SEPARATE LOGIC: Critical / dead status vs HP (value or max threshold)
@@ -857,8 +858,9 @@ export class SlaActor extends Actor {
 
     /**
      * Handle Side-Effects of Wounds (Stunned, Immobile, Bleeding)
+     * @param {Set<string>} changedWoundFields - which wound location fields changed in this update
      */
-    async _handleWoundEffects(woundChanges) {
+    async _handleWoundEffects(changedWoundFields) {
         // We need the *full* current state of wounds, merging the update with existing data
         // However, 'this.system.wounds' is already updated in memory by the time _onUpdate fires?
         // ACTUALLY: In _onUpdate, 'this.system' IS already updated to the new state.
@@ -873,20 +875,14 @@ export class SlaActor extends Actor {
         const hasEffect = (id) => this.effects.some((e) => e.statuses.has(id));
 
         // 1. HEAD WOUND -> STUNNED
-        // If head is wounded and we are not stunned, ADD Stunned
-        if (w.head === true && !hasEffect('stunned')) {
-            // We only add it. We don't remove it auto-magically if healed,
-            // unless the user specifically wants that.
-            // Rule: "Stunned is removed with medical intervention... or rest"
-            // So it's safer to Auto-Add, but maybe Auto-Remove is convenient?
-            // Let's do Auto-Add and Auto-Remove for immediate feedback,
-            // but allow manual toggle back if needed.
-            effectsToToggle.push({ id: 'stunned', active: true });
-        } else if (w.head !== true && hasEffect('stunned')) {
-            // Only remove if it was the head wound causing it?
-            // Hard to know. But typically if you heal the head, the stun might fade.
-            // Let's be aggressive for UX: Remove it.
-            effectsToToggle.push({ id: 'stunned', active: false });
+        // Only re-derive Stunned when the head field itself changed - otherwise editing an
+        // unrelated wound (e.g. a leg) would silently re-apply Stunned after a GM manually
+        // cleared it to represent rest/drugs/medical intervention without healing the head.
+        if (changedWoundFields.has('head')) {
+            const desiredStunned = resolveStunnedFromHeadWound(w.head, hasEffect('stunned'));
+            if (desiredStunned !== null) {
+                effectsToToggle.push({ id: 'stunned', active: desiredStunned });
+            }
         }
 
         // 2. BOT LEG WOUNDS -> IMMOBILE

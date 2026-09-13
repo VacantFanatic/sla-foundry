@@ -380,9 +380,17 @@ Chat state is persisted on `ChatMessage.flags.sla`:
 
 ### Wound cascade
 
-`SlaActor._handleWoundEffects()` runs on every wound field change:
+`SlaActor._handleWoundEffects(changedWoundFields)` runs whenever a wound field changes, receiving
+the set of wound location fields that changed in that update:
 
-- **Head wound** → applies `stunned` status effect.
+- **Head wound** → applies/removes `stunned` status effect, via the pure
+  `resolveStunnedFromHeadWound()` helper in `derived/wounds.mjs`. This only re-evaluates when
+  `head` itself is in `changedWoundFields` — editing an unrelated wound (e.g. a leg) must not
+  silently re-apply Stunned after a GM manually clears it to represent rest/drugs/medical
+  intervention without healing the head wound (see .docs/LESSONS_LEARNED.md). The displayed
+  `system.conditions.stunned` flag (`_calculateWounds()`) mirrors the real Stunned effect
+  (`hasEffect('stunned')`) directly — it is never force-derived from the head wound on every
+  render, for the same reason.
 - **Both leg wounds** → applies `immobile` status effect.
 - **Any wound** → applies `bleeding` status effect. Exception: Frothermorfs with exactly **one** wound do not bleed (Feel No Pain).
 - **6 wounds** → sets HP to 0 and applies `dead` overlay.
