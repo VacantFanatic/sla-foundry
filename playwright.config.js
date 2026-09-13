@@ -21,7 +21,12 @@ module.exports = defineConfig({
     reporter: [['list'], ['html', { open: 'never' }]],
     use: {
         baseURL: process.env.FOUNDRY_URL || 'http://127.0.0.1:30000',
-        viewport: { width: 1920, height: 1080 },
+        // Foundry's own documented minimum supported resolution — below this it shows a
+        // persistent "screen resolution too small" warning toast (see CLAUDE.md's viewport
+        // lessons-learned entry). NOTE: this top-level value is shadowed by whatever the
+        // `chromium` project's `use` sets below (project-level `use` wins the merge), so it
+        // must also be set there explicitly, not just here.
+        viewport: { width: 1366, height: 768 },
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure'
@@ -34,7 +39,13 @@ module.exports = defineConfig({
     projects: [
         {
             name: 'chromium',
-            use: { ...devices['Desktop Chrome'] }
+            // `devices['Desktop Chrome']` carries its own `viewport: 1280x720`, which silently
+            // overrode the 1366x768 above (project-level `use` wins). Override it back to
+            // Foundry's minimum explicitly.
+            use: {
+                ...devices['Desktop Chrome'],
+                viewport: { width: 1366, height: 768 }
+            }
         }
     ]
 });
