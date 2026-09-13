@@ -12,7 +12,53 @@ on:
             - main
 
 jobs:
+    # Fast gate that decides whether the rest of the pipeline has anything to verify.
+    # A push to main that only touches documentation (*.md files, .docs/, LICENSE) has no
+    # code or tests to lint/build/run, so the build and e2e jobs are skipped in that case.
+    # Scoped to `push` only — pull_request runs always get the full pipeline, since PRs are
+    # what branch protection gates on and doc-only detection shouldn't affect mergeability.
+    changes:
+        runs-on: ubuntu-latest
+        if: github.event_name == 'push'
+        outputs:
+            docs_only: ${{ steps.detect.outputs.docs_only }}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Determine whether this push is docs-only
+              id: detect
+              run: |
+                  before="${{ github.event.before }}"
+
+                  if [[ -z "$before" || "$before" =~ ^0+$ ]] || ! git cat-file -e "$before" 2>/dev/null; then
+                    echo "No usable previous commit to diff against — running full CI." >&2
+                    echo "docs_only=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  changed=$(git diff --name-only "$before" "${{ github.sha }}")
+                  echo "Changed files:"
+                  echo "$changed"
+
+                  if [[ -z "$changed" ]]; then
+                    echo "docs_only=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  non_docs=$(echo "$changed" | grep -Ev '(\.md$|^\.docs/|^LICENSE(\.[A-Za-z]+)?$)' || true)
+
+                  if [[ -z "$non_docs" ]]; then
+                    echo "Docs-only push detected — skipping build/e2e." >&2
+                    echo "docs_only=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "docs_only=false" >> "$GITHUB_OUTPUT"
+                  fi
+
     build:
+        needs: changes
+        if: always() && needs.changes.outputs.docs_only != 'true'
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4

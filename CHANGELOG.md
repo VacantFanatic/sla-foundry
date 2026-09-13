@@ -30,6 +30,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **CI skips build/unit-test/E2E on docs-only pushes to `main`:** A new `changes` job in
+  `.github/workflows/main.yml` diffs each push against its previous commit; when every changed file
+  matches a documentation pattern (`*.md`, `.docs/**`, `LICENSE*`), the `build` job (and, by cascade,
+  the `e2e` job that depends on it) is skipped, since there's no code or test to verify. Pull request
+  runs are unaffected — they always run the full pipeline, since that's what branch protection gates
+  merges on.
 - **`processWeaponRoll`'s aim-limit/condition-modifier logic extracted:** The inline aim-total-vs-skill-rank validation and prone/stunned/aim modifier application in `module/sheets/actor/weapon-rolls.mjs` moved into a new pure function, `applyWeaponAimAndConditionMods` (`module/sheets/actor/roll-math.mjs`), matching the existing `applyExplosiveRollAdjustments` pattern. Same behavior, now independently unit-tested.
 - **`migrateTo200`/`migrateTo210` exported:** These two version-specific migration steps (`module/migration.mjs`) are no longer module-private, so they can be tested directly without invoking the full `migrateWorld()` orchestrator (which downloads a world backup file by default). No behavior change.
 
