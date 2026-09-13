@@ -33,3 +33,20 @@ export function deriveLogicConditions(wounds, { hpValue, woundCount, projectedHp
         immobile: wounds.lLeg === true && wounds.rLeg === true
     };
 }
+
+/**
+ * Whether the Stunned status effect should be toggled in response to the *head* wound
+ * field specifically changing. Only call this when `head` is one of the fields that just
+ * changed — re-deriving Stunned from `headWound` on every wound update (including
+ * unrelated locations) would silently overwrite a Stunned status a GM cleared manually to
+ * represent rest/drugs/medical intervention without healing the head wound itself (see
+ * .docs/LESSONS_LEARNED.md).
+ * @param {boolean | undefined} headWound - current `system.wounds.head` value
+ * @param {boolean} hasStunnedEffect - whether the Stunned status effect is currently active
+ * @returns {boolean | null} desired active state for the Stunned effect, or null if no change is needed
+ */
+export function resolveStunnedFromHeadWound(headWound, hasStunnedEffect) {
+    if (headWound === true && !hasStunnedEffect) return true;
+    if (headWound !== true && hasStunnedEffect) return false;
+    return null;
+}

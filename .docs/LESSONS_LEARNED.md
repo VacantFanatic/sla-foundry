@@ -133,3 +133,25 @@ window.innerWidth)` inside a running test), and it explains genuine "element is 
   right call for one-off blocked clicks discovered mid-session, but for the suite as a whole, a
   small, deliberately-sized viewport bump is a legitimate fix — don't assume all viewport changes
   are equally risky just because one large one was.
+- **A "derive X from Y on every render" line can silently overwrite a manually-toggled status
+  that's supposed to be independently clearable.** `SlaActor._calculateWounds()` computed the
+  displayed `system.conditions.stunned` two ways: first from the real Stunned Active Effect
+  (`hasEffect('stunned')`, correct), then unconditionally forced back to `true` whenever
+  `wounds.head === true` (`if (logic.stunned) system.conditions.stunned = true;`) — on _every_
+  `prepareDerivedData()` call, not just when a wound changed. The Stunned icon in
+  `wounds.hbs` is a manual `condition-toggle` (clicking it calls `actor.toggleStatusEffect('stunned')`
+  directly, bypassing `_onUpdate` entirely) specifically so a GM can clear it independently of the
+  wound per the rulebook (Stunned clears via rest/drugs/medical intervention; the wound itself only
+  heals via medical intervention) — but the forced re-derivation clobbered that clear on the very
+  next render, since the head wound was still marked. A second, related bug lived in
+  `_handleWoundEffects()` (the method that actually adds/removes the Active Effect from
+  `_onUpdate`): it re-evaluated `wounds.head` on _any_ wound field changing, not just `head`
+  itself, so editing an unrelated wound (e.g. a leg) would silently resurrect a Stunned effect a GM
+  had just removed. Fixed by (1) deleting the forced-override line so the displayed condition
+  always mirrors the real effect state, and (2) gating the Active-Effect sync in
+  `_handleWoundEffects` on the specific field (`head`) having changed, not "some wound changed"
+  (see `resolveStunnedFromHeadWound()` in `derived/wounds.mjs`). When a UI exposes a manual
+  toggle for a value that's _also_ auto-derived elsewhere, check every place that writes the
+  derived value for an unconditional re-assignment that would fight the manual toggle — this
+  kind of line is much easier to miss during review than a state-machine transition would be,
+  precisely because it looks like a harmless "keep it in sync" default rather than a bug.

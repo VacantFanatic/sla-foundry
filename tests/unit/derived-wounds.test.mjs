@@ -3,7 +3,11 @@
  */
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { countWounds, deriveLogicConditions } from '../../module/documents/derived/wounds.mjs';
+import {
+    countWounds,
+    deriveLogicConditions,
+    resolveStunnedFromHeadWound
+} from '../../module/documents/derived/wounds.mjs';
 
 describe('countWounds', () => {
     test('counts true wound flags only', () => {
@@ -47,5 +51,20 @@ describe('deriveLogicConditions', () => {
         );
         assert.equal(c.stunned, true);
         assert.equal(c.immobile, true);
+    });
+});
+
+describe('resolveStunnedFromHeadWound', () => {
+    test('applies stunned when head is wounded and not already stunned', () => {
+        assert.equal(resolveStunnedFromHeadWound(true, false), true);
+    });
+
+    test('clears stunned when head is not wounded and currently stunned', () => {
+        assert.equal(resolveStunnedFromHeadWound(false, true), false);
+    });
+
+    test('no change when head wound state already matches stunned state', () => {
+        assert.equal(resolveStunnedFromHeadWound(true, true), null);
+        assert.equal(resolveStunnedFromHeadWound(false, false), null);
     });
 });
