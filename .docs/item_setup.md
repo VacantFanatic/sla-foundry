@@ -84,6 +84,10 @@ Ebb users (Ebonites) rely on Formulas which are governed by Disciplines. The **E
     - **Effect:** `damage` / `heal` / `effect` — controls MOS bonus rules and chat card behavior.
     - **Target:** `self` / `ally` / `enemy` — affects how the result is applied. Self-target formulas apply directly to the caster.
     - **Wounds to Remove:** 0–6 wound locations to clear on a successful roll.
+    - **Attack Shape** (damage formulas): `Ranged` (default) shows Damage / Min Damage / AD / Range
+      / ROF / Recoil, for weapon-style Formulas. `Blast / Area` shows Damage / Min Damage / AD /
+      Kill Zone / Max Blast instead, for grenade-style AoE Formulas — matching the sourcebook's two
+      different stat-block layouts for Blast/Telekinesis/Thermal Formulas.
 3. **Link the Discipline:**
 
 - Locate the **"Required Discipline"** drop zone (purple dashed box).

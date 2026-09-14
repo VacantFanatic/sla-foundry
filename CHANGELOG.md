@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Ebb Formula sheet missing AD/ROF/Recoil fields (#349):** The Ebb Formula item sheet had no way
+  to enter the AD (Armor Damage) value, even though `system.ad` already existed in the schema and
+  was already read by the damage-roll chat card — the field was simply never rendered in
+  `item-ebb-formula.hbs`. The same was true of `rof`/`recoil`. Fixed by adding an Attack Shape
+  toggle (`system.formulaShape`: `ranged`/`blast`) to the sheet, mirroring the weapon sheet's
+  melee/ranged toggle: Ranged formulas show Damage/Min Damage/AD/Range/ROF/Recoil, Blast formulas
+  show Damage/Min Damage/AD/Kill Zone/Max Blast (new `system.blastRadiusInner`/`blastRadiusOuter`
+  fields, matching `SlaExplosiveData`'s existing ones), so weapon-style and grenade-style Blast/
+  Telekinesis/Thermal Formulas can both be modeled. The unused, never-rendered `system.skill`
+  field (superseded by the existing `system.discipline` drop-zone) was removed from the schema.
+
 ## [2.8.8] - 2026-09-13
 
 ### Added
