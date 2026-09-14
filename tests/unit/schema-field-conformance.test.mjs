@@ -64,6 +64,24 @@ describe('SlaWeaponData/SlaEbbFormulaData schema — drop-zone fields start empt
     });
 });
 
+describe('SlaEbbFormulaData schema — issue #349 field contract', () => {
+    // Regression guard for issue #349: the AD field (and rof/recoil) already existed in the
+    // schema but were never rendered in item-ebb-formula.hbs, so GMs had no way to enter them.
+    // Fixed by adding a formulaShape (ranged/blast) toggle and rendering all of these fields.
+    const body = extractClassBody(itemDataSrc, 'SlaEbbFormulaData');
+
+    test('declares formulaShape, ad, blastRadiusInner/Outer', () => {
+        assert.match(body, /formulaShape:\s*new fields\.StringField\(\s*\{\s*initial:\s*'ranged'/);
+        assert.match(body, /ad:\s*new fields\.NumberField/);
+        assert.match(body, /blastRadiusInner:\s*new fields\.NumberField/);
+        assert.match(body, /blastRadiusOuter:\s*new fields\.NumberField/);
+    });
+
+    test('does not redeclare the removed dead skill field', () => {
+        assert.doesNotMatch(body, /\bskill\s*:\s*new fields\./);
+    });
+});
+
 describe('SlaMagazineData schema — Reload producer field contract', () => {
     const body = extractClassBody(itemDataSrc, 'SlaMagazineData');
 

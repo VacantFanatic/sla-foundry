@@ -18,6 +18,13 @@
                 <label>{{localize "SLA.EbbFluxCost"}}</label>
                 <input type="number" name="system.cost" value="{{system.cost}}" />
             </div>
+            <div class="sla-field sla-field--compact glow-input">
+                <label>{{localize "SLA.EbbFormulaShapeField"}}</label>
+                <select name="system.formulaShape" data-dtype="String">
+                    <option value="ranged" {{#unless (eq system.formulaShape "blast")}}selected{{/unless}}>{{localize "SLA.EbbFormulaShape.ranged"}}</option>
+                    <option value="blast" {{#if (eq system.formulaShape "blast")}}selected{{/if}}>{{localize "SLA.EbbFormulaShape.blast"}}</option>
+                </select>
+            </div>
         </div>
 
         <div class="spectral-ebb-card__row spectral-ebb-card__row--effect">
@@ -62,9 +69,32 @@
                 <input type="text" name="system.minDamage" value="{{system.minDamage}}" />
             </div>
             <div class="sla-field sla-field--compact glow-input">
+                <label>{{localize "SLA.EbbAD"}}</label>
+                <input type="number" name="system.ad" value="{{system.ad}}" />
+            </div>
+            {{#if (eq system.formulaShape "blast")}}
+            <div class="sla-field sla-field--compact glow-input">
+                <label>{{localize "SLA.EbbBlastRadiusInner"}}</label>
+                <input type="number" name="system.blastRadiusInner" value="{{system.blastRadiusInner}}" placeholder="0" />
+            </div>
+            <div class="sla-field sla-field--compact glow-input">
+                <label>{{localize "SLA.EbbBlastRadiusOuter"}}</label>
+                <input type="number" name="system.blastRadiusOuter" value="{{system.blastRadiusOuter}}" placeholder="5" />
+            </div>
+            {{else}}
+            <div class="sla-field sla-field--compact glow-input">
                 <label>{{localize "SLA.EbbRange"}}</label>
                 <input type="text" name="system.range" value="{{system.range}}" />
             </div>
+            <div class="sla-field sla-field--compact glow-input">
+                <label>{{localize "SLA.EbbROF"}}</label>
+                <input type="text" name="system.rof" value="{{system.rof}}" />
+            </div>
+            <div class="sla-field sla-field--compact glow-input">
+                <label>{{localize "SLA.EbbRecoil"}}</label>
+                <input type="text" name="system.recoil" value="{{system.recoil}}" />
+            </div>
+            {{/if}}
         </div>
     </section>
 

@@ -31,17 +31,21 @@ The **Success Die** (`1d10`) determines pass/fail against the **Formula Rating**
 
 ## Formula Item Fields
 
-| Field               | Schema key                          | Notes                                                                                   |
-| ------------------- | ----------------------------------- | --------------------------------------------------------------------------------------- |
-| Formula Rating (TN) | `system.formulaRating`              | Default 7. The target number for the Success Die.                                       |
-| Flux Cost           | `system.cost`                       | Default 1. Spent from `system.stats.flux.value` before rolling.                         |
-| Discipline          | `system.discipline`                 | String key matching a Discipline item on the same actor.                                |
-| Effect              | `system.ebbEffect`                  | `damage` / `heal` / `effect`. Controls MOS bonus and apply behavior.                    |
-| Target              | `system.ebbTarget`                  | `enemy` / `ally` / `self`. Controls apply button visibility.                            |
-| Wounds to Remove    | `system.removeWounds`               | Integer 0–6. Wound locations cleared on success (fixed order: head, torso, arms, legs). |
-| Heal/Wound Mode     | `system.ebbHealWoundMode`           | Heal formulas only: `and` = single apply for both; `or` = separate actions.             |
-| Damage / Min Damage | `system.damage`, `system.minDamage` | Roll formula and minimum damage floor.                                                  |
-| AD                  | `system.ad`                         | Armor Damage value passed to damage rolls.                                              |
+| Field               | Schema key                                           | Notes                                                                                   |
+| ------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Formula Rating (TN) | `system.formulaRating`                               | Default 7. The target number for the Success Die.                                       |
+| Flux Cost           | `system.cost`                                        | Default 1. Spent from `system.stats.flux.value` before rolling.                         |
+| Discipline          | `system.discipline`                                  | String key matching a Discipline item on the same actor.                                |
+| Effect              | `system.ebbEffect`                                   | `damage` / `heal` / `effect`. Controls MOS bonus and apply behavior.                    |
+| Target              | `system.ebbTarget`                                   | `enemy` / `ally` / `self`. Controls apply button visibility.                            |
+| Wounds to Remove    | `system.removeWounds`                                | Integer 0–6. Wound locations cleared on success (fixed order: head, torso, arms, legs). |
+| Heal/Wound Mode     | `system.ebbHealWoundMode`                            | Heal formulas only: `and` = single apply for both; `or` = separate actions.             |
+| Damage / Min Damage | `system.damage`, `system.minDamage`                  | Roll formula and minimum damage floor.                                                  |
+| AD                  | `system.ad`                                          | Armor Damage value passed to damage rolls.                                              |
+| Attack Shape        | `system.formulaShape`                                | `ranged` (default) or `blast`. Controls which of the fields below the sheet shows.      |
+| ROF / Recoil        | `system.rof`, `system.recoil`                        | Ranged-shape only.                                                                      |
+| Range               | `system.range`                                       | Ranged-shape only.                                                                      |
+| Blast Radius        | `system.blastRadiusInner`, `system.blastRadiusOuter` | Blast-shape only. Same convention as `SlaExplosiveData`.                                |
 
 ---
 
