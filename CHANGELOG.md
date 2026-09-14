@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-09-14
+
 ### Added
 
 - **Shield PV bonus on Armor items (#351):** Armor items can be flagged `isShield` with separate
@@ -1056,7 +1058,8 @@ quantity` (armor and weapon item sheets), and `system.typeNote` (generic item sh
 - Damage application targeting both selected token and target.
 - Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.8.5...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.9.0...HEAD
+[2.9.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.0
 [2.8.5]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.8.5
 [2.8.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.8.2
 [2.5.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.4
