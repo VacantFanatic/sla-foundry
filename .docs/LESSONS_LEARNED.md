@@ -242,3 +242,16 @@ victim...` (all pre-existing, none touched by the shield PR) hand it a bare worl
   since extending the existing aggregate to "cover everything" would have silently mixed two
   unrelated pools into one display value. Before assuming an actor-level aggregate represents
   every equipped item of a type, check whether it was built assuming exactly one contributor.
+- **A green test suite can just mean the tests verify the implementation instead of the spec.**
+  The first cut of `computeArmorMitigation`'s shield support (#351/PR #355) degraded _both_ the
+  body armor's and an active shield's `system.resistance` by the full AD on the same hit. That's
+  wrong — the PP949 Breacher Shield rule is explicit that "all AD will be inflicted against it
+  [the shield]" once it's blocking, i.e. the two pools are mutually exclusive per hit, never both
+  debited. The bug shipped in an RC anyway because the unit/e2e tests written alongside it
+  asserted exactly that (both-debited) behavior — they were derived from re-reading my own code,
+  not from re-reading the rule text, so they passed consistently and proved nothing beyond "the
+  code does what the code does." It was only caught by a human re-checking a live damage roll
+  against the actual rulebook wording. When a new mechanic is built directly from a rules
+  citation, write the test's expected values from that citation before looking at the
+  implementation's output — asserting `result.armorRes` against whatever the code just produced
+  is circular and will happily encode a misreading forever.

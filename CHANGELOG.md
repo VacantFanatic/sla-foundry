@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Shield Armor Damage was wrongly split across body armor and the shield on the same hit
+  (#351):** `computeArmorMitigation` degraded both the wearer's body armor `system.resistance`
+  and an actively-blocking shield's `system.resistance` by the full AD on the same hit. Per the
+  rule text (e.g. the PP949 Breacher Shield: "all AD will be inflicted against it"), the two pools
+  are mutually exclusive per hit — an actively blocking shield absorbs 100% of the AD and the
+  wearer's body armor is untouched that hit; body armor only degrades when no shield is actively
+  blocking. The result chat card's "PV Reduction" line was also fixed to show the true combined
+  PV (body armor + shield) instead of only the body armor's PV.
+
 ## [2.9.0] - 2026-09-14
 
 ### Added

@@ -230,7 +230,7 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
         expect(result.effectivePV).toBe(6);
     });
 
-    test('computeArmorMitigation degrades body armor and shield resistance independently under AD', async ({
+    test('computeArmorMitigation routes all AD to an active shield, leaving body armor resistance untouched', async ({
         page
     }) => {
         const result = await page.evaluate(async () => {
@@ -266,15 +266,56 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
             return { mitigation, armorRes, shieldRes };
         });
 
-        // Body armor: 10 - 5 = 5 (still >= half of 10) -> full PV 4.
-        // Shield: 3 - 5 = 0 (clamped, destroyed) -> contributes 0 PV.
-        expect(result.armorRes).toBe(5);
+        // Per the tabletop rule, all 5 AD goes to the shield (3 - 5 clamped to 0, destroyed,
+        // contributes 0 PV); body armor's own resistance is never touched while the shield is
+        // actively blocking, so it stays at 10 and its PV (4) still counts toward the total.
+        expect(result.armorRes).toBe(10);
         expect(result.shieldRes).toBe(0);
         expect(result.mitigation.effectivePV).toBe(4);
-        expect(result.mitigation.armorData).toHaveLength(2);
-        const shieldEntry = result.mitigation.armorData.find((c) => c.kind === 'shield');
-        expect(shieldEntry.effectivePV).toBe(0);
-        expect(shieldEntry.new).toBe(0);
+        expect(result.mitigation.armorData).toHaveLength(1);
+        expect(result.mitigation.armorData[0].kind).toBe('shield');
+        expect(result.mitigation.armorData[0].effectivePV).toBe(0);
+        expect(result.mitigation.armorData[0].new).toBe(0);
+    });
+
+    test('computeArmorMitigation still routes AD to body armor when no shield is actively blocking', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([{ name: `E2E No Active Shield ${stamp}`, type: 'character' }]);
+            const [armor] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Body Armor ${stamp}`,
+                    type: 'armor',
+                    system: { pv: 4, equipped: true, isShield: false, resistance: { value: 10, max: 10 } }
+                },
+                {
+                    name: `E2E Idle Shield ${stamp}`,
+                    type: 'armor',
+                    system: {
+                        isShield: true,
+                        pvMelee: 2,
+                        pvRanged: 2,
+                        equipped: true,
+                        resistance: { value: 12, max: 12 }
+                    }
+                }
+            ]);
+
+            const { computeArmorMitigation } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            // shieldCraftSuccess: false -- the shield is equipped but didn't block this hit, so
+            // this is the pre-shield-feature regression path: AD hits body armor as always.
+            const mitigation = await computeArmorMitigation(actor, 5, 0, 'melee', false);
+
+            const armorRes = actor.items.get(armor.id).system.resistance.value;
+            await actor.delete();
+            return { mitigation, armorRes };
+        });
+
+        expect(result.armorRes).toBe(5);
+        expect(result.mitigation.armorData).toHaveLength(1);
+        expect(result.mitigation.armorData[0].kind).toBe('armor');
     });
 
     test('computeArmorMitigation selects the shield PV matching the attacking weapon type', async ({ page }) => {
@@ -308,7 +349,9 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
         expect(result.rangedHit.effectivePV).toBe(4);
     });
 
-    test('applyDamageToVictim renders both body-armor and shield rows on the result chat card', async ({ page }) => {
+    test('applyDamageToVictim renders only the shield row (not body armor) and the correct total PV Reduction when the shield blocks', async ({
+        page
+    }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();
             const [actor] = await Actor.createDocuments([
@@ -344,8 +387,46 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
             return { content };
         });
 
-        expect(result.content).toContain('damage-armor--armor');
+        // All AD (3) routed to the shield: resistance 12-3=9 (still full PV 2). Body armor's
+        // own resistance is untouched, so it gets no row -- only its PV (4) still counts toward
+        // the combined total shown in "PV Reduction" (4 + 2 = 6).
+        expect(result.content).not.toContain('damage-armor--armor');
         expect(result.content).toContain('damage-armor--shield');
+        expect(result.content).toMatch(/PV Reduction:<\/span>\s*<strong>-6<\/strong>/);
+    });
+
+    test('applyDamageToVictim renders the body-armor row when no shield is actively blocking', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Armor Only ChatRender ${stamp}`,
+                    type: 'character',
+                    system: { hp: { value: 10, max: 10 } }
+                }
+            ]);
+            await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Body Armor ${stamp}`,
+                    type: 'armor',
+                    system: { pv: 4, equipped: true, isShield: false, resistance: { value: 10, max: 10 } }
+                }
+            ]);
+
+            const beforeIds = new Set(game.messages.map((m) => m.id));
+            const { applyDamageToVictim } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            await applyDamageToVictim(actor, 10, 3, 0, null, 'melee', false);
+            const newMessage = game.messages.find((m) => !beforeIds.has(m.id));
+            const content = newMessage?.content ?? '';
+
+            await newMessage?.delete();
+            await actor.delete();
+            return { content };
+        });
+
+        expect(result.content).toContain('damage-armor--armor');
+        expect(result.content).not.toContain('damage-armor--shield');
+        expect(result.content).toMatch(/PV Reduction:<\/span>\s*<strong>-4<\/strong>/);
     });
 
     test('clearNWoundsOnActor clears wounds in head -> torso -> limb order and persists the write', async ({

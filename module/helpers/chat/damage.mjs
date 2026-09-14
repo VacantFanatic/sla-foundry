@@ -306,25 +306,37 @@ export async function computeArmorMitigation(victim, ad, pvMod = 0, attackType =
     const contributions = [];
     let effectivePV = targetPV;
 
-    if (armorItem && ad > 0) {
+    // Shields whose PV for this attackType is actually nonzero -- these are "up" and blocking.
+    const activeShields = shieldItems.filter((shield) => {
+        const shieldBasePv = attackType === 'ranged' ? shield.system.pvRanged || 0 : shield.system.pvMelee || 0;
+        return shieldBasePv > 0;
+    });
+
+    if (activeShields.length > 0) {
+        // Per the tabletop rule ("all AD will be inflicted against [the shield]"), when a shield
+        // is actively blocking this hit, 100% of the AD routes to the shield(s) and the wearer's
+        // body armor Resistance is untouched -- it is never split between both pools.
+        for (const shield of activeShields) {
+            const shieldBasePv = attackType === 'ranged' ? shield.system.pvRanged || 0 : shield.system.pvMelee || 0;
+            if (ad > 0) {
+                const { effectivePv, resistanceUpdate } = await degradeArmorItemResistance(shield, ad, shieldBasePv);
+                effectivePV += effectivePv;
+                contributions.push({
+                    kind: 'shield',
+                    name: shield.name,
+                    ...resistanceUpdate,
+                    effectivePV: effectivePv
+                });
+            } else {
+                // No AD this hit to degrade further, but a shield already worn down by prior hits
+                // should still reflect its current resistance state.
+                effectivePV += computeShieldPieceBonus(shield.system, attackType);
+            }
+        }
+    } else if (armorItem && ad > 0) {
         const { effectivePv, resistanceUpdate } = await degradeArmorItemResistance(armorItem, ad, targetPV);
         effectivePV = effectivePv;
         contributions.push({ kind: 'armor', name: armorItem.name, ...resistanceUpdate, effectivePV: effectivePv });
-    }
-
-    for (const shield of shieldItems) {
-        const shieldBasePv = attackType === 'ranged' ? shield.system.pvRanged || 0 : shield.system.pvMelee || 0;
-        if (shieldBasePv <= 0) continue;
-
-        if (ad > 0) {
-            const { effectivePv, resistanceUpdate } = await degradeArmorItemResistance(shield, ad, shieldBasePv);
-            effectivePV += effectivePv;
-            contributions.push({ kind: 'shield', name: shield.name, ...resistanceUpdate, effectivePV: effectivePv });
-        } else {
-            // No AD this hit to degrade further, but a shield already worn down by prior hits
-            // should still reflect its current resistance state.
-            effectivePV += computeShieldPieceBonus(shield.system, attackType);
-        }
     }
 
     const armorData = contributions.length ? contributions : null;
@@ -352,6 +364,7 @@ export async function postDamageResultChat({
     rawDamage,
     targetPV,
     rawPv,
+    effectivePV,
     pvMod = 0,
     ammoName = null,
     finalDamage,
@@ -365,6 +378,7 @@ export async function postDamageResultChat({
             rawDamage: rawDamage,
             targetPV: targetPV,
             rawPv: rawPv,
+            effectivePV: effectivePV,
             pvMod: pvMod,
             ammoName: ammoName,
             finalDamage: finalDamage,
@@ -398,6 +412,7 @@ export async function applyDamageToVictim(
         rawDamage,
         targetPV,
         rawPv,
+        effectivePV,
         pvMod,
         ammoName,
         finalDamage,
