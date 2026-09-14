@@ -6,6 +6,7 @@ export class SlaItemData extends foundry.abstract.TypeDataModel {
             price: new fields.NumberField({ initial: 0, min: 0 }),
             quantity: new fields.NumberField({ initial: 1, min: 0, integer: true }),
             equipped: new fields.BooleanField({ initial: false }),
+            typeNote: new fields.StringField({ initial: '' }),
             description: new fields.HTMLField()
         };
     }
@@ -109,6 +110,7 @@ export class SlaWeaponData extends foundry.abstract.TypeDataModel {
             skill: new fields.StringField(),
             weight: new fields.NumberField({ initial: 1, min: 0 }),
             price: new fields.NumberField({ initial: 100, min: 0 }),
+            quantity: new fields.NumberField({ initial: 1, min: 0, integer: true }),
             equipped: new fields.BooleanField({ initial: false }),
             powersuitAttack: new fields.BooleanField({ initial: false }),
             attackPenalty: new fields.NumberField({ initial: 0 }),
@@ -130,6 +132,7 @@ export class SlaArmorData extends foundry.abstract.TypeDataModel {
             }),
             weight: new fields.NumberField({ initial: 2, min: 0 }),
             price: new fields.NumberField({ initial: 200, min: 0 }),
+            quantity: new fields.NumberField({ initial: 1, min: 0, integer: true }),
             equipped: new fields.BooleanField({ initial: false }),
             description: new fields.HTMLField(),
             powered: new fields.BooleanField({ initial: false }),

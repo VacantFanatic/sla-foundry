@@ -9,6 +9,24 @@ entries below: concrete, evidenced by a specific file/commit, and generalized in
 rule for next time. Do this even if the session's main task was something else — this file is
 only useful if it stays current.
 
+- **A template `name="system.xxx"` binding that doesn't match the schema fails silently, and it
+  can happen more than once.** Issue #348: `templates/actor/parts/header-card.hbs`'s LAD checkbox
+  was bound to `name="system.bio.lad"` / `{{checked system.bio.lad}}`, but `SlaCharacterData`
+  (`module/data/actor.mjs`) only ever declared `bio.ladAccount` — `system.bio.lad` was never a
+  real field. `git log -p` on the template shows the same wrong binding was re-added multiple
+  times under a comment literally reading "Bottom Bar (LAD Checkbox Restored)", because nothing
+  ever pointed out the field didn't exist: `TypeDataModel` drops unknown submitted keys with no
+  error, so the checkbox just silently never persisted, and _any_ re-render (the Edit/Play mode
+  toggle's `this.render(false)` in this case) exposed the always-empty result — the bug looked
+  like a mode-toggle problem but had nothing to do with mode toggling. Writing a test scan for
+  every `name="system...."` binding across `templates/` (see
+  `tests/unit/form-field-schema-conformance.test.mjs`) immediately turned up four more live
+  instances of the exact same mistake in unrelated files (`system.finance.debt` on the character
+  sheet, `system.quantity` on armor/weapon item sheets, `system.typeNote` on the generic item
+  sheet) — all fixed by adding the missing schema field, following the same pattern as sibling
+  fields/types that already declared it correctly. A single field fix (or a single regression
+  test for that one field) doesn't guard against this bug class recurring elsewhere; a generic
+  scan across every template does, and paid for itself immediately.
 - **A field referenced in code is not necessarily part of the data model.** The ammo
   modifier system (`weapon-gates-pure.mjs`) was built around `item.system.magazineId` on
   weapons, but `SlaWeaponData` (`module/data/item.mjs`) never declared that field in its
