@@ -204,6 +204,27 @@ A powersuit **replaces** the actor's STR total and caps DEX, rather than adding 
 
 > **Tip:** To configure the powersuit STR replacement, set `mods.str` to the powersuit's strength rating (e.g. `12`). This overwrites the biological STR entirely while the suit is equipped.
 
+### D. Shields
+
+1. Create an **Armor** item and check **Is Shield**.
+2. Set **PV (Melee)** and **PV (Ranged)** — for a flat shield like the PP949 Breacher, set both to
+   the same value (e.g. `2`/`2`); for an asymmetric one like the Ebb Advanced Shield, set them
+   independently (e.g. `2`/`4`). These stack additively on top of the wearer's body armor PV,
+   automatically applied based on whether the attacking weapon is Melee or Ranged.
+3. Set the shield's own **Resistance** (current/max) — separate from the wearer's body armor
+   resistance, and worn down independently when Armor Damage (AD) is applied.
+4. Equip the shield once, like any other worn item — this just means "the character is
+   carrying/raising it," and does not by itself block anything.
+5. **Each time the shield's wearer is hit**, narrate a Shield Craft skill roll against a GM-set
+   target number (using the normal skill roll UI — Shield Craft is already a skill on the
+   character). If it succeeds, check **"Shield Craft Succeeded"** on the Apply Damage chat card
+   before clicking Apply. If it fails, leave the checkbox unchecked — the hit bypasses the shield
+   and only the wearer's body armor applies.
+6. The generic **PV** field on a shield item is unused — leave it at `0`.
+7. Not automated (GM calls these narratively): a shield can't block an attack from behind the
+   wearer, and some shields require a minimum STR to use.
+8. Example: PP949 Breacher Shield — PV Melee `2`, PV Ranged `2`, Resistance `12`/`12`.
+
 ---
 
 ## 8. Explosives

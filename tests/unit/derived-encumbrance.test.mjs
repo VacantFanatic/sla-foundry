@@ -4,10 +4,12 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+    applyResistanceToPv,
     computeArmorPiecePv,
     computeCarriedItemWeight,
     computeEncumbranceState,
-    computeEffectiveArmorPv
+    computeEffectiveArmorPv,
+    computeShieldPieceBonus
 } from '../../module/documents/derived/encumbrance.mjs';
 
 describe('computeCarriedItemWeight', () => {
@@ -84,5 +86,54 @@ describe('computeArmorPiecePv', () => {
     test('resistance at or above half max leaves PV unchanged', () => {
         assert.equal(computeArmorPiecePv({ pv: 6, resistance: { value: 5, max: 10 } }), 6);
         assert.equal(computeArmorPiecePv({ pv: 6, resistance: { value: 10, max: 10 } }), 6);
+    });
+});
+
+describe('applyResistanceToPv', () => {
+    test('no resistance data returns PV unchanged', () => {
+        assert.equal(applyResistanceToPv(6, null), 6);
+        assert.equal(applyResistanceToPv(6, undefined), 6);
+    });
+
+    test('resistance at or below 0 zeroes the PV', () => {
+        assert.equal(applyResistanceToPv(6, { value: 0, max: 10 }), 0);
+        assert.equal(applyResistanceToPv(6, { value: -1, max: 10 }), 0);
+    });
+
+    test('resistance below half max halves PV (floored)', () => {
+        assert.equal(applyResistanceToPv(7, { value: 4, max: 10 }), 3);
+    });
+
+    test('resistance at or above half max leaves PV unchanged', () => {
+        assert.equal(applyResistanceToPv(6, { value: 5, max: 10 }), 6);
+    });
+});
+
+describe('computeShieldPieceBonus', () => {
+    test('selects pvMelee for a melee attack', () => {
+        const bonus = computeShieldPieceBonus({ pvMelee: 2, pvRanged: 4, resistance: { value: 12, max: 12 } }, 'melee');
+        assert.equal(bonus, 2);
+    });
+
+    test('selects pvRanged for a ranged attack', () => {
+        const bonus = computeShieldPieceBonus(
+            { pvMelee: 2, pvRanged: 4, resistance: { value: 12, max: 12 } },
+            'ranged'
+        );
+        assert.equal(bonus, 4);
+    });
+
+    test('halves the bonus when resistance is below half max', () => {
+        const bonus = computeShieldPieceBonus({ pvMelee: 3, pvRanged: 3, resistance: { value: 5, max: 12 } }, 'melee');
+        assert.equal(bonus, 1);
+    });
+
+    test('zeroes the bonus when resistance is destroyed', () => {
+        const bonus = computeShieldPieceBonus({ pvMelee: 2, pvRanged: 2, resistance: { value: 0, max: 12 } }, 'ranged');
+        assert.equal(bonus, 0);
+    });
+
+    test('defaults an unset attack-type PV to 0', () => {
+        assert.equal(computeShieldPieceBonus({ pvMelee: 2, resistance: { value: 12, max: 12 } }, 'ranged'), 0);
     });
 });

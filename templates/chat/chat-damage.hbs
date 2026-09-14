@@ -31,6 +31,13 @@
     {{/if}}
 
     {{#unless hideApplyButtons}}
+    {{#unless isHeal}}
+    <label class="sla-shield-craft-success-label"
+        style="display:flex; align-items:center; gap:4px; font-size:0.8em; color:#aaa; margin-bottom:4px;">
+        <input type="checkbox" class="shield-craft-success" />
+        {{localize "SLA.ShieldCraftSucceeded"}}
+    </label>
+    {{/unless}}
     <div style="display:flex; flex-direction:column; gap:4px;">
         <button class="apply-damage-btn"
                 data-target="target"
@@ -38,6 +45,7 @@
                 data-ad="{{adValue}}"
                 data-pv-mod="{{pvMod}}"
                 data-ammo-name="{{ammoName}}"
+                data-attack-type="{{attackType}}"
                 data-is-heal="{{#if isHeal}}true{{else}}false{{/if}}"
                 data-remove-wounds-count="{{removeWoundsCount}}"
                 data-ebb-target="{{ebbTarget}}"
@@ -51,6 +59,7 @@
                 data-ad="{{adValue}}"
                 data-pv-mod="{{pvMod}}"
                 data-ammo-name="{{ammoName}}"
+                data-attack-type="{{attackType}}"
                 data-is-heal="{{#if isHeal}}true{{else}}false{{/if}}"
                 data-remove-wounds-count="{{removeWoundsCount}}"
                 data-ebb-target="{{ebbTarget}}"

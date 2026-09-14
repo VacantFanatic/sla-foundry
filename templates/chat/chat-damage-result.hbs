@@ -32,9 +32,12 @@
     </div>
 
     {{#if armorData}}
-    <div class="damage-armor">
-        <i class="fas fa-shield-alt"></i> Armor Res: {{armorData.current}} &rarr; {{armorData.new}} (-{{armorData.ad}})
+    {{#each armorData}}
+    <div class="damage-armor damage-armor--{{this.kind}}">
+        <i class="fas {{#if (eq this.kind "shield")}}fa-shield{{else}}fa-shield-alt{{/if}}"></i>
+        {{this.name}} Res: {{this.current}} &rarr; {{this.new}} (-{{this.ad}}), PV: {{this.effectivePV}}
     </div>
+    {{/each}}
     {{/if}}
 
     {{#if pvMod}}

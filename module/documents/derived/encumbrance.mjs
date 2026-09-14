@@ -57,16 +57,36 @@ export function computeEffectiveArmorPv(basePv, highestEquippedPv) {
 }
 
 /**
+ * The shared "full / half / zero" PV rule: a resistance pool at or below zero blocks all PV,
+ * below half its max halves PV (floored), otherwise the full PV applies. Used for body armor,
+ * shields, and shield resistance degradation in the damage pipeline alike.
+ * @param {number} basePv
+ * @param {{ value?: number, max?: number } | null | undefined} resistance
+ * @returns {number}
+ */
+export function applyResistanceToPv(basePv, resistance) {
+    if (!resistance) return basePv;
+    if (resistance.value <= 0) return 0;
+    if (resistance.value < resistance.max / 2) return Math.floor(basePv / 2);
+    return basePv;
+}
+
+/**
  * Effective PV for one equipped armor piece after resistance degradation.
  * @param {{ pv?: number, resistance?: { value?: number, max?: number } }} armorSystem
  * @returns {number}
  */
 export function computeArmorPiecePv(armorSystem) {
-    let currentPV = armorSystem.pv || 0;
-    const res = armorSystem.resistance;
-    if (!res) return currentPV;
+    return applyResistanceToPv(armorSystem.pv || 0, armorSystem.resistance);
+}
 
-    if (res.value <= 0) return 0;
-    if (res.value < res.max / 2) return Math.floor(currentPV / 2);
-    return currentPV;
+/**
+ * PV contribution of one equipped shield for a given attack type, after resistance degradation.
+ * @param {{ pvMelee?: number, pvRanged?: number, resistance?: { value?: number, max?: number } }} shieldSystem
+ * @param {'melee'|'ranged'} attackType
+ * @returns {number}
+ */
+export function computeShieldPieceBonus(shieldSystem, attackType) {
+    const basePv = attackType === 'ranged' ? shieldSystem.pvRanged || 0 : shieldSystem.pvMelee || 0;
+    return applyResistanceToPv(basePv, shieldSystem.resistance);
 }

@@ -8,10 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Shield PV bonus on Armor items (#351):** Armor items can be flagged `isShield` with separate
+  Melee/Ranged PV values that stack additively on top of the wearer's body armor PV, automatically
+  selected by the attacking weapon's Melee/Ranged type. A shield only mitigates a given hit when
+  it's equipped _and_ the new "Shield Craft Succeeded" checkbox is checked on the Apply Damage
+  card for that attack (reflecting a Shield Craft skill roll narrated at the table) — so it can
+  block one attack and not the next without re-equipping. A shield tracks its own Resistance
+  independently from body armor, so it can be worn down and destroyed on its own (e.g. the PP949
+  Breacher Shield).
 - **Standing roll modifier (`system.rollModifier.bonus`), settable via Active Effect:** Previously the only way to apply a persistent penalty/bonus to rolls was per-stat (`system.stats.<key>.bonus`), which only affects rolls using that specific stat, or the weapon/explosive attack dialog's "Generic Modifier" field, which was pure UI state re-typed every roll with no link to actor data. A new `system.rollModifier.bonus` field (character/NPC data models) sums enabled Active Effect `Add` rows the same way core stats do (`sumActiveEffectAddsForKey`, `module/documents/derived/active-effects.mjs`) into `system.rollModifier.total`. Skill checks, stat checks, and Ebb rolls (none of which have a dialog) fold it directly into their modifier math (`computeSkillRollModifier`/`calculateEbbModifier`, `module/sheets/actor/roll-math.mjs`); the weapon/explosive attack dialog now prefills its "Generic Modifier" field from it instead of a hardcoded `0`, so it applies by default while staying editable per roll. No UI field to set it manually — Active Effects are the intended way to apply it.
 
 ### Fixed
 
+- **Damage/heal chat result cards could render before the message was actually created:**
+  `postDamageResultChat`/`postHealResultChat` (`module/helpers/chat/damage.mjs`) called
+  `ChatMessage.create({ content })` without `await`, so callers like `applyDamageToVictim`/
+  `applyHpHeal` could resolve before the result card was actually written to `game.messages`.
+  Both call sites now `await` the create.
 - **Ebb Formula sheet missing AD/ROF/Recoil fields (#349):** The Ebb Formula item sheet had no way
   to enter the AD (Armor Damage) value, even though `system.ad` already existed in the schema and
   was already read by the damage-roll chat card — the field was simply never rendered in

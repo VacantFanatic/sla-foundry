@@ -155,3 +155,72 @@ window.innerWidth)` inside a running test), and it explains genuine "element is 
   derived value for an unconditional re-assignment that would fight the manual toggle — this
   kind of line is much easier to miss during review than a state-machine transition would be,
   precisely because it looks like a harmless "keep it in sync" default rather than a bug.
+- **Don't assume a single "equipped" boolean can gate both "is this item in use this scene" and
+  "did this item's effect apply to this specific event."** While building Shield support (#351),
+  the natural first instinct was to gate a shield's per-attack PV/resistance contribution on its
+  `equipped` flag alone — but `equipped` already means "worn/carried right now" (it also drives
+  weight/encumbrance via `computeCarriedItemWeight`), and the tabletop rule requires a fresh
+  Shield Craft skill roll _per incoming attack_ to determine whether the shield actually blocks
+  that specific hit. Reusing `equipped` as a per-attack pass/fail flag would have meant toggling
+  it on/off for every single hit, corrupting its other meanings. The fix was a separate,
+  transient, non-persisted signal instead: a checkbox on the Apply Damage chat card
+  (`.shield-craft-success`), read live off the DOM at click time in `onApplyDamage`
+  (`helpers/chat/handlers.mjs`) rather than baked into `flags.sla` at render time like `pvMod` or
+  `attackType` — because its whole purpose is to capture a decision (the narrated roll's outcome)
+  made _after_ the card already rendered. When a document field already carries one meaning,
+  check whether a new requirement actually needs a second, differently-scoped signal rather than
+  overloading the field that's already there.
+- **A spec file missing `test.describe.configure({ timeout: 60_000 })` fails intermittently in
+  this sandbox, but that's only ever _part_ of the explanation — verify the rest before blaming
+  the environment.** While adding shield tests to `tests/e2e/regression-damage.spec.js`, several
+  tests — including pre-existing ones I hadn't touched — failed with a bare 30-second timeout or a
+  damage-pipeline assertion mismatch that looked like a real regression. `regression-item-sheets
+.spec.js`/`regression-actor-sheets.spec.js` already carry `test.describe.configure({ timeout:
+60_000 })` (this sandbox's `joinGame`/`waitForSLASystem` overhead alone can approach Playwright's
+  default 30-second timeout under load) but `regression-damage.spec.js`/`regression-chat-render
+.spec.js` never got it — adding it there was necessary, but **not sufficient**: two of the
+  "flaky" failures were real, pre-existing bugs unmasked only once the timeout stopped hiding them
+  (see the next two entries). Confirmed the timeout fix and the two real bugs were separate things
+  by stashing the entire shield changeset and re-running the untouched spec file against a freshly
+  restarted Foundry container — the exact same 4 failures reproduced on pristine code, proving they
+  predated this PR and weren't caused by the shield feature. When a test looks flaky in this
+  sandbox: add the timeout override if missing, then isolate the still-failing case into a
+  throwaway one-off spec and step through it by hand before writing it off as "environment noise."
+- **`ChatMessage.create()` inside an `async` helper that isn't itself `await`ed lets the caller's
+  promise resolve before the message exists.** `postDamageResultChat`/`postHealResultChat`
+  (`module/helpers/chat/damage.mjs`) both called `ChatMessage.create({ content })` without
+  `await`, so `applyDamageToVictim`'s own `await postDamageResultChat(...)` only waited for the
+  template render, not the chat message write. No test had ever exercised this because nothing
+  previously checked `game.messages` right after calling `applyDamageToVictim`/`applyHpHeal` — a
+  new shield test that did (`applyDamageToVictim renders both body-armor and shield rows on the
+result chat card`) found an empty result every time until `await` was added to both call sites.
+  A missing `await` on a fire-and-forget document write is invisible until something reads the
+  written document back in the same tick.
+- **`resolveActorFromUuid` (`module/helpers/chat/damage.mjs`) only resolves _Token_ uuids
+  (`fromUuid(uuid).actor`), not _Actor_ uuids — and several pre-existing e2e tests pass the wrong
+  kind.** In real play, `data-target-uuid`/`flags.sla.targets` are always populated from
+  `game.user.targets`/`canvas.tokens.controlled` (Token placeables, whose `.uuid` is a Token uuid),
+  so the production code is correct. But `onApplyDamage reads dmg/ad/pv-mod/target-uuid...`,
+  `onApplyEbbEffects copies the Ebb formula item's...`, and `onRemoveEbbWounds resolves the
+victim...` (all pre-existing, none touched by the shield PR) hand it a bare world-Actor uuid
+  instead (`victim.uuid` with no Scene/Token in play) — `fromUuid()` then resolves the Actor
+  document itself, which has no `.actor` getter, so `resolveActorFromUuid` silently returns `null`
+  and the whole operation no-ops. This reproduces 100% of the time, not intermittently, and
+  predates this PR (confirmed via the stash test above); it was never caught because
+  `regression-damage.spec.js` isn't part of `npm run test:e2e:regression`'s CI-gated file list
+  (`.github/workflows/main.yml` only runs that script, never plain `test:e2e`). Fixed for the new
+  shield checkbox test by using the already-correct `ebbTarget: 'self'` path instead (resolves the
+  acting actor directly from the card's plain `data-actor-uuid`, no Token lookup needed) rather
+  than touching the broken pre-existing tests, which is a separate, pre-existing bug outside this
+  PR's scope. A spec file living outside the CI-gated list can silently rot indefinitely — the
+  same risk CLAUDE.md already documents for `regression-actor-sheets.spec.js`/`regression-sla
+.spec.js` before those were added to the gate.
+- **An actor-level aggregate field can represent exactly one contributing item, not "all items of
+  a type."** `system.armor.resist` (`module/data/actor.mjs`) is synced bidirectionally with
+  _one_ equipped powered armor item's resistance for token-bar editing (`actor.mjs:689-709`,
+  documented under "Resistance sync" above) — it was never designed to sum multiple items. Adding
+  a second independent resistance pool (a shield's, separate from body armor's) had to be tracked
+  purely on that item's own `system.resistance`, never surfaced as a second actor-level token bar,
+  since extending the existing aggregate to "cover everything" would have silently mixed two
+  unrelated pools into one display value. Before assuming an actor-level aggregate represents
+  every equipped item of a type, check whether it was built assuming exactly one contributor.

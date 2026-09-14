@@ -101,21 +101,21 @@ All schema definitions live in `module/data/actor.mjs` and `module/data/item.mjs
 
 ### Item types
 
-| Type          | Data class          | Key fields                                                                |
-| ------------- | ------------------- | ------------------------------------------------------------------------- |
-| `weapon`      | `SlaWeaponData`     | damage, firingModes, attackType, skill, powersuitAttack                   |
-| `armor`       | `SlaArmorData`      | pv, resistance, powered, powersuit, dexCap, initBonus, mods               |
-| `explosive`   | `SlaExplosiveData`  | damage, blastRadiusInner, blastRadiusOuter, skill                         |
-| `magazine`    | `SlaMagazineData`   | ammoType, ammoCapacity, linkedWeapon                                      |
-| `skill`       | `SlaSkillData`      | rank, stat                                                                |
-| `trait`       | `SlaTraitData`      | rank, type                                                                |
-| `ebbFormula`  | `SlaEbbFormulaData` | cost, formulaRating, ebbEffect, ebbTarget, removeWounds, ebbHealWoundMode |
-| `discipline`  | `SlaDisciplineData` | rank, cost                                                                |
-| `drug`        | `SlaDrugData`       | active, addiction, quantity; no built-in stat mods — use Active Effects   |
-| `toxicant`    | `SlaToxicantData`   | infectionRating, vector, progression, treatment, treatmentRating          |
-| `species`     | `SlaSpeciesData`    | hp, luck, flux, move, stats (min/max per stat), skills                    |
-| `package`     | `SlaPackageData`    | requirements (stat min values), skills                                    |
-| `item` (gear) | `SlaItemData`       | weight, price, quantity, equipped                                         |
+| Type          | Data class          | Key fields                                                                               |
+| ------------- | ------------------- | ---------------------------------------------------------------------------------------- |
+| `weapon`      | `SlaWeaponData`     | damage, firingModes, attackType, skill, powersuitAttack                                  |
+| `armor`       | `SlaArmorData`      | pv, resistance, powered, powersuit, dexCap, initBonus, mods, isShield, pvMelee, pvRanged |
+| `explosive`   | `SlaExplosiveData`  | damage, blastRadiusInner, blastRadiusOuter, skill                                        |
+| `magazine`    | `SlaMagazineData`   | ammoType, ammoCapacity, linkedWeapon                                                     |
+| `skill`       | `SlaSkillData`      | rank, stat                                                                               |
+| `trait`       | `SlaTraitData`      | rank, type                                                                               |
+| `ebbFormula`  | `SlaEbbFormulaData` | cost, formulaRating, ebbEffect, ebbTarget, removeWounds, ebbHealWoundMode                |
+| `discipline`  | `SlaDisciplineData` | rank, cost                                                                               |
+| `drug`        | `SlaDrugData`       | active, addiction, quantity; no built-in stat mods — use Active Effects                  |
+| `toxicant`    | `SlaToxicantData`   | infectionRating, vector, progression, treatment, treatmentRating                         |
+| `species`     | `SlaSpeciesData`    | hp, luck, flux, move, stats (min/max per stat), skills                                   |
+| `package`     | `SlaPackageData`    | requirements (stat min values), skills                                                   |
+| `item` (gear) | `SlaItemData`       | weight, price, quantity, equipped                                                        |
 
 ### Active Effects and stats
 
@@ -498,6 +498,58 @@ Source: `module/config.mjs` (`SLA.ammoTypes`, `SLA.ammoModifiers`)
 **Ammo type is snapshotted onto the weapon at reload, not looked up live.** Magazines carry an `ammoType` field that matches these keys (default `'standard'`). Reloading (`performReload` in `sheets/actor/reload.mjs`, via the pure `buildReloadWeaponUpdate` in `sheets/actor/reload-pure.mjs`) copies the magazine's `ammoType` onto the weapon's own `system.ammoType` field, defaulting to `'standard'` if the magazine has none. `resolveLoadedAmmoType` (`weapon-gates-pure.mjs`) and every ammo getter built on it read this weapon-side field directly — there is no live "which magazine is loaded" reference (an earlier `magazineId`-based design was never wired up: `SlaWeaponData`'s schema never declared that field, so nothing could persist it, and it was replaced entirely). Snapshotting also sidesteps the fact that magazines are deleted the moment their stack depletes (`reload.mjs`), which would make a live reference to the "current" magazine unreliable right after the reload that used it. A weapon that's never been reloaded has `ammoType` at its schema default (empty string, falsy) → no ammo modifier, same as before.
 
 **Chat card visibility:** `getLoadedAmmoNameForWeapon` (`weapon-gates-pure.mjs`/`weapon-gates.mjs`) resolves the weapon's loaded ammo type's display name (e.g. `Armour Piercing (AP)`) and is threaded alongside the modifier values through both attack pipelines into the chat cards, so the ammo fix is verifiable in play rather than only in the roll math: the attack-roll card shows an "Ammo: `<name>`" line whenever the weapon has been reloaded, the damage-roll card adds a PV MOD box and ammo caption when `pvMod` is nonzero, and the hit-result card shows `Armor PV: <raw> → <adjusted> (<name>)` when `pvMod` is nonzero. Standard-ammo hits render unchanged. `onChangeDifficulty` (`helpers/chat/handlers.mjs`) also preserves `pvMod`/`ammoName` across a GM's TN adjustment on the same card — previously `pvMod` was silently dropped there.
+
+---
+
+## Shields
+
+Source: `module/data/item.mjs` (`SlaArmorData`), `module/documents/derived/encumbrance.mjs`,
+`module/helpers/chat/damage.mjs` (`computeArmorMitigation`)
+
+An `armor` item with `system.isShield = true` grants a PV bonus that stacks **additively** on top of
+the wearer's body armor, instead of competing with it in the usual "highest-PV-wins" comparison —
+`_calculateEncumbrance` (`actor.mjs`) explicitly excludes `isShield` items from that loop, so a
+shield's own `pv` field is unused (the item sheet hides it once `isShield` is checked). The bonus is
+split into `pvMelee`/`pvRanged`, auto-selected by the attacking weapon's `system.attackType` at the
+moment damage is resolved (never pre-computed onto the actor, since it depends on the incoming
+attack — see the `attackType` threading below).
+
+A shield's `equipped` flag only means "currently carried/raised this scene," the same scene-level
+meaning it has for body armor — it is **not** sufficient by itself to make the shield block a hit.
+Per the tabletop rules (e.g. the PP949 Breacher Shield, and the Ebb Telekinesis Shield/Advanced
+Shield formulas), each incoming attack requires a separate Shield Craft skill roll (GM sets the TN)
+to determine whether the shield actually intercepts that attack. This roll is narrated at the
+table, not automated; its outcome is captured by a "Shield Craft Succeeded" checkbox on the Apply
+Damage chat card (`templates/chat/chat-damage.hbs`), read live at the moment Apply is clicked
+(`onApplyDamage` in `helpers/chat/handlers.mjs`, `card.querySelector('.shield-craft-success')`) and
+passed as `computeArmorMitigation`'s `shieldCraftSuccess` parameter — deliberately **not** baked
+into `flags.sla` at roll-render time like `pvMod`/`attackType`, since its whole point is to capture
+a decision made after the card has already rendered. Only when a shield is _both_ equipped _and_
+the checkbox is checked for that specific hit does it contribute PV and take AD against its own
+`system.resistance` pool, independently of the wearer's body armor resistance — via the shared
+`degradeArmorItemResistance` helper in `damage.mjs`, so a shield can be worn down and destroyed on
+its own. Leaving the checkbox unchecked (the default) makes the hit bypass the shield entirely
+without altering its equipped state.
+
+`computeArmorMitigation(victim, ad, pvMod, attackType = 'melee', shieldCraftSuccess = false)` now
+loops every equipped `armor` item on the victim rather than finding a single one: body armor keeps
+the pre-existing highest-PV selection and resistance degradation, and — only when
+`shieldCraftSuccess` is true — each equipped shield with a nonzero PV for the current `attackType`
+adds its own contribution and degrades its own resistance independently. Its `armorData` return
+value is accordingly an **array** of per-item contributions (`{kind: 'armor' | 'shield', name,
+current, new, ad, effectivePV}`) rather than a single object, rendered as one row each in
+`chat-damage-result.hbs`.
+
+`attackType` (`'melee'` | `'ranged'`, read from `SlaWeaponData.attackType`) is threaded through the
+damage pipeline following the exact same precedent as `pvMod`/`ammoName`: weapon roll → chat card
+`data-attack-type` attribute + `flags.sla.attackType` → `onRollDamage`/`onApplyDamage` →
+`applyDamageToVictim`/`applyEbbOutcomeToActor`. Non-weapon damage sources default it explicitly:
+explosives and Ebb formula rolls always pass `attackType: 'ranged'` (thrown/projected delivery),
+since neither item type carries its own melee/ranged field.
+
+Attacker facing (no rear-arc protection) and per-shield STR minimums are rules-text restrictions
+with no automated enforcement — left to GM judgment, same as any other narrative equipment
+prerequisite.
 
 ---
 

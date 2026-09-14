@@ -241,7 +241,10 @@ export class SlaActor extends Actor {
             // For Characters, we respect the 'equipped' flag.
             const isEquipped = this.type === 'npc' || d.equipped;
 
-            if (item.type === 'armor' && isEquipped) {
+            // Shields stack additively on top of body armor's PV (resolved live in the damage
+            // pipeline based on the attacking weapon's melee/ranged type) rather than competing
+            // in this "highest PV wins" comparison, so they're excluded here.
+            if (item.type === 'armor' && isEquipped && !d.isShield) {
                 const currentPV = computeArmorPiecePv(d);
                 const res = d.resistance;
 
