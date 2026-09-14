@@ -13,6 +13,8 @@ const needsAuth = () => {
     test.skip(!process.env.FOUNDRY_USER, 'Set FOUNDRY_USER (and FOUNDRY_URL / FOUNDRY_PASSWORD if needed)');
 };
 
+test.describe.configure({ timeout: 60_000 });
+
 test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () => {
     test.beforeEach(async ({ page }) => {
         needsAuth();
@@ -78,7 +80,8 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
         // resistance 4 - ad 1 = 3, which is < max/2 (5) -> effectivePV = floor(6/2) = 3
         expect(result.mitigation.targetPV).toBe(6);
         expect(result.mitigation.effectivePV).toBe(3);
-        expect(result.mitigation.armorData.new).toBe(3);
+        expect(result.mitigation.armorData).toHaveLength(1);
+        expect(result.mitigation.armorData[0].new).toBe(3);
         expect(result.persistedResistance).toBe(3);
     });
 
@@ -100,7 +103,8 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
             return mitigation;
         });
 
-        expect(result.armorData.new).toBe(0);
+        expect(result.armorData).toHaveLength(1);
+        expect(result.armorData[0].new).toBe(0);
         expect(result.effectivePV).toBe(0);
     });
 
@@ -154,6 +158,275 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
         // resistance 10 - ad 3 = 7 (still >= max/2) -> effectivePV stays 6 -> damage = max(0, 10 - 6) = 4 -> hp 10-4=6
         expect(result.persistedResistance).toBe(7);
         expect(result.persistedHp).toBe(6);
+    });
+
+    test('computeArmorMitigation ignores an equipped shield when shieldCraftSuccess is false', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([{ name: `E2E Shield NoRoll ${stamp}`, type: 'character' }]);
+            const [shield] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Shield ${stamp}`,
+                    type: 'armor',
+                    system: {
+                        isShield: true,
+                        pvMelee: 2,
+                        pvRanged: 2,
+                        equipped: true,
+                        resistance: { value: 12, max: 12 }
+                    }
+                }
+            ]);
+
+            const { computeArmorMitigation } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            // shieldCraftSuccess omitted -> defaults false: the shield is equipped but must not mitigate.
+            const mitigation = await computeArmorMitigation(actor, 3, 0, 'melee');
+
+            const persistedResistance = actor.items.get(shield.id).system.resistance.value;
+            await actor.delete();
+            return { mitigation, persistedResistance };
+        });
+
+        expect(result.mitigation.effectivePV).toBe(0);
+        expect(result.mitigation.armorData).toBeNull();
+        // Not touched at all -- the shield never even entered the mitigation.
+        expect(result.persistedResistance).toBe(12);
+    });
+
+    test('computeArmorMitigation stacks shield PV additively on top of body armor when the roll succeeds', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([{ name: `E2E Shield Stack ${stamp}`, type: 'character' }]);
+            await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Body Armor ${stamp}`,
+                    type: 'armor',
+                    system: { pv: 4, equipped: true, isShield: false, resistance: { value: 10, max: 10 } }
+                },
+                {
+                    name: `E2E Breacher Shield ${stamp}`,
+                    type: 'armor',
+                    system: {
+                        isShield: true,
+                        pvMelee: 2,
+                        pvRanged: 2,
+                        equipped: true,
+                        resistance: { value: 12, max: 12 }
+                    }
+                }
+            ]);
+
+            const { computeArmorMitigation } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            // No AD this hit, so neither item's resistance degrades -- pure additive-stacking check.
+            const mitigation = await computeArmorMitigation(actor, 0, 0, 'melee', true);
+            await actor.delete();
+            return mitigation;
+        });
+
+        // Body armor 4 (max-PV loop, shield excluded from it) + shield's melee PV 2 = 6.
+        expect(result.targetPV).toBe(4);
+        expect(result.effectivePV).toBe(6);
+    });
+
+    test('computeArmorMitigation routes all AD to an active shield, leaving body armor resistance untouched', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                { name: `E2E Shield Independent ${stamp}`, type: 'character' }
+            ]);
+            const [armor, shield] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Body Armor ${stamp}`,
+                    type: 'armor',
+                    system: { pv: 4, equipped: true, isShield: false, resistance: { value: 10, max: 10 } }
+                },
+                {
+                    name: `E2E Breacher Shield ${stamp}`,
+                    type: 'armor',
+                    system: {
+                        isShield: true,
+                        pvMelee: 2,
+                        pvRanged: 2,
+                        equipped: true,
+                        resistance: { value: 3, max: 12 }
+                    }
+                }
+            ]);
+
+            const { computeArmorMitigation } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            const mitigation = await computeArmorMitigation(actor, 5, 0, 'melee', true);
+
+            const armorRes = actor.items.get(armor.id).system.resistance.value;
+            const shieldRes = actor.items.get(shield.id).system.resistance.value;
+            await actor.delete();
+            return { mitigation, armorRes, shieldRes };
+        });
+
+        // Per the tabletop rule, all 5 AD goes to the shield (3 - 5 clamped to 0, destroyed,
+        // contributes 0 PV); body armor's own resistance is never touched while the shield is
+        // actively blocking, so it stays at 10 and its PV (4) still counts toward the total.
+        expect(result.armorRes).toBe(10);
+        expect(result.shieldRes).toBe(0);
+        expect(result.mitigation.effectivePV).toBe(4);
+        expect(result.mitigation.armorData).toHaveLength(1);
+        expect(result.mitigation.armorData[0].kind).toBe('shield');
+        expect(result.mitigation.armorData[0].effectivePV).toBe(0);
+        expect(result.mitigation.armorData[0].new).toBe(0);
+    });
+
+    test('computeArmorMitigation still routes AD to body armor when no shield is actively blocking', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([{ name: `E2E No Active Shield ${stamp}`, type: 'character' }]);
+            const [armor] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Body Armor ${stamp}`,
+                    type: 'armor',
+                    system: { pv: 4, equipped: true, isShield: false, resistance: { value: 10, max: 10 } }
+                },
+                {
+                    name: `E2E Idle Shield ${stamp}`,
+                    type: 'armor',
+                    system: {
+                        isShield: true,
+                        pvMelee: 2,
+                        pvRanged: 2,
+                        equipped: true,
+                        resistance: { value: 12, max: 12 }
+                    }
+                }
+            ]);
+
+            const { computeArmorMitigation } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            // shieldCraftSuccess: false -- the shield is equipped but didn't block this hit, so
+            // this is the pre-shield-feature regression path: AD hits body armor as always.
+            const mitigation = await computeArmorMitigation(actor, 5, 0, 'melee', false);
+
+            const armorRes = actor.items.get(armor.id).system.resistance.value;
+            await actor.delete();
+            return { mitigation, armorRes };
+        });
+
+        expect(result.armorRes).toBe(5);
+        expect(result.mitigation.armorData).toHaveLength(1);
+        expect(result.mitigation.armorData[0].kind).toBe('armor');
+    });
+
+    test('computeArmorMitigation selects the shield PV matching the attacking weapon type', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                { name: `E2E Shield AttackType ${stamp}`, type: 'character' }
+            ]);
+            await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Advanced Shield ${stamp}`,
+                    type: 'armor',
+                    system: {
+                        isShield: true,
+                        pvMelee: 2,
+                        pvRanged: 4,
+                        equipped: true,
+                        resistance: { value: 16, max: 16 }
+                    }
+                }
+            ]);
+
+            const { computeArmorMitigation } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            const meleeHit = await computeArmorMitigation(actor, 0, 0, 'melee', true);
+            const rangedHit = await computeArmorMitigation(actor, 0, 0, 'ranged', true);
+            await actor.delete();
+            return { meleeHit, rangedHit };
+        });
+
+        expect(result.meleeHit.effectivePV).toBe(2);
+        expect(result.rangedHit.effectivePV).toBe(4);
+    });
+
+    test('applyDamageToVictim renders only the shield row (not body armor) and the correct total PV Reduction when the shield blocks', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                { name: `E2E Shield ChatRender ${stamp}`, type: 'character', system: { hp: { value: 10, max: 10 } } }
+            ]);
+            await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Body Armor ${stamp}`,
+                    type: 'armor',
+                    system: { pv: 4, equipped: true, isShield: false, resistance: { value: 10, max: 10 } }
+                },
+                {
+                    name: `E2E Breacher Shield ${stamp}`,
+                    type: 'armor',
+                    system: {
+                        isShield: true,
+                        pvMelee: 2,
+                        pvRanged: 2,
+                        equipped: true,
+                        resistance: { value: 12, max: 12 }
+                    }
+                }
+            ]);
+
+            const beforeIds = new Set(game.messages.map((m) => m.id));
+            const { applyDamageToVictim } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            await applyDamageToVictim(actor, 10, 3, 0, null, 'melee', true);
+            const newMessage = game.messages.find((m) => !beforeIds.has(m.id));
+            const content = newMessage?.content ?? '';
+
+            await newMessage?.delete();
+            await actor.delete();
+            return { content };
+        });
+
+        // All AD (3) routed to the shield: resistance 12-3=9 (still full PV 2). Body armor's
+        // own resistance is untouched, so it gets no row -- only its PV (4) still counts toward
+        // the combined total shown in "PV Reduction" (4 + 2 = 6).
+        expect(result.content).not.toContain('damage-armor--armor');
+        expect(result.content).toContain('damage-armor--shield');
+        expect(result.content).toMatch(/PV Reduction:<\/span>\s*<strong>-6<\/strong>/);
+    });
+
+    test('applyDamageToVictim renders the body-armor row when no shield is actively blocking', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Armor Only ChatRender ${stamp}`,
+                    type: 'character',
+                    system: { hp: { value: 10, max: 10 } }
+                }
+            ]);
+            await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Body Armor ${stamp}`,
+                    type: 'armor',
+                    system: { pv: 4, equipped: true, isShield: false, resistance: { value: 10, max: 10 } }
+                }
+            ]);
+
+            const beforeIds = new Set(game.messages.map((m) => m.id));
+            const { applyDamageToVictim } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            await applyDamageToVictim(actor, 10, 3, 0, null, 'melee', false);
+            const newMessage = game.messages.find((m) => !beforeIds.has(m.id));
+            const content = newMessage?.content ?? '';
+
+            await newMessage?.delete();
+            await actor.delete();
+            return { content };
+        });
+
+        expect(result.content).toContain('damage-armor--armor');
+        expect(result.content).not.toContain('damage-armor--shield');
+        expect(result.content).toMatch(/PV Reduction:<\/span>\s*<strong>-4<\/strong>/);
     });
 
     test('clearNWoundsOnActor clears wounds in head -> torso -> limb order and persists the write', async ({
@@ -256,6 +529,91 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
 
         // Same math as the full-pipeline test above: resistance 10-3=7 (>=half) -> effectivePV 6 -> damage 4 -> hp 6.
         expect(result.persistedHp).toBe(6);
+    });
+
+    test('onApplyDamage reads the live "Shield Craft Succeeded" checkbox and gates the shield accordingly', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [victim] = await Actor.createDocuments([
+                {
+                    name: `E2E Shield Checkbox Victim ${stamp}`,
+                    type: 'character',
+                    system: { hp: { value: 10, max: 10 } }
+                }
+            ]);
+            await victim.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Shield ${stamp}`,
+                    type: 'armor',
+                    system: {
+                        isShield: true,
+                        pvMelee: 5,
+                        pvRanged: 5,
+                        equipped: true,
+                        resistance: { value: 12, max: 12 }
+                    }
+                }
+            ]);
+
+            // Use the self-target Ebb path (`ebbTarget: 'self'`) rather than the target-uuid
+            // path: onApplyDamage resolves a self target straight from the card's actor-uuid,
+            // side-stepping resolveActorFromUuid's Token-only uuid resolution (that path expects
+            // a Token uuid, not a bare Actor uuid, and isn't what this test needs to exercise).
+            const buildCard = async (checked) => {
+                const message = await ChatMessage.create({
+                    speaker: ChatMessage.getSpeaker({ actor: victim }),
+                    content: '<div class="sla-chat-card"></div>',
+                    flags: { sla: { ammoName: null, ebbTarget: 'self' } }
+                });
+                const card = document.createElement('div');
+                card.className = 'sla-chat-card';
+                card.dataset.actorUuid = victim.uuid;
+
+                const messageWrapper = document.createElement('div');
+                messageWrapper.className = 'message';
+                messageWrapper.dataset.messageId = message.id;
+                messageWrapper.appendChild(card);
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'shield-craft-success';
+                checkbox.checked = checked;
+                card.appendChild(checkbox);
+
+                const applyBtn = document.createElement('button');
+                applyBtn.dataset.dmg = '10';
+                applyBtn.dataset.ad = '0';
+                applyBtn.dataset.pvMod = '0';
+                applyBtn.dataset.ebbTarget = 'self';
+                card.appendChild(applyBtn);
+
+                return { message, applyBtn };
+            };
+
+            const { onApplyDamage } = await import('/systems/sla-industries/module/helpers/chat/handlers.mjs');
+
+            // Unchecked: the equipped shield must not mitigate.
+            const unchecked = await buildCard(false);
+            await onApplyDamage({ preventDefault: () => {}, currentTarget: unchecked.applyBtn });
+            const hpAfterUnchecked = victim.system.hp.value;
+            await unchecked.message.delete();
+
+            await victim.update({ 'system.hp.value': 10 });
+
+            // Checked: the shield must mitigate.
+            const checked = await buildCard(true);
+            await onApplyDamage({ preventDefault: () => {}, currentTarget: checked.applyBtn });
+            const hpAfterChecked = victim.system.hp.value;
+            await checked.message.delete();
+
+            await victim.delete();
+            return { hpAfterUnchecked, hpAfterChecked };
+        });
+
+        expect(result.hpAfterUnchecked).toBe(0); // 10 raw damage, no mitigation at all.
+        expect(result.hpAfterChecked).toBe(5); // 10 raw damage - 5 shield PV.
     });
 
     test("onApplyEbbEffects copies the Ebb formula item's embedded Active Effects onto the target", async ({

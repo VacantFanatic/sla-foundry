@@ -444,6 +444,7 @@ async function resolveExplosiveRoll(sheet, item, rollData, target, blastRadius, 
         dmgDisplay: sheet._resolveDamageDisplay(baseDmg),
         minDamage: Number(item.system.minDamage) || 0,
         adValue: adValue,
+        attackType: 'ranged',
         mos: {
             isSuccess: isSuccess,
             hits: skillSuccessCount,
@@ -471,7 +472,8 @@ async function resolveExplosiveRoll(sheet, item, rollData, target, blastRadius, 
                 extra: {
                     targets: Array.from(game.user.targets).map((t) => t.document.uuid),
                     damageBase: baseDmg,
-                    adValue: adValue
+                    adValue: adValue,
+                    attackType: 'ranged'
                 }
             })
         }

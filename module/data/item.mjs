@@ -146,7 +146,10 @@ export class SlaArmorData extends foundry.abstract.TypeDataModel {
                     closing: new fields.NumberField({ initial: 0 }),
                     rushing: new fields.NumberField({ initial: 0 })
                 })
-            })
+            }),
+            isShield: new fields.BooleanField({ initial: false }),
+            pvMelee: new fields.NumberField({ initial: 0, min: 0 }),
+            pvRanged: new fields.NumberField({ initial: 0, min: 0 })
         };
     }
 }

@@ -4,6 +4,7 @@ import {
     computeHealHpBounds,
     computeMitigatedDamage
 } from './pure.mjs';
+import { applyResistanceToPv, computeShieldPieceBonus } from '../../documents/derived/encumbrance.mjs';
 
 export function resolveDamageDisplay(formula, actor = null) {
     const formulaStr = String(formula ?? '0').trim();
@@ -30,6 +31,7 @@ export async function executeStandardDamageRoll({
     adValue = 0,
     pvMod = 0,
     ammoName = null,
+    attackType = 'melee',
     minDamage = 0,
     flavorText = 'Standard Damage Roll',
     parentTargets = [],
@@ -72,7 +74,13 @@ export async function executeStandardDamageRoll({
     const hideApplyButtons = ebbTarget === 'self';
     if (hideApplyButtons && !autoApplyWound) {
         try {
-            await applyEbbOutcomeToActor(actor, finalTotal, adValue, { isHeal, removeWoundsCount, pvMod, ammoName });
+            await applyEbbOutcomeToActor(actor, finalTotal, adValue, {
+                isHeal,
+                removeWoundsCount,
+                pvMod,
+                ammoName,
+                attackType
+            });
             flavor += `<br/><span style="color:#9cf;font-size:0.9em;">${game.i18n.localize('SLA.EbbAppliedToCaster')}</span>`;
         } catch (err) {
             console.error('SLA | Ebb self-apply:', err);
@@ -85,6 +93,7 @@ export async function executeStandardDamageRoll({
         adValue,
         pvMod,
         ammoName,
+        attackType,
         flavor,
         isHeal,
         hideApplyButtons,
@@ -110,7 +119,8 @@ export async function executeStandardDamageRoll({
                 ebbIsHeal: isHeal,
                 ebbRemoveWoundsCount: Math.max(0, Math.min(6, Math.floor(Number(removeWoundsCount) || 0))),
                 pvMod,
-                ammoName
+                ammoName,
+                attackType
             }
         }
     });
@@ -119,7 +129,10 @@ export async function executeStandardDamageRoll({
         await new Promise((resolve) => setTimeout(resolve, 100));
         const targetUuid = parentTargets[0];
         if (targetUuid) {
-            await applyDamageToTarget(finalTotal, adValue, targetUuid, pvMod, ammoName);
+            // Auto-apply has no chat card for a GM to check "Shield Craft Succeeded" on, so a
+            // shield never blocks an auto-applied hit — use the ordinary Apply Damage button
+            // instead if the shield should count.
+            await applyDamageToTarget(finalTotal, adValue, targetUuid, pvMod, ammoName, attackType, false);
         }
     }
 }
@@ -207,13 +220,13 @@ export async function applyEbbOutcomeToActor(
     actor,
     rawAmount,
     ad,
-    { isHeal, removeWoundsCount = 0, pvMod = 0, ammoName = null }
+    { isHeal, removeWoundsCount = 0, pvMod = 0, ammoName = null, attackType = 'melee', shieldCraftSuccess = false }
 ) {
     if (isHeal) {
         const { finalHeal, hpData } = await applyHpHeal(actor, rawAmount);
         await postHealResultChat({ victim: actor, rawHeal: rawAmount, finalHeal, hpData });
     } else {
-        await applyDamageToVictim(actor, rawAmount, ad, pvMod, ammoName);
+        await applyDamageToVictim(actor, rawAmount, ad, pvMod, ammoName, attackType, shieldCraftSuccess);
     }
     const n = Math.max(0, Math.min(6, Math.floor(Number(removeWoundsCount) || 0)));
     if (n > 0) {
@@ -234,17 +247,55 @@ export async function postHealResultChat({ victim, rawHeal, finalHeal, hpData })
             isHeal: true
         }
     );
-    ChatMessage.create({ content });
+    await ChatMessage.create({ content });
 }
 
-export async function computeArmorMitigation(victim, ad, pvMod = 0) {
-    const armorItem = victim.items.find((i) => i.type === 'armor' && i.system.equipped);
+/**
+ * Degrades one armor-type item's own Resistance pool by AD and returns its effective PV
+ * contribution after degradation, using the shared full/half/zero resistance rule.
+ * @param {object} item
+ * @param {number} ad
+ * @param {number} basePv
+ */
+async function degradeArmorItemResistance(item, ad, basePv) {
+    const currentRes = item.system.resistance?.value || 0;
+    const maxRes = item.system.resistance?.max || 10;
+    const newRes = Math.max(0, currentRes - ad);
+    await item.update({ 'system.resistance.value': newRes });
+
+    const effectivePv = applyResistanceToPv(basePv, { value: newRes, max: maxRes });
+
+    return { effectivePv, resistanceUpdate: { current: currentRes, new: newRes, ad } };
+}
+
+/**
+ * @param {object} victim
+ * @param {number} ad
+ * @param {number} [pvMod]
+ * @param {'melee'|'ranged'} [attackType]
+ * @param {boolean} [shieldCraftSuccess] - Whether the wielder's Shield Craft roll succeeded
+ *   against this specific attack. Equipped shields only contribute when this is true; `equipped`
+ *   alone only means "currently carried/raised," not "blocked this hit."
+ */
+export async function computeArmorMitigation(victim, ad, pvMod = 0, attackType = 'melee', shieldCraftSuccess = false) {
+    const isEquipped = (i) => victim.type === 'npc' || i.system.equipped;
+    const armorItems = victim.items.filter((i) => i.type === 'armor' && isEquipped(i));
+    const bodyArmorItems = armorItems.filter((i) => !i.system.isShield);
+    const shieldItems = shieldCraftSuccess ? armorItems.filter((i) => i.system.isShield) : [];
+
+    let armorItem = null;
+    let bodyArmorPv = 0;
+    for (const item of bodyArmorItems) {
+        const pv = item.system.pv || 0;
+        if (!armorItem || pv > bodyArmorPv) {
+            armorItem = item;
+            bodyArmorPv = pv;
+        }
+    }
 
     let targetPV = 0;
-    let armorData = null;
-
     if (armorItem) {
-        targetPV = armorItem.system.pv || 0;
+        targetPV = bodyArmorPv;
     } else if (victim.system.armor?.pv) {
         targetPV = victim.system.armor.pv || 0;
     }
@@ -252,24 +303,43 @@ export async function computeArmorMitigation(victim, ad, pvMod = 0) {
     const rawPv = targetPV;
     targetPV = applyPvModifierToArmor(targetPV, pvMod);
 
+    const contributions = [];
     let effectivePV = targetPV;
-    if (armorItem && ad > 0) {
-        const currentRes = armorItem.system.resistance?.value || 0;
-        const maxRes = armorItem.system.resistance?.max || 10;
-        const newRes = Math.max(0, currentRes - ad);
-        await armorItem.update({ 'system.resistance.value': newRes });
 
-        if (newRes <= 0) effectivePV = 0;
-        else if (newRes < maxRes / 2) effectivePV = Math.floor(targetPV / 2);
-        else effectivePV = targetPV;
+    // Shields whose PV for this attackType is actually nonzero -- these are "up" and blocking.
+    const activeShields = shieldItems.filter((shield) => {
+        const shieldBasePv = attackType === 'ranged' ? shield.system.pvRanged || 0 : shield.system.pvMelee || 0;
+        return shieldBasePv > 0;
+    });
 
-        armorData = {
-            current: currentRes,
-            new: newRes,
-            ad: ad,
-            effectivePV: effectivePV
-        };
+    if (activeShields.length > 0) {
+        // Per the tabletop rule ("all AD will be inflicted against [the shield]"), when a shield
+        // is actively blocking this hit, 100% of the AD routes to the shield(s) and the wearer's
+        // body armor Resistance is untouched -- it is never split between both pools.
+        for (const shield of activeShields) {
+            const shieldBasePv = attackType === 'ranged' ? shield.system.pvRanged || 0 : shield.system.pvMelee || 0;
+            if (ad > 0) {
+                const { effectivePv, resistanceUpdate } = await degradeArmorItemResistance(shield, ad, shieldBasePv);
+                effectivePV += effectivePv;
+                contributions.push({
+                    kind: 'shield',
+                    name: shield.name,
+                    ...resistanceUpdate,
+                    effectivePV: effectivePv
+                });
+            } else {
+                // No AD this hit to degrade further, but a shield already worn down by prior hits
+                // should still reflect its current resistance state.
+                effectivePV += computeShieldPieceBonus(shield.system, attackType);
+            }
+        }
+    } else if (armorItem && ad > 0) {
+        const { effectivePv, resistanceUpdate } = await degradeArmorItemResistance(armorItem, ad, targetPV);
+        effectivePV = effectivePv;
+        contributions.push({ kind: 'armor', name: armorItem.name, ...resistanceUpdate, effectivePV: effectivePv });
     }
+
+    const armorData = contributions.length ? contributions : null;
 
     return { targetPV, rawPv, effectivePV, armorData };
 }
@@ -294,6 +364,7 @@ export async function postDamageResultChat({
     rawDamage,
     targetPV,
     rawPv,
+    effectivePV,
     pvMod = 0,
     ammoName = null,
     finalDamage,
@@ -307,6 +378,7 @@ export async function postDamageResultChat({
             rawDamage: rawDamage,
             targetPV: targetPV,
             rawPv: rawPv,
+            effectivePV: effectivePV,
             pvMod: pvMod,
             ammoName: ammoName,
             finalDamage: finalDamage,
@@ -315,17 +387,32 @@ export async function postDamageResultChat({
         }
     );
 
-    ChatMessage.create({ content });
+    await ChatMessage.create({ content });
 }
 
-export async function applyDamageToVictim(victim, rawDamage, ad, pvMod = 0, ammoName = null) {
-    const { targetPV, rawPv, effectivePV, armorData } = await computeArmorMitigation(victim, ad, pvMod);
+export async function applyDamageToVictim(
+    victim,
+    rawDamage,
+    ad,
+    pvMod = 0,
+    ammoName = null,
+    attackType = 'melee',
+    shieldCraftSuccess = false
+) {
+    const { targetPV, rawPv, effectivePV, armorData } = await computeArmorMitigation(
+        victim,
+        ad,
+        pvMod,
+        attackType,
+        shieldCraftSuccess
+    );
     const { finalDamage, hpData } = await applyHpDamage(victim, rawDamage, effectivePV);
     await postDamageResultChat({
         victim,
         rawDamage,
         targetPV,
         rawPv,
+        effectivePV,
         pvMod,
         ammoName,
         finalDamage,
@@ -334,11 +421,19 @@ export async function applyDamageToVictim(victim, rawDamage, ad, pvMod = 0, ammo
     });
 }
 
-export async function applyDamageToTarget(rawDamage, ad, targetUuid, pvMod = 0, ammoName = null) {
+export async function applyDamageToTarget(
+    rawDamage,
+    ad,
+    targetUuid,
+    pvMod = 0,
+    ammoName = null,
+    attackType = 'melee',
+    shieldCraftSuccess = false
+) {
     const victim = await resolveActorFromUuid(targetUuid);
     if (!victim) {
         console.warn('SLA | Auto-apply: Target not found', targetUuid);
         return;
     }
-    await applyDamageToVictim(victim, rawDamage, ad, pvMod, ammoName);
+    await applyDamageToVictim(victim, rawDamage, ad, pvMod, ammoName, attackType, shieldCraftSuccess);
 }

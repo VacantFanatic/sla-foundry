@@ -25,10 +25,12 @@
         </div>
 
         <div class="sla-pv-gauge__readouts">
+            {{#unless system.isShield}}
             <div class="sla-field sla-field--compact sla-pv-gauge__pv">
                 <label>{{localize "SLA.ItemSheet.Armor.PV"}}</label>
                 <input type="number" name="system.pv" value="{{system.pv}}" />
             </div>
+            {{/unless}}
             <div class="sla-field sla-field--compact sla-pv-gauge__resist">
                 <label>{{localize "SLA.ItemSheet.Armor.Resistance"}}</label>
                 <div class="sla-pv-gauge__resist-inputs">
@@ -42,6 +44,33 @@
         <div class="sla-pv-gauge__track" aria-hidden="true">
             <div class="sla-pv-gauge__fill" style="width: {{resistGaugePct}}%;"></div>
         </div>
+    </section>
+
+    <section class="sla-section sla-shield-config">
+        <div class="sla-section__header">
+            <span class="sla-section__icon"><i class="fas fa-shield"></i></span>
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.Armor.ShieldSection"}}</span>
+            <span class="sla-section__action sla-field sla-field--toggle">
+                <label for="armor-shield-toggle">{{localize "SLA.ItemSheet.Armor.IsShield"}}</label>
+                <input id="armor-shield-toggle" type="checkbox" name="system.isShield" {{checked system.isShield}} />
+            </span>
+        </div>
+
+        {{#if system.isShield}}
+        <div class="powersuit-telemetry__systems-grid">
+            <div class="sla-field sla-field--inline sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Armor.PvMelee"}}</label>
+                <input type="number" name="system.pvMelee" value="{{system.pvMelee}}" min="0" placeholder="0" />
+            </div>
+            <div class="sla-field sla-field--inline sla-field--compact">
+                <label>{{localize "SLA.ItemSheet.Armor.PvRanged"}}</label>
+                <input type="number" name="system.pvRanged" value="{{system.pvRanged}}" min="0" placeholder="0" />
+            </div>
+        </div>
+        <p class="powersuit-telemetry__systems-idle">{{localize "SLA.ItemSheet.Armor.ShieldHint"}}</p>
+        {{else}}
+        <p class="powersuit-telemetry__systems-idle">{{localize "SLA.ItemSheet.Armor.ShieldOffline"}}</p>
+        {{/if}}
     </section>
 
     <section class="sla-section powersuit-telemetry__systems">

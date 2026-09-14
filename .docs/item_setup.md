@@ -204,6 +204,39 @@ A powersuit **replaces** the actor's STR total and caps DEX, rather than adding 
 
 > **Tip:** To configure the powersuit STR replacement, set `mods.str` to the powersuit's strength rating (e.g. `12`). This overwrites the biological STR entirely while the suit is equipped.
 
+### D. Shields
+
+1. Create an **Armor** item and check **Is Shield**.
+2. Set **PV (Melee)** and **PV (Ranged)** — for a flat shield like the PP949 Breacher, set both to
+   the same value (e.g. `2`/`2`); for an asymmetric one like the Ebb Advanced Shield, set them
+   independently (e.g. `2`/`4`). These stack additively on top of the wearer's body armor PV,
+   automatically applied based on whether the attacking weapon is Melee or Ranged.
+3. Set the shield's own **Resistance** (current/max) — separate from the wearer's body armor
+   resistance. When the shield is actively blocking a hit (see step 5), **all** of that hit's
+   Armor Damage (AD) is inflicted against the shield's Resistance only — the wearer's body armor
+   Resistance is untouched for that hit.
+4. Equip the shield once, like any other worn item — this just means "the character is
+   carrying/raising it," and does not by itself block anything.
+5. **Each time the shield's wearer is hit**, narrate a Shield Craft skill roll against a GM-set
+   target number (using the normal skill roll UI — Shield Craft is already a skill on the
+   character). If it succeeds, check **"Shield Craft Succeeded"** on the Apply Damage chat card
+   before clicking Apply. If it fails, leave the checkbox unchecked — the hit bypasses the shield
+   and only the wearer's body armor applies.
+6. The generic **PV** field on a shield item is unused — leave it at `0`.
+7. Not automated (GM calls these narratively): a shield can't block an attack from behind the
+   wearer, and some shields require a minimum STR to use.
+8. Example: PP949 Breacher Shield — PV Melee `2`, PV Ranged `2`, Resistance `12`/`12`.
+9. **If the shield's rulebook entry also lets it be used as a melee weapon** (e.g. the PP949
+   Breacher Shield, usable as a weapon by a wielder with STR 3+), don't add anything to the shield
+   item itself — create a separate, ordinary **Weapon** item for it instead (e.g. named
+   `"Breacher Shield (Melee)"`), using the normal weapon item creation flow: set its Damage, Min
+   Damage, and AD from the shield's rulebook weapon profile (e.g. `1d10-3`, Min Damage `2`, AD
+   `0`), and drag the Shield Craft skill item onto its skill-link box, exactly like setting up any
+   other weapon. This gives the shield-as-weapon a fully working attack roll (Attack Dialog,
+   damage button, combat loadout listing) for free, since it's a real weapon item — no new fields
+   or UI are needed on the Armor item, which continues to only carry the PV/Resistance defense
+   mechanic.
+
 ---
 
 ## 8. Explosives

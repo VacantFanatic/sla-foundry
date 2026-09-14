@@ -119,6 +119,45 @@ test.describe('SLA item sheet UI — regression', () => {
         await expect(sheet.locator('.sla-drop__hint')).toHaveText('Drop Weapon Here');
     });
 
+    test('armor sheet — shield checkbox reveals melee/ranged PV fields and hides generic PV', async ({ page }) => {
+        const itemId = await createWorldItem(page, 'armor', { pv: 6, isShield: false });
+        const sheet = await openItemSheet(page, itemId);
+
+        await expect(sheet.locator('input[name="system.pv"]')).toBeVisible();
+        await expect(sheet.locator('input[name="system.pvMelee"]')).toHaveCount(0);
+        await expect(sheet.locator('input[name="system.pvRanged"]')).toHaveCount(0);
+
+        await sheet.locator('#armor-shield-toggle').check();
+
+        await expect(sheet.locator('input[name="system.pv"]')).toHaveCount(0);
+        await expect(sheet.locator('input[name="system.pvMelee"]')).toBeVisible();
+        await expect(sheet.locator('input[name="system.pvRanged"]')).toBeVisible();
+    });
+
+    test('armor sheet — persists isShield/pvMelee/pvRanged via submitOnChange', async ({ page }) => {
+        const itemId = await createWorldItem(page, 'armor', { pv: 0, isShield: false });
+        const sheet = await openItemSheet(page, itemId);
+
+        await sheet.locator('#armor-shield-toggle').check();
+        await sheet.locator('input[name="system.pvMelee"]').fill('2');
+        await sheet.locator('input[name="system.pvMelee"]').blur();
+        await sheet.locator('input[name="system.pvRanged"]').fill('2');
+        await sheet.locator('input[name="system.pvRanged"]').blur();
+
+        await expect
+            .poll(() =>
+                page.evaluate((id) => {
+                    const item = game.items.get(id);
+                    return {
+                        isShield: item.system.isShield,
+                        pvMelee: item.system.pvMelee,
+                        pvRanged: item.system.pvRanged
+                    };
+                }, itemId)
+            )
+            .toEqual({ isShield: true, pvMelee: 2, pvRanged: 2 });
+    });
+
     test('skill sheet — field manual stamp, two tabs only', async ({ page }) => {
         const itemId = await createWorldItem(page, 'skill', { rank: 1 });
         const sheet = await openItemSheet(page, itemId);

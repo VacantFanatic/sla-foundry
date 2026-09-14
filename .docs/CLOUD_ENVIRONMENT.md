@@ -90,6 +90,19 @@ chain` error, this is the first thing to check (see `/root/.ccr/README.md`).
   widening the E2E viewport past the accidental 1280x720 destabilized the suite here, and why
   Foundry's own "screen too small" warning still needs a notification-dismissal workaround
   rather than a viewport fix).
+- **A released Foundry version can outrun this sandbox's pinned Chromium.** As of Foundry v14
+  Build 367, the `/setup` page shows a hard banner ("uses modern JavaScript features which are
+  unsupported on Chromium version less than 146. You are using Chromium version 141.") and its
+  custom tab-switch handler for "Game Worlds"/"Game Systems"/"Add-on Modules" (`<h2
+data-tab="...">` paired with `<section data-tab="...">`, not real `<a>`/`<button>` elements)
+  stops working: clicking the "Game Worlds" tab header resolves the locator but the target
+  `<section>` never gains the `active` class, so the world list never becomes visible/clickable.
+  `scripts/foundry-bootstrap.mjs`'s own world-launch step fails with the exact same
+  `locator.click: Timeout 30000ms exceeded ... element is not visible` symptom, confirming this
+  isn't a one-off script bug. If `bash scripts/cloud-foundry.sh bootstrap`/`start` fails this way,
+  don't keep retrying selector variations — it's this environment's Chromium build, not the
+  script. Fall back to unit tests (`npm run test:unit`) plus careful manual code review, and say
+  plainly that live e2e verification wasn't possible in that session.
 
 See [DEVELOPER.md](DEVELOPER.md) for architecture, migrations, and API details, and
 [AGENTS.md](AGENTS.md) for the Cursor Cloud equivalent of this setup.

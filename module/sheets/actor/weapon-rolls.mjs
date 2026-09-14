@@ -98,6 +98,7 @@ function buildWeaponRollTemplateData(
         adValue,
         pvMod,
         ammoName,
+        attackType,
         rofRerollSD,
         isSuccess,
         skillSuccessCount,
@@ -129,6 +130,7 @@ function buildWeaponRollTemplateData(
         adValue: adValue,
         pvMod: pvMod,
         ammoName: ammoName,
+        attackType: attackType,
         sdIsReroll: rofRerollSD,
         mos: {
             isSuccess: isSuccess,
@@ -338,6 +340,7 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
     const ammoAdMod = getAmmoAdModifierForWeapon(item);
     const pvMod = getAmmoPvModifierForWeapon(item);
     const ammoName = getLoadedAmmoNameForWeapon(item);
+    const attackType = item.system.attackType || 'melee';
 
     const baseDmg = String(item.system.damage || '0');
     const totalMod = mods.damage + mosDamageBonus + ammoDamageMod;
@@ -368,6 +371,7 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
         adValue,
         pvMod,
         ammoName,
+        attackType,
         rofRerollSD,
         isSuccess,
         skillSuccessCount,
@@ -398,6 +402,7 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
                     adValue: adValue,
                     pvMod: pvMod,
                     ammoName: ammoName,
+                    attackType: attackType,
                     autoSkillSuccesses: mods.autoSkillSuccesses,
                     successDieModifier: mods.successDie,
                     isWeapon: true

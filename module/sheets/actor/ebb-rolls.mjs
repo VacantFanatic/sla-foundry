@@ -93,6 +93,7 @@ function buildEbbTemplateData(
         dmgDisplay: sheet._resolveDamageDisplay(finalDmgFormula),
         minDamage,
         adValue: item.system.ad || 0,
+        attackType: 'ranged',
         mos: {
             isSuccess: isSuccessful,
             hits: skillSuccesses,

@@ -6,12 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-09-14
+
 ### Added
 
+- **Shield PV bonus on Armor items (#351):** Armor items can be flagged `isShield` with separate
+  Melee/Ranged PV values that stack additively on top of the wearer's body armor PV, automatically
+  selected by the attacking weapon's Melee/Ranged type. A shield only mitigates a given hit when
+  it's equipped _and_ the new "Shield Craft Succeeded" checkbox is checked on the Apply Damage
+  card for that attack (reflecting a Shield Craft skill roll narrated at the table) — so it can
+  block one attack and not the next without re-equipping. A shield tracks its own Resistance
+  independently from body armor, so it can be worn down and destroyed on its own (e.g. the PP949
+  Breacher Shield).
 - **Standing roll modifier (`system.rollModifier.bonus`), settable via Active Effect:** Previously the only way to apply a persistent penalty/bonus to rolls was per-stat (`system.stats.<key>.bonus`), which only affects rolls using that specific stat, or the weapon/explosive attack dialog's "Generic Modifier" field, which was pure UI state re-typed every roll with no link to actor data. A new `system.rollModifier.bonus` field (character/NPC data models) sums enabled Active Effect `Add` rows the same way core stats do (`sumActiveEffectAddsForKey`, `module/documents/derived/active-effects.mjs`) into `system.rollModifier.total`. Skill checks, stat checks, and Ebb rolls (none of which have a dialog) fold it directly into their modifier math (`computeSkillRollModifier`/`calculateEbbModifier`, `module/sheets/actor/roll-math.mjs`); the weapon/explosive attack dialog now prefills its "Generic Modifier" field from it instead of a hardcoded `0`, so it applies by default while staying editable per roll. No UI field to set it manually — Active Effects are the intended way to apply it.
 
 ### Fixed
 
+- **Shield Armor Damage was wrongly split across body armor and the shield on the same hit
+  (#351):** `computeArmorMitigation` degraded both the wearer's body armor `system.resistance`
+  and an actively-blocking shield's `system.resistance` by the full AD on the same hit. Per the
+  rule text (e.g. the PP949 Breacher Shield: "all AD will be inflicted against it"), the two pools
+  are mutually exclusive per hit — an actively blocking shield absorbs 100% of the AD and the
+  wearer's body armor is untouched that hit; body armor only degrades when no shield is actively
+  blocking. The result chat card's "PV Reduction" line was also fixed to show the true combined
+  PV (body armor + shield) instead of only the body armor's PV. Verified fixed in the `pre-2.9.0-rc2`
+  pre-release build.
+- **Damage/heal chat result cards could render before the message was actually created:**
+  `postDamageResultChat`/`postHealResultChat` (`module/helpers/chat/damage.mjs`) called
+  `ChatMessage.create({ content })` without `await`, so callers like `applyDamageToVictim`/
+  `applyHpHeal` could resolve before the result card was actually written to `game.messages`.
+  Both call sites now `await` the create.
 - **LAD checkbox (and other fields) cleared on Actor sheet Edit/Play mode toggle (#348):** The LAD
   checkbox on the character header was bound to `system.bio.lad`, a field that never existed in
   `SlaCharacterData`'s schema (the real field is `bio.ladAccount`) — `TypeDataModel` silently drops
@@ -22,7 +46,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   more pre-existing instances of the same bug: `system.finance.debt` (character sheet), `system.
 quantity` (armor and weapon item sheets), and `system.typeNote` (generic item sheet) — all fixed
   by adding the missing schema field.
-
 - **Ebb Formula sheet missing AD/ROF/Recoil fields (#349):** The Ebb Formula item sheet had no way
   to enter the AD (Armor Damage) value, even though `system.ad` already existed in the schema and
   was already read by the damage-roll chat card — the field was simply never rendered in
@@ -1044,7 +1067,8 @@ quantity` (armor and weapon item sheets), and `system.typeNote` (generic item sh
 - Damage application targeting both selected token and target.
 - Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.8.5...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.9.0...HEAD
+[2.9.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.0
 [2.8.5]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.8.5
 [2.8.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.8.2
 [2.5.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.5.4

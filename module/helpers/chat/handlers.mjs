@@ -55,6 +55,7 @@ export async function onRollDamage(ev) {
         let adValue = readDataNumber(btn, 'ad', 0);
         const pvMod = readDataNumber(btn, 'pv-mod', 0);
         const ammoName = readDataString(btn, 'ammo-name') || null;
+        const attackType = readDataString(btn, 'attack-type') || 'melee';
 
         setButtonDisabled(btn, true);
 
@@ -130,6 +131,7 @@ export async function onRollDamage(ev) {
                 adValue,
                 pvMod,
                 ammoName,
+                attackType,
                 minDamage: minDmg,
                 flavorText,
                 parentTargets,
@@ -174,6 +176,10 @@ export async function onApplyDamage(ev) {
         const message = game.messages.get(messageId);
         const mflags = message?.flags?.sla ?? {};
         const ammoName = readDataString(btn, 'ammo-name') || mflags.ammoName || null;
+        const attackType = readDataString(btn, 'attack-type') || mflags.attackType || 'melee';
+        // Live, unbaked: reflects a Shield Craft roll the GM narrated after this card rendered,
+        // so it must never be pre-filled from flags at render time.
+        const shieldCraftSuccess = Boolean(card.querySelector('.shield-craft-success')?.checked);
 
         const rollingUuid = readDataString(card, 'actor-uuid') || mflags.ebbCasterUuid;
         const rollingActor = rollingUuid ? await fromUuid(rollingUuid) : null;
@@ -198,7 +204,14 @@ export async function onApplyDamage(ev) {
         });
         if (!victim) return;
 
-        await applyEbbOutcomeToActor(victim, rawDamage, ad, { isHeal, removeWoundsCount, pvMod, ammoName });
+        await applyEbbOutcomeToActor(victim, rawDamage, ad, {
+            isHeal,
+            removeWoundsCount,
+            pvMod,
+            ammoName,
+            attackType,
+            shieldCraftSuccess
+        });
     } catch (err) {
         console.error('SLA | Error in onApplyDamage:', err);
         ui.notifications.error('SLA | Failed to apply damage. See console for details.');
@@ -489,6 +502,7 @@ export async function onChangeDifficulty(ev) {
             adValue: flags.adValue || 0,
             pvMod: flags.pvMod || 0,
             ammoName: flags.ammoName || null,
+            attackType: flags.attackType || 'melee',
             sdIsReroll: flags.rofRerollSD,
             mos: {
                 isSuccess: isSuccess,

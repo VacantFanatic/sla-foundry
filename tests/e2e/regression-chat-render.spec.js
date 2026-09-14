@@ -10,6 +10,8 @@ const needsAuth = () => {
     test.skip(!process.env.FOUNDRY_USER, 'Set FOUNDRY_USER (and FOUNDRY_URL / FOUNDRY_PASSWORD if needed)');
 };
 
+test.describe.configure({ timeout: 60_000 });
+
 test.describe('GM: SLAChat card render helpers (document API)', () => {
     test.beforeEach(async ({ page }) => {
         needsAuth();
