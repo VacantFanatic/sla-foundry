@@ -10,6 +10,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **Standing roll modifier (`system.rollModifier.bonus`), settable via Active Effect:** Previously the only way to apply a persistent penalty/bonus to rolls was per-stat (`system.stats.<key>.bonus`), which only affects rolls using that specific stat, or the weapon/explosive attack dialog's "Generic Modifier" field, which was pure UI state re-typed every roll with no link to actor data. A new `system.rollModifier.bonus` field (character/NPC data models) sums enabled Active Effect `Add` rows the same way core stats do (`sumActiveEffectAddsForKey`, `module/documents/derived/active-effects.mjs`) into `system.rollModifier.total`. Skill checks, stat checks, and Ebb rolls (none of which have a dialog) fold it directly into their modifier math (`computeSkillRollModifier`/`calculateEbbModifier`, `module/sheets/actor/roll-math.mjs`); the weapon/explosive attack dialog now prefills its "Generic Modifier" field from it instead of a hardcoded `0`, so it applies by default while staying editable per roll. No UI field to set it manually — Active Effects are the intended way to apply it.
 
+### Fixed
+
+- **Ebb Formula sheet missing AD/ROF/Recoil fields (#349):** The Ebb Formula item sheet had no way
+  to enter the AD (Armor Damage) value, even though `system.ad` already existed in the schema and
+  was already read by the damage-roll chat card — the field was simply never rendered in
+  `item-ebb-formula.hbs`. The same was true of `rof`/`recoil`. Fixed by adding an Attack Shape
+  toggle (`system.formulaShape`: `ranged`/`blast`) to the sheet, mirroring the weapon sheet's
+  melee/ranged toggle: Ranged formulas show Damage/Min Damage/AD/Range/ROF/Recoil, Blast formulas
+  show Damage/Min Damage/AD/Kill Zone/Max Blast (new `system.blastRadiusInner`/`blastRadiusOuter`
+  fields, matching `SlaExplosiveData`'s existing ones), so weapon-style and grenade-style Blast/
+  Telekinesis/Thermal Formulas can both be modeled. The unused, never-rendered `system.skill`
+  field (superseded by the existing `system.discipline` drop-zone) was removed from the schema.
+
 ## [2.8.8] - 2026-09-13
 
 ### Added

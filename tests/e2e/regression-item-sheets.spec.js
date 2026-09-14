@@ -52,7 +52,10 @@ test.describe('SLA item sheet UI — regression', () => {
             formulaRating: 3,
             cost: 2,
             ebbEffect: 'damage',
-            discipline: ''
+            discipline: '',
+            ad: 4,
+            rof: '3',
+            recoil: '2'
         });
         const sheet = await openItemSheet(page, itemId);
 
@@ -63,10 +66,32 @@ test.describe('SLA item sheet UI — regression', () => {
         await expect(sheet.locator('.sla-drop__hint')).toHaveText('Drop Discipline Item Here');
         await expect(sheet.locator('input[name="system.formulaRating"]')).toHaveValue('3');
 
+        // Issue #349: AD/ROF/Recoil/Range are rendered for the default 'ranged' attack shape.
+        await expect(sheet.locator('input[name="system.ad"]')).toHaveValue('4');
+        await expect(sheet.locator('input[name="system.rof"]')).toHaveValue('3');
+        await expect(sheet.locator('input[name="system.recoil"]')).toHaveValue('2');
+        await expect(sheet.locator('input[name="system.range"]')).toBeVisible();
+
         await clickItemSheetTab(sheet, 'effects');
         await expect(sheet.locator('.sla-item-effects .sla-section__title')).toHaveText('Active Effects');
         await expect(sheet.locator('.sla-effects-empty')).toHaveText('No active effects.');
         await expect(sheet.locator('.sla-item-effect-create')).toBeVisible();
+    });
+
+    test('ebb formula sheet — blast attack shape swaps in blast radius fields', async ({ page }) => {
+        const itemId = await createWorldItem(page, 'ebbFormula', {
+            formulaShape: 'blast',
+            ad: 2,
+            blastRadiusInner: 2,
+            blastRadiusOuter: 5
+        });
+        const sheet = await openItemSheet(page, itemId);
+
+        await expect(sheet.locator('input[name="system.blastRadiusInner"]')).toHaveValue('2');
+        await expect(sheet.locator('input[name="system.blastRadiusOuter"]')).toHaveValue('5');
+        await expect(sheet.locator('input[name="system.range"]')).toHaveCount(0);
+        await expect(sheet.locator('input[name="system.rof"]')).toHaveCount(0);
+        await expect(sheet.locator('input[name="system.recoil"]')).toHaveCount(0);
     });
 
     test('weapon sheet — skill drop hint and effects tab', async ({ page }) => {
