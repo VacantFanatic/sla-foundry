@@ -20,7 +20,8 @@ export async function executeSkillRollFromItem(sheet, item) {
         prone: Boolean(actor.system.conditions?.prone),
         stunned: Boolean(actor.system.conditions?.stunned),
         woundPenalty: actor.system.wounds.penalty || 0,
-        applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties')
+        applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties'),
+        rollModifier: actor.system.rollModifier?.total ?? 0
     });
 
     const rollFormula = buildSkillRollFormula(rank);

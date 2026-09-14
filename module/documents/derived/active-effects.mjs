@@ -63,3 +63,23 @@ export function sumActiveEffectAddsForStat(effects, statKey, addMatcher) {
     }
     return sum;
 }
+
+/**
+ * Sum ADD modifiers from enabled effects targeting a single exact change key (no legacy
+ * `.value` fallback — used for synthetic fields like `system.rollModifier.bonus` that have
+ * no separate player-editable base to alias).
+ * @param {Array<{ disabled?: boolean, changes?: unknown[], system?: { changes?: unknown[] } }>} effects
+ * @param {string} changeKey
+ * @param {{ addType: string, legacyAddModes: Set<number> }} addMatcher
+ */
+export function sumActiveEffectAddsForKey(effects, changeKey, addMatcher) {
+    let sum = 0;
+    for (const effect of effects ?? []) {
+        if (effect.disabled) continue;
+        for (const ch of effectChangeRows(effect)) {
+            if (!isActiveEffectAddChange(ch, addMatcher)) continue;
+            if (ch.key === changeKey) sum += Number(ch.value) || 0;
+        }
+    }
+    return sum;
+}

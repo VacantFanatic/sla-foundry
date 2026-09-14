@@ -8,6 +8,7 @@ import {
 import {
     effectChangeRows,
     resolveActiveEffectAddMatcher,
+    sumActiveEffectAddsForKey,
     sumActiveEffectAddsForStat
 } from './derived/active-effects.mjs';
 import { applyStatPenalties } from './derived/penalties.mjs';
@@ -39,6 +40,15 @@ export class SlaActor extends Actor {
         return sumActiveEffectAddsForStat(this.effects, statKey, addMatcher);
     }
 
+    /**
+     * Sum ADD modifiers from enabled effects on system.rollModifier.bonus — a standing
+     * modifier applied to every roll (skill, stat, weapon, explosive, Ebb).
+     */
+    _sumActiveEffectAddsForRollModifier() {
+        const addMatcher = resolveActiveEffectAddMatcher();
+        return sumActiveEffectAddsForKey(this.effects, 'system.rollModifier.bonus', addMatcher);
+    }
+
     /** @override */
     prepareDerivedData() {
         super.prepareDerivedData();
@@ -67,6 +77,15 @@ export class SlaActor extends Actor {
                 if (!stat || typeof stat !== 'object') continue;
                 if (statsWithBonus.has(key)) continue;
                 stat.total = Number(stat.value) || 0;
+            }
+
+            // 1B. Standing roll modifier: stored bonus + live Active Effect ADD rows on
+            // system.rollModifier.bonus. No separate player-editable base — Active Effects only.
+            if (system.rollModifier) {
+                const srcRollModifier = foundry.utils.getProperty(this._source, 'system.rollModifier') || {};
+                const rollModifierSrcBonus = Number(srcRollModifier.bonus) || 0;
+                const rollModifierFromEffects = this._sumActiveEffectAddsForRollModifier();
+                system.rollModifier.total = rollModifierSrcBonus + rollModifierFromEffects;
             }
 
             // 2. Drug mechanics use Active Effects (item embedded effects); do not stack here.

@@ -121,6 +121,8 @@ All schema definitions live in `module/data/actor.mjs` and `module/data/item.mjs
 
 Core stats (`str`, `dex`, `know`, `conc`, `cha`, `cool`) each have a `value` (sheet base) and a `bonus` field. Active Effects should target `system.stats.<key>.bonus` using mode `Add` to apply temporary modifiers without overwriting the base. The actor's derived data sums all `Add` effect rows for each stat in `prepareDerivedData`.
 
+`system.rollModifier.bonus` is the same pattern applied to a single standing modifier for _every_ roll type (skill, stat check, weapon, explosive, Ebb), summed into `system.rollModifier.total` the same way. Unlike the core stats it has no player-editable `value` — Active Effects (mode `Add`) are the only intended way to set it. Skill/stat/Ebb rolls (which have no dialog) fold `rollModifier.total` straight into their modifier math via `computeSkillRollModifier`/`calculateEbbModifier` (`roll-math.mjs`); the weapon/explosive attack dialog (`attack-dialog.hbs`) instead prefills its "Generic Modifier" field from it, since that field otherwise defaults to `0` and is read fresh from the DOM per roll with no link to actor data.
+
 ---
 
 ## Derived Data (`SlaActor.prepareDerivedData`)

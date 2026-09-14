@@ -141,7 +141,8 @@ export async function executeEbbRoll(sheet, item) {
         prone: Boolean(sheet.actor.system.conditions?.prone),
         stunned: Boolean(sheet.actor.system.conditions?.stunned),
         woundPenalty: sheet.actor.system.wounds.penalty || 0,
-        applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties')
+        applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties'),
+        rollModifier: sheet.actor.system.rollModifier?.total ?? 0
     });
     const roll = await createAndEvaluateEbbRoll(rank);
     const { sdTotal: successTotal, isBaseSuccess } = computeSuccessDieOutcome({

@@ -87,6 +87,31 @@ describe('computeSkillRollModifier', () => {
         });
         assert.equal(mod, 3);
     });
+
+    test('applies a standing roll modifier (e.g. an Active Effect on system.rollModifier.bonus)', () => {
+        const mod = computeSkillRollModifier({
+            statValue: 3,
+            rank: 2,
+            prone: false,
+            stunned: false,
+            woundPenalty: 0,
+            applyWoundPenalties: true,
+            rollModifier: -2
+        });
+        assert.equal(mod, 3);
+    });
+
+    test('defaults the roll modifier to 0 when omitted', () => {
+        const mod = computeSkillRollModifier({
+            statValue: 3,
+            rank: 2,
+            prone: false,
+            stunned: false,
+            woundPenalty: 0,
+            applyWoundPenalties: true
+        });
+        assert.equal(mod, 5);
+    });
 });
 
 describe('buildWeaponDamageFormula', () => {
@@ -220,6 +245,19 @@ describe('calculateEbbModifier', () => {
             applyWoundPenalties: true
         });
         assert.equal(mod, 4);
+    });
+
+    test('applies a standing roll modifier on top of stat/rank/condition math', () => {
+        const mod = calculateEbbModifier({
+            statValue: 4,
+            rank: 2,
+            prone: true,
+            stunned: false,
+            woundPenalty: 1,
+            applyWoundPenalties: true,
+            rollModifier: -2
+        });
+        assert.equal(mod, 2);
     });
 });
 

@@ -56,6 +56,11 @@ export class SlaCharacterData extends foundry.abstract.TypeDataModel {
                     max: new fields.NumberField({ initial: 0, integer: true })
                 })
             }),
+            // Persistent modifier applied to every roll (skill, stat, weapon, explosive, Ebb). Active Effects
+            // should target `bonus` (mode Add) so a standing penalty/bonus doesn't require re-entering it per roll.
+            rollModifier: new fields.SchemaField({
+                bonus: new fields.NumberField({ initial: 0, integer: true })
+            }),
             move: new fields.SchemaField({
                 closing: new fields.NumberField({ initial: 0, min: 0 }),
                 rushing: new fields.NumberField({ initial: 0, min: 0 })
@@ -139,6 +144,11 @@ export class SlaNPCData extends foundry.abstract.TypeDataModel {
                     value: new fields.NumberField({ initial: 0, integer: true }),
                     max: new fields.NumberField({ initial: 0, integer: true })
                 })
+            }),
+            // Persistent modifier applied to every roll (skill, stat, weapon, explosive, Ebb). Active Effects
+            // should target `bonus` (mode Add) so a standing penalty/bonus doesn't require re-entering it per roll.
+            rollModifier: new fields.SchemaField({
+                bonus: new fields.NumberField({ initial: 0, integer: true })
             }),
             hp: new fields.SchemaField({
                 value: new fields.NumberField({ initial: 10, integer: true }),

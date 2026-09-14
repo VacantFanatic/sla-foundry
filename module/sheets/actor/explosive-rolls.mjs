@@ -487,6 +487,7 @@ export async function renderExplosiveDialog(sheet, item) {
         isMelee: false,
         validModes: { single: { label: 'Single', active: true, rounds: 1, recoil: 0 } },
         selectedMode: 'single',
+        modifier: sheet.actor.system.rollModifier?.total ?? 0,
         recoil: 0
     };
 

@@ -7,6 +7,7 @@ import {
     effectChangeRows,
     resolveActiveEffectAddMatcher,
     isActiveEffectAddChange,
+    sumActiveEffectAddsForKey,
     sumActiveEffectAddsForStat
 } from '../../module/documents/derived/active-effects.mjs';
 
@@ -158,5 +159,51 @@ describe('sumActiveEffectAddsForStat', () => {
             addMatcher
         );
         assert.equal(sum, 3);
+    });
+});
+
+describe('sumActiveEffectAddsForKey', () => {
+    const addMatcher = resolveActiveEffectAddMatcher({
+        ACTIVE_EFFECT_CHANGE_TYPES: { ADD: 'add' },
+        ACTIVE_EFFECT_MODES: { ADD: 2 }
+    });
+
+    test('sums a global roll modifier ADD row', () => {
+        const sum = sumActiveEffectAddsForKey(
+            [{ disabled: false, changes: [{ key: 'system.rollModifier.bonus', type: 'add', value: -2 }] }],
+            'system.rollModifier.bonus',
+            addMatcher
+        );
+        assert.equal(sum, -2);
+    });
+
+    test('ignores disabled effects', () => {
+        const sum = sumActiveEffectAddsForKey(
+            [{ disabled: true, changes: [{ key: 'system.rollModifier.bonus', type: 'add', value: -2 }] }],
+            'system.rollModifier.bonus',
+            addMatcher
+        );
+        assert.equal(sum, 0);
+    });
+
+    test('ignores rows that do not exactly match the requested key (no aliasing, unlike sumActiveEffectAddsForStat)', () => {
+        const sum = sumActiveEffectAddsForKey(
+            [{ disabled: false, changes: [{ key: 'system.rollModifier.value', type: 'add', value: -2 }] }],
+            'system.rollModifier.bonus',
+            addMatcher
+        );
+        assert.equal(sum, 0);
+    });
+
+    test('sums multiple enabled ADD rows across separate effects', () => {
+        const sum = sumActiveEffectAddsForKey(
+            [
+                { disabled: false, changes: [{ key: 'system.rollModifier.bonus', mode: 2, value: -1 }] },
+                { disabled: false, changes: [{ key: 'system.rollModifier.bonus', type: 'add', value: -1 }] }
+            ],
+            'system.rollModifier.bonus',
+            addMatcher
+        );
+        assert.equal(sum, -2);
     });
 });
