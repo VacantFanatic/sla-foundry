@@ -26,7 +26,8 @@ export class SlaCharacterData extends foundry.abstract.TypeDataModel {
             finance: new fields.SchemaField({
                 credits: new fields.NumberField({ initial: 0, min: 0 }),
                 unis: new fields.NumberField({ initial: 0, min: 0 }),
-                lad: new fields.NumberField({ initial: 0, min: 0 })
+                lad: new fields.NumberField({ initial: 0, min: 0 }),
+                debt: new fields.NumberField({ initial: 0, min: 0 })
             }),
             ratings: new fields.SchemaField({
                 body: new fields.SchemaField({

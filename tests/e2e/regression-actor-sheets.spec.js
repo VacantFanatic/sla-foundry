@@ -130,6 +130,21 @@ test.describe('SLA actor sheet UI — regression', () => {
         await expect(sheet.locator('.sla-hp-bar__fill.is-critical')).toBeVisible();
     });
 
+    test('character sheet — LAD checkbox survives Edit/Play mode toggle (#348)', async ({ page }) => {
+        const actorId = await createTestActor(page);
+        const sheet = await openActorSheet(page, actorId);
+
+        const ladCheckbox = sheet.locator('#lad-check');
+        await ladCheckbox.check();
+        await expect(ladCheckbox).toBeChecked();
+
+        await sheet.locator('.sla-header-stat-switch').click();
+        await expect(ladCheckbox).toBeChecked();
+
+        await sheet.locator('.sla-header-stat-switch').click();
+        await expect(ladCheckbox).toBeChecked();
+    });
+
     test('character sheet — effects search filters rows', async ({ page }) => {
         const actorId = await page.evaluate(async () => {
             const stamp = Date.now();

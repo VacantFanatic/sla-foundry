@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **LAD checkbox (and other fields) cleared on Actor sheet Edit/Play mode toggle (#348):** The LAD
+  checkbox on the character header was bound to `system.bio.lad`, a field that never existed in
+  `SlaCharacterData`'s schema (the real field is `bio.ladAccount`) — `TypeDataModel` silently drops
+  unknown submitted keys, so the checkbox never actually persisted, and any re-render (including
+  the Edit/Play mode toggle) exposed the always-empty result. Fixed the binding, and added a
+  generic unit test (`tests/unit/form-field-schema-conformance.test.mjs`) that scans every
+  `name="system...."` binding across all templates against the real schemas, which caught three
+  more pre-existing instances of the same bug: `system.finance.debt` (character sheet), `system.
+quantity` (armor and weapon item sheets), and `system.typeNote` (generic item sheet) — all fixed
+  by adding the missing schema field.
+
 - **Ebb Formula sheet missing AD/ROF/Recoil fields (#349):** The Ebb Formula item sheet had no way
   to enter the AD (Armor Damage) value, even though `system.ad` already existed in the schema and
   was already read by the damage-roll chat card — the field was simply never rendered in
