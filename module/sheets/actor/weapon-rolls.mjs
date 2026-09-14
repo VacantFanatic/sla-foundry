@@ -178,6 +178,7 @@ export async function renderAttackDialog(sheet, item, isMelee) {
         validModes: validModes,
         selectedMode: defaultModeKey,
         rangePenaltyMsg: rangePenaltyMsg,
+        modifier: sheet.actor.system.rollModifier?.total ?? 0,
         recoil: isMelee ? item.system.recoil || 0 : validModes[defaultModeKey]?.recoil || 0,
         canAim: ['pistol', 'rifle'].includes((item.system.skill || '').toLowerCase()),
         aimLimit: (() => {

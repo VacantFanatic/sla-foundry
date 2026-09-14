@@ -18,7 +18,8 @@ export async function executeStatRoll(sheet, statKey) {
         prone: Boolean(actor.system.conditions?.prone),
         stunned: Boolean(actor.system.conditions?.stunned),
         woundPenalty: actor.system.wounds.penalty || 0,
-        applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties')
+        applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties'),
+        rollModifier: actor.system.rollModifier?.total ?? 0
     });
 
     const roll = createSLARoll('1d10');

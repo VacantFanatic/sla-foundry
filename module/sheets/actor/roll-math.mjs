@@ -15,15 +15,23 @@ export function buildSkillRollFormula(rank) {
 }
 
 /**
- * @param {{ statValue: number, rank: number, prone: boolean, stunned: boolean, woundPenalty: number, applyWoundPenalties: boolean }} params
+ * @param {{ statValue: number, rank: number, prone: boolean, stunned: boolean, woundPenalty: number, applyWoundPenalties: boolean, rollModifier?: number }} params
  * @returns {number}
  */
-export function computeSkillRollModifier({ statValue, rank, prone, stunned, woundPenalty, applyWoundPenalties }) {
+export function computeSkillRollModifier({
+    statValue,
+    rank,
+    prone,
+    stunned,
+    woundPenalty,
+    applyWoundPenalties,
+    rollModifier = 0
+}) {
     let globalMod = 0;
     if (prone) globalMod -= 1;
     if (stunned) globalMod -= 1;
     const penalty = applyWoundPenalties ? woundPenalty : 0;
-    return statValue + rank + globalMod - penalty;
+    return statValue + rank + globalMod - penalty + rollModifier;
 }
 
 /**
@@ -290,14 +298,22 @@ export function resolveEbbDisciplineName(disciplineName, ebbDisciplines = {}) {
 }
 
 /**
- * @param {{ statValue: number, rank: number, prone: boolean, stunned: boolean, woundPenalty: number, applyWoundPenalties: boolean }}
+ * @param {{ statValue: number, rank: number, prone: boolean, stunned: boolean, woundPenalty: number, applyWoundPenalties: boolean, rollModifier?: number }}
  */
-export function calculateEbbModifier({ statValue, rank, prone, stunned, woundPenalty, applyWoundPenalties }) {
+export function calculateEbbModifier({
+    statValue,
+    rank,
+    prone,
+    stunned,
+    woundPenalty,
+    applyWoundPenalties,
+    rollModifier = 0
+}) {
     let globalMod = 0;
     if (prone) globalMod -= 1;
     if (stunned) globalMod -= 1;
     const penalty = applyWoundPenalties ? woundPenalty : 0;
-    return statValue + rank - penalty + globalMod;
+    return statValue + rank - penalty + globalMod + rollModifier;
 }
 
 /**

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Standing roll modifier (`system.rollModifier.bonus`), settable via Active Effect:** Previously the only way to apply a persistent penalty/bonus to rolls was per-stat (`system.stats.<key>.bonus`), which only affects rolls using that specific stat, or the weapon/explosive attack dialog's "Generic Modifier" field, which was pure UI state re-typed every roll with no link to actor data. A new `system.rollModifier.bonus` field (character/NPC data models) sums enabled Active Effect `Add` rows the same way core stats do (`sumActiveEffectAddsForKey`, `module/documents/derived/active-effects.mjs`) into `system.rollModifier.total`. Skill checks, stat checks, and Ebb rolls (none of which have a dialog) fold it directly into their modifier math (`computeSkillRollModifier`/`calculateEbbModifier`, `module/sheets/actor/roll-math.mjs`); the weapon/explosive attack dialog now prefills its "Generic Modifier" field from it instead of a hardcoded `0`, so it applies by default while staying editable per roll. No UI field to set it manually — Active Effects are the intended way to apply it.
+
 ## [2.8.8] - 2026-09-13
 
 ### Added
