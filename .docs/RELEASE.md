@@ -32,10 +32,15 @@ Testers can always confirm which candidate they have installed by checking **Set
 
 ### 1. Start a new candidate cycle
 
-1. Bump `version` in `package.json` and `system.json` to the target semver (e.g. `2.9.0`).
+Cut and verify the RC **before** merging to `main`, not after — tag pushes trigger the
+pre-release workflow regardless of which branch the tagged commit lives on, so there's no need to
+land on `main` first just to get a testable build.
+
+1. On the feature/fix PR branch: bump `version` in `package.json` and `system.json` to the target
+   semver (e.g. `2.9.0`).
 2. Add a draft `## [2.9.0]` entry to `CHANGELOG.md`.
-3. Commit and merge to `main`.
-4. Push the first release candidate tag:
+3. Commit and push to the PR branch (`main` stays untouched for now).
+4. Push the first release candidate tag, pointing at that branch's tip:
 
 ```bash
 git tag pre-2.9.0-rc1
@@ -48,12 +53,15 @@ The **Pre-release** workflow patches `system.json` and `package.json` to `2.9.0-
 https://github.com/VacantFanatic/sla-foundry/releases/download/latest-pre/system.json
 ```
 
+5. Once the candidate checks out, merge the PR to `main` (the version bump and changelog entry
+   ride along with it).
+
 ### 2. Fix bugs and cut a new candidate
 
 No version bump needed — `system.json` stays at `2.9.0` in source throughout the rc cycle; the workflow stamps the rc suffix at build time.
 
-1. Fix bugs, open PRs, merge to `main`.
-2. Push the next tag:
+1. Fix bugs on a PR branch (new or the same one, if it hasn't merged yet).
+2. Push the next tag, pointing at that branch's tip, to verify before merging:
 
 ```bash
 git tag pre-2.9.0-rc2
@@ -61,6 +69,8 @@ git push origin pre-2.9.0-rc2
 ```
 
 `latest-pre` is automatically updated. Testers hit **Update** in Foundry and get the new build showing `2.9.0-rc2`.
+
+3. Once verified, merge the PR to `main`.
 
 Repeat until the candidate is stable.
 
