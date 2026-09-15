@@ -71,6 +71,7 @@
     "SLA.ActorSheet.CombatLoadout": "Combat loadout",
     "SLA.ActorSheet.CombatLoadoutHint": "Equipped weapons and armor only",
     "SLA.ActorSheet.CombatLoadoutEmpty": "No equipped weapons or armor. Equip items from Inventory or drag gear here.",
+    "SLA.ActorSheet.ShieldPvHint": "* Only applies to a hit this shield's Shield Craft roll actually blocked",
     "SLA.ActorSheet.Inventory": "Inventory",
     "SLA.ActorSheet.InventoryHint": "All carried items — use Equip for weapons and armor",
     "SLA.ActorSheet.InventoryEmpty": "No items in inventory. Drag items here or click + to add.",

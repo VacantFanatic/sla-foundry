@@ -32,11 +32,13 @@
 
     {{#unless hideApplyButtons}}
     {{#unless isHeal}}
+    {{#if showShieldCraftOption}}
     <label class="sla-shield-craft-success-label"
         style="display:flex; align-items:center; gap:4px; font-size:0.8em; color:#aaa; margin-bottom:4px;">
         <input type="checkbox" class="shield-craft-success" />
         {{localize "SLA.ShieldCraftSucceeded"}}
     </label>
+    {{/if}}
     {{/unless}}
     <div style="display:flex; flex-direction:column; gap:4px;">
         <button class="apply-damage-btn"

@@ -88,6 +88,14 @@ export async function executeStandardDamageRoll({
         }
     }
 
+    let showShieldCraftOption = true;
+    if (parentTargets.length > 0) {
+        const targetActor = await resolveActorFromUuid(parentTargets[0]);
+        if (targetActor) {
+            showShieldCraftOption = actorHasActiveShield(targetActor);
+        }
+    }
+
     const templateData = {
         damageTotal: finalTotal,
         adValue,
@@ -97,6 +105,7 @@ export async function executeStandardDamageRoll({
         flavor,
         isHeal,
         hideApplyButtons,
+        showShieldCraftOption,
         actorUuid: actor.uuid,
         ebbTarget,
         removeWoundsCount: Math.max(0, Math.min(6, Math.floor(Number(removeWoundsCount) || 0)))
@@ -140,6 +149,11 @@ export async function executeStandardDamageRoll({
 export async function resolveActorFromUuid(targetUuid) {
     const token = await fromUuid(targetUuid);
     return token?.actor ?? null;
+}
+
+function actorHasActiveShield(actor) {
+    const isEquipped = (i) => actor.type === 'npc' || i.system.equipped;
+    return actor.items.some((i) => i.type === 'armor' && i.system.isShield && isEquipped(i));
 }
 
 export async function resolveVictimForApplyDamage({ targetUuid, type }) {

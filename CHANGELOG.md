@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Shield Craft Succeeded checkbox clarity (#356):** The "Shield Craft Succeeded" checkbox on the
+  Apply Damage chat card is now hidden entirely when the resolved target has no equipped shield
+  armor item, since it has no effect in that case. A shield's PV on the Combat loadout tab (both
+  operative and threat sheets) is now marked with a `*` and a tooltip noting it only applies when
+  the shield actually blocked that hit, since it was being read as an unconditional bonus.
+
 ## [2.9.0] - 2026-09-14
 
 ### Added

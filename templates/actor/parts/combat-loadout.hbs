@@ -82,7 +82,11 @@
                     <a class="item-edit">{{item.name}}</a>
                 </div>
                 <div class="sla-combat-stat-dmg">
+                    {{#if item.system.isShield}}
+                    <span title="{{localize 'SLA.ActorSheet.ShieldPvHint'}}">PV: {{item.system.pv}}*</span>
+                    {{else}}
                     <span>PV: {{item.system.pv}}</span>
+                    {{/if}}
                 </div>
                 <div class="sla-combat-stat-extra">
                     <div class="sla-combat-resistance">
