@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.9.1] - 2026-09-15
+
+### Changed
+
+- **Shield Craft Succeeded checkbox clarity (#356):** The "Shield Craft Succeeded" checkbox on the
+  Apply Damage chat card is now hidden entirely when the resolved target has no equipped shield
+  armor item, since it has no effect in that case. A shield's PV on the Combat loadout tab (both
+  operative and threat sheets) is now marked with a `*` and a tooltip noting it only applies when
+  the shield actually blocked that hit, since it was being read as an unconditional bonus.
+
 ## [2.9.0] - 2026-09-14
 
 ### Added
@@ -1067,7 +1077,8 @@ quantity` (armor and weapon item sheets), and `system.typeNote` (generic item sh
 - Damage application targeting both selected token and target.
 - Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.9.0...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.9.1...HEAD
+[2.9.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.1
 [2.9.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.0
 [2.8.5]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.8.5
 [2.8.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.8.2

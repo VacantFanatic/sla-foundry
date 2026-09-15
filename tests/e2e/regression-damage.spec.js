@@ -616,6 +616,78 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
         expect(result.hpAfterChecked).toBe(5); // 10 raw damage - 5 shield PV.
     });
 
+    test('executeStandardDamageRoll hides the Shield Craft checkbox unless the target has an equipped shield, on both PCs and NPCs', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [npc] = await Actor.createDocuments([
+                { name: `E2E NPC Shield Toggle ${stamp}`, type: 'npc', system: { hp: { value: 10, max: 10 } } }
+            ]);
+            const [shield] = await npc.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Shield ${stamp}`,
+                    type: 'armor',
+                    system: {
+                        isShield: true,
+                        pvMelee: 3,
+                        pvRanged: 3,
+                        equipped: false,
+                        resistance: { value: 10, max: 10 }
+                    }
+                }
+            ]);
+
+            let scene = game.scenes.active;
+            let createdScene = false;
+            if (!scene) {
+                scene = await Scene.create({ name: `E2E Scene ${stamp}`, width: 1000, height: 1000 });
+                await scene.activate();
+                createdScene = true;
+            }
+            const [tokenDoc] = await scene.createEmbeddedDocuments('Token', [
+                { ...npc.prototypeToken.toObject(), actorId: npc.id, x: 100, y: 100 }
+            ]);
+
+            const { executeStandardDamageRoll } =
+                await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+
+            const renderCard = async () => {
+                const before = game.messages.size;
+                await executeStandardDamageRoll({
+                    actor: npc,
+                    rollFormula: '5',
+                    adValue: 0,
+                    attackType: 'melee',
+                    parentTargets: [tokenDoc.uuid],
+                    flavorText: 'Verify Shield Checkbox'
+                });
+                const msgs = Array.from(game.messages).slice(before);
+                return msgs[msgs.length - 1]?.content ?? '';
+            };
+
+            const unequippedContent = await renderCard();
+
+            await shield.update({ 'system.equipped': true });
+            const equippedContent = await renderCard();
+
+            await scene.deleteEmbeddedDocuments('Token', [tokenDoc.id]);
+            if (createdScene) await scene.delete();
+            await npc.delete();
+
+            return {
+                unequippedHasCheckbox: unequippedContent.includes('shield-craft-success'),
+                equippedHasCheckbox: equippedContent.includes('shield-craft-success')
+            };
+        });
+
+        // NPC armor's equip toggle is a real, GM-facing control (unlike computeArmorMitigation's
+        // own mitigation math, which treats all NPC armor as equipped) -- the checkbox must not
+        // render for a shield that isn't actually equipped, on either actor type.
+        expect(result.unequippedHasCheckbox).toBe(false);
+        expect(result.equippedHasCheckbox).toBe(true);
+    });
+
     test("onApplyEbbEffects copies the Ebb formula item's embedded Active Effects onto the target", async ({
         page
     }) => {

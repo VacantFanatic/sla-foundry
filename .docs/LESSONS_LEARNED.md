@@ -255,3 +255,19 @@ victim...` (all pre-existing, none touched by the shield PR) hand it a bare worl
   citation, write the test's expected values from that citation before looking at the
   implementation's output — asserting `result.armorRes` against whatever the code just produced
   is circular and will happily encode a misreading forever.
+- **A deliberate, well-documented gate can still read as a bug report if the UI gives no hint it
+  exists.** Issue #356 reported that an equipped shield's PV/AD priority was "ignored" — but
+  `computeArmorMitigation`'s `shieldCraftSuccess` gate (see the entry above and `.docs/DEVELOPER.md`
+  "## Shields") was working exactly as designed: the reporter's repro never mentioned the "Shield
+  Craft Succeeded" checkbox on the Apply Damage card (`templates/chat/chat-damage.hbs`), which
+  defaults to unchecked and had no label text, tooltip, or visual cue explaining what it gates or
+  why it exists — nothing distinguished "unused control" from "the reason your shield did nothing."
+  Fixed by (a) suppressing the checkbox entirely via a new `showShieldCraftOption` template flag
+  (computed in `executeStandardDamageRoll`, `module/helpers/chat/damage.mjs`, from whether the
+  resolved target has any equipped `isShield` armor item) when it can never apply to this hit's
+  target, and (b) marking a shield's PV in `templates/actor/parts/combat-loadout.hbs` with a `*`
+  plus a tooltip (`SLA.ActorSheet.ShieldPvHint`) noting it's conditional. When a mechanic's
+  correctness depends on a manual, easy-to-miss control, treat "no one uses the control" as a
+  predictable bug report waiting to happen, not user error — either make the control impossible to
+  invoke when meaningless, or surface what it does at the point of use, rather than only in a docs
+  file no player will read mid-session.
