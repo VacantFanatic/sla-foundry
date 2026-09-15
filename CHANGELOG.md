@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **README overhaul:** Restructured with a table of contents, fixed a broken developer-guide link
+  (`DEVELOPER.md` → `.docs/DEVELOPER.md`) and a dead reference to a nonexistent `.docs/wiki/`
+  folder, added Contributing/Documentation sections linking to `CONTRIBUTING.md` and `CLAUDE.md`'s
+  doc map, and refreshed feature/version/compatibility details to match the current release.
+
 ## [2.9.1] - 2026-09-15
 
 ### Changed
