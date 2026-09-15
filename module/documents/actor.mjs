@@ -7,9 +7,8 @@ import {
 } from './derived/encumbrance.mjs';
 import {
     effectChangeRows,
-    resolveActiveEffectAddMatcher,
-    sumActiveEffectAddsForKey,
-    sumActiveEffectAddsForStat
+    computeActiveEffectKeyValue,
+    computeActiveEffectStatBonus
 } from './derived/active-effects.mjs';
 import { applyStatPenalties } from './derived/penalties.mjs';
 import { clampHpValue } from '../sheets/actor/sheet-ux-pure.mjs';
@@ -31,22 +30,25 @@ export class SlaActor extends Actor {
     }
 
     /**
-     * Sum ADD modifiers from enabled effects on system.stats.<key>.bonus or legacy .value.
-     * Core does not reliably merge nested TypeDataModel paths, so we apply this explicitly.
+     * Computes system.stats.<key>.bonus from its stored base plus every enabled effect's
+     * matching change rows (Add/Subtract/Multiply/Downgrade/Upgrade/Override), applied in
+     * priority order. Core does not reliably merge nested TypeDataModel paths, so we apply
+     * this explicitly.
      * @param {string} statKey  str, dex, know, conc, cha, cool
+     * @param {number} baseBonus
      */
-    _sumActiveEffectAddsForCoreStat(statKey) {
-        const addMatcher = resolveActiveEffectAddMatcher();
-        return sumActiveEffectAddsForStat(this.effects, statKey, addMatcher);
+    _computeCoreStatBonus(statKey, baseBonus) {
+        return computeActiveEffectStatBonus(this.effects, statKey, baseBonus);
     }
 
     /**
-     * Sum ADD modifiers from enabled effects on system.rollModifier.bonus — a standing
-     * modifier applied to every roll (skill, stat, weapon, explosive, Ebb).
+     * Computes system.rollModifier.bonus — a standing modifier applied to every roll (skill,
+     * stat, weapon, explosive, Ebb) — from its stored base plus every enabled effect's matching
+     * change rows, applied in priority order.
+     * @param {number} baseBonus
      */
-    _sumActiveEffectAddsForRollModifier() {
-        const addMatcher = resolveActiveEffectAddMatcher();
-        return sumActiveEffectAddsForKey(this.effects, 'system.rollModifier.bonus', addMatcher);
+    _computeRollModifierTotal(baseBonus) {
+        return computeActiveEffectKeyValue(this.effects, 'system.rollModifier.bonus', baseBonus);
     }
 
     /** @override */
@@ -61,7 +63,7 @@ export class SlaActor extends Actor {
 
         // Only calculate for Characters and NPCs
         if (actorData.type === 'character' || actorData.type === 'npc') {
-            // 1. Core stat totals: _source base + stored bonus + explicit sum of active effect ADD rows
+            // 1. Core stat totals: _source base + stored bonus with active effect changes applied
             const statsWithBonus = new Set(['str', 'dex', 'know', 'conc', 'cha', 'cool']);
             const srcStats = foundry.utils.getProperty(this._source, 'system.stats') || {};
             for (const key of statsWithBonus) {
@@ -70,8 +72,7 @@ export class SlaActor extends Actor {
                 const src = srcStats[key] || {};
                 const base = Number(src.value) || 0;
                 const srcBonus = Number(src.bonus) || 0;
-                const fromEffects = this._sumActiveEffectAddsForCoreStat(key);
-                stat.total = base + srcBonus + fromEffects;
+                stat.total = base + this._computeCoreStatBonus(key, srcBonus);
             }
             for (const [key, stat] of Object.entries(system.stats)) {
                 if (!stat || typeof stat !== 'object') continue;
@@ -79,13 +80,12 @@ export class SlaActor extends Actor {
                 stat.total = Number(stat.value) || 0;
             }
 
-            // 1B. Standing roll modifier: stored bonus + live Active Effect ADD rows on
-            // system.rollModifier.bonus. No separate player-editable base — Active Effects only.
+            // 1B. Standing roll modifier: stored bonus with live Active Effect changes on
+            // system.rollModifier.bonus applied. No separate player-editable base — Active Effects only.
             if (system.rollModifier) {
                 const srcRollModifier = foundry.utils.getProperty(this._source, 'system.rollModifier') || {};
                 const rollModifierSrcBonus = Number(srcRollModifier.bonus) || 0;
-                const rollModifierFromEffects = this._sumActiveEffectAddsForRollModifier();
-                system.rollModifier.total = rollModifierSrcBonus + rollModifierFromEffects;
+                system.rollModifier.total = this._computeRollModifierTotal(rollModifierSrcBonus);
             }
 
             // 2. Drug mechanics use Active Effects (item embedded effects); do not stack here.

@@ -76,7 +76,7 @@ test.describe('GM: useDrugItem (document API)', () => {
                 {
                     name: 'E2E Drug Str Boost',
                     disabled: false,
-                    changes: [{ key: 'system.stats.str.bonus', type: CONST.ACTIVE_EFFECT_CHANGE_TYPES.ADD, value: 3 }]
+                    changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 3 }]
                 }
             ]);
 

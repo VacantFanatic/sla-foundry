@@ -60,7 +60,8 @@ function buildEbbTemplateData(
         mosEffectText,
         failureConsequence,
         isHealRoll,
-        ebbEffect
+        ebbEffect,
+        rollModifierNote
     }
 ) {
     const effectCount = item.effects?.size ?? 0;
@@ -86,7 +87,7 @@ function buildEbbTemplateData(
         successTotal: successTotal,
         tooltip: sheet._generateTooltip(roll, modifier, 0),
         skillDice: skillDiceData,
-        notes: `<strong>Formula Rating:</strong> ${formulaRating}`,
+        notes: [`<strong>Formula Rating:</strong> ${formulaRating}`, rollModifierNote].filter(Boolean).join(' '),
         showDamageButton: showDamageButton,
         showRemoveWoundsOnly: showRemoveWoundsOnly,
         dmgFormula: finalDmgFormula,
@@ -136,6 +137,9 @@ export async function executeEbbRoll(sheet, item) {
     }
 
     const rank = Number(disciplineItem.system.rank) || 0;
+    const rollModifierTotal = sheet.actor.system.rollModifier?.total ?? 0;
+    const rollModifierNote =
+        rollModifierTotal !== 0 ? `Roll Modifier (${rollModifierTotal > 0 ? '+' : ''}${rollModifierTotal})` : '';
     const modifier = calculateEbbModifier({
         statValue: sheet.actor.system.stats.conc?.total ?? sheet.actor.system.stats.conc?.value ?? 0,
         rank,
@@ -143,7 +147,7 @@ export async function executeEbbRoll(sheet, item) {
         stunned: Boolean(sheet.actor.system.conditions?.stunned),
         woundPenalty: sheet.actor.system.wounds.penalty || 0,
         applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties'),
-        rollModifier: sheet.actor.system.rollModifier?.total ?? 0
+        rollModifier: rollModifierTotal
     });
     const roll = await createAndEvaluateEbbRoll(rank);
     const { sdTotal: successTotal, isBaseSuccess } = computeSuccessDieOutcome({
@@ -173,7 +177,7 @@ export async function executeEbbRoll(sheet, item) {
         ebbEffect,
         isHealRoll
     } = buildEbbDamageFormula(item, isSuccessful, skillSuccesses);
-    const notesText = `<strong>Formula Rating:</strong> ${formulaRating}`;
+    const notesText = [`<strong>Formula Rating:</strong> ${formulaRating}`, rollModifierNote].filter(Boolean).join(' ');
     const templateData = buildEbbTemplateData(sheet, {
         item,
         roll,
@@ -192,7 +196,8 @@ export async function executeEbbRoll(sheet, item) {
         mosEffectText,
         failureConsequence,
         isHealRoll,
-        ebbEffect
+        ebbEffect,
+        rollModifierNote
     });
 
     const chatContent = await foundry.applications.handlebars.renderTemplate(

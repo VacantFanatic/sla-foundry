@@ -706,7 +706,7 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
                 {
                     name: 'E2E Ebb Str Boost',
                     disabled: false,
-                    changes: [{ key: 'system.stats.str.bonus', type: CONST.ACTIVE_EFFECT_CHANGE_TYPES.ADD, value: 2 }]
+                    changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 2 }]
                 }
             ]);
 
