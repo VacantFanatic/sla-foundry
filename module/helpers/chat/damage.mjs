@@ -152,8 +152,11 @@ export async function resolveActorFromUuid(targetUuid) {
 }
 
 function actorHasActiveShield(actor) {
-    const isEquipped = (i) => actor.type === 'npc' || i.system.equipped;
-    return actor.items.some((i) => i.type === 'armor' && i.system.isShield && isEquipped(i));
+    // Unlike computeArmorMitigation's mitigation math (which treats all NPC armor as equipped),
+    // this checkbox's visibility must follow the shield's actual equip toggle on both actor
+    // types -- a GM can unequip an NPC's shield same as a PC's, and the checkbox does nothing
+    // for a shield that isn't equipped.
+    return actor.items.some((i) => i.type === 'armor' && i.system.isShield && i.system.equipped);
 }
 
 export async function resolveVictimForApplyDamage({ targetUuid, type }) {
