@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Active Effect change modes other than Add were silently ignored on stats and the global roll
+  modifier (#359):** `system.stats.<key>.bonus` and `system.rollModifier.bonus` only recognized
+  Foundry's "Add" change type when computing derived totals — "Subtract" (the reported repro:
+  an Active Effect using Subtract on `rollModifier.bonus` applied no penalty at all), "Multiply",
+  "Downgrade", "Upgrade", and "Override" (all genuine, unmodified Foundry v14 Active Effect Config
+  options) contributed nothing. Both fields now apply every enabled matching change row in
+  priority order, mirroring Foundry's own `Actor#applyActiveEffects` semantics
+  (`module/documents/derived/active-effects.mjs`). The chat-card roll breakdown for skill/stat/Ebb
+  rolls also now calls out the standing roll modifier's contribution as its own `Roll Modifier
+(±N)` note when nonzero, instead of folding it invisibly into the opaque "Base" number.
+
 ### Changed
 
 - **README overhaul:** Restructured with a table of contents, fixed a broken developer-guide link

@@ -13,6 +13,7 @@ export async function executeSkillRollFromItem(sheet, item) {
     const statKey = item.system.stat || 'dex';
     const statValue = actor.system.stats[statKey]?.total ?? actor.system.stats[statKey]?.value ?? 0;
     const rank = Number(item.system.rank) || 0;
+    const rollModifierTotal = actor.system.rollModifier?.total ?? 0;
 
     const baseModifier = computeSkillRollModifier({
         statValue,
@@ -21,7 +22,7 @@ export async function executeSkillRollFromItem(sheet, item) {
         stunned: Boolean(actor.system.conditions?.stunned),
         woundPenalty: actor.system.wounds.penalty || 0,
         applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties'),
-        rollModifier: actor.system.rollModifier?.total ?? 0
+        rollModifier: rollModifierTotal
     });
 
     const rollFormula = buildSkillRollFormula(rank);
@@ -30,6 +31,8 @@ export async function executeSkillRollFromItem(sheet, item) {
 
     const result = calculateRollResult(roll, baseModifier);
     const resultColor = result.isSuccess ? '#39ff14' : '#f55';
+    const rollModifierNote =
+        rollModifierTotal !== 0 ? `Roll Modifier (${rollModifierTotal > 0 ? '+' : ''}${rollModifierTotal})` : '';
 
     const templateData = {
         borderColor: resultColor,
@@ -40,7 +43,7 @@ export async function executeSkillRollFromItem(sheet, item) {
         successTotal: result.total,
         tooltip: generateDiceTooltip(roll, baseModifier),
         skillDice: result.skillDiceData,
-        notes: '',
+        notes: rollModifierNote,
         showDamageButton: false,
         canUseLuck: actor.system.stats.luck.value > 0,
         luckValue: actor.system.stats.luck.value,
@@ -64,7 +67,7 @@ export async function executeSkillRollFromItem(sheet, item) {
             sla: sheet._buildSlaRollFlags({
                 baseModifier,
                 itemName: item.name.toUpperCase(),
-                notes: '',
+                notes: rollModifierNote,
                 tn: 10,
                 extra: {
                     rofRerollSD: false,

@@ -247,7 +247,7 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
                     changes: [
                         {
                             key: 'system.stats.str.bonus',
-                            type: CONST.ACTIVE_EFFECT_CHANGE_TYPES.ADD,
+                            type: 'add',
                             value: 2
                         }
                     ]
@@ -307,7 +307,7 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
                     changes: [
                         {
                             key: 'system.stats.str.bonus',
-                            type: CONST.ACTIVE_EFFECT_CHANGE_TYPES.ADD,
+                            type: 'add',
                             value: 2
                         }
                     ]
@@ -329,5 +329,65 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
             return total;
         });
         expect(result).toBe(6);
+    });
+
+    test('issue #359: v14 SUBTRACT change type reduces the global roll modifier', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Actor Subtract rollModifier ${stamp}`,
+                    type: 'character',
+                    system: {}
+                }
+            ]);
+            await actor.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'Drugged',
+                    disabled: false,
+                    changes: [
+                        {
+                            key: 'system.rollModifier.bonus',
+                            type: 'subtract',
+                            value: 2
+                        }
+                    ]
+                }
+            ]);
+            const total = actor.system.rollModifier.total;
+            await actor.delete();
+            return total;
+        });
+        expect(result).toBe(-2);
+    });
+
+    test('v14 SUBTRACT change type also reduces a core stat total', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Actor Subtract stat ${stamp}`,
+                    type: 'character',
+                    system: { stats: { str: { value: 3, bonus: 0 } } }
+                }
+            ]);
+            await actor.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'STR Penalty',
+                    disabled: false,
+                    changes: [
+                        {
+                            key: 'system.stats.str.bonus',
+                            type: 'subtract',
+                            value: 2
+                        }
+                    ]
+                }
+            ]);
+            const total = actor.system.stats.str.total;
+            await actor.delete();
+            return total;
+        });
+        expect(result).toBe(1);
     });
 });

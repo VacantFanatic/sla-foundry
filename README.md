@@ -59,7 +59,10 @@ drag-and-drop character creation tools.
       modifiers (e.g. drugs, poison, stance) and a persistent roll modifier. See
       [`.docs/DEVELOPER.md`](.docs/DEVELOPER.md#active-effects-and-stats) for setup details.
 - **Compendiums:** Ships with pre-built packs for Skills, Traits, Species, Disciplines,
-  Quick Start Gear, and Vehicles.
+  Quick Start Gear, and Vehicles. Entries provide names and mechanical values only (rank, stat,
+  XP cost, etc.) — description/rules text fields are intentionally left blank, since that content
+  is copyrighted by Nightfall Games and is not reproduced here. You'll need the _SLA Industries
+  2nd Edition_ rulebook to fill in or reference the full text for each entry.
 
 ### What stays manual at the table
 
@@ -124,3 +127,8 @@ This system is an unofficial fan creation, licensed under the [MIT License](LICE
 
 - **Game System:** Based on _SLA Industries 2nd Edition_ by Nightfall Games.
 - **Code:** Built on the Foundry VTT Boilerplate system.
+- **Compendium content:** The MIT license covers this system's code only. The bundled
+  compendium packs (Skills, Traits, Species, Disciplines, Quick Start Gear, Vehicles) contain
+  names and mechanical values only — no descriptive/rules text from the rulebook is included,
+  since that content is copyrighted by Nightfall Games. You will need a copy of _SLA Industries
+  2nd Edition_ to use these entries at the table.

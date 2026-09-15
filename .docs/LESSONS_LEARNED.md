@@ -46,14 +46,19 @@ only useful if it stays current.
   but every test — unit and E2E — hand-built change rows using a numeric `mode`, including
   one that assigned `mode: CONST.ACTIVE_EFFECT_CHANGE_TYPES.add` assuming that constant was
   numeric. It isn't: Foundry v14 renamed the canonical field from `mode` (number) to `type`
-  (string, uppercase-keyed — `CONST.ACTIVE_EFFECT_CHANGE_TYPES.ADD === "add"`), and the E2E
-  test's constant access was even wrong-cased (`.add` vs. the real `.ADD`), so it silently
+  (a plain lowercase string — see the corrected claim and the issue #359 entry below for what
+  that constant actually contains), and the E2E test's constant access was even wrong-cased
+  (`.add` vs. the uppercase `.ADD` this fix mistakenly assumed existed), so it silently
   exercised `mode: undefined` instead of the v14 path it claimed to cover. The fix "worked"
   against its own tests while leaving the real-world bug (#330) completely unfixed. When a
   test constructs a data shape by hand instead of using the real producing API/UI, verify
   that shape against the actual runtime's current schema/constants before trusting it — a
   green test suite only proves the code satisfies its own tests, not that the tests match
-  reality.
+  reality. **Correction (issue #359 session):** the parenthetical above originally claimed
+  `CONST.ACTIVE_EFFECT_CHANGE_TYPES.ADD === "add"` — confirmed live against a running Foundry
+  v14.367 instance that this is false. See the dedicated entry below for the real shape; this
+  wrong claim is exactly what caused the #359 fix to initially ship with the same class of bug
+  before live verification caught it.
 - **A test mock that doesn't reference the real schema can drift from it silently.**
   `tests/unit/roll-math.test.mjs`'s `buildEbbDamageFormula` tests mocked
   `item.system.dmg` — a field never declared on `SlaEbbFormulaData` (the real field is
@@ -271,3 +276,52 @@ victim...` (all pre-existing, none touched by the shield PR) hand it a bare worl
   predictable bug report waiting to happen, not user error — either make the control impossible to
   invoke when meaningless, or surface what it does at the point of use, rather than only in a docs
   file no player will read mid-session.
+- **A hand-rolled Active-Effect summation layer that mirrors only one of Foundry's native change
+  types will silently no-op every stock option it doesn't also implement.** Issue #359: an Active
+  Effect on `system.rollModifier.bonus` using Foundry v14's built-in "Subtract" change type (a
+  genuine, distinct type Foundry added in v14, not something this system added to the dropdown)
+  applied no penalty at all. The actor's derived data never called Foundry's own
+  `Actor#applyActiveEffects` for `system.stats.<key>.bonus` / `system.rollModifier.bonus` — it
+  hand-rolled a narrower "sum every enabled Add row" model (`sumActiveEffectAddsForStat`/
+  `sumActiveEffectAddsForKey`, `module/documents/derived/active-effects.mjs`) that only ever
+  recognized the Add type (plus its pre-v14 numeric equivalent), so a Subtract row simply fell
+  through and contributed `0` — not an error, not a warning, just silence. Because the Active
+  Effect Config sheet itself was never customized, every one of Foundry's 6 native change types
+  looked like a legitimate, working choice to a GM; nothing distinguished "this mode isn't
+  implemented" from "this mode did what I expected." Fixed by replacing the Add-only sum with
+  `computeActiveEffectFieldValue`, a priority-ordered sequential apply that mirrors
+  `Actor#applyActiveEffects`'s own semantics for all 6 types (Add/Subtract/Multiply/Downgrade/
+  Upgrade/Override; Custom stays a no-op since no system-specific handler is registered, matching
+  Foundry's own default). When a derived-data layer reimplements Foundry's own apply logic instead
+  of calling it, audit that reimplementation against the _full_ native vocabulary it's standing in
+  for, not just the one case the original feature happened to need — a stock dropdown offering an
+  option your code doesn't handle is a bug waiting to be filed, not a documentation footnote.
+- **`CONST.ACTIVE_EFFECT_CHANGE_TYPES`'s keys are lowercase and its values are unrelated numbers —
+  there is no uppercase `.ADD`/`.SUBTRACT` mapping to the type strings, despite that being exactly
+  what the pre-existing #330 lessons-learned entry (corrected above) claimed and what this
+  session's own first draft of the #359 fix assumed by the same analogy with the deprecated,
+  uppercase-keyed `CONST.ACTIVE_EFFECT_MODES`.** Confirmed live against a running Foundry v14.367
+  instance: `CONST.ACTIVE_EFFECT_CHANGE_TYPES` is `{ custom: 0, multiply: 10, add: 20, subtract:
+20, downgrade: 30, upgrade: 40, override: 50 }` — lowercase keys mapping to each type's default
+  _priority_ (also mirrored in `ActiveEffect.CHANGE_TYPES[type].defaultPriority`), not to the
+  string values themselves. `CONST.ACTIVE_EFFECT_CHANGE_TYPES.ADD` and `.SUBTRACT` are simply
+  `undefined`. The actual `change.type` string values Foundry expects (`'add'`, `'subtract'`,
+  etc.) are the enum's own key _names_ — there is nothing to dynamically resolve from CONST at
+  all; they're stable literals, same as Foundry's own `switch (change.type) { case "add": ... }`
+  in `ActiveEffect._applyChangeUnguided`. This first surfaced as: a fix built against `constants
+?.ACTIVE_EFFECT_CHANGE_TYPES?.ADD ?? 'add'` "worked" in unit tests (hand-built fixtures always
+  hit the `?? 'add'` fallback, which happens to equal the correct literal) and even seemed
+  plausible from reading Foundry's `common/constants.mjs` source too quickly, but a script driving
+  the actual running Foundry instance with `type: CONST.ACTIVE_EFFECT_CHANGE_TYPES.SUBTRACT`
+  (i.e. `type: undefined`) silently created an Add-behaving effect instead of a Subtract one,
+  which is exactly the kind of stale/wrong-shaped-fixture failure the corrected #330 entry above
+  already warned about — it just recurred through a _different_ wrong assumption about the same
+  constant. Every pre-existing E2E spec that referenced `CONST.ACTIVE_EFFECT_CHANGE_TYPES.ADD`
+  (`regression-actor-sheets.spec.js`, `regression-item-actions.spec.js`,
+  `regression-damage.spec.js`) had this exact same latent bug and were fixed alongside this one to
+  use the literal `'add'` string. When a Foundry CONST object's shape matters, check it live in a
+  running instance (`page.evaluate(() => CONST.WHATEVER)`) before writing code or a test fixture
+  against it — reading the shipped source file, and even reasoning that "surely it works like the
+  deprecated constant it replaced," are both insufficient; only the live runtime value is ground
+  truth, and this constant's own doc comment ("Object.freeze({ custom: 0, ... })") was the
+  evidence all along, missed twice.
