@@ -16,7 +16,8 @@ import {
     applyActiveEffectChange,
     computeActiveEffectFieldValue,
     computeActiveEffectStatBonus,
-    computeActiveEffectKeyValue
+    computeActiveEffectKeyValue,
+    readItemEffectOverride
 } from '../../module/documents/derived/active-effects.mjs';
 
 describe('effectChangeRows', () => {
@@ -313,5 +314,43 @@ describe('computeActiveEffectKeyValue', () => {
             0
         );
         assert.equal(total, -2);
+    });
+});
+
+describe('readItemEffectOverride', () => {
+    test('returns null when the item has no effects', () => {
+        assert.equal(readItemEffectOverride({ effects: [] }, 'system.stats.str.total'), null);
+    });
+
+    test('returns null when no effect has a matching change key', () => {
+        const item = {
+            effects: [{ disabled: false, changes: [{ key: 'system.stats.dex.cap', type: 'override', value: 5 }] }]
+        };
+        assert.equal(readItemEffectOverride(item, 'system.stats.str.total'), null);
+    });
+
+    test('returns the matching enabled change value (issue #363 powersuit STR override)', () => {
+        const item = {
+            effects: [{ disabled: false, changes: [{ key: 'system.stats.str.total', type: 'override', value: 12 }] }]
+        };
+        assert.equal(readItemEffectOverride(item, 'system.stats.str.total'), 12);
+    });
+
+    test('a disabled effect is ignored, so the caller falls back to the legacy field', () => {
+        const item = {
+            effects: [{ disabled: true, changes: [{ key: 'system.stats.dex.cap', type: 'override', value: 3 }] }]
+        };
+        assert.equal(readItemEffectOverride(item, 'system.stats.dex.cap'), null);
+    });
+
+    test('an explicit 0 value is a real override, not treated as "no override"', () => {
+        const item = {
+            effects: [{ disabled: false, changes: [{ key: 'system.stats.init.armorBonus', type: 'add', value: 0 }] }]
+        };
+        assert.equal(readItemEffectOverride(item, 'system.stats.init.armorBonus'), 0);
+    });
+
+    test('an item with no effects property at all does not throw', () => {
+        assert.equal(readItemEffectOverride({}, 'system.stats.str.total'), null);
     });
 });

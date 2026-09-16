@@ -78,6 +78,22 @@ export class SlaItem extends Item {
     }
 
     /**
+     * Set this item's equipped state and sync its embedded Active Effects onto the actor to
+     * match (applied while equipped, removed when unequipped).
+     * @param {boolean} equipped
+     */
+    async setEquipped(equipped) {
+        await this.update({ 'system.equipped': equipped });
+        if (!this.actor) return;
+
+        if (equipped) {
+            await this.applyItemEffectsToActor(this.actor);
+        } else {
+            await this._removeEffectsByOrigin(this.actor, this.uuid);
+        }
+    }
+
+    /**
      * Toggle the Active state of a drug and sync Active Effects (embedded definitions preferred).
      */
     async toggleActive() {

@@ -112,7 +112,7 @@ export async function handleSheetClick(sheet, event) {
         const item = li?.dataset.itemId ? sheet.actor.items.get(li.dataset.itemId) : null;
         if (!item) return;
         if (item.type === 'drug') await item.toggleActive();
-        else await item.update({ 'system.equipped': !item.system.equipped });
+        else await item.setEquipped(!item.system.equipped);
         return;
     }
 

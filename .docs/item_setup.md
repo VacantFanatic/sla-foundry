@@ -175,6 +175,9 @@ Dragging **gear**, **explosives**, **magazines**, or **drugs** onto an actor she
 2. Set **PV** (Protection Value) and **Resistance** (current/max).
 3. Mark **Equipped** on the actor sheet to activate PV for combat.
 4. Leave **Powered** unchecked for standard armor. The item weight counts towards encumbrance.
+5. Any Armor item can also grant a stat bonus via its **Effects** tab (e.g. a Change on
+   `system.stats.<stat>.bonus`, type Add) — like any other equippable item's Effects, it applies
+   only while the item is Equipped, and is removed automatically on unequip.
 
 ### B. Powered Armor (non-powersuit)
 
@@ -203,6 +206,19 @@ A powersuit **replaces** the actor's STR total and caps DEX, rather than adding 
 5. Drag `system.powersuitAttack = true` weapons to the actor to mark them as requiring powersuit use.
 
 > **Tip:** To configure the powersuit STR replacement, set `mods.str` to the powersuit's strength rating (e.g. `12`). This overwrites the biological STR entirely while the suit is equipped.
+
+> **Alternative: authoring via Active Effects.** The three powersuit-exclusive numbers above (STR
+> replace, DEX Cap, Init Bonus) can each also be set as a real Active Effect on the item's
+> **Effects** tab instead of the Mods fields — useful if you'd rather keep everything on one tab.
+> Use these exact Change keys; the effect wins over the Mods field of the same name when both are
+> present on the same item:
+>
+> - `system.stats.str.total`, type **Override**, value = the powersuit's rated strength
+> - `system.stats.dex.cap`, any type — only the value is read
+> - `system.stats.init.armorBonus`, any type — only the value is read
+>
+> DEX Mod and the Move bonuses don't need this — they're always additive, so an ordinary
+> `system.stats.dex.bonus` (Add) effect works the same as the Mods field.
 
 ### D. Shields
 

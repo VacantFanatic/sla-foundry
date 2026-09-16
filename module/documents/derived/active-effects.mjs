@@ -149,3 +149,27 @@ export function computeActiveEffectStatBonus(effects, statKey, baseBonus) {
 export function computeActiveEffectKeyValue(effects, changeKey, baseValue) {
     return computeActiveEffectFieldValue(effects, [changeKey], baseValue);
 }
+
+/**
+ * Reads a single item-owned effect's change value for `changeKey`, for the handful of
+ * powersuit-exclusive numbers (STR replace, DEX cap, init bonus) that `_applyArmorModifiers`
+ * applies directly from the *item's own* embedded effects rather than via the actor's normal
+ * equip-synced bonus pipeline (those numbers are only supposed to apply from the one active
+ * powersuit, never summed across multiple equipped items). Lets a GM author the same number
+ * either as a legacy `system.mods`/`dexCap`/`initBonus` field or as a real Active Effect on the
+ * item — the caller decides which source wins when both are present.
+ * @param {{ effects?: Iterable<{ disabled?: boolean, changes?: unknown[], system?: { changes?: unknown[] } }> }} item
+ * @param {string} changeKey
+ * @returns {number | null} the first matching enabled change's value, or `null` if none exists
+ */
+export function readItemEffectOverride(item, changeKey) {
+    for (const effect of item?.effects ?? []) {
+        if (effect.disabled) continue;
+        for (const ch of effectChangeRows(effect)) {
+            if (ch.key !== changeKey) continue;
+            if (!resolveActiveEffectChangeType(ch)) continue;
+            return Number(ch.value) || 0;
+        }
+    }
+    return null;
+}

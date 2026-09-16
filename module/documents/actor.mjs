@@ -8,7 +8,8 @@ import {
 import {
     effectChangeRows,
     computeActiveEffectKeyValue,
-    computeActiveEffectStatBonus
+    computeActiveEffectStatBonus,
+    readItemEffectOverride
 } from './derived/active-effects.mjs';
 import { applyStatPenalties } from './derived/penalties.mjs';
 import { clampHpValue } from '../sheets/actor/sheet-ux-pure.mjs';
@@ -129,19 +130,30 @@ export class SlaActor extends Actor {
             .sort((a, b) => (Number(b.system.resistance?.value) || 0) - (Number(a.system.resistance?.value) || 0))[0];
 
         for (const armor of armors) {
-            const mods = armor.system.mods;
-            if (!mods) continue;
+            const mods = armor.system.mods ?? {};
 
-            // Powersuits replace STR and cap DEX. Other powered armor remains additive.
+            // Powersuits replace STR and cap DEX. Other powered armor remains additive. Each of
+            // these three powersuit-exclusive numbers may be authored either as the legacy
+            // system.mods/dexCap/initBonus field or as a real Active Effect on the item
+            // (system.stats.str.total override, system.stats.dex.cap, system.stats.init.armorBonus)
+            // — the effect wins when both are present, so a GM can author either way, or migrate
+            // one armor at a time, without anything breaking.
             if (armor === activePowersuit) {
-                if (system.stats.str) system.stats.str.total = Number(mods.str) || 0;
+                const strOverride = readItemEffectOverride(armor, 'system.stats.str.total');
+                if (system.stats.str) system.stats.str.total = strOverride ?? (Number(mods.str) || 0);
+
                 if (mods.dex && system.stats.dex) system.stats.dex.total += mods.dex;
-                const dexCap = Number(armor.system.dexCap) || 0;
+
+                const dexCapOverride = readItemEffectOverride(armor, 'system.stats.dex.cap');
+                const dexCap = dexCapOverride ?? (Number(armor.system.dexCap) || 0);
                 if (dexCap > 0 && system.stats.dex) {
                     system.stats.dex.total = Math.min(system.stats.dex.total, dexCap);
                 }
+
                 if (system.stats.init) {
-                    system.stats.init.armorBonus += Number(armor.system.initBonus) || 0;
+                    const initBonusOverride = readItemEffectOverride(armor, 'system.stats.init.armorBonus');
+                    const initBonus = initBonusOverride ?? (Number(armor.system.initBonus) || 0);
+                    system.stats.init.armorBonus += initBonus;
                 }
             } else {
                 if (mods.str && system.stats.str) system.stats.str.total += mods.str;

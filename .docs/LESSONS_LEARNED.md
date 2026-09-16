@@ -325,3 +325,55 @@ victim...` (all pre-existing, none touched by the shield PR) hand it a bare worl
   deprecated constant it replaced," are both insufficient; only the live runtime value is ground
   truth, and this constant's own doc comment ("Object.freeze({ custom: 0, ... })") was the
   evidence all along, missed twice.
+- **Item-embedded Active Effects require an explicit copy-to-actor call in this system —
+  `effect.transfer` is inert.** Issue #363: an Armor item's own Active Effect (e.g.
+  `system.stats.str.bonus`, Add) never applied to the wearer, equipped or not. This system never
+  calls Foundry's native transfer machinery for its own stat math — `SlaActor._computeCoreStatBonus`
+  (`module/documents/actor.mjs`) only ever reads `this.effects`, the actor's own embedded
+  collection, and the only thing that ever copies an item's effects onto the actor is
+  `SlaItem.applyItemEffectsToActor()` (`module/documents/item.mjs`). That copy was wired up for
+  drugs (`toggleActive()`), toxicants, and Ebb formulas — but nobody had ever wired it into the
+  plain equip toggle (`module/sheets/actor/sheet-actions.mjs`'s `.item-toggle` handler) or the
+  NPC/vehicle auto-equip-on-drop path (`module/sheets/actor/actor-drops.mjs`), even though the
+  item sheet's Effects tab is available on every physical item type and defaults new effects to
+  `transfer: true` — implying it should just work. Fixed with `SlaItem#setEquipped()`, calling the
+  same `applyItemEffectsToActor`/`_removeEffectsByOrigin` pair the working call sites already used.
+  When a new "this item does something to the actor" affordance is added (a new item type, a new
+  equip-like state), check whether it needs this same explicit wiring rather than assuming
+  Foundry's `transfer` flag or an existing per-type flow already covers it — the UI offering the
+  Effects tab is not evidence the mechanism is connected.
+- **A fix that reads correct in the diff can still be running stale code in this sandbox — always
+  rebuild and resync before trusting a live E2E result.** While verifying the #363 fix above, the
+  very first live E2E run showed the equip toggle flipping `system.equipped` correctly but the
+  Active Effect never landing on the actor — looking exactly like the code was still broken. It
+  wasn't: `bash scripts/cloud-foundry.sh start` (which rebuilds `dist/` and re-copies it into
+  Foundry's data dir) had only ever run once, at session boot, before any of this session's edits
+  existed; Foundry was still serving that stale `dist/` copy from
+  `<data-dir>/Data/systems/sla-industries`, not the live `module/` source. Compounding it: running
+  `bash scripts/cloud-foundry.sh start` directly (rather than through the session-start hook) used
+  the script's own default `FOUNDRY_DATA_DIR=/home/ubuntu/foundry-data`, silently rebuilding into
+  the _wrong_ directory — this sandbox's real data dir is `/root/foundry-data`, exactly as
+  `.docs/CLOUD_ENVIRONMENT.md` already documents, but that env var only gets exported by
+  `.claude/hooks/session-start.sh`, not by the script itself. `grep -n setEquipped
+<data-dir>/Data/systems/sla-industries/module/documents/item.mjs` (empty match) proved the served
+  copy was stale before assuming otherwise. After a source edit, re-verify with
+  `FOUNDRY_DATA_DIR=/root/foundry-data bash scripts/cloud-foundry.sh start` (or confirm the right
+  data dir first) before treating a live E2E failure as a real bug — and don't stop at "the test
+  now fails/passes," grep the actually-served file for your new code when the result looks
+  suspiciously like the fix never landed.
+- **A powersuit's STR replacement is not side-effect-free — it also feeds this system's
+  HP-from-STR formula, which can flip an otherwise-fresh actor into the "critical" condition and
+  trigger an unrelated -2 STR penalty later in the same `prepareDerivedData()` pass.** Writing an
+  E2E test for the #363 powersuit-effect-authoring path, a straightforward "equip a powersuit with
+  STR override 12, assert `str.total === 12`" assertion consistently came back `10` — not a bug in
+  the override logic, but `_calculateWounds()`'s `projectedHpMax` (derived from the _already
+  STR-overridden_ `str.total`, since `_applyArmorModifiers` runs before it in the pipeline) growing
+  large enough that the actor's still-default `hp.value` fell at or below half of it, marking
+  `conditions.critical = true`, which `applyStatPenalties()` (running later still) then subtracts
+  2 from STR for. This is real, pre-existing, and identical for the legacy `mods.str` path too —
+  not something to "fix" as part of an unrelated change. When a test's expected number depends on
+  a value that other derived-data steps downstream can also touch (HP, encumbrance, wound
+  conditions), prefer asserting equivalence against a same-pipeline control (e.g. the legacy
+  authoring path producing the same actor state) over a hardcoded expected number — it's correct
+  regardless of which downstream step is doing the adjusting, and doesn't require fully modeling
+  every derived-data interaction to write.

@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Armor (and other equippable items') Active Effects never applied while equipped (#363):** an
+  item's embedded Active Effect (e.g. `system.stats.<STAT>.bonus`, type Add, authored via the item
+  sheet's Effects tab) only ever reached the wearer if something explicitly copied it onto the
+  actor — that copy was wired up for drugs, toxicants, and Ebb formulas, but never for the plain
+  Equip toggle or the NPC/vehicle auto-equip-on-drop path, so equipping an item with its own effect
+  silently did nothing. Equipping/unequipping now syncs the item's effects onto the actor
+  (`SlaItem#setEquipped`), the same mechanism already used for drugs.
+
+### Changed
+
+- **Powered armor's STR replace / DEX cap / Init bonus can now also be authored as an Active
+  Effect** on the item (`system.stats.str.total` override, `system.stats.dex.cap`,
+  `system.stats.init.armorBonus`), as an alternative to the existing Mods/DEX Cap/Init Bonus
+  fields — the effect wins when both are set on the same item. Existing armor using the legacy
+  fields is unaffected.
+
 ## [2.9.1] - 2026-09-16
 
 ### Fixed
