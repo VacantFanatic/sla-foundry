@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.9.1] - 2026-09-16
+
 ### Fixed
 
 - **Active Effect change modes other than Add were silently ignored on stats and the global roll
@@ -21,20 +23,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **README overhaul:** Restructured with a table of contents, fixed a broken developer-guide link
-  (`DEVELOPER.md` → `.docs/DEVELOPER.md`) and a dead reference to a nonexistent `.docs/wiki/`
-  folder, added Contributing/Documentation sections linking to `CONTRIBUTING.md` and `CLAUDE.md`'s
-  doc map, and refreshed feature/version/compatibility details to match the current release.
-
-## [2.9.1] - 2026-09-15
-
-### Changed
-
 - **Shield Craft Succeeded checkbox clarity (#356):** The "Shield Craft Succeeded" checkbox on the
   Apply Damage chat card is now hidden entirely when the resolved target has no equipped shield
   armor item, since it has no effect in that case. A shield's PV on the Combat loadout tab (both
   operative and threat sheets) is now marked with a `*` and a tooltip noting it only applies when
   the shield actually blocked that hit, since it was being read as an unconditional bonus.
+- **README overhaul:** Restructured with a table of contents, fixed a broken developer-guide link
+  (`DEVELOPER.md` → `.docs/DEVELOPER.md`) and a dead reference to a nonexistent `.docs/wiki/`
+  folder, added Contributing/Documentation sections linking to `CONTRIBUTING.md` and `CLAUDE.md`'s
+  doc map, refreshed feature/version/compatibility details to match the current release, and noted
+  that bundled compendium packs contain names/mechanical values only, not Nightfall Games'
+  copyrighted rules text.
 
 ## [2.9.0] - 2026-09-14
 
