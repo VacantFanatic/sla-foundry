@@ -78,6 +78,62 @@ test.describe('GM: handleSheetClick dispatch (document API)', () => {
         expect(result).toBe(true);
     });
 
+    test('issue #363: equipping gear via item-toggle applies its Active Effect stat bonus, unequipping removes it', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Gear Effect ${stamp}`,
+                    type: 'character',
+                    system: { stats: { str: { value: 3, bonus: 0 } } }
+                }
+            ]);
+            const [gear] = await actor.createEmbeddedDocuments('Item', [
+                { name: `E2E Effect Gear ${stamp}`, type: 'item', system: { equipped: false } }
+            ]);
+            await gear.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'E2E Gear Str Boost',
+                    disabled: false,
+                    changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 3 }]
+                }
+            ]);
+
+            const row = document.createElement('div');
+            row.className = 'item';
+            row.dataset.itemId = gear.id;
+            const toggle = document.createElement('button');
+            toggle.className = 'item-toggle';
+            row.appendChild(toggle);
+            const event = { target: toggle, preventDefault: () => {} };
+
+            const { handleSheetClick } = await import('/systems/sla-industries/module/sheets/actor/sheet-actions.mjs');
+            const sheet = { actor, isEditable: true, render: () => {} };
+
+            // Equip: the Active Effect should be copied onto the actor and the stat total bumped.
+            await handleSheetClick(sheet, event);
+            const equippedActor = game.actors.get(actor.id);
+            const strTotalEquipped = equippedActor.system.stats.str.total;
+            const equippedEffectCount = equippedActor.effects.filter((e) => e.origin === gear.uuid).length;
+
+            // Unequip: the copied effect should be removed and the bonus should revert.
+            await handleSheetClick(sheet, event);
+            const unequippedActor = game.actors.get(actor.id);
+            const strTotalUnequipped = unequippedActor.system.stats.str.total;
+            const unequippedEffectCount = unequippedActor.effects.filter((e) => e.origin === gear.uuid).length;
+
+            await actor.delete();
+            return { strTotalEquipped, equippedEffectCount, strTotalUnequipped, unequippedEffectCount };
+        });
+
+        expect(result.equippedEffectCount).toBe(1);
+        expect(result.strTotalEquipped).toBe(6);
+        expect(result.unequippedEffectCount).toBe(0);
+        expect(result.strTotalUnequipped).toBe(3);
+    });
+
     test('creates, toggles-disabled, and deletes an Active Effect', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();

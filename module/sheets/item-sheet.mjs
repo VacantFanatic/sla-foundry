@@ -17,14 +17,29 @@ const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
 
 /**
- * Tab contract (#243 Phase 1):
- * - TWO_TAB_TYPES render a Details + Description sheet only (no transferable
- *   Active Effects in the data model).
- * - All other types render the full Details + Description + Effects layout.
+ * Tab contract (#243 Phase 1; effects-tab scope revised for #363):
+ * - TWO_TAB_TYPES render a Details + Description sheet only — no Effects tab. This is every
+ *   type nothing ever transfers an embedded Active Effect from: Skill and Discipline (never
+ *   did), plus Weapon/Armor/Explosive/Magazine/Species/Package (an Effects tab existed on their
+ *   sheet, but no code path ever applied what a GM put there to the actor, so it did nothing).
+ * - All other types render the full Details + Description + Effects layout, and each one has a
+ *   real mechanism that applies its embedded effects to the actor: Drug (toggle active), Toxicant
+ *   (failed infection test), Ebb Formula (post-roll chat button), Trait (grant/revoke — see
+ *   `SlaActor._onCreateDescendantDocuments`/`_onDeleteDescendantDocuments`), and Item/Gear (equip
+ *   toggle — see `SlaItem#setEquipped`).
  * - CATALOGUE_PART_TYPES are the types whose Details tab uses the catalogue
  *   partial (physical inventory items).
  */
-const TWO_TAB_TYPES = new Set(['skill', 'trait', 'discipline']);
+const TWO_TAB_TYPES = new Set([
+    'skill',
+    'discipline',
+    'weapon',
+    'armor',
+    'explosive',
+    'magazine',
+    'species',
+    'package'
+]);
 const CATALOGUE_PART_TYPES = new Set(['item', 'weapon', 'armor', 'explosive', 'magazine', 'drug', 'toxicant']);
 
 /** Visual drag feedback — every item-sheet drop target carries `.sla-drop`. */

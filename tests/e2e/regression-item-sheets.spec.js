@@ -94,7 +94,7 @@ test.describe('SLA item sheet UI — regression', () => {
         await expect(sheet.locator('input[name="system.recoil"]')).toHaveCount(0);
     });
 
-    test('weapon sheet — skill drop hint and effects tab', async ({ page }) => {
+    test('weapon sheet — skill drop hint, no effects tab', async ({ page }) => {
         const itemId = await createWorldItem(page, 'weapon', {
             attackType: 'ranged',
             skill: '',
@@ -104,8 +104,9 @@ test.describe('SLA item sheet UI — regression', () => {
 
         await expect(sheet.locator('.sla-drop.skill-link-box')).toBeVisible();
         await expect(sheet.locator('.sla-drop__hint')).toHaveText('Drop Skill Item Here');
-        await clickItemSheetTab(sheet, 'effects');
-        await expect(sheet.getByPlaceholder('Search effects')).toBeVisible();
+        // Issue #363: nothing ever applied a weapon's embedded effects to the actor, so the tab
+        // is removed rather than leaving a control on the sheet that silently does nothing.
+        await expect(sheet.locator('nav.sheet-tabs a[data-tab="effects"]')).toHaveCount(0);
     });
 
     test('magazine sheet — weapon drop hint', async ({ page }) => {
@@ -158,12 +159,31 @@ test.describe('SLA item sheet UI — regression', () => {
             .toEqual({ isShield: true, pvMelee: 2, pvRanged: 2 });
     });
 
+    test('armor sheet — no effects tab', async ({ page }) => {
+        const itemId = await createWorldItem(page, 'armor', { pv: 6, isShield: false });
+        const sheet = await openItemSheet(page, itemId);
+
+        await expect(sheet.locator('nav.sheet-tabs a[data-tab="effects"]')).toHaveCount(0);
+    });
+
     test('skill sheet — field manual stamp, two tabs only', async ({ page }) => {
         const itemId = await createWorldItem(page, 'skill', { rank: 1 });
         const sheet = await openItemSheet(page, itemId);
 
         await expect(sheet.locator('.field-manual__stamp')).toHaveText('Field Manual');
         await expect(sheet.locator('nav.sheet-tabs a[data-tab="effects"]')).toHaveCount(0);
+    });
+
+    test('trait sheet — annotation stamp, three tabs including effects', async ({ page }) => {
+        const itemId = await createWorldItem(page, 'trait', { rank: 1 });
+        const sheet = await openItemSheet(page, itemId);
+
+        await expect(sheet.locator('.personnel-annotation__stamp')).toBeVisible();
+        await expect(sheet.locator('nav.sheet-tabs a[data-tab="attributes"]')).toBeVisible();
+        await expect(sheet.locator('nav.sheet-tabs a[data-tab="description"]')).toBeVisible();
+        await clickItemSheetTab(sheet, 'effects');
+        await expect(sheet.locator('.sla-item-effects .sla-section__title')).toHaveText('Active Effects');
+        await expect(sheet.locator('.sla-item-effect-create')).toBeVisible();
     });
 
     test('generic item sheet — inventory slip stamp', async ({ page }) => {

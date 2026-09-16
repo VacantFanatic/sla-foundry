@@ -325,3 +325,41 @@ victim...` (all pre-existing, none touched by the shield PR) hand it a bare worl
   deprecated constant it replaced," are both insufficient; only the live runtime value is ground
   truth, and this constant's own doc comment ("Object.freeze({ custom: 0, ... })") was the
   evidence all along, missed twice.
+- **Item-embedded Active Effects require an explicit copy-to-actor call in this system —
+  `effect.transfer` is inert — and every item type with an Effects tab needs its own real
+  trigger, or the tab is a lie.** Issue #363's original report was about Armor granting a stat
+  bonus, but the actual repro (per the issue's own comments) turned out to be a generic **Item /
+  Gear** item — the reporter tried Armor only because Gear's Effects tab didn't work either.
+  Investigating showed _why_: this system never relies on Foundry's native `effect.transfer` —
+  `SlaActor._computeCoreStatBonus` (`module/documents/actor.mjs`) only ever reads `this.effects`,
+  the actor's own embedded collection, and the only thing that ever copies an item's effects onto
+  the actor is `SlaItem.applyItemEffectsToActor()` (`module/documents/item.mjs`). That copy was
+  wired up for exactly three types — Drug (`toggleActive()`), Toxicant (failed infection test),
+  Ebb Formula (post-roll chat button) — and _every other type still rendered the same Effects tab
+  anyway_ (`module/sheets/item-sheet.mjs`'s `TWO_TAB_TYPES` only excluded Skill/Trait/Discipline),
+  so Weapon/Armor/Explosive/Magazine/Item/Species/Package all looked equally legitimate to a GM
+  filling in Changes, and five of those seven were never wired to anything at all. Fixed by (1)
+  adding `SlaItem#setEquipped()` so the plain equip toggle
+  (`module/sheets/actor/sheet-actions.mjs`) syncs effects the same way `toggleActive()` already
+  did for drugs, (2) adding a Trait grant/revoke case to `SlaActor._onCreateDescendantDocuments`/
+  `_onDeleteDescendantDocuments` (already an established pattern for Species — see its
+  `_handleSpeciesAdd`/`_handleSpeciesRemove` — extended rather than duplicated) so a trait's
+  effect applies for as long as the actor owns it, and (3) removing the Effects tab from every
+  type that still had no wiring after that (Weapon, Armor, Explosive, Magazine, Species, Package)
+  instead of leaving a control that does nothing. When an item sheet offers a generic capability
+  across many types (an Effects tab, in this case), audit _every_ type it's shown on for a real
+  consuming code path, not just the type the original feature happened to target — a tab that
+  renders identically whether or not anything reads it gives a GM zero signal that half the types
+  showing it are decorative.
+- **`_onCreateDescendantDocuments`/`_onDeleteDescendantDocuments` on the Actor (not a per-Item
+  `_onCreate`/`_onDelete` override) is this codebase's established hook point for "do something
+  to the actor when a specific item type is added/removed," and it's the right one to extend, not
+  bypass.** `SlaActor` already used this pattern for Species (`_handleSpeciesAdd`/
+  `_handleSpeciesRemove`, natural weapons and stat grants) before the Trait effect-grant feature
+  above needed the identical shape (apply on add, clean up on remove) for a different type. It
+  fires regardless of _how_ the item was added — drag-drop, the sidebar Create Item button, a
+  compendium import, a macro's `createEmbeddedDocuments` call — which a fix scoped to just the
+  drop handler (`module/sheets/actor/actor-drops.mjs`) would not have covered, and covering only
+  the obvious entry point is exactly the class of gap issue #363 itself was about. Before adding
+  type-specific logic to a single UI entry point (a drop handler, a button click), check whether
+  the actor already has a centralized descendant-document hook it belongs in instead.

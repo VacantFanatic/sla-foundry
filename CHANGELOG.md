@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Gear and Trait Active Effects never applied to the actor (#363):** an Item/Gear item's
+  embedded Active Effect (e.g. `system.stats.<STAT>.bonus`, type Add) only ever reached the actor
+  if something explicitly copied it over — that copy was wired up for Drugs, Toxicants, and Ebb
+  Formulas, but never for the plain Equip toggle. Equipping/unequipping a Gear item now syncs its
+  effects onto the actor (`SlaItem#setEquipped`), the same mechanism already used for drugs.
+  Traits now do the same on grant/revoke — a trait's effect applies for as long as the actor owns
+  it, regardless of how it was added (drag-drop, Create Item, compendium import).
+
+### Changed
+
+- **The item sheet's Effects tab is now only shown on types that actually apply it:** Item/Gear,
+  Trait, Drug, Toxicant, and Ebb Formula. Weapon, Armor, Explosive, Magazine, Species, and Package
+  no longer show an Effects tab — nothing in the system ever read what was put there, so it looked
+  like a working control while silently doing nothing. Powered armor's stat bonuses are unaffected
+  and still use the existing Mods/DEX Cap/Init Bonus fields (§7B/C of `.docs/item_setup.md`).
+
 ## [2.9.1] - 2026-09-16
 
 ### Fixed

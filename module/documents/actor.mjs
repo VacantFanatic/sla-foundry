@@ -442,6 +442,8 @@ export class SlaActor extends Actor {
         for (const doc of documents) {
             if (doc.type === 'species') {
                 this._handleSpeciesAdd(doc);
+            } else if (doc.type === 'trait') {
+                doc.applyItemEffectsToActor(this);
             }
         }
     }
@@ -457,6 +459,8 @@ export class SlaActor extends Actor {
         for (const doc of documents) {
             if (doc.type === 'species') {
                 this._handleSpeciesRemove(doc);
+            } else if (doc.type === 'trait') {
+                doc._removeEffectsByOrigin(this, doc.uuid);
             }
         }
     }

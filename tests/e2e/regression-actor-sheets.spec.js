@@ -391,3 +391,61 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
         expect(result).toBe(1);
     });
 });
+
+test.describe('Trait items confer their Active Effects on grant/revoke (#363)', () => {
+    test.beforeEach(async ({ page }) => {
+        test.skip(!process.env.FOUNDRY_USER, 'Set FOUNDRY_USER');
+        await joinGame(page);
+        await waitForSLASystem(page);
+        const gm = await page.evaluate(() => game.user?.isGM === true);
+        test.skip(!gm, 'Requires GM — use a Gamemaster account for FOUNDRY_USER');
+    });
+
+    test('embedding a trait item on an actor applies its Active Effect; deleting the trait removes it', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Trait Effect ${stamp}`,
+                    type: 'character',
+                    system: { stats: { str: { value: 3, bonus: 0 } } }
+                }
+            ]);
+
+            // Build the trait as a world item first (its Effects tab configured before it's ever
+            // dropped on anyone), then embed a copy on the actor -- mirroring the real drag-drop
+            // flow (Item.implementation.fromDropData -> item.toObject() ->
+            // actor.createEmbeddedDocuments('Item', [itemData])), so the trait's own effect
+            // already exists at the moment it's granted.
+            const [worldTrait] = await Item.createDocuments([
+                { name: `E2E Natural Aptitude STR ${stamp}`, type: 'trait' }
+            ]);
+            await worldTrait.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'Natural Aptitude: STR',
+                    disabled: false,
+                    changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 1 }]
+                }
+            ]);
+            const [trait] = await actor.createEmbeddedDocuments('Item', [worldTrait.toObject()]);
+            await worldTrait.delete();
+
+            const strTotalGranted = game.actors.get(actor.id).system.stats.str.total;
+            const grantedEffectCount = game.actors.get(actor.id).effects.filter((e) => e.origin === trait.uuid).length;
+
+            await trait.delete();
+            const strTotalRevoked = game.actors.get(actor.id).system.stats.str.total;
+            const revokedEffectCount = game.actors.get(actor.id).effects.filter((e) => e.origin === trait.uuid).length;
+
+            await actor.delete();
+            return { strTotalGranted, grantedEffectCount, strTotalRevoked, revokedEffectCount };
+        });
+
+        expect(result.grantedEffectCount).toBe(1);
+        expect(result.strTotalGranted).toBe(4);
+        expect(result.revokedEffectCount).toBe(0);
+        expect(result.strTotalRevoked).toBe(3);
+    });
+});
