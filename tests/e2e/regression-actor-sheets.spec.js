@@ -404,7 +404,13 @@ test.describe('Trait items confer their Active Effects on grant/revoke (#363)', 
     test('embedding a trait item on an actor applies its Active Effect; deleting the trait removes it', async ({
         page
     }) => {
-        const result = await page.evaluate(async () => {
+        // The actor's SlaActor#_onCreateDescendantDocuments/_onDeleteDescendantDocuments hooks
+        // that copy/remove a trait's effect are fire-and-forget (same convention as the existing
+        // Species grant/remove handlers), so the actor.createEmbeddedDocuments('Item', ...)
+        // promise below resolves before that copy necessarily finishes -- poll for the resulting
+        // state instead of reading it synchronously right after (see LESSONS_LEARNED.md's note on
+        // un-awaited side effects inside a resolved promise).
+        const { actorId, traitUuid } = await page.evaluate(async () => {
             const stamp = Date.now();
             const [actor] = await Actor.createDocuments([
                 {
@@ -432,20 +438,34 @@ test.describe('Trait items confer their Active Effects on grant/revoke (#363)', 
             const [trait] = await actor.createEmbeddedDocuments('Item', [worldTrait.toObject()]);
             await worldTrait.delete();
 
-            const strTotalGranted = game.actors.get(actor.id).system.stats.str.total;
-            const grantedEffectCount = game.actors.get(actor.id).effects.filter((e) => e.origin === trait.uuid).length;
-
-            await trait.delete();
-            const strTotalRevoked = game.actors.get(actor.id).system.stats.str.total;
-            const revokedEffectCount = game.actors.get(actor.id).effects.filter((e) => e.origin === trait.uuid).length;
-
-            await actor.delete();
-            return { strTotalGranted, grantedEffectCount, strTotalRevoked, revokedEffectCount };
+            return { actorId: actor.id, traitUuid: trait.uuid };
         });
 
-        expect(result.grantedEffectCount).toBe(1);
-        expect(result.strTotalGranted).toBe(4);
-        expect(result.revokedEffectCount).toBe(0);
-        expect(result.strTotalRevoked).toBe(3);
+        const readState = () =>
+            page.evaluate(
+                ({ actorId, traitUuid }) => {
+                    const actor = game.actors.get(actorId);
+                    return {
+                        strTotal: actor.system.stats.str.total,
+                        effectCount: actor.effects.filter((e) => e.origin === traitUuid).length
+                    };
+                },
+                { actorId, traitUuid }
+            );
+
+        await expect.poll(readState).toEqual({ strTotal: 4, effectCount: 1 });
+
+        await page.evaluate(
+            ({ actorId, traitUuid }) => {
+                const actor = game.actors.get(actorId);
+                const trait = actor.items.find((i) => i.uuid === traitUuid);
+                return trait.delete();
+            },
+            { actorId, traitUuid }
+        );
+
+        await expect.poll(readState).toEqual({ strTotal: 3, effectCount: 0 });
+
+        await page.evaluate((id) => game.actors.get(id)?.delete(), actorId);
     });
 });
