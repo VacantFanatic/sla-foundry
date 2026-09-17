@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [2.9.2] - 2026-09-17
 
+### Added
+
+- **`system.hp.bonus`: a flat HP Max bonus via Active Effects** (e.g. a Gang Colours-style trait
+  granting +5 HP), mirroring the existing `system.rollModifier.bonus` pattern. Resolved once per
+  derived-data pass so it's included in both the wound/critical condition projection and the
+  final HP Max calculation — a standing bonus survives the recompute instead of being overwritten
+  by it, the same class of fix as the Gear/Trait Active Effects work below.
+
 ### Fixed
 
 - **Gear and Trait Active Effects never applied to the actor (#363):** an Item/Gear item's
