@@ -13,6 +13,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   (p. 202). A per-attack, live toggle — the same pattern as "Shield Craft Succeeded" — rather than
   a weapon-item property, so it covers any one-off "this hit ignores armor" call.
 
+### Fixed
+
+- **Item/Gear Active Effects still never applied to the actor (#369):** the #363 fix wired
+  `SlaItem#setEquipped()` to sync a Gear item's effects onto the actor when equipped, but the
+  Inventory tab's equip toggle (the only UI control that calls it) only ever rendered for Weapon
+  and Armor rows (`templates/actor/parts/inventory-tab.hbs`) — Item/Gear had no way to be equipped
+  from the sheet at all, on either the character or NPC sheet, so the effect was never reachable in
+  practice. The toggle now also renders for Item/Gear rows.
+
 ## [2.9.2] - 2026-09-17
 
 ### Added

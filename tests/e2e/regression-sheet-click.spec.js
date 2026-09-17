@@ -13,7 +13,15 @@
  * click would trigger, not on dispatch alone.
  */
 const { test, expect } = require('@playwright/test');
-const { joinGame, waitForSLASystem } = require('./fixtures');
+const {
+    joinGame,
+    waitForSLASystem,
+    dismissFoundryNotifications,
+    createTestActor,
+    openActorSheet,
+    clickActorSheetTab,
+    closeApplicationWindows
+} = require('./fixtures');
 
 const needsAuth = () => {
     test.skip(!process.env.FOUNDRY_USER, 'Set FOUNDRY_USER (and FOUNDRY_URL / FOUNDRY_PASSWORD if needed)');
@@ -132,6 +140,60 @@ test.describe('GM: handleSheetClick dispatch (document API)', () => {
         expect(result.strTotalEquipped).toBe(6);
         expect(result.unequippedEffectCount).toBe(0);
         expect(result.strTotalUnequipped).toBe(3);
+    });
+
+    test('issue #369: the real Inventory tab renders an equip toggle for Item/Gear rows, and clicking it applies the effect', async ({
+        page
+    }) => {
+        const actorId = await createTestActor(page, { stats: { str: { value: 3, bonus: 0 } } }, 'character');
+        const gearId = await page.evaluate(async (id) => {
+            const actor = game.actors.get(id);
+            const [gear] = await actor.createEmbeddedDocuments('Item', [
+                { name: `E2E Gear Toggle ${Date.now()}`, type: 'item', system: { equipped: false } }
+            ]);
+            await gear.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'E2E Gear Str Boost',
+                    disabled: false,
+                    changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 3 }]
+                }
+            ]);
+            return gear.id;
+        }, actorId);
+
+        const sheet = await openActorSheet(page, actorId);
+        await dismissFoundryNotifications(page);
+        await clickActorSheetTab(sheet, 'inventory');
+
+        const row = sheet.locator(`tr.item[data-item-id="${gearId}"]`);
+        const toggle = row.locator('.item-toggle');
+        // The bug: this template gate previously excluded type "item" (Gear) entirely, so the
+        // equip control never rendered and setEquipped()/applyItemEffectsToActor() was
+        // unreachable from the real UI, even though the click handler itself worked.
+        await expect(toggle).toBeVisible();
+
+        await toggle.evaluate((el) => el.click());
+        await page.waitForFunction(
+            ({ id, uuid }) => game.actors.get(id).effects.some((e) => e.origin === uuid),
+            { id: actorId, uuid: `Actor.${actorId}.Item.${gearId}` },
+            { timeout: 10_000 }
+        );
+        const strTotalEquipped = await page.evaluate((id) => game.actors.get(id).system.stats.str.total, actorId);
+        expect(strTotalEquipped).toBe(6);
+
+        await toggle.evaluate((el) => el.click());
+        await page.waitForFunction(
+            ({ id, uuid }) => !game.actors.get(id).effects.some((e) => e.origin === uuid),
+            { id: actorId, uuid: `Actor.${actorId}.Item.${gearId}` },
+            { timeout: 10_000 }
+        );
+        const strTotalUnequipped = await page.evaluate((id) => game.actors.get(id).system.stats.str.total, actorId);
+        expect(strTotalUnequipped).toBe(3);
+
+        await closeApplicationWindows(page);
+        await page.evaluate(async (id) => {
+            await game.actors.get(id)?.delete();
+        }, actorId);
     });
 
     test('creates, toggles-disabled, and deletes an Active Effect', async ({ page }) => {

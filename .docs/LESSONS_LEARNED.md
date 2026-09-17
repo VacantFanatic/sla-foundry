@@ -351,6 +351,24 @@ victim...` (all pre-existing, none touched by the shield PR) hand it a bare worl
   consuming code path, not just the type the original feature happened to target — a tab that
   renders identically whether or not anything reads it gives a GM zero signal that half the types
   showing it are decorative.
+- **A click-handler test built from a hand-constructed DOM element proves the handler works, not
+  that a user can ever reach it.** Issue #369 was the same underlying feature as #363 (Item/Gear
+  Active Effects not applying to the actor) recurring after #363 shipped a fix and a passing e2e
+  test for it. That test (`regression-sheet-click.spec.js`, "issue #363: equipping gear via
+  item-toggle...") synthesizes a `.item-toggle` element by hand (`document.createElement`) and
+  calls `handleSheetClick` directly — it correctly proves `SlaItem#setEquipped()` →
+  `applyItemEffectsToActor()` works once invoked, but it never renders the real
+  `templates/actor/parts/inventory-tab.hbs` template, so it couldn't catch that the template's own
+  `{{#if (or (eq item.type "weapon") (eq item.type "armor"))}}` gate never emitted that control for
+  Item/Gear rows at all — on the character sheet or the NPC sheet, since both include the same
+  partial. A GM had no way to equip Gear from the Inventory tab, so the otherwise-correct handler
+  was simply unreachable. Fixed by widening the template condition to include `item`, and by adding
+  a companion test that renders the actual sheet, switches to the real Inventory tab, and asserts
+  the control is visible before clicking it. When a fix depends on a UI control (a button, a
+  toggle, a checkbox) to trigger already-correct logic, a test for that fix needs at least one case
+  that renders the real template and asserts the control's visibility — a synthetic/hand-built
+  DOM element is fine for exercising the handler in isolation, but it cannot catch "the control
+  never appears in the first place," which is exactly the class of bug this was.
 - **`_onCreateDescendantDocuments`/`_onDeleteDescendantDocuments` on the Actor (not a per-Item
   `_onCreate`/`_onDelete` override) is this codebase's established hook point for "do something
   to the actor when a specific item type is added/removed," and it's the right one to extend, not
