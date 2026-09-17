@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+## [2.9.4] - 2026-09-17
+
+### Fixed
+
+- **Weapon/Armor Active Effects never applied when auto-equipped on drop onto an NPC:**
+  `shouldAutoEquipDroppedItem` auto-equips a Weapon/Armor item dropped onto an NPC (Threat) sheet
+  by writing `system.equipped: true` directly and creating the embedded item
+  (`createEquippedItem`, `module/sheets/actor/actor-drops.mjs`), bypassing `SlaItem#setEquipped()`
+  — the only place that also calls `applyItemEffectsToActor()` to copy the item's embedded Active
+  Effects onto the actor. Characters never hit this path (items are always created unequipped and
+  require the manual equip toggle, which does call `setEquipped()`), so the gap was NPC-specific:
+  a GM dragging an already-effect-bearing item (e.g. powered armor granting a stat bonus) onto an
+  NPC saw it show as equipped with none of its effects actually applied. Fixed by having
+  `createEquippedItem` call `applyItemEffectsToActor()` on the newly-created item, matching what
+  `setEquipped()` already does for the manual-toggle path.
+
 ## [2.9.3] - 2026-09-17
 
 ### Added
@@ -1140,7 +1158,8 @@ quantity` (armor and weapon item sheets), and `system.typeNote` (generic item sh
 - Damage application targeting both selected token and target.
 - Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.9.2...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.9.4...HEAD
+[2.9.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.4
 [2.9.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.2
 [2.9.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.1
 [2.9.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.0

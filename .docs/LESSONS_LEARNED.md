@@ -369,6 +369,25 @@ victim...` (all pre-existing, none touched by the shield PR) hand it a bare worl
   that renders the real template and asserts the control's visibility — a synthetic/hand-built
   DOM element is fine for exercising the handler in isolation, but it cannot catch "the control
   never appears in the first place," which is exactly the class of bug this was.
+- **`SlaItem#setEquipped()` is not the only code path that writes `system.equipped: true` — a
+  second one existed and skipped its effects sync entirely.** After #363/#369 fixed the Inventory
+  tab's equip toggle to call `setEquipped()` (which both persists `system.equipped` and calls
+  `applyItemEffectsToActor()`), a separate auto-equip path was still writing the same field
+  directly: `createEquippedItem` (`module/sheets/actor/actor-drops.mjs`), used when
+  `shouldAutoEquipDroppedItem` says a Weapon/Armor dropped onto an NPC (or a Weapon dropped onto a
+  vehicle's weapon slot) should be auto-equipped on creation, called
+  `foundry.utils.setProperty(itemData, 'system.equipped', true)` and
+  `actor.createEmbeddedDocuments('Item', [itemData])` directly — never `setEquipped()` — so the
+  item's embedded Active Effects were never copied onto the actor even though the sheet showed it
+  as equipped. This is exactly the same effects-never-applied bug as #363/#369, but from a second,
+  independent entry point that the earlier fix didn't touch because it only looked at the UI
+  control (the toggle), not every place in the codebase that sets `system.equipped`. Fixed by
+  having `createEquippedItem` also call `item.applyItemEffectsToActor(actor)` after creation.
+  When a document field has a "setter" helper that also has a side effect (here,
+  `setEquipped()` syncing Active Effects), grep for every other place that writes the same field
+  directly (`system.equipped`, in this case) rather than trusting that the helper is the only
+  writer — a raw `update()`/`setProperty()`/creation-data write bypasses the side effect silently,
+  with no error and no test failure until something specifically checks the side effect happened.
 - **`_onCreateDescendantDocuments`/`_onDeleteDescendantDocuments` on the Actor (not a per-Item
   `_onCreate`/`_onDelete` override) is this codebase's established hook point for "do something
   to the actor when a specific item type is added/removed," and it's the right one to extend, not
