@@ -23,6 +23,7 @@ export const preloadHandlebarsTemplates = async function () {
         'systems/sla-industries/templates/actor/parts/traits-tab.hbs',
         'systems/sla-industries/templates/actor/parts/notes-tab.hbs',
         'systems/sla-industries/templates/item/parts/item-catalogue.hbs',
+        'systems/sla-industries/templates/item/parts/item-weight-cost-qty.hbs',
         'systems/sla-industries/templates/item/parts/item-weapon.hbs',
         'systems/sla-industries/templates/item/parts/item-armor.hbs',
         'systems/sla-industries/templates/item/parts/item-magazine.hbs',
