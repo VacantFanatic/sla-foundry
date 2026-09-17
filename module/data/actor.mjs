@@ -66,9 +66,13 @@ export class SlaCharacterData extends foundry.abstract.TypeDataModel {
                 closing: new fields.NumberField({ initial: 0, min: 0 }),
                 rushing: new fields.NumberField({ initial: 0, min: 0 })
             }),
+            // `max` is fully derived (species base + STR total) each render; Active Effects
+            // should target `bonus` (mode Add, e.g. a flat +5 HP trait) so a standing bonus
+            // survives the recompute instead of being overwritten by it.
             hp: new fields.SchemaField({
                 value: new fields.NumberField({ initial: 10, integer: true }),
-                max: new fields.NumberField({ initial: 10, integer: true })
+                max: new fields.NumberField({ initial: 10, integer: true }),
+                bonus: new fields.NumberField({ initial: 0, integer: true })
             }),
             xp: new fields.SchemaField({
                 value: new fields.NumberField({ initial: 0, min: 0, integer: true })
@@ -151,9 +155,12 @@ export class SlaNPCData extends foundry.abstract.TypeDataModel {
             rollModifier: new fields.SchemaField({
                 bonus: new fields.NumberField({ initial: 0, integer: true })
             }),
+            // `max` is GM-authored and preserved as-is (see resolveDerivedHpMax); Active Effects
+            // should target `bonus` (mode Add) to add a standing bonus on top of it.
             hp: new fields.SchemaField({
                 value: new fields.NumberField({ initial: 10, integer: true }),
-                max: new fields.NumberField({ initial: 10, integer: true })
+                max: new fields.NumberField({ initial: 10, integer: true }),
+                bonus: new fields.NumberField({ initial: 0, integer: true })
             }),
             wounds: new fields.SchemaField({
                 head: new fields.BooleanField({ initial: false }),

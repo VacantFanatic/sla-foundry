@@ -468,4 +468,60 @@ test.describe('Trait items confer their Active Effects on grant/revoke (#363)', 
 
         await page.evaluate((id) => game.actors.get(id)?.delete(), actorId);
     });
+
+    test('Gang Colours-style trait grants CHA/COOL stat bonuses and a flat HP Max bonus together', async ({ page }) => {
+        const { actorId, traitUuid } = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Gang Colours ${stamp}`,
+                    type: 'character',
+                    system: { stats: { cha: { value: 2, bonus: 0 }, cool: { value: 2, bonus: 0 } } }
+                }
+            ]);
+
+            const [worldTrait] = await Item.createDocuments([{ name: `E2E Gang Colours ${stamp}`, type: 'trait' }]);
+            await worldTrait.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'Gang Colours',
+                    disabled: false,
+                    changes: [
+                        { key: 'system.stats.cha.bonus', type: 'add', value: 1 },
+                        { key: 'system.stats.cool.bonus', type: 'add', value: 2 },
+                        { key: 'system.hp.bonus', type: 'add', value: 5 }
+                    ]
+                }
+            ]);
+            const [trait] = await actor.createEmbeddedDocuments('Item', [worldTrait.toObject()]);
+            await worldTrait.delete();
+
+            return { actorId: actor.id, traitUuid: trait.uuid };
+        });
+
+        const readState = () =>
+            page.evaluate((id) => {
+                const actor = game.actors.get(id);
+                return {
+                    chaTotal: actor.system.stats.cha.total,
+                    coolTotal: actor.system.stats.cool.total,
+                    hpMax: actor.system.hp.max
+                };
+            }, actorId);
+
+        // Base HP max for a character with no species item is hpBase (10, the actor.mjs fallback)
+        // + STR total (0, unset here) + the Gang Colours hpBonus (5) = 15.
+        await expect.poll(readState).toEqual({ chaTotal: 3, coolTotal: 4, hpMax: 15 });
+
+        await page.evaluate(
+            ({ actorId, traitUuid }) => {
+                const actor = game.actors.get(actorId);
+                return actor.items.find((i) => i.uuid === traitUuid).delete();
+            },
+            { actorId, traitUuid }
+        );
+
+        await expect.poll(readState).toEqual({ chaTotal: 2, coolTotal: 2, hpMax: 10 });
+
+        await page.evaluate((id) => game.actors.get(id)?.delete(), actorId);
+    });
 });
