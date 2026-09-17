@@ -476,7 +476,13 @@ test.describe('Trait items confer their Active Effects on grant/revoke (#363)', 
                 {
                     name: `E2E Gang Colours ${stamp}`,
                     type: 'character',
-                    system: { stats: { cha: { value: 2, bonus: 0 }, cool: { value: 2, bonus: 0 } } }
+                    system: {
+                        stats: {
+                            str: { value: 0, bonus: 0 },
+                            cha: { value: 2, bonus: 0 },
+                            cool: { value: 2, bonus: 0 }
+                        }
+                    }
                 }
             ]);
 
