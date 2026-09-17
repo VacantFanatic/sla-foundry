@@ -39,6 +39,11 @@
         {{localize "SLA.ShieldCraftSucceeded"}}
     </label>
     {{/if}}
+    <label class="sla-ignore-armor-pv-label"
+        style="display:flex; align-items:center; gap:4px; font-size:0.8em; color:#aaa; margin-bottom:4px;">
+        <input type="checkbox" class="ignore-armor-pv" />
+        {{localize "SLA.IgnoreArmorPv"}}
+    </label>
     {{/unless}}
     <div style="display:flex; flex-direction:column; gap:4px;">
         <button class="apply-damage-btn"

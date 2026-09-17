@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **"Ignore Armor PV" checkbox on the Apply Damage chat card (#362):** lets a GM bypass a target's
+  armor PV (and any equipped shield) entirely for a single hit, e.g. the Dream's Rift Claws/Teeth
+  (p. 202). A per-attack, live toggle — the same pattern as "Shield Craft Succeeded" — rather than
+  a weapon-item property, so it covers any one-off "this hit ignores armor" call.
+
 ## [2.9.2] - 2026-09-17
 
 ### Added

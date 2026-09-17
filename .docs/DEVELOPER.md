@@ -533,8 +533,8 @@ the checkbox is checked for that specific hit does it contribute PV and take AD 
 its own. Leaving the checkbox unchecked (the default) makes the hit bypass the shield entirely
 without altering its equipped state.
 
-`computeArmorMitigation(victim, ad, pvMod, attackType = 'melee', shieldCraftSuccess = false)` now
-loops every equipped `armor` item on the victim rather than finding a single one: body armor keeps
+`computeArmorMitigation(victim, ad, pvMod, attackType = 'melee', shieldCraftSuccess = false, ignorePV = false)`
+now loops every equipped `armor` item on the victim rather than finding a single one: body armor keeps
 the pre-existing highest-PV selection and resistance degradation, and — only when
 `shieldCraftSuccess` is true — each equipped shield with a nonzero PV for the current `attackType`
 adds its own contribution and degrades its own resistance independently. Its `armorData` return
@@ -552,6 +552,31 @@ since neither item type carries its own melee/ranged field.
 Attacker facing (no rear-arc protection) and per-shield STR minimums are rules-text restrictions
 with no automated enforcement — left to GM judgment, same as any other narrative equipment
 prerequisite.
+
+---
+
+## Ignoring Armor PV
+
+Source: `module/helpers/chat/damage.mjs` (`computeArmorMitigation`), `templates/chat/chat-damage.hbs`
+
+Some attacks bypass a target's armor entirely — e.g. the Dream's Rift Claws/Teeth (p. 202), which
+treat armor PV as zero. This is exposed as an **"Ignore Armor PV" checkbox on the Apply Damage chat
+card**, following the exact same pattern as the "Shield Craft Succeeded" checkbox above: a
+GM-controlled, per-hit decision read live at the moment Apply is clicked (`onApplyDamage` in
+`helpers/chat/handlers.mjs`, `card.querySelector('.ignore-armor-pv')`), never baked into
+`flags.sla` at roll-render time.
+
+It is deliberately **not** a weapon-item property. Modeling it as a per-attack chat-card toggle
+instead of a `SlaWeaponData` field avoids touching the weapon sheet or the attack-roll
+flag-threading pipeline (`pvMod`/`attackType`), and generalizes to any one-off "this hit ignores
+armor" narrative call, not just this one creature.
+
+When `ignorePV` is true, `computeArmorMitigation` returns `{ targetPV: 0, rawPv: 0, effectivePV: 0,
+armorData: null }` immediately, before any armor/shield lookup — the hit doesn't interact with
+armor or shields at all, so shield/armor Resistance is not degraded either. The auto-apply-wound
+path (`executeStandardDamageRoll`'s direct `applyDamageToTarget` call) has no chat card to read a
+checkbox from, so it always passes `ignorePV: false`, the same limitation that already applies to
+`shieldCraftSuccess` there.
 
 ---
 
