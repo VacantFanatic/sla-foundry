@@ -230,6 +230,39 @@ test.describe('GM: onDropItem dispatch (document API)', () => {
         expect(result).toBe(true);
     });
 
+    test('applies Active Effects from an auto-equipped NPC weapon/armor drop', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E OnDrop NPC Effects ${stamp}`,
+                    type: 'npc',
+                    system: { stats: { str: { value: 3, bonus: 0 } } }
+                }
+            ]);
+            const [armorSource] = await Item.createDocuments([
+                { name: `E2E Dropped Armor ${stamp}`, type: 'armor', system: { equipped: false } }
+            ]);
+            await armorSource.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'E2E Armor Str Boost',
+                    disabled: false,
+                    changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 2 }]
+                }
+            ]);
+
+            const { onDropItem } = await import('/systems/sla-industries/module/sheets/actor/actor-drops.mjs');
+            await onDropItem({ actor }, {}, { type: 'Item', uuid: armorSource.uuid });
+
+            const persistedStrTotal = game.actors.get(actor.id).system.stats.str.total;
+            await actor.delete();
+            await armorSource.delete();
+            return persistedStrTotal;
+        });
+
+        expect(result).toBe(5);
+    });
+
     test('falls through to stacking a non-species/package/auto-equip item', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();

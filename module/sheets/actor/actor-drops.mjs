@@ -88,7 +88,10 @@ export async function handlePackageDrop(sheet, itemData) {
 
 async function createEquippedItem(sheet, itemData) {
     foundry.utils.setProperty(itemData, 'system.equipped', true);
-    return sheet.actor.createEmbeddedDocuments('Item', [itemData]);
+    const created = await sheet.actor.createEmbeddedDocuments('Item', [itemData]);
+    const [item] = created;
+    if (item) await item.applyItemEffectsToActor(sheet.actor);
+    return created;
 }
 
 /**
