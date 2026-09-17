@@ -391,3 +391,143 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
         expect(result).toBe(1);
     });
 });
+
+test.describe('Trait items confer their Active Effects on grant/revoke (#363)', () => {
+    test.beforeEach(async ({ page }) => {
+        test.skip(!process.env.FOUNDRY_USER, 'Set FOUNDRY_USER');
+        await joinGame(page);
+        await waitForSLASystem(page);
+        const gm = await page.evaluate(() => game.user?.isGM === true);
+        test.skip(!gm, 'Requires GM — use a Gamemaster account for FOUNDRY_USER');
+    });
+
+    test('embedding a trait item on an actor applies its Active Effect; deleting the trait removes it', async ({
+        page
+    }) => {
+        // The actor's SlaActor#_onCreateDescendantDocuments/_onDeleteDescendantDocuments hooks
+        // that copy/remove a trait's effect are fire-and-forget (same convention as the existing
+        // Species grant/remove handlers), so the actor.createEmbeddedDocuments('Item', ...)
+        // promise below resolves before that copy necessarily finishes -- poll for the resulting
+        // state instead of reading it synchronously right after (see LESSONS_LEARNED.md's note on
+        // un-awaited side effects inside a resolved promise).
+        const { actorId, traitUuid } = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Trait Effect ${stamp}`,
+                    type: 'character',
+                    system: { stats: { str: { value: 3, bonus: 0 } } }
+                }
+            ]);
+
+            // Build the trait as a world item first (its Effects tab configured before it's ever
+            // dropped on anyone), then embed a copy on the actor -- mirroring the real drag-drop
+            // flow (Item.implementation.fromDropData -> item.toObject() ->
+            // actor.createEmbeddedDocuments('Item', [itemData])), so the trait's own effect
+            // already exists at the moment it's granted.
+            const [worldTrait] = await Item.createDocuments([
+                { name: `E2E Natural Aptitude STR ${stamp}`, type: 'trait' }
+            ]);
+            await worldTrait.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'Natural Aptitude: STR',
+                    disabled: false,
+                    changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 1 }]
+                }
+            ]);
+            const [trait] = await actor.createEmbeddedDocuments('Item', [worldTrait.toObject()]);
+            await worldTrait.delete();
+
+            return { actorId: actor.id, traitUuid: trait.uuid };
+        });
+
+        const readState = () =>
+            page.evaluate(
+                ({ actorId, traitUuid }) => {
+                    const actor = game.actors.get(actorId);
+                    return {
+                        strTotal: actor.system.stats.str.total,
+                        effectCount: actor.effects.filter((e) => e.origin === traitUuid).length
+                    };
+                },
+                { actorId, traitUuid }
+            );
+
+        await expect.poll(readState).toEqual({ strTotal: 4, effectCount: 1 });
+
+        await page.evaluate(
+            ({ actorId, traitUuid }) => {
+                const actor = game.actors.get(actorId);
+                const trait = actor.items.find((i) => i.uuid === traitUuid);
+                return trait.delete();
+            },
+            { actorId, traitUuid }
+        );
+
+        await expect.poll(readState).toEqual({ strTotal: 3, effectCount: 0 });
+
+        await page.evaluate((id) => game.actors.get(id)?.delete(), actorId);
+    });
+
+    test('Gang Colours-style trait grants CHA/COOL stat bonuses and a flat HP Max bonus together', async ({ page }) => {
+        const { actorId, traitUuid } = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Gang Colours ${stamp}`,
+                    type: 'character',
+                    system: {
+                        stats: {
+                            str: { value: 0, bonus: 0 },
+                            cha: { value: 2, bonus: 0 },
+                            cool: { value: 2, bonus: 0 }
+                        }
+                    }
+                }
+            ]);
+
+            const [worldTrait] = await Item.createDocuments([{ name: `E2E Gang Colours ${stamp}`, type: 'trait' }]);
+            await worldTrait.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'Gang Colours',
+                    disabled: false,
+                    changes: [
+                        { key: 'system.stats.cha.bonus', type: 'add', value: 1 },
+                        { key: 'system.stats.cool.bonus', type: 'add', value: 2 },
+                        { key: 'system.hp.bonus', type: 'add', value: 5 }
+                    ]
+                }
+            ]);
+            const [trait] = await actor.createEmbeddedDocuments('Item', [worldTrait.toObject()]);
+            await worldTrait.delete();
+
+            return { actorId: actor.id, traitUuid: trait.uuid };
+        });
+
+        const readState = () =>
+            page.evaluate((id) => {
+                const actor = game.actors.get(id);
+                return {
+                    chaTotal: actor.system.stats.cha.total,
+                    coolTotal: actor.system.stats.cool.total,
+                    hpMax: actor.system.hp.max
+                };
+            }, actorId);
+
+        // Base HP max for a character with no species item is hpBase (10, the actor.mjs fallback)
+        // + STR total (0, unset here) + the Gang Colours hpBonus (5) = 15.
+        await expect.poll(readState).toEqual({ chaTotal: 3, coolTotal: 4, hpMax: 15 });
+
+        await page.evaluate(
+            ({ actorId, traitUuid }) => {
+                const actor = game.actors.get(actorId);
+                return actor.items.find((i) => i.uuid === traitUuid).delete();
+            },
+            { actorId, traitUuid }
+        );
+
+        await expect.poll(readState).toEqual({ chaTotal: 2, coolTotal: 2, hpMax: 10 });
+
+        await page.evaluate((id) => game.actors.get(id)?.delete(), actorId);
+    });
+});

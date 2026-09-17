@@ -51,6 +51,17 @@ export class SlaActor extends Actor {
         return computeActiveEffectKeyValue(this.effects, 'system.rollModifier.bonus', baseBonus);
     }
 
+    /**
+     * Computes the effective `system.hp.bonus` — a flat HP Max addition (e.g. a Gang Colours
+     * trait's +5 HP) — from its stored base plus every enabled effect's matching change rows,
+     * applied in priority order. Resolved once per derived-data pass so both the wound/critical
+     * projection and the final HP max calculation (see resolveDerivedHpMax) read the same value.
+     * @param {number} baseBonus
+     */
+    _computeHpBonusTotal(baseBonus) {
+        return computeActiveEffectKeyValue(this.effects, 'system.hp.bonus', baseBonus);
+    }
+
     /** @override */
     prepareDerivedData() {
         super.prepareDerivedData();
@@ -86,6 +97,15 @@ export class SlaActor extends Actor {
                 const srcRollModifier = foundry.utils.getProperty(this._source, 'system.rollModifier') || {};
                 const rollModifierSrcBonus = Number(srcRollModifier.bonus) || 0;
                 system.rollModifier.total = this._computeRollModifierTotal(rollModifierSrcBonus);
+            }
+
+            // 1C. HP bonus: stored base bonus with live Active Effect changes on system.hp.bonus
+            // applied. Resolved once here so both the wound/critical projection below and the
+            // final HP max calculation (_calculateDerived) read the same effective value.
+            if (system.hp) {
+                const srcHp = foundry.utils.getProperty(this._source, 'system.hp') || {};
+                const hpSrcBonus = Number(srcHp.bonus) || 0;
+                system.hp.bonus = this._computeHpBonusTotal(hpSrcBonus);
             }
 
             // 2. Drug mechanics use Active Effects (item embedded effects); do not stack here.
@@ -207,6 +227,7 @@ export class SlaActor extends Actor {
                 type: this.type,
                 hpBase,
                 strTotal: system.stats.str?.total || 0,
+                hpBonus: system.hp?.bonus || 0,
                 storedMax: system.hp?.max
             })
         );
@@ -332,11 +353,13 @@ export class SlaActor extends Actor {
             hpBase = speciesItem.system.hp;
         }
 
-        // HP Max = Base + Final STR (Characters); GM-authored value preserved for NPCs/Threats
+        // HP Max = Base + Final STR + Active Effect bonus (Characters); GM-authored value
+        // preserved (plus the same bonus) for NPCs/Threats
         system.hp.max = resolveDerivedHpMax({
             type: this.type,
             hpBase,
             strTotal: system.stats.str?.total || 0,
+            hpBonus: system.hp.bonus || 0,
             storedMax: system.hp.max
         });
 
@@ -442,6 +465,8 @@ export class SlaActor extends Actor {
         for (const doc of documents) {
             if (doc.type === 'species') {
                 this._handleSpeciesAdd(doc);
+            } else if (doc.type === 'trait') {
+                doc.applyItemEffectsToActor(this);
             }
         }
     }
@@ -457,6 +482,8 @@ export class SlaActor extends Actor {
         for (const doc of documents) {
             if (doc.type === 'species') {
                 this._handleSpeciesRemove(doc);
+            } else if (doc.type === 'trait') {
+                doc._removeEffectsByOrigin(this, doc.uuid);
             }
         }
     }

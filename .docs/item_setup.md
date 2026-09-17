@@ -165,6 +165,37 @@ Dragging **gear**, **explosives**, **magazines**, or **drugs** onto an actor she
 - Other items match by type + name (case-insensitive), and magazines also require matching `ammoType` and `ammoCapacity`.
 - Items with embedded Active Effects are **never** merged automatically.
 
+### Active Effects — which item types apply them, and when
+
+Only some item types have an **Effects** tab, and only for those types does putting a Change
+row there actually do anything — every one of them has a real, specific trigger that copies the
+item's embedded effects onto the actor:
+
+| Type                                                             | Effects tab? | Applies to the actor...                                       |
+| ---------------------------------------------------------------- | ------------ | ------------------------------------------------------------- |
+| `item`                                                           | Yes          | While **Equipped** (toggle on the sheet)                      |
+| `trait`                                                          | Yes          | While the actor **owns** the trait (grant/revoke — see below) |
+| `drug`                                                           | Yes          | While **Active** (Consume/toggle)                             |
+| `toxicant`                                                       | Yes          | On a **failed** infection test (§5)                           |
+| `ebbFormula`                                                     | Yes          | Via the post-roll chat button (§3C)                           |
+| `weapon`, `armor`, `explosive`, `magazine`, `species`, `package` | No           | —                                                             |
+
+The second group has no Effects tab at all — nothing in the system ever reads an embedded effect
+on those types, so the tab was removed rather than leaving a control on the sheet that silently
+does nothing (issue #363). Powered armor's stat bonuses are still fully supported — see §7B/C,
+which use dedicated Mods/DEX Cap/Init Bonus fields instead of Active Effects.
+
+**Gear (`item`) and Traits (`trait`)** are the two types most likely to need a plain stat bonus
+(a bought perk, a piece of flavor gear like a gang-colors bonus, a character-creation trait like
+Natural Aptitude): add a Change on `system.stats.<stat>.bonus` (type Add) or
+`system.rollModifier.bonus` on the item's Effects tab. For gear, the bonus is live exactly while
+the item's **Equipped** checkbox is on. For a trait, the bonus is live exactly while the actor
+owns that trait item — granted the moment it's added to the actor (drag-drop, the sidebar
+**Create Item** button, or a compendium import all work), removed the moment it's deleted from
+the actor. Traits with a conditional or GM-adjudicated effect (a phobia only triggering near its
+stimulus, an illness only causing a penalty during a flare-up) are still resolved manually at the
+table — only attach an Active Effect to a trait whose rule is a flat, always-on modifier.
+
 ---
 
 ## 7. Armor & Powersuits
