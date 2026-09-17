@@ -193,6 +193,45 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
         expect(result.persistedResistance).toBe(12);
     });
 
+    test('computeArmorMitigation bypasses body armor and shield entirely when ignorePV is true', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([{ name: `E2E IgnorePV ${stamp}`, type: 'character' }]);
+            const [armor, shield] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Body Armor ${stamp}`,
+                    type: 'armor',
+                    system: { pv: 6, equipped: true, isShield: false, resistance: { value: 10, max: 10 } }
+                },
+                {
+                    name: `E2E Shield ${stamp}`,
+                    type: 'armor',
+                    system: {
+                        isShield: true,
+                        pvMelee: 3,
+                        pvRanged: 3,
+                        equipped: true,
+                        resistance: { value: 12, max: 12 }
+                    }
+                }
+            ]);
+
+            const { computeArmorMitigation } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            // Shield Craft succeeded AND ignorePV is true -- ignorePV must still win: no armor,
+            // no shield, no resistance degradation at all.
+            const mitigation = await computeArmorMitigation(actor, 5, 0, 'melee', true, true);
+
+            const armorRes = actor.items.get(armor.id).system.resistance.value;
+            const shieldRes = actor.items.get(shield.id).system.resistance.value;
+            await actor.delete();
+            return { mitigation, armorRes, shieldRes };
+        });
+
+        expect(result.mitigation).toEqual({ targetPV: 0, rawPv: 0, effectivePV: 0, armorData: null });
+        expect(result.armorRes).toBe(10);
+        expect(result.shieldRes).toBe(12);
+    });
+
     test('computeArmorMitigation stacks shield PV additively on top of body armor when the roll succeeds', async ({
         page
     }) => {
@@ -614,6 +653,82 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
 
         expect(result.hpAfterUnchecked).toBe(0); // 10 raw damage, no mitigation at all.
         expect(result.hpAfterChecked).toBe(5); // 10 raw damage - 5 shield PV.
+    });
+
+    test('onApplyDamage reads the live "Ignore Armor PV" checkbox and bypasses body armor accordingly', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [victim] = await Actor.createDocuments([
+                {
+                    name: `E2E IgnorePV Checkbox Victim ${stamp}`,
+                    type: 'character',
+                    system: { hp: { value: 10, max: 10 } }
+                }
+            ]);
+            await victim.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Body Armor ${stamp}`,
+                    type: 'armor',
+                    system: { pv: 6, equipped: true, isShield: false, resistance: { value: 10, max: 10 } }
+                }
+            ]);
+
+            // Same self-target Ebb path as the Shield Craft checkbox test above.
+            const buildCard = async (checked) => {
+                const message = await ChatMessage.create({
+                    speaker: ChatMessage.getSpeaker({ actor: victim }),
+                    content: '<div class="sla-chat-card"></div>',
+                    flags: { sla: { ammoName: null, ebbTarget: 'self' } }
+                });
+                const card = document.createElement('div');
+                card.className = 'sla-chat-card';
+                card.dataset.actorUuid = victim.uuid;
+
+                const messageWrapper = document.createElement('div');
+                messageWrapper.className = 'message';
+                messageWrapper.dataset.messageId = message.id;
+                messageWrapper.appendChild(card);
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'ignore-armor-pv';
+                checkbox.checked = checked;
+                card.appendChild(checkbox);
+
+                const applyBtn = document.createElement('button');
+                applyBtn.dataset.dmg = '10';
+                applyBtn.dataset.ad = '0';
+                applyBtn.dataset.pvMod = '0';
+                applyBtn.dataset.ebbTarget = 'self';
+                card.appendChild(applyBtn);
+
+                return { message, applyBtn };
+            };
+
+            const { onApplyDamage } = await import('/systems/sla-industries/module/helpers/chat/handlers.mjs');
+
+            // Unchecked: the equipped body armor must mitigate as normal.
+            const unchecked = await buildCard(false);
+            await onApplyDamage({ preventDefault: () => {}, currentTarget: unchecked.applyBtn });
+            const hpAfterUnchecked = victim.system.hp.value;
+            await unchecked.message.delete();
+
+            await victim.update({ 'system.hp.value': 10 });
+
+            // Checked: armor must be bypassed entirely.
+            const checked = await buildCard(true);
+            await onApplyDamage({ preventDefault: () => {}, currentTarget: checked.applyBtn });
+            const hpAfterChecked = victim.system.hp.value;
+            await checked.message.delete();
+
+            await victim.delete();
+            return { hpAfterUnchecked, hpAfterChecked };
+        });
+
+        expect(result.hpAfterUnchecked).toBe(6); // 10 raw damage - 6 armor PV mitigated = 4 dmg -> hp 10-4=6.
+        expect(result.hpAfterChecked).toBe(0); // 10 raw damage, armor bypassed entirely -> hp 10-10=0.
     });
 
     test('executeStandardDamageRoll hides the Shield Craft checkbox unless the target has an equipped shield, on both PCs and NPCs', async ({

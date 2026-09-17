@@ -237,13 +237,21 @@ export async function applyEbbOutcomeToActor(
     actor,
     rawAmount,
     ad,
-    { isHeal, removeWoundsCount = 0, pvMod = 0, ammoName = null, attackType = 'melee', shieldCraftSuccess = false }
+    {
+        isHeal,
+        removeWoundsCount = 0,
+        pvMod = 0,
+        ammoName = null,
+        attackType = 'melee',
+        shieldCraftSuccess = false,
+        ignorePV = false
+    }
 ) {
     if (isHeal) {
         const { finalHeal, hpData } = await applyHpHeal(actor, rawAmount);
         await postHealResultChat({ victim: actor, rawHeal: rawAmount, finalHeal, hpData });
     } else {
-        await applyDamageToVictim(actor, rawAmount, ad, pvMod, ammoName, attackType, shieldCraftSuccess);
+        await applyDamageToVictim(actor, rawAmount, ad, pvMod, ammoName, attackType, shieldCraftSuccess, ignorePV);
     }
     const n = Math.max(0, Math.min(6, Math.floor(Number(removeWoundsCount) || 0)));
     if (n > 0) {
@@ -293,8 +301,22 @@ async function degradeArmorItemResistance(item, ad, basePv) {
  * @param {boolean} [shieldCraftSuccess] - Whether the wielder's Shield Craft roll succeeded
  *   against this specific attack. Equipped shields only contribute when this is true; `equipped`
  *   alone only means "currently carried/raised," not "blocked this hit."
+ * @param {boolean} [ignorePV] - Whether this hit bypasses the target's armor PV entirely (e.g.
+ *   Rift Claws/Teeth, p. 202). When true, armor and shields are not consulted at all -- the hit
+ *   doesn't interact with them, so shield/armor Resistance is not degraded either.
  */
-export async function computeArmorMitigation(victim, ad, pvMod = 0, attackType = 'melee', shieldCraftSuccess = false) {
+export async function computeArmorMitigation(
+    victim,
+    ad,
+    pvMod = 0,
+    attackType = 'melee',
+    shieldCraftSuccess = false,
+    ignorePV = false
+) {
+    if (ignorePV) {
+        return { targetPV: 0, rawPv: 0, effectivePV: 0, armorData: null };
+    }
+
     const isEquipped = (i) => victim.type === 'npc' || i.system.equipped;
     const armorItems = victim.items.filter((i) => i.type === 'armor' && isEquipped(i));
     const bodyArmorItems = armorItems.filter((i) => !i.system.isShield);
@@ -414,14 +436,16 @@ export async function applyDamageToVictim(
     pvMod = 0,
     ammoName = null,
     attackType = 'melee',
-    shieldCraftSuccess = false
+    shieldCraftSuccess = false,
+    ignorePV = false
 ) {
     const { targetPV, rawPv, effectivePV, armorData } = await computeArmorMitigation(
         victim,
         ad,
         pvMod,
         attackType,
-        shieldCraftSuccess
+        shieldCraftSuccess,
+        ignorePV
     );
     const { finalDamage, hpData } = await applyHpDamage(victim, rawDamage, effectivePV);
     await postDamageResultChat({
@@ -445,12 +469,13 @@ export async function applyDamageToTarget(
     pvMod = 0,
     ammoName = null,
     attackType = 'melee',
-    shieldCraftSuccess = false
+    shieldCraftSuccess = false,
+    ignorePV = false
 ) {
     const victim = await resolveActorFromUuid(targetUuid);
     if (!victim) {
         console.warn('SLA | Auto-apply: Target not found', targetUuid);
         return;
     }
-    await applyDamageToVictim(victim, rawDamage, ad, pvMod, ammoName, attackType, shieldCraftSuccess);
+    await applyDamageToVictim(victim, rawDamage, ad, pvMod, ammoName, attackType, shieldCraftSuccess, ignorePV);
 }

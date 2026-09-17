@@ -180,6 +180,9 @@ export async function onApplyDamage(ev) {
         // Live, unbaked: reflects a Shield Craft roll the GM narrated after this card rendered,
         // so it must never be pre-filled from flags at render time.
         const shieldCraftSuccess = Boolean(card.querySelector('.shield-craft-success')?.checked);
+        // Live, unbaked: a per-hit GM call (e.g. Rift Claws/Teeth bypassing armor), never baked
+        // into the weapon or the chat message flags.
+        const ignorePV = Boolean(card.querySelector('.ignore-armor-pv')?.checked);
 
         const rollingUuid = readDataString(card, 'actor-uuid') || mflags.ebbCasterUuid;
         const rollingActor = rollingUuid ? await fromUuid(rollingUuid) : null;
@@ -210,7 +213,8 @@ export async function onApplyDamage(ev) {
             pvMod,
             ammoName,
             attackType,
-            shieldCraftSuccess
+            shieldCraftSuccess,
+            ignorePV
         });
     } catch (err) {
         console.error('SLA | Error in onApplyDamage:', err);
