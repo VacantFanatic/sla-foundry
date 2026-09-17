@@ -59,6 +59,29 @@ cheaper than rediscovering the same bug or re-scanning the codebase to reconstru
 Follow [CONTRIBUTING.md](CONTRIBUTING.md) — code must pass `npm run format:check` (Prettier) and
 logic changes follow TDD (`tests/unit/`, `npm run test:unit`). CI enforces both on every PR.
 
+## A passing test only proves what it actually exercises
+
+Before calling a fix done, check whether its test would catch the bug if the fix were reverted —
+and whether it exercises the same path a real user/GM does, not a shortcut around it. This has
+shipped real regressions in this repo:
+
+- **Issue #363 → #369**: #363 fixed Gear's Active Effects not applying to the actor, and shipped
+  with a passing e2e test (`regression-sheet-click.spec.js`) — but that test built a `.item-toggle`
+  element with `document.createElement` and called the click handler directly. It proved the
+  handler logic worked, but never rendered the real `inventory-tab.hbs` template, so it couldn't
+  catch that the template never emitted an equip toggle for Item/Gear rows at all. The bug shipped
+  anyway and was refiled as #369 against the exact same feature.
+
+When a fix depends on a UI control (a button, toggle, checkbox) triggering already-correct logic,
+write at least one test that renders the real template/sheet and asserts the control is visible
+and clickable, in addition to any unit-level test of the handler in isolation — a hand-built DOM
+element or a direct function call is fine for the latter but cannot prove the former. More
+generally: prefer testing behavior at the boundary a user actually interacts with (a rendered
+sheet, a real document create/update) over mocking the layer just below it, and when in doubt, run
+the change through a real Foundry instance
+([.docs/CLOUD_ENVIRONMENT.md](.docs/CLOUD_ENVIRONMENT.md) /
+[.docs/AGENTS.md](.docs/AGENTS.md)) before considering it verified, not just green unit tests.
+
 ## Keep tests in sync with the code
 
 When a change moves markup, renames a `data-*` attribute or CSS class, relocates content to a

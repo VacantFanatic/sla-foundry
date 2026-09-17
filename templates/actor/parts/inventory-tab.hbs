@@ -32,7 +32,7 @@
                         <td class="sla-col-qty">{{item.system.quantity}}</td>
                         <td class="sla-col-wt">{{item.system.weight}}</td>
                         <td class="item-controls sla-col-actions">
-                            {{#if (or (eq item.type "weapon") (eq item.type "armor"))}}
+                            {{#if (or (eq item.type "weapon") (or (eq item.type "armor") (eq item.type "item")))}}
                             <a class="item-toggle" title="{{#if item.system.equipped}}{{localize 'SLA.ActorSheet.HolsterItem'}}{{else}}{{localize 'SLA.ActorSheet.EquipItem'}}{{/if}}" aria-label="{{#if item.system.equipped}}{{localize 'SLA.ActorSheet.HolsterItem'}}{{else}}{{localize 'SLA.ActorSheet.EquipItem'}}{{/if}}">
                                 {{#if item.system.equipped}}<i class="fas fa-check-circle sla-combat-equipped"></i>{{else}}<i class="fas fa-circle sla-combat-unequipped"></i>{{/if}}
                             </a>
