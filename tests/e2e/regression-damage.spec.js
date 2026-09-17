@@ -727,8 +727,8 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
             return { hpAfterUnchecked, hpAfterChecked };
         });
 
-        expect(result.hpAfterUnchecked).toBe(4); // 10 raw damage - 6 armor PV.
-        expect(result.hpAfterChecked).toBe(0); // 10 raw damage, armor bypassed entirely.
+        expect(result.hpAfterUnchecked).toBe(6); // 10 raw damage - 6 armor PV mitigated = 4 dmg -> hp 10-4=6.
+        expect(result.hpAfterChecked).toBe(0); // 10 raw damage, armor bypassed entirely -> hp 10-10=0.
     });
 
     test('executeStandardDamageRoll hides the Shield Craft checkbox unless the target has an equipped shield, on both PCs and NPCs', async ({
