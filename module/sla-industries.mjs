@@ -10,6 +10,19 @@ import { SlaActorSheet } from './sheets/actor-sheet.mjs';
 import { SlaNPCSheet } from './sheets/actor-npc-sheet.mjs';
 import { SlaVehicleSheet } from './sheets/actor-vehicle-sheet.mjs';
 import { SlaItemSheet } from './sheets/item-sheet.mjs';
+import { SlaWeaponItemSheet } from './sheets/item/item-weapon-sheet.mjs';
+import { SlaArmorItemSheet } from './sheets/item/item-armor-sheet.mjs';
+import { SlaExplosiveItemSheet } from './sheets/item/item-explosive-sheet.mjs';
+import { SlaMagazineItemSheet } from './sheets/item/item-magazine-sheet.mjs';
+import { SlaDrugItemSheet } from './sheets/item/item-drug-sheet.mjs';
+import { SlaToxicantItemSheet } from './sheets/item/item-toxicant-sheet.mjs';
+import { SlaGearItemSheet } from './sheets/item/item-gear-sheet.mjs';
+import { SlaTraitItemSheet } from './sheets/item/item-trait-sheet.mjs';
+import { SlaEbbFormulaItemSheet } from './sheets/item/item-ebb-formula-sheet.mjs';
+import { SlaSkillItemSheet } from './sheets/item/item-skill-sheet.mjs';
+import { SlaDisciplineItemSheet } from './sheets/item/item-discipline-sheet.mjs';
+import { SlaSpeciesItemSheet } from './sheets/item/item-species-sheet.mjs';
+import { SlaPackageItemSheet } from './sheets/item/item-package-sheet.mjs';
 
 // Import ruler.
 import { SLATokenRuler } from './canvas/sla-ruler.mjs';
@@ -306,9 +319,70 @@ Hooks.once('init', async function () {
     });
 
     foundry.documents.collections.Items.unregisterSheet('core', foundry.appv1.sheets.ItemSheet);
-    foundry.documents.collections.Items.registerSheet('sla-industries', SlaItemSheet, {
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaGearItemSheet, {
+        types: ['item'],
         makeDefault: true,
-        label: 'SLA Item Sheet'
+        label: 'SLA Gear Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaSkillItemSheet, {
+        types: ['skill'],
+        makeDefault: true,
+        label: 'SLA Skill Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaTraitItemSheet, {
+        types: ['trait'],
+        makeDefault: true,
+        label: 'SLA Trait Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaWeaponItemSheet, {
+        types: ['weapon'],
+        makeDefault: true,
+        label: 'SLA Weapon Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaExplosiveItemSheet, {
+        types: ['explosive'],
+        makeDefault: true,
+        label: 'SLA Explosive Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaArmorItemSheet, {
+        types: ['armor'],
+        makeDefault: true,
+        label: 'SLA Armor Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaEbbFormulaItemSheet, {
+        types: ['ebbFormula'],
+        makeDefault: true,
+        label: 'SLA Ebb Formula Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaDisciplineItemSheet, {
+        types: ['discipline'],
+        makeDefault: true,
+        label: 'SLA Discipline Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaDrugItemSheet, {
+        types: ['drug'],
+        makeDefault: true,
+        label: 'SLA Drug Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaToxicantItemSheet, {
+        types: ['toxicant'],
+        makeDefault: true,
+        label: 'SLA Toxicant Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaSpeciesItemSheet, {
+        types: ['species'],
+        makeDefault: true,
+        label: 'SLA Species Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaPackageItemSheet, {
+        types: ['package'],
+        makeDefault: true,
+        label: 'SLA Package Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaMagazineItemSheet, {
+        types: ['magazine'],
+        makeDefault: true,
+        label: 'SLA Magazine Sheet'
     });
 
     game.sla = foundry.utils.mergeObject(game.sla ?? {}, {
