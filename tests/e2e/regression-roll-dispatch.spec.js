@@ -82,12 +82,13 @@ test.describe('GM: processExplosiveRoll (document API)', () => {
             const original = game.settings.get('sla-industries', 'enableExplosiveThrowAutomation');
             await game.settings.set('sla-industries', 'enableExplosiveThrowAutomation', false);
 
-            const { generateSheetTooltip, resolveSheetDamageDisplay } =
+            const { generateSheetTooltip, resolveSheetDamageDisplay, buildSlaRollFlags } =
                 await import('/systems/sla-industries/module/sheets/actor/sheet-helpers.mjs');
             const sheet = {
                 actor,
                 _generateTooltip: (roll, mod, sdMod) => generateSheetTooltip(roll, mod, sdMod),
-                _resolveDamageDisplay: (formula) => resolveSheetDamageDisplay(formula, actor)
+                _resolveDamageDisplay: (formula) => resolveSheetDamageDisplay(formula, actor),
+                _buildSlaRollFlags: (params) => buildSlaRollFlags(params)
             };
 
             const form = document.createElement('form');
