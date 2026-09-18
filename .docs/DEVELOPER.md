@@ -290,7 +290,10 @@ spanning the main categories:
 
 ```bash
 npm run test:e2e              # full suite
-npm run test:e2e:regression   # curated smoke/regression set (SLA API, item/actor/NPC/vehicle sheets, dialogs)
+npm run test:e2e:regression   # CI-gated suite: sheets/dialogs, damage/wound/armor pipeline, roll
+                               # orchestrators (skill/stat/weapon/explosive/ebb), hotbar macros,
+                               # inventory/item actions, migrations, modifiers, weapon gates,
+                               # accessibility, and the Foundry join smoke check
 npm run test:e2e:operators    # Operative CRUD, weapon items, roll integration (GM-only)
 npm run test:e2e:visual       # screenshot diffing for the three actor sheet types (needs committed baselines)
 npm run test:e2e:ui           # Playwright UI mode
@@ -302,6 +305,13 @@ E2E tests require:
 - A running Foundry VTT instance accessible at the configured URL.
 - `FOUNDRY_USER` environment variable set to the username.
 - GM-only steps skip automatically if the user is not a Gamemaster.
+
+`test:e2e:regression`, `test:e2e:operators`, and `test:e2e:visual` all run as separate steps in
+`.github/workflows/main.yml`'s `e2e` job (gated on Foundry download credentials being configured —
+see that job's own comments). `test:e2e:operators` stays a separate step because it's GM-only and
+silently skips for a non-GM user, which is easy to miss if folded into a larger bundle.
+`test:e2e:visual` stays separate and keeps its own `continue-on-error: true` because it needs
+committed screenshot baselines and is prone to environment-specific pixel drift — see below.
 
 `tests/e2e/regression-visual-actor-sheets.spec.js` uses Playwright's `toHaveScreenshot`
 (config in `playwright.config.js`) instead of the old manual PNG capture. Baselines aren't
