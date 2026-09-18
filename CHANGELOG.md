@@ -16,6 +16,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `stat-row.hbs` partial. This made a correctly-applied bonus look like it never applied. Fixed by
   adding an effective-value hint (reusing the existing `sla-stat-effective-hint` style) to the
   Threat sheet's stat table whenever the AE-boosted total differs from the base value.
+- **Active Effect changes on `system.move.closing`/`system.move.rushing` never applied (#373):**
+  an Ebb Formulae (or any other) Active Effect targeting Closing/Rushing directly applied
+  correctly to stats like STR/DEX but had no effect on movement, because `_calculateDerived`
+  unconditionally recomputed both fields from species base + Athletics + armor bonus each pass,
+  overwriting whatever core's own Active Effect application had just written. Fixed by resolving
+  each field's Active Effect contribution fresh every pass (`computeActiveEffectKeyValue`) and
+  folding it into the movement calculation instead of being clobbered by it.
 
 ## [2.9.4] - 2026-09-17
 
