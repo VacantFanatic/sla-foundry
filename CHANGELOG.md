@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Apply Damage / Apply Ebb Effects / Remove Ebb Wounds chat buttons silently no-op against a
+  world actor with no token (#379):** `resolveActorFromUuid` (`module/helpers/chat/damage.mjs`)
+  assumed every UUID it received was a Token UUID and unconditionally read `.actor` off the
+  resolved document. When given a plain Actor UUID instead (no token/scene involved), `fromUuid`
+  returns the `Actor` document itself, which has no `.actor` property, so the helper returned
+  `null` and every caller's `if (!victim) return;` guard silently aborted — no HP damage applied,
+  no Active Effect copied, no wounds cleared. Fixed by accepting both Token and Actor UUIDs.
+
 ## [2.9.4] - 2026-09-17
 
 ### Fixed

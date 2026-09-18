@@ -147,8 +147,11 @@ export async function executeStandardDamageRoll({
 }
 
 export async function resolveActorFromUuid(targetUuid) {
-    const token = await fromUuid(targetUuid);
-    return token?.actor ?? null;
+    const doc = await fromUuid(targetUuid);
+    if (!doc) return null;
+    // targetUuid may be a Token UUID (live play, from game.user.targets) or a plain
+    // Actor UUID (e.g. a world actor with no token/scene involved) -- accept both.
+    return doc instanceof Actor ? doc : (doc.actor ?? null);
 }
 
 function actorHasActiveShield(actor) {
