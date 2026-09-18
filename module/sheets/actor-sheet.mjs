@@ -29,7 +29,7 @@ import {
     statPlayColorClass
 } from './actor/sheet-ux-pure.mjs';
 import { executeSkillRollFromItem } from './actor/skill-rolls.mjs';
-import { executeEbbRoll } from './actor/ebb-rolls.mjs';
+import { renderEbbCastDialog } from './actor/ebb-rolls.mjs';
 import { processExplosiveRoll, renderExplosiveDialog } from './actor/explosive-rolls.mjs';
 import { processWeaponRoll, renderAttackDialog } from './actor/weapon-rolls.mjs';
 
@@ -780,7 +780,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     async _executeEbbRoll(item) {
-        return executeEbbRoll(this, item);
+        return renderEbbCastDialog(this, item);
     }
 
     async _onDropItem(event, data) {

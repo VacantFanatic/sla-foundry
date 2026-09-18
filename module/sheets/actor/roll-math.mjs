@@ -317,6 +317,14 @@ export function calculateEbbModifier({
 }
 
 /**
+ * MOS-3 shared flavor text (rulebook: "may use the same Ebb Discipline ability again within
+ * 5 minutes, at -3 Formula Rating" -- equivalent to +3 on the roll, applied via the Ebb cast
+ * dialog's situational modifier). Exported so callers that re-derive Ebb outcome text outside
+ * resolveEbbOutcomeText (e.g. luck-dialog.mjs after a reroll) can't drift from this wording.
+ */
+export const EBB_MOS3_REUSE_TEXT = 'May use the same Ebb ability again within 5 minutes (+3 to that roll)';
+
+/**
  * @param {boolean} isBaseSuccess
  * @param {number} skillSuccesses
  * @param {string} ebbEffectRaw
@@ -334,9 +342,7 @@ export function resolveEbbOutcomeText(isBaseSuccess, skillSuccesses, ebbEffectRa
         if (skillSuccesses === 2) {
             mosEffectText = attackMos ? '+1 Damage / Effect' : 'Standard Success';
         } else if (skillSuccesses === 3) {
-            mosEffectText = attackMos
-                ? '+2 Damage / Repeat Ability'
-                : 'May use the same Ebb ability again within 5 minutes (-3 FLUX)';
+            mosEffectText = attackMos ? `+2 Damage / ${EBB_MOS3_REUSE_TEXT}` : EBB_MOS3_REUSE_TEXT;
         } else if (skillSuccesses >= 4) {
             mosEffectText = attackMos
                 ? "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX"

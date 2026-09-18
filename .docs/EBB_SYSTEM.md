@@ -84,6 +84,27 @@ Source: `module/helpers/ebb-flux.mjs → syncEbbCriticalFlux`
 
 ---
 
+## MOS 3 — Reuse
+
+The rulebook grants a caster who lands **exactly 3 skill successes** on a successful roll the
+option to recast the same Ebb Discipline ability again within 5 minutes, at **-3 Formula
+Rating**. Since success requires `roll >= Formula Rating`, a -3 penalty to the target number is
+mathematically equivalent to a **+3 bonus to the roll**, so this is implemented as a roll
+modifier rather than a target-number change.
+
+Rather than the system automatically tracking eligibility and the 5-minute window, every Ebb
+Discipline cast opens a **pre-roll confirmation dialog** (`renderEbbCastDialog`) with a generic
+**Situational Modifier** input. The player self-declares the modifier that applies to that roll —
+e.g. `+3` for a MOS-3 reuse of an ability they rolled within the last 5 minutes, or a negative
+value for an unrelated penalty (a house-ruled -2 for choking, for example). There is no automatic
+flag, timer, or chat-card button: the player/GM is trusted to enter the correct value, the same
+way other manual roll modifiers work in this codebase.
+
+Source: `module/sheets/actor/ebb-rolls.mjs → renderEbbCastDialog`, `confirmEbbCast`,
+`executeEbbRoll` (`situationalModifier` parameter)
+
+---
+
 ## Formula Targets
 
 The **Target** field controls where the result is applied:
@@ -138,14 +159,15 @@ The Luck dialog supports rerolling Ebb formula rolls. It reads the **Formula Rat
 
 ### Key files
 
-| File                            | Purpose                                                                           |
-| ------------------------------- | --------------------------------------------------------------------------------- |
-| `module/helpers/ebb-mos.mjs`    | `getEbbMosDamageBonus` — pure function for MOS damage bonus                       |
-| `module/helpers/ebb-flux.mjs`   | `syncEbbCriticalFlux` — flux regain/revoke on success/failure                     |
-| `module/helpers/items.mjs`      | `normalizeEbbEffect`, `normalizeEbbHealWoundMode` — canonical value normalization |
-| `module/helpers/chat.mjs`       | `SLAChat` — all chat card rendering and button handlers for Ebb                   |
-| `module/data/item.mjs`          | `SlaEbbFormulaData`, `SlaDisciplineData` — schema definitions                     |
-| `module/sheets/actor-sheet.mjs` | Ebb roll initiation, flux deduction, roll result dispatch                         |
+| File                                | Purpose                                                                                      |
+| ----------------------------------- | -------------------------------------------------------------------------------------------- |
+| `module/helpers/ebb-mos.mjs`        | `getEbbMosDamageBonus` — pure function for MOS damage bonus                                  |
+| `module/helpers/ebb-flux.mjs`       | `syncEbbCriticalFlux` — flux regain/revoke on success/failure                                |
+| `module/sheets/actor/ebb-rolls.mjs` | `renderEbbCastDialog`, `confirmEbbCast` — pre-roll situational-modifier dialog (MOS-3 reuse) |
+| `module/helpers/items.mjs`          | `normalizeEbbEffect`, `normalizeEbbHealWoundMode` — canonical value normalization            |
+| `module/helpers/chat.mjs`           | `SLAChat` — all chat card rendering and button handlers for Ebb                              |
+| `module/data/item.mjs`              | `SlaEbbFormulaData`, `SlaDisciplineData` — schema definitions                                |
+| `module/sheets/actor-sheet.mjs`     | Ebb roll initiation, flux deduction, roll result dispatch                                    |
 
 ### Chat message flags (`flags.sla`)
 

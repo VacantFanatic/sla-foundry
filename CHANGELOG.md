@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Ebb MOS-3 "reuse" outcome now actually applies a modifier, via a pre-roll confirmation
+  dialog (#380):** casting an Ebb Discipline formula now opens a confirmation dialog with a
+  generic **Situational Modifier** input before rolling. The rulebook's MOS-3 outcome ("may use
+  the same Ebb Discipline ability again within 5 minutes, at -3 Formula Rating") is implemented
+  as a **+3 roll modifier** — mathematically equivalent since success requires `roll >=
+targetNumber` — entered by the player when applicable, rather than the system automatically
+  tracking eligibility/the 5-minute window. The same input covers any other one-off situational
+  modifier (e.g. a house-ruled penalty for choking). Also fixes the MOS-3 chat flavor text, which
+  previously said "(-3 FLUX)" instead of describing the actual Formula Rating mechanic.
+
 ## [2.9.4] - 2026-09-17
 
 ### Fixed

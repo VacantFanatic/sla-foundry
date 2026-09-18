@@ -1,5 +1,6 @@
 import { normalizeEbbEffect, normalizeEbbHealWoundMode } from '../../helpers/items.mjs';
 import { syncEbbCriticalFlux } from '../../helpers/ebb-flux.mjs';
+import { SlaSimpleContentDialog } from '../../apps/sla-simple-dialog.mjs';
 import {
     buildEbbDamageFormula,
     buildSkillDiceResults,
@@ -119,8 +120,11 @@ function buildEbbTemplateData(
 
 /**
  * @param {import('../actor-sheet.mjs').SlaActorSheet} sheet
+ * @param {Item} item
+ * @param {{ situationalModifier?: number }} [overrides]
  */
-export async function executeEbbRoll(sheet, item) {
+export async function executeEbbRoll(sheet, item, overrides = {}) {
+    const { situationalModifier = 0 } = overrides;
     const { formulaRating, currentFlux, fluxCost, resolvedDisciplineName, disciplineItem } = resolveEbbContext(
         sheet,
         item
@@ -138,8 +142,13 @@ export async function executeEbbRoll(sheet, item) {
 
     const rank = Number(disciplineItem.system.rank) || 0;
     const rollModifierTotal = sheet.actor.system.rollModifier?.total ?? 0;
-    const rollModifierNote =
-        rollModifierTotal !== 0 ? `Roll Modifier (${rollModifierTotal > 0 ? '+' : ''}${rollModifierTotal})` : '';
+    const rollModifierNotes = [
+        rollModifierTotal !== 0 ? `Roll Modifier (${rollModifierTotal > 0 ? '+' : ''}${rollModifierTotal})` : '',
+        situationalModifier !== 0
+            ? `Situational Modifier (${situationalModifier > 0 ? '+' : ''}${situationalModifier})`
+            : ''
+    ].filter(Boolean);
+    const rollModifierNote = rollModifierNotes.join(' ');
     const modifier = calculateEbbModifier({
         statValue: sheet.actor.system.stats.conc?.total ?? sheet.actor.system.stats.conc?.value ?? 0,
         rank,
@@ -147,7 +156,7 @@ export async function executeEbbRoll(sheet, item) {
         stunned: Boolean(sheet.actor.system.conditions?.stunned),
         woundPenalty: sheet.actor.system.wounds.penalty || 0,
         applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties'),
-        rollModifier: rollModifierTotal
+        rollModifier: rollModifierTotal + situationalModifier
     });
     const roll = await createAndEvaluateEbbRoll(rank);
     const { sdTotal: successTotal, isBaseSuccess } = computeSuccessDieOutcome({
@@ -244,4 +253,49 @@ export async function executeEbbRoll(sheet, item) {
     if (chatMsg) {
         await syncEbbCriticalFlux(chatMsg, sheet.actor, chatMsg.flags?.sla ?? {}, isSuccessful, skillSuccesses);
     }
+}
+
+/**
+ * Reads the situational-modifier input from a confirmed Ebb cast dialog and rolls with it applied.
+ * @param {import('../actor-sheet.mjs').SlaActorSheet} sheet
+ * @param {Item} item
+ * @param {HTMLElement | HTMLFormElement | null} html
+ */
+export async function confirmEbbCast(sheet, item, html) {
+    const root = html?.jquery ? html[0] : html;
+    const form = root instanceof HTMLFormElement ? root : root?.querySelector?.('form');
+    const situationalModifier = Number(form?.elements?.situationalModifier?.value) || 0;
+    await executeEbbRoll(sheet, item, { situationalModifier });
+}
+
+/**
+ * Pre-roll confirmation dialog for casting an Ebb Discipline formula. Lets the player apply a
+ * free-form situational modifier to the roll (e.g. +3 for a MOS-3 reuse of this same ability
+ * within 5 minutes per the rulebook, or -2 for choking) rather than the system tracking MOS-3
+ * eligibility automatically.
+ * @param {import('../actor-sheet.mjs').SlaActorSheet} sheet
+ * @param {Item} item
+ */
+export async function renderEbbCastDialog(sheet, item) {
+    const { formulaRating, fluxCost } = resolveEbbContext(sheet, item);
+
+    const templateData = {
+        item,
+        formulaRating,
+        fluxCost
+    };
+
+    const content = await foundry.applications.handlebars.renderTemplate(
+        'systems/sla-industries/templates/dialogs/ebb-cast-dialog.hbs',
+        templateData
+    );
+
+    await new SlaSimpleContentDialog({
+        title: `Cast: ${item.name}`,
+        contentHtml: content,
+        width: 420,
+        classes: ['sla-dialog-window', 'dialog'],
+        actionLabel: 'ROLL',
+        onConfirm: (root) => void confirmEbbCast(sheet, item, root)
+    }).render(true);
 }
