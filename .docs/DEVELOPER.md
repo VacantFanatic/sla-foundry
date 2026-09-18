@@ -696,6 +696,14 @@ See **Adding a new migration step** under Migration System above.
 ## Coding Conventions
 
 - **Application V2 only:** All new sheets and dialogs use `ApplicationV2` + `HandlebarsApplicationMixin`. No `Dialog`, no jQuery-based V1 sheets.
+- **Dialog flavors:** every roll/confirm dialog (`SlaSimpleContentDialog`, `LuckDialog`, `XPDialog`) shares one visual
+  shell (`.sla-dialog-window.dialog` in `src/scss/components/_dialog.scss`) and carries a `flavor-<name>` class —
+  `action` (Attack/Throw/Reload, orange), `confirm` (neutral yes/no, blue), `danger` (destructive confirms, red), or
+  `resource` (Luck/XP spend, green) — that drives `--sla-dialog-accent`, the header icon (`DIALOG_FLAVOR_ICONS` in
+  `module/apps/sla-simple-dialog.mjs`), and the `.sla-dialog-btn--primary` button color. `SlaSimpleContentDialog`
+  takes `flavor` as a constructor option (default `'action'`); `LuckDialog`/`XPDialog` are always `resource`. Reuse
+  the shared `.sla-dialog-row`/`.sla-dialog-btn`/`.sla-dialog-checks` classes for a new dialog's body instead of
+  inline `style="..."` attributes — see any of the four templates under `templates/dialogs/` for the pattern.
 - **No jQuery in new code:** Event delegation uses native DOM (`closest`, `addEventListener`). `AbortController` is used for `_onRender` cleanup.
 - **Active Effects targeting:** Target `system.stats.<key>.bonus` (mode Add), never `.value`, so base stats are not overwritten by effects.
 - **Foundry v14 constants:** Use `CONST.ACTIVE_EFFECT_CHANGE_TYPES` (not deprecated `ACTIVE_EFFECT_MODES`).

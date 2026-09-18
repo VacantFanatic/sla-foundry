@@ -30,7 +30,7 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         super.DEFAULT_OPTIONS,
         {
             tag: 'div',
-            classes: ['sla-dialog', 'sla-sheet', 'xp-dialog-window'],
+            classes: ['sla-dialog-window', 'dialog', 'xp-dialog-window', 'flavor-resource'],
             actions: {
                 xpCommit: XPDialog.xpCommit,
                 xpCancel: XPDialog.xpCancel
@@ -225,9 +225,12 @@ export class XPDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         const dlg = new XPDialog(
             actor,
             {
-                window: { title: isGM ? 'Manage Experience Points' : 'Spend Experience Points' },
+                window: {
+                    title: isGM ? 'Manage Experience Points' : 'Spend Experience Points',
+                    icon: 'fa-solid fa-star'
+                },
                 position: { width: 650, height: isGM ? 500 : 650 },
-                classes: ['sla-dialog', 'sla-sheet', 'xp-dialog-window']
+                classes: ['sla-dialog-window', 'dialog', 'xp-dialog-window', 'flavor-resource']
             },
             templateData
         );

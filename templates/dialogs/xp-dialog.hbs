@@ -1,11 +1,11 @@
-<div class="xp-dialog sla-dialog standard-form" role="dialog" aria-label="{{#if isGM}}{{localize 'SLA.XPDialog.AriaLabelGM'}}{{else}}{{localize 'SLA.XPDialog.AriaLabelPlayer'}}{{/if}}" style="color:#eee;">
+<div class="xp-dialog sla-dialog standard-form" role="dialog" aria-label="{{#if isGM}}{{localize 'SLA.XPDialog.AriaLabelGM'}}{{else}}{{localize 'SLA.XPDialog.AriaLabelPlayer'}}{{/if}}">
     {{#if isGM}}
     {{!-- GM MODE: Simple XP Add/Remove --}}
     <div class="sla-panel sla-dialog-panel" style="margin-bottom: 8px;">
         <div class="sla-header-bar-small">Manage Experience Points</div>
         <div style="padding: 8px;">
             <p class="notes" style="margin-bottom: 8px; font-size: 0.9em;">
-                Current XP: <strong style="color: #39ff14;">{{currentXP}}</strong>
+                Current XP: <strong style="color: var(--sla-success);">{{currentXP}}</strong>
             </p>
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 <div class="form-group" style="margin: 0;">
@@ -55,14 +55,14 @@
                             </td>
                             <td style="padding: 6px 8px; color: #eee; font-size: 1em;">{{this.description}}</td>
                             <td style="padding: 6px 8px; text-align: right; font-weight: bold; font-size: 1em;
-                                {{#if (gt this.xpChange 0)}}color: #39ff14;
-                                {{else if (lt this.xpChange 0)}}color: #ff5555;
+                                {{#if (gt this.xpChange 0)}}color: var(--sla-success);
+                                {{else if (lt this.xpChange 0)}}color: var(--sla-danger);
                                 {{else}}color: #888;{{/if}}">
                                 {{#if (gt this.xpChange 0)}}+{{/if}}{{this.xpChange}}
                             </td>
                             <td style="padding: 6px 8px; text-align: right; font-weight: bold; font-size: 1em;
-                                {{#if (gt this.creditChange 0)}}color: #39ff14;
-                                {{else if (lt this.creditChange 0)}}color: #ff5555;
+                                {{#if (gt this.creditChange 0)}}color: var(--sla-success);
+                                {{else if (lt this.creditChange 0)}}color: var(--sla-danger);
                                 {{else}}color: #888;{{/if}}">
                                 {{#if (gt this.creditChange 0)}}+{{/if}}{{#if (ne this.creditChange 0)}}{{this.creditChange}}{{else}}—{{/if}}
                             </td>
@@ -114,7 +114,7 @@
                             -1
                         </button>
                     </div>
-                    <div class="pending-stat-{{this.key}}" style="font-size: 0.8em; color: #39ff14; display: none;">
+                    <div class="pending-stat-{{this.key}}" style="font-size: 0.8em; color: var(--sla-success); display: none;">
                         +<span class="pending-stat-value">0</span>
                     </div>
                 </div>
@@ -205,7 +205,7 @@
                 <span>Total Credit Cost:</span>
                 <strong class="total-cost-credits">0</strong>
             </div>
-            <div class="cost-warning" style="display: none; color: #ff5555; font-size: 0.9em; margin-top: 10px;">
+            <div class="cost-warning" style="display: none; color: var(--sla-danger); font-size: 0.9em; margin-top: 10px;">
                 <div class="cost-warning-xp"></div>
                 <div class="cost-warning-credits"></div>
             </div>
@@ -223,9 +223,13 @@
     </div>
     {{/if}}
 
-    <div class="xp-dialog-actions flexrow" style="justify-content:flex-end; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid #444;">
-        <button type="button" class="secondary" data-action="xpCancel"><i class="fas fa-times"></i> Cancel</button>
-        <button type="button" data-action="xpCommit" class="commit-xp-btn"><i class="fas fa-check"></i> {{#if isGM}}Update XP{{else}}Commit Upgrades{{/if}}</button>
+    <div class="xp-dialog-actions sla-simple-dialog-footer">
+        <button type="button" class="sla-dialog-btn sla-dialog-btn--danger" data-action="xpCancel">
+            <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" class="sla-dialog-btn sla-dialog-btn--primary commit-xp-btn" data-action="xpCommit">
+            <i class="fas fa-check"></i> {{#if isGM}}Update XP{{else}}Commit Upgrades{{/if}}
+        </button>
     </div>
 </div>
 

@@ -46,8 +46,8 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
         {
             tag: 'div',
             position: { width: 400 },
-            window: { title: 'Use Luck' },
-            classes: [],
+            window: { title: 'Use Luck', icon: 'fa-solid fa-star' },
+            classes: ['sla-dialog-window', 'dialog', 'flavor-resource'],
             actions: {
                 rerollSd: LuckDialog.rerollSd,
                 addMod: LuckDialog.addMod,
@@ -105,7 +105,7 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
             skillDice = roll.terms[2].results.map((r) => ({
                 result: r.result,
                 total: r.result,
-                borderColor: r.success ? '#39ff14' : '#555'
+                borderColor: r.success ? 'var(--sla-success)' : '#555'
             }));
         }
 

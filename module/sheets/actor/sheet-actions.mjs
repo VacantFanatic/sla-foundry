@@ -26,13 +26,21 @@ export async function openActorImagePicker(sheet) {
 }
 
 /** @param {import('../actor-sheet.mjs').SlaActorSheet} sheet */
-export async function confirmSheetAction(sheet, title, contentHtml, onConfirm, actionLabel = 'Confirm') {
+export async function confirmSheetAction(
+    sheet,
+    title,
+    contentHtml,
+    onConfirm,
+    actionLabel = 'Confirm',
+    flavor = 'danger'
+) {
     await new SlaSimpleContentDialog({
         title,
         contentHtml,
         width: 420,
         classes: ['sla-dialog', 'sla-sheet'],
         actionLabel,
+        flavor,
         onConfirm: async () => {
             await onConfirm();
         }

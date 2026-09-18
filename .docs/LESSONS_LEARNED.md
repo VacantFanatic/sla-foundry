@@ -462,3 +462,18 @@ stat-row.hbs` partial, which always renders `.total` (as the play-mode roll targ
   broken. When a resolver/helper takes a generic "uuid" or "id" parameter, check every caller for
   which document types it's actually handed, not just the type the helper's author had in mind —
   and prefer a type check (`doc instanceof Actor`) over drilling into a type-specific property.
+- **A selector-based CSS rule that doesn't match anything in the actual DOM fails completely
+  silently — no build error, no lint warning, nothing.** Before the dialog redesign,
+  `src/scss/components/_dialog.scss` had a `.dialog-buttons .dialog-button { ... }` rule sitting
+  right next to the working `.sla-dialog-window.dialog` shell rules, styled as if it controlled
+  every dialog's Confirm/Cancel buttons. It never matched anything: `SlaSimpleContentDialog`
+  (`module/apps/sla-simple-dialog.mjs`) is a hand-rolled ApplicationV2 whose footer buttons
+  (`templates/dialogs/simple-content-dialog.hbs`) use plain `<button data-action="...">` markup
+  with no `.dialog-buttons`/`.dialog-button` wrapper — those class names are what Foundry's own
+  legacy `Dialog`/`DialogV2` classes generate, not anything this codebase's custom dialog shell
+  produces. The rule was dead from the day it was written, and nothing caught it because a CSS
+  selector that matches zero elements compiles and ships exactly like one that matches the right
+  element. When styling a custom Application/ApplicationV2 shell (here or elsewhere), verify the
+  selector against the actual rendered markup (or the `.hbs` source) rather than against what a
+  similarly-named Foundry core class would produce — grepping the template's real button classes
+  before writing the CSS rule would have caught this immediately.

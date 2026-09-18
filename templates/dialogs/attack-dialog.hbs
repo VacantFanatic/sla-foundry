@@ -1,39 +1,35 @@
-<form style="color:#eee;">
+<form class="sla-dialog-form">
     {{!-- COMMON HEADER --}}
-    <div class="form-group"
-        style="margin-bottom:5px; display: flex; justify-content: space-between; align-items: center;">
-        <label style="font-weight: bold;">Generic Modifier (+/-)</label>
-        <input type="number" name="modifier" value="{{modifier}}" placeholder="0"
-            style="background:#333; color:#fff; border:1px solid #555; text-align:center; width:50px; height: 28px;" />
+    <div class="sla-dialog-row sla-dialog-row--modifier">
+        <label>Generic Modifier (+/-)</label>
+        <input type="number" name="modifier" value="{{modifier}}" placeholder="0" class="sla-dialog-input-sm" />
     </div>
 
-
-
-    <hr style="border:1px solid #444; margin: 10px 0;">
+    <hr class="sla-dialog-divider" />
 
     {{!-- MELEE SECTION --}}
     {{#if isMelee}}
     {{!-- SECTION 1: ATTACKER --}}
-    <div class="sla-panel sla-dialog-panel" style="margin-bottom: 10px;">
-        <div class="sla-header-bar-small">Attacker Stance & Options</div>
-        <div style="padding: 5px;">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px;">
-                <div><label><input type="checkbox" name="charging" /> Charging</label></div>
-                <div><label><input type="checkbox" name="targetCharged" /> Target Charged/Moved Fast</label></div>
-                <div><label><input type="checkbox" name="sameTarget" /> Same Target</label></div>
-                <div><label><input type="checkbox" name="breakOff" /> Break Off</label></div>
-                <div><label><input type="checkbox" name="natural" /> Natural Wpn</label></div>
-                <div><label><input type="checkbox" name="prone" /> Target Prone/Stunned/Immobile (+2)</label></div>
+    <div class="sla-panel sla-dialog-panel">
+        <div class="sla-header-bar-small">Attacker Stance &amp; Options</div>
+        <div class="sla-dialog-panel-body">
+            <div class="sla-dialog-checks">
+                <label class="sla-dialog-check"><input type="checkbox" name="charging" /> Charging</label>
+                <label class="sla-dialog-check"><input type="checkbox" name="targetCharged" /> Target
+                    Charged/Moved Fast</label>
+                <label class="sla-dialog-check"><input type="checkbox" name="sameTarget" /> Same Target</label>
+                <label class="sla-dialog-check"><input type="checkbox" name="breakOff" /> Break Off</label>
+                <label class="sla-dialog-check"><input type="checkbox" name="natural" /> Natural Wpn</label>
+                <label class="sla-dialog-check"><input type="checkbox" name="prone" /> Target
+                    Prone/Stunned/Immobile (+2)</label>
             </div>
 
-            {{!-- NEW FIELD: Reserved Dice --}}
-            <div class="form-group" style="border-top: 1px solid #333; padding-top: 5px;">
-                <label style="color: var(--sla-accent); font-weight: bold;">Reserve Combat Dice</label>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 0.8em; color: #aaa; font-style: italic;">Subtracted from your Skill Dice
-                        pool.</div>
+            <div class="sla-dialog-row sla-dialog-row--divided">
+                <label class="sla-dialog-row-label--accent">Reserve Combat Dice</label>
+                <div class="sla-dialog-row-inline">
+                    <span class="sla-dialog-hint">Subtracted from your Skill Dice pool.</span>
                     <input type="number" name="reservedDice" value="0" min="0" placeholder="0"
-                        style="width:50px; text-align: center;" />
+                        class="sla-dialog-input-sm" />
                 </div>
             </div>
         </div>
@@ -42,84 +38,78 @@
     {{!-- SECTION 2: TARGET --}}
     <div class="sla-panel sla-dialog-panel">
         <div class="sla-header-bar-small">Target Defense Modifiers</div>
-        <div style="padding: 5px;">
-            <div class="form-group" style="margin-bottom: 5px;">
-                <label style="font-weight: bold;">Target Combat Def Rating</label>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 0.8em; color: #aaa;">Applies -1 modifier per point.</div>
+        <div class="sla-dialog-panel-body">
+            <div class="sla-dialog-row">
+                <label>Target Combat Def Rating</label>
+                <div class="sla-dialog-row-inline">
+                    <span class="sla-dialog-hint">Applies -1 modifier per point.</span>
                     <input type="number" name="combatDef" value="0" min="0" placeholder="0"
-                        style="width:50px; text-align: center;" />
+                        class="sla-dialog-input-sm" />
                 </div>
             </div>
-            <div class="form-group">
-                <label style="font-weight: bold;">Target Acrobatics Rank</label>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 0.8em; color: #aaa;">Applies -2 modifier per rank.</div>
+            <div class="sla-dialog-row">
+                <label>Target Acrobatics Rank</label>
+                <div class="sla-dialog-row-inline">
+                    <span class="sla-dialog-hint">Applies -2 modifier per rank.</span>
                     <input type="number" name="acroDef" value="0" min="0" placeholder="0"
-                        style="width:50px; text-align: center;" />
+                        class="sla-dialog-input-sm" />
                 </div>
             </div>
         </div>
     </div>
 
-
     {{!-- RANGED SECTION (Unchanged) --}}
     {{else}}
-    <h3>Ranged Options</h3>
-    <div style="font-size:0.8em; color:#aaa; margin-bottom: 10px;">
-        <span style="color:var(--sla-accent)">Base Recoil for this weapon:</span> -{{recoil}} SD
+    <h3 class="sla-dialog-heading">Ranged Options</h3>
+    <div class="sla-dialog-hint sla-dialog-hint--block">
+        <span class="sla-dialog-accent-text">Base Recoil for this weapon:</span> -{{recoil}} SD
     </div>
 
-    <div class="sla-panel" style="padding: 5px;">
-        <div style="display:grid; grid-template-columns: 1fr; gap: 8px;">
-            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
-                    <label>Fire Mode</label>
-                    {{!-- ADDED: name="fireMode" so we can find it in the JS --}}
-                    <select name="fireMode" id="fire-mode" style="width: 65%;">
-                        {{#each validModes as |mode key|}}
-                        {{!-- ADDED: The {{#if}} block to handle the default selection --}}
-                        <option value="{{key}}" data-recoil="{{mode.recoil}}" data-rounds="{{mode.rounds}}" {{#if (eq
-                            key ../selectedMode)}}selected{{/if}}>
-                            {{mode.label}} ({{mode.rounds}} rnds | -{{mode.recoil}} Recoil)
-                        </option>
-                        {{/each}}
-                    </select>
-                </div>
+    <div class="sla-panel sla-dialog-panel-body">
+        <div class="sla-dialog-field-stack">
+            <div class="sla-dialog-row">
+                <label>Fire Mode</label>
+                <select name="fireMode" id="fire-mode" class="sla-dialog-select">
+                    {{#each validModes as |mode key|}}
+                    <option value="{{key}}" data-recoil="{{mode.recoil}}" data-rounds="{{mode.rounds}}" {{#if (eq
+                        key ../selectedMode)}}selected{{/if}}>
+                        {{mode.label}} ({{mode.rounds}} rnds | -{{mode.recoil}} Recoil)
+                    </option>
+                    {{/each}}
+                </select>
             </div>
 
-            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="sla-dialog-row">
                 <label>Cover</label>
-                <select name="cover" style="width: 65%;">
+                <select name="cover" class="sla-dialog-select">
                     <option value="0">None</option>
                     <option value="-1">Light Cover (-1 SD)</option>
                     <option value="-2">Heavy Cover (-2 SD)</option>
                 </select>
             </div>
 
-            {{!-- NEW AIMING SECTION --}}
+            {{!-- AIMING SECTION --}}
             {{#if canAim}}
-            <div class="form-group" style="border: 1px solid #444; padding: 5px; background: rgba(0,0,0,0.2);">
-                <div style="font-weight:bold; margin-bottom:5px; color:var(--sla-accent);">Aiming (Max: {{aimLimit}}
-                    Rounds)</div>
-                <div style="display:flex; justify-content: space-between; gap: 5px;">
-                    <div style="flex:1; text-align:center;">
-                        <label style="display:block; font-size:0.8em; color:#aaa;">+1 Success Die</label>
+            <div class="sla-dialog-aim-box">
+                <div class="sla-dialog-aim-title">Aiming (Max: {{aimLimit}} Rounds)</div>
+                <div class="sla-dialog-aim-grid">
+                    <div class="sla-dialog-aim-field">
+                        <label>+1 Success Die</label>
                         <input type="number" name="aim_sd" value="0" min="0" max="{{aimLimit}}"
-                            style="width: 100%; text-align:center; background:#222; color:#fff; border:1px solid #555;">
+                            class="sla-dialog-input-sm" />
                     </div>
-                    <div style="flex:1; text-align:center;">
-                        <label style="display:block; font-size:0.8em; color:#aaa;">Auto Skill Hit</label>
+                    <div class="sla-dialog-aim-field">
+                        <label>Auto Skill Hit</label>
                         <input type="number" name="aim_auto" value="0" min="0" max="{{aimLimit}}"
-                            style="width: 100%; text-align:center; background:#222; color:#fff; border:1px solid #555;">
+                            class="sla-dialog-input-sm" />
                     </div>
                 </div>
             </div>
             {{/if}}
 
-            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="sla-dialog-row">
                 <label>Dual Wielding</label>
-                <select name="dual" style="width: 65%;">
+                <select name="dual" class="sla-dialog-select">
                     <option value="0">No</option>
                     <option value="-2">Same Target (-2 SD)</option>
                     <option value="-4">Diff Target (-4 SD)</option>
@@ -127,12 +117,12 @@
             </div>
         </div>
 
-        <hr style="border-top:1px dashed #333; margin: 10px 0;">
+        <hr class="sla-dialog-divider sla-dialog-divider--dashed" />
 
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-            <div><label><input type="checkbox" name="targetMoved" /> Target Moving Fast</label></div>
-            <div><label><input type="checkbox" name="blind" /> Blind Firing</label></div>
-            <div><label><input type="checkbox" name="prone" /> Firer Prone</label></div>
+        <div class="sla-dialog-checks">
+            <label class="sla-dialog-check"><input type="checkbox" name="targetMoved" /> Target Moving Fast</label>
+            <label class="sla-dialog-check"><input type="checkbox" name="blind" /> Blind Firing</label>
+            <label class="sla-dialog-check"><input type="checkbox" name="prone" /> Firer Prone</label>
         </div>
     </div>
     {{/if}}

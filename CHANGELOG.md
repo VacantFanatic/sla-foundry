@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Modernized roll/confirmation dialog styling with a "flavor" system:** the Attack/Throw,
+  Reload, Luck, XP, and generic confirm dialogs now share one visual shell
+  (`.sla-dialog-window.dialog` in `src/scss/components/_dialog.scss`) instead of each having its
+  own ad hoc inline styles, with a `flavor-<name>` class (`action`, `confirm`, `danger`,
+  `resource`) driving a consistent accent color, header icon, and primary-button color per dialog
+  type. `SlaSimpleContentDialog` takes a new `flavor` option; `LuckDialog`/`XPDialog` are always
+  `resource`. New `--sla-success`/`--sla-danger`/`--sla-info` design tokens replace scattered
+  hardcoded hex colors, and a dead `.dialog-buttons .dialog-button` CSS rule that matched nothing
+  in the actual markup was removed. No field, button, or behavior changed — purely visual.
+
 ### Added
 
 - **Ebb MOS-3 "reuse" outcome now actually applies a modifier, via a pre-roll confirmation
