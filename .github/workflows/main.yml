@@ -158,3 +158,12 @@ jobs:
             - name: Run E2E regression suite
               if: steps.creds.outputs.present == 'true'
               run: npm run test:e2e:regression
+
+            - name: Run E2E operator suite (GM-only)
+              if: steps.creds.outputs.present == 'true'
+              run: npm run test:e2e:operators
+
+            - name: Run E2E visual regression suite (best-effort, needs committed baselines)
+              if: steps.creds.outputs.present == 'true'
+              continue-on-error: true
+              run: npm run test:e2e:visual

@@ -169,14 +169,24 @@ test.describe('calculateRangePenalty (document API, stubbed canvas.grid)', () =>
 
     test('flags long range once distance exceeds half the weapon max range', async ({ page }) => {
         const result = await page.evaluate(async () => {
-            const originalGrid = canvas.grid;
-            canvas.grid = { measurePath: () => ({ distance: 12 }) };
+            // canvas.grid is a getter-only accessor (no setter), so a plain assignment silently
+            // no-ops — Object.defineProperty installs an own property that shadows the prototype
+            // getter instead.
+            const originalGrid = Object.getOwnPropertyDescriptor(canvas, 'grid');
+            Object.defineProperty(canvas, 'grid', {
+                value: { measurePath: () => ({ distance: 12 }) },
+                configurable: true
+            });
 
             const { calculateRangePenalty } = await import('/systems/sla-industries/module/helpers/modifiers.mjs');
             const longRange = calculateRangePenalty({}, {}, 20); // half of 20 is 10, distance 12 > 10
             const shortRange = calculateRangePenalty({}, {}, 30); // half of 30 is 15, distance 12 < 15
 
-            canvas.grid = originalGrid;
+            if (originalGrid) {
+                Object.defineProperty(canvas, 'grid', originalGrid);
+            } else {
+                delete canvas.grid;
+            }
             return { longRange, shortRange };
         });
 

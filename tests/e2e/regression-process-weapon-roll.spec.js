@@ -30,6 +30,12 @@ test.describe('GM: processWeaponRoll (document API)', () => {
 
     test('completes a melee attack roll and posts a chat message', async ({ page }) => {
         const result = await page.evaluate(async () => {
+            // requireTarget:true (below) gates on this setting, which defaults to on; this test
+            // is about the roll completing, not the target-required gate, so disable it for the
+            // duration of the test rather than standing up a real targeted token.
+            const originalSetting = game.settings.get('sla-industries', 'enableTargetRequiredFeatures');
+            await game.settings.set('sla-industries', 'enableTargetRequiredFeatures', false);
+
             const stamp = Date.now();
             const [actor] = await Actor.createDocuments([
                 { name: `E2E Weapon Roll Melee ${stamp}`, type: 'character', system: { stats: { str: { value: 5 } } } }
@@ -82,6 +88,7 @@ test.describe('GM: processWeaponRoll (document API)', () => {
             const after = game.messages.size;
 
             await actor.delete();
+            await game.settings.set('sla-industries', 'enableTargetRequiredFeatures', originalSetting);
             return after > before;
         });
 

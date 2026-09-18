@@ -146,7 +146,11 @@ test.describe('GM: executeCombatLoadoutDamageRoll (document API)', () => {
                 { name: `E2E Loadout Explosive ${stamp}`, type: 'character' }
             ]);
             const [explosive] = await actor.createEmbeddedDocuments('Item', [
-                { name: `E2E Frag Grenade ${stamp}`, type: 'explosive', system: { damage: '2d10', ad: 4 } }
+                {
+                    name: `E2E Frag Grenade ${stamp}`,
+                    type: 'explosive',
+                    system: { damage: '2d10', ad: 4, equipped: true }
+                }
             ]);
 
             const row = document.createElement('div');
