@@ -2,6 +2,7 @@ import { calculateRollResult, getMOS, generateDiceTooltip } from '../helpers/dic
 import { bindEscapeToClose } from '../helpers/dialog-keyboard.mjs';
 import { syncEbbCriticalFlux } from '../helpers/ebb-flux.mjs';
 import { normalizeEbbEffect } from '../helpers/items.mjs';
+import { EBB_MOS3_REUSE_TEXT } from '../sheets/actor/roll-math.mjs';
 
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
@@ -279,9 +280,7 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
                     mosEffectText = attackMos ? '+1 Damage / Effect' : 'Standard Success';
                     if (attackMos) mosDamageBonus = 1;
                 } else if (skillHits === 3) {
-                    mosEffectText = attackMos
-                        ? '+2 Damage / Repeat Ability'
-                        : 'May use the same Ebb ability again within 5 minutes (-3 FLUX)';
+                    mosEffectText = attackMos ? `+2 Damage / ${EBB_MOS3_REUSE_TEXT}` : EBB_MOS3_REUSE_TEXT;
                     if (attackMos) mosDamageBonus = 2;
                 } else if (skillHits >= 4) {
                     mosEffectText = attackMos

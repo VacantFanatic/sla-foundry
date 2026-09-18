@@ -136,4 +136,100 @@ test.describe('GM: executeEbbRoll (document API)', () => {
         // documents the real (if perhaps surprising) order of operations rather than an ideal one.
         expect(result).toBe(3);
     });
+
+    test('applies a positive situational modifier (e.g. MOS-3 reuse) to the roll and chat notes', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Ebb ReuseMod ${stamp}`,
+                    type: 'character',
+                    system: { stats: { flux: { value: 5, max: 6 }, conc: { value: 0 } } }
+                }
+            ]);
+            await actor.createEmbeddedDocuments('Item', [
+                { name: `E2E ReuseMod Discipline ${stamp}`, type: 'discipline', system: { rank: 0 } }
+            ]);
+            const [formula] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Formula ReuseMod ${stamp}`,
+                    type: 'ebbFormula',
+                    system: { cost: 2, formulaRating: 7, discipline: `E2E ReuseMod Discipline ${stamp}`, damage: '0' }
+                }
+            ]);
+
+            const { generateSheetTooltip, resolveSheetDamageDisplay, buildSlaRollFlags } =
+                await import('/systems/sla-industries/module/sheets/actor/sheet-helpers.mjs');
+            const sheet = {
+                actor,
+                _generateTooltip: (roll, mod, sdMod) => generateSheetTooltip(roll, mod, sdMod),
+                _resolveDamageDisplay: (formula) => resolveSheetDamageDisplay(formula, actor),
+                _buildSlaRollFlags: (params) => buildSlaRollFlags(params)
+            };
+
+            const { executeEbbRoll } = await import('/systems/sla-industries/module/sheets/actor/ebb-rolls.mjs');
+
+            const messagesBefore = game.messages.size;
+            await executeEbbRoll(sheet, formula, { situationalModifier: 3 });
+            const messagesAfter = game.messages.size;
+            const message = [...game.messages].pop();
+
+            await actor.delete();
+            return {
+                messagePosted: messagesAfter > messagesBefore,
+                baseModifier: message?.flags?.sla?.baseModifier,
+                notes: message?.flags?.sla?.notes
+            };
+        });
+
+        expect(result.messagePosted).toBe(true);
+        // statValue(0) + rank(0) - woundPenalty(0) + globalMod(0) + rollModifier(0 + 3) === 3
+        expect(result.baseModifier).toBe(3);
+        expect(result.notes).toContain('Situational Modifier (+3)');
+    });
+
+    test('applies a negative situational modifier (e.g. choking) to the roll and chat notes', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Ebb ChokeMod ${stamp}`,
+                    type: 'character',
+                    system: { stats: { flux: { value: 5, max: 6 }, conc: { value: 0 } } }
+                }
+            ]);
+            await actor.createEmbeddedDocuments('Item', [
+                { name: `E2E ChokeMod Discipline ${stamp}`, type: 'discipline', system: { rank: 0 } }
+            ]);
+            const [formula] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Formula ChokeMod ${stamp}`,
+                    type: 'ebbFormula',
+                    system: { cost: 2, formulaRating: 7, discipline: `E2E ChokeMod Discipline ${stamp}`, damage: '0' }
+                }
+            ]);
+
+            const { generateSheetTooltip, resolveSheetDamageDisplay, buildSlaRollFlags } =
+                await import('/systems/sla-industries/module/sheets/actor/sheet-helpers.mjs');
+            const sheet = {
+                actor,
+                _generateTooltip: (roll, mod, sdMod) => generateSheetTooltip(roll, mod, sdMod),
+                _resolveDamageDisplay: (formula) => resolveSheetDamageDisplay(formula, actor),
+                _buildSlaRollFlags: (params) => buildSlaRollFlags(params)
+            };
+
+            const { executeEbbRoll } = await import('/systems/sla-industries/module/sheets/actor/ebb-rolls.mjs');
+            await executeEbbRoll(sheet, formula, { situationalModifier: -2 });
+            const message = [...game.messages].pop();
+
+            await actor.delete();
+            return {
+                baseModifier: message?.flags?.sla?.baseModifier,
+                notes: message?.flags?.sla?.notes
+            };
+        });
+
+        expect(result.baseModifier).toBe(-2);
+        expect(result.notes).toContain('Situational Modifier (-2)');
+    });
 });
