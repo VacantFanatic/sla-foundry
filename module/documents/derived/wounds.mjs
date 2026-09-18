@@ -50,3 +50,14 @@ export function resolveStunnedFromHeadWound(headWound, hasStunnedEffect) {
     if (headWound !== true && hasStunnedEffect) return false;
     return null;
 }
+
+/**
+ * Frother Feel No Pain: Bleeding is suppressed only while exactly one wound is marked.
+ * @param {string | undefined} speciesName
+ * @param {number} woundCount
+ * @returns {boolean}
+ */
+export function shouldSuppressBleeding(speciesName, woundCount) {
+    if (woundCount !== 1) return false;
+    return (speciesName ?? '').toLowerCase().includes('frother');
+}
