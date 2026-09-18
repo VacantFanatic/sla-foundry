@@ -446,3 +446,19 @@ stat-row.hbs` partial, which always renders `.total` (as the play-mode roll targ
   every other field computed by the same `prepareDerivedData` override for the same missing
   "re-resolve AE contribution, then recompute" step — it's not a one-off, it's a pattern that has
   to be applied field-by-field.
+- **A UUID resolution helper that assumes one document type for every caller breaks silently for
+  the others.** Issue #379: `resolveActorFromUuid` (`module/helpers/chat/damage.mjs`) unconditionally
+  did `(await fromUuid(targetUuid))?.actor` — correct when `targetUuid` is a Token UUID (the case
+  for live play, where `flags.sla.targets` / `data-target-uuid` are populated from
+  `game.user.targets` as `t.document.uuid` — see `weapon-rolls.mjs`, `explosive-rolls.mjs`,
+  `ebb-rolls.mjs`, `weapon-gates.mjs`), but silently wrong for a plain Actor UUID (a world actor
+  with no token/scene involved): `fromUuid()` on an Actor UUID returns the `Actor` document
+  itself, which has no `.actor` property, so the helper returned `null`. Every one of its three
+  callers (`onApplyDamage`, `onApplyEbbEffects`, `onRemoveEbbWounds` in
+  `module/helpers/chat/handlers.mjs`) then hit an `if (!victim) return;` guard and silently
+  no-op'd — no error, no HP change, no effect applied, no wound cleared — which looked like three
+  unrelated bugs (broken mitigation math, broken effect copy, broken wound-clear order) until
+  tracing all three back to the same choke point. None of the surrounding math/logic was actually
+  broken. When a resolver/helper takes a generic "uuid" or "id" parameter, check every caller for
+  which document types it's actually handed, not just the type the helper's author had in mind —
+  and prefer a type check (`doc instanceof Actor`) over drilling into a type-specific property.

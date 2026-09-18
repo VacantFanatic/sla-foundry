@@ -23,6 +23,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   overwriting whatever core's own Active Effect application had just written. Fixed by resolving
   each field's Active Effect contribution fresh every pass (`computeActiveEffectKeyValue`) and
   folding it into the movement calculation instead of being clobbered by it.
+- **Apply Damage / Apply Ebb Effects / Remove Ebb Wounds chat buttons silently no-op against a
+  world actor with no token (#379):** `resolveActorFromUuid` (`module/helpers/chat/damage.mjs`)
+  assumed every UUID it received was a Token UUID and unconditionally read `.actor` off the
+  resolved document. When given a plain Actor UUID instead (no token/scene involved), `fromUuid`
+  returns the `Actor` document itself, which has no `.actor` property, so the helper returned
+  `null` and every caller's `if (!victim) return;` guard silently aborted — no HP damage applied,
+  no Active Effect copied, no wounds cleared. Fixed by accepting both Token and Actor UUIDs.
 
 ## [2.9.4] - 2026-09-17
 
