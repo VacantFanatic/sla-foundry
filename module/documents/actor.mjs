@@ -12,8 +12,15 @@ import {
 } from './derived/active-effects.mjs';
 import { applyStatPenalties } from './derived/penalties.mjs';
 import { clampHpValue } from '../sheets/actor/sheet-ux-pure.mjs';
-import { countWounds, deriveLogicConditions, resolveStunnedFromHeadWound } from './derived/wounds.mjs';
+import {
+    countWounds,
+    deriveLogicConditions,
+    resolveStunnedFromHeadWound,
+    shouldSuppressBleeding
+} from './derived/wounds.mjs';
 import { resolveDerivedHpMax } from './derived/hp.mjs';
+import { computeArmorModifierEffects } from './derived/armor-modifiers.mjs';
+import { computeInitiativeBonus, computeMovement } from './derived/movement.mjs';
 
 /**
  * Extend the basic Actor document.
@@ -138,42 +145,18 @@ export class SlaActor extends Actor {
             (i) => i.type === 'armor' && i.system.equipped && i.system.powered && i.system.resistance?.value > 0
         );
 
-        // Initialize Move Bonus if not present
         if (!system.move) system.move = { closing: 0, rushing: 0 };
-        system.move.armorBonus = { closing: 0, rushing: 0 };
-        if (system.stats.init) system.stats.init.armorBonus = 0;
 
-        // Choose one active powersuit (if any) for replacement/cap bonuses.
-        const activePowersuit = armors
-            .filter((a) => a.system.powersuit)
-            .sort((a, b) => (Number(b.system.resistance?.value) || 0) - (Number(a.system.resistance?.value) || 0))[0];
+        const result = computeArmorModifierEffects({
+            armors,
+            strTotal: system.stats.str?.total ?? 0,
+            dexTotal: system.stats.dex?.total ?? 0
+        });
 
-        for (const armor of armors) {
-            const mods = armor.system.mods;
-            if (!mods) continue;
-
-            // Powersuits replace STR and cap DEX. Other powered armor remains additive.
-            if (armor === activePowersuit) {
-                if (system.stats.str) system.stats.str.total = Number(mods.str) || 0;
-                if (mods.dex && system.stats.dex) system.stats.dex.total += mods.dex;
-                const dexCap = Number(armor.system.dexCap) || 0;
-                if (dexCap > 0 && system.stats.dex) {
-                    system.stats.dex.total = Math.min(system.stats.dex.total, dexCap);
-                }
-                if (system.stats.init) {
-                    system.stats.init.armorBonus += Number(armor.system.initBonus) || 0;
-                }
-            } else {
-                if (mods.str && system.stats.str) system.stats.str.total += mods.str;
-                if (mods.dex && system.stats.dex) system.stats.dex.total += mods.dex;
-            }
-
-            // Accumulate Move Bonuses (Applied in _calculateDerived)
-            if (mods.move) {
-                system.move.armorBonus.closing += mods.move.closing || 0;
-                system.move.armorBonus.rushing += mods.move.rushing || 0;
-            }
-        }
+        if (system.stats.str) system.stats.str.total = result.str;
+        if (system.stats.dex) system.stats.dex.total = result.dex;
+        if (system.stats.init) system.stats.init.armorBonus = result.initBonus;
+        system.move.armorBonus = result.moveBonus;
     }
 
     /* -------------------------------------------- */
@@ -366,10 +349,11 @@ export class SlaActor extends Actor {
         // B. Initiative (Character Only)
         if (this.type === 'character') {
             if (system.stats.init) {
-                system.stats.init.value =
-                    (system.stats.dex?.total || 0) +
-                    (system.stats.conc?.total || 0) +
-                    (system.stats.init.armorBonus || 0);
+                system.stats.init.value = computeInitiativeBonus({
+                    dexTotal: system.stats.dex?.total || 0,
+                    concTotal: system.stats.conc?.total || 0,
+                    armorInitBonus: system.stats.init.armorBonus || 0
+                });
             }
         }
 
@@ -377,44 +361,22 @@ export class SlaActor extends Actor {
         if (this.type === 'character') {
             if (!system.move) system.move = { closing: 0, rushing: 0 };
 
-            let closing = 0;
-            let rushing = 0;
+            // Sync string name for display
+            if (speciesItem) system.bio.species = speciesItem.name;
 
-            // Get Base Move from Species Item
-            if (speciesItem) {
-                closing = speciesItem.system.move.closing;
-                rushing = speciesItem.system.move.rushing;
-                // Sync string name for display
-                system.bio.species = speciesItem.name;
-            }
-
-            // Athletics Bonus (+1 Rushing per 2 Ranks)
             const athletics = this.items.find((i) => i.type === 'skill' && i.name.toLowerCase() === 'athletics');
-            if (athletics) {
-                rushing += Math.floor((athletics.system.rank || 0) / 2);
-            }
 
-            // Apply Armor Bonuses (Calculated in Step 2B)
-            if (system.move.armorBonus) {
-                closing += system.move.armorBonus.closing;
-                rushing += system.move.armorBonus.rushing;
-            }
-
-            // 1. Critical / Stunned: may not move faster than Closing (rushing capped to closing)
-            if (system.conditions.critical || system.conditions.stunned) {
-                if (rushing > closing) rushing = closing;
-            }
-
-            // 2. Encumbrance Cap (Sets Rushing to 1 if Overburdened)
-            if (system.encumbrance.moveCap !== null) {
-                rushing = Math.min(rushing, system.encumbrance.moveCap);
-            }
-
-            // 3. Immobile / Dead (Zero Movement)
-            if (system.conditions.immobile || system.conditions.dead) {
-                closing = 0;
-                rushing = 0;
-            }
+            const { closing, rushing } = computeMovement({
+                speciesClosing: speciesItem?.system.move.closing || 0,
+                speciesRushing: speciesItem?.system.move.rushing || 0,
+                athleticsRank: athletics?.system.rank || 0,
+                armorMoveBonus: system.move.armorBonus,
+                critical: system.conditions.critical,
+                stunned: system.conditions.stunned,
+                encumbranceMoveCap: system.encumbrance.moveCap,
+                immobile: system.conditions.immobile,
+                dead: system.conditions.dead
+            });
 
             system.move.closing = closing;
             system.move.rushing = rushing;
@@ -870,32 +832,17 @@ export class SlaActor extends Actor {
         }
     }
 
-    /** @returns {number} Count of marked wound locations (0–6). */
-    _getWoundCount(w = this.system.wounds) {
-        if (!w) return 0;
-        return (
-            (w.head ? 1 : 0) +
-            (w.torso ? 1 : 0) +
-            (w.lArm ? 1 : 0) +
-            (w.rArm ? 1 : 0) +
-            (w.lLeg ? 1 : 0) +
-            (w.rLeg ? 1 : 0)
-        );
-    }
-
     /** Frother Feel No Pain: suppress Bleeding only while exactly one wound is marked. */
     _frotherSuppressesBleeding(woundCount) {
-        if (woundCount !== 1) return false;
         const species = this.items.find((i) => i.type === 'species');
-        const name = (species?.name ?? '').toLowerCase();
-        return name.includes('frother');
+        return shouldSuppressBleeding(species?.name, woundCount);
     }
 
     /**
      * Apply/remove Bleeding from wound count and Frother exception (sheet toggles re-synced in _onUpdate).
      */
     async _syncBleedingToWounds() {
-        const woundCount = this._getWoundCount();
+        const woundCount = countWounds(this.system.wounds);
         const hasBleeding = this.effects.some((e) => e.statuses.has('bleeding'));
         const shouldBleed = woundCount > 0 && !this._frotherSuppressesBleeding(woundCount);
         if (shouldBleed && !hasBleeding) {
@@ -959,7 +906,7 @@ export class SlaActor extends Actor {
 
         await this._syncBleedingToWounds();
 
-        const woundCount = this._getWoundCount(w);
+        const woundCount = countWounds(w);
         if (woundCount >= 6) {
             if (this.system.hp.value > 0) {
                 await this.update({ 'system.hp.value': 0 });
@@ -981,7 +928,7 @@ export class SlaActor extends Actor {
         // Calculate your thresholds
         const hp = this.system.hp.value;
         const max = this.system.hp.max;
-        const woundCount = this._getWoundCount();
+        const woundCount = countWounds(this.system.wounds);
 
         // Helper to check if effect exists
         const hasEffect = (id) => this.effects.some((e) => e.statuses.has(id));

@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 import {
     countWounds,
     deriveLogicConditions,
-    resolveStunnedFromHeadWound
+    resolveStunnedFromHeadWound,
+    shouldSuppressBleeding
 } from '../../module/documents/derived/wounds.mjs';
 
 describe('countWounds', () => {
@@ -66,5 +67,31 @@ describe('resolveStunnedFromHeadWound', () => {
     test('no change when head wound state already matches stunned state', () => {
         assert.equal(resolveStunnedFromHeadWound(true, true), null);
         assert.equal(resolveStunnedFromHeadWound(false, false), null);
+    });
+});
+
+describe('shouldSuppressBleeding', () => {
+    test('suppresses bleeding for a Frother with exactly one wound', () => {
+        assert.equal(shouldSuppressBleeding('Frother', 1), true);
+    });
+
+    test('is case-insensitive on species name', () => {
+        assert.equal(shouldSuppressBleeding('FROTHER', 1), true);
+    });
+
+    test('does not suppress for a non-Frother species', () => {
+        assert.equal(shouldSuppressBleeding('Human', 1), false);
+    });
+
+    test('does not suppress a Frother with zero wounds', () => {
+        assert.equal(shouldSuppressBleeding('Frother', 0), false);
+    });
+
+    test('does not suppress a Frother with more than one wound', () => {
+        assert.equal(shouldSuppressBleeding('Frother', 2), false);
+    });
+
+    test('handles a missing species name', () => {
+        assert.equal(shouldSuppressBleeding(undefined, 1), false);
     });
 });
