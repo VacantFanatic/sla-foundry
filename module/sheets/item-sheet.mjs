@@ -2,8 +2,7 @@
  * SLA item sheet (Application V2).
  * @extends {HandlebarsApplicationMixin(ItemSheetV2)}
  */
-import { prepareFiringModes, getLinkedDisciplineImage, enrichItemDescription } from '../helpers/item-sheet.mjs';
-import { normalizeEbbEffect } from '../helpers/items.mjs';
+import { enrichItemDescription } from '../helpers/item-sheet.mjs';
 import { bindTabKeyboardNav } from '../helpers/tab-keyboard-nav.mjs';
 import {
     handleWeaponDrop,
@@ -16,36 +15,43 @@ import {
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ItemSheetV2 } = foundry.applications.sheets;
 
-/**
- * Tab contract (#243 Phase 1; effects-tab scope revised for #363):
- * - TWO_TAB_TYPES render a Details + Description sheet only — no Effects tab. This is every
- *   type nothing ever transfers an embedded Active Effect from: Skill and Discipline (never
- *   did), plus Weapon/Armor/Explosive/Magazine/Species/Package (an Effects tab existed on their
- *   sheet, but no code path ever applied what a GM put there to the actor, so it did nothing).
- * - All other types render the full Details + Description + Effects layout, and each one has a
- *   real mechanism that applies its embedded effects to the actor: Drug (toggle active), Toxicant
- *   (failed infection test), Ebb Formula (post-roll chat button), Trait (grant/revoke — see
- *   `SlaActor._onCreateDescendantDocuments`/`_onDeleteDescendantDocuments`), and Item/Gear (equip
- *   toggle — see `SlaItem#setEquipped`).
- * - CATALOGUE_PART_TYPES are the types whose Details tab uses the catalogue
- *   partial (physical inventory items).
- */
-const TWO_TAB_TYPES = new Set([
-    'skill',
-    'discipline',
-    'weapon',
-    'armor',
-    'explosive',
-    'magazine',
-    'species',
-    'package'
-]);
-const CATALOGUE_PART_TYPES = new Set(['item', 'weapon', 'armor', 'explosive', 'magazine', 'drug', 'toxicant']);
-
 /** Visual drag feedback — every item-sheet drop target carries `.sla-drop`. */
 const DROP_ZONE_SELECTOR = '.sla-drop';
 
 export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
+    /**
+     * Tab contract (#243 Phase 1; effects-tab scope revised for #363):
+     * - `useTwoTabs: true` types render a Details + Description sheet only — no Effects tab. This
+     *   is every type nothing ever transfers an embedded Active Effect from: Skill and Discipline
+     *   (never did), plus Weapon/Armor/Explosive/Magazine/Species/Package (an Effects tab existed
+     *   on their sheet, but no code path ever applied what a GM put there to the actor, so it did
+     *   nothing).
+     * - All other types render the full Details + Description + Effects layout, and each one has a
+     *   real mechanism that applies its embedded effects to the actor: Drug (toggle active), Toxicant
+     *   (failed infection test), Ebb Formula (post-roll chat button), Trait (grant/revoke — see
+     *   `SlaActor._onCreateDescendantDocuments`/`_onDeleteDescendantDocuments`), and Item/Gear (equip
+     *   toggle — see `SlaItem#setEquipped`).
+     * - `useCataloguePart: true` types have a Details tab that uses the catalogue partial
+     *   (physical inventory items).
+     * No inherited default here on purpose — every concrete subclass must set both explicitly.
+     * `tests/unit/item-sheet-registration.test.mjs` asserts every registered type has both set,
+     * so a subclass that forgets either is caught there rather than by a silently wrong tab count.
+     * @type {boolean}
+     */
+    static useTwoTabs;
+
+    /** @type {boolean} */
+    static useCataloguePart;
+
+    /**
+     * Per-type context hook. Default no-op; subclasses override to add fields their partial needs.
+     * @param {object} context
+     * @returns {Promise<object>|object}
+     */
+    async _prepareTypeContext(context) {
+        return context;
+    }
+
     /** @override */
     static PARTS = {
         body: {
@@ -231,8 +237,8 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         context.owner = item.isOwner;
         context.editable = this.isEditable;
 
-        context.useTwoTabs = TWO_TAB_TYPES.has(item.type);
-        context.useCataloguePart = CATALOGUE_PART_TYPES.has(item.type);
+        context.useTwoTabs = this.constructor.useTwoTabs;
+        context.useCataloguePart = this.constructor.useCataloguePart;
         context.tabs = this._prepareTabs('primary');
         if (!context.useTwoTabs) {
             context.itemEffects = Array.from(item.effects).map((e) => ({
@@ -244,22 +250,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
 
         context.enrichedDescription = await enrichItemDescription(item);
 
-        if (item.type === 'weapon') {
-            context.firingModes = prepareFiringModes(item.system);
-        }
-
-        if (item.type === 'armor') {
-            const max = Number(item.system.resistance?.max) || 0;
-            const cur = Number(item.system.resistance?.value) || 0;
-            context.resistGaugePct = max > 0 ? Math.min(100, Math.round((cur / max) * 100)) : 0;
-        }
-
-        if (item.type === 'ebbFormula') {
-            context.linkedDisciplineImg = getLinkedDisciplineImage(item);
-            context.normalizedEbbEffect = normalizeEbbEffect(item.system.ebbEffect);
-        }
-
-        return context;
+        return this._prepareTypeContext(context);
     }
 
     /**

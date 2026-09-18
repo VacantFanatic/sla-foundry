@@ -64,7 +64,9 @@ sla-industries/
 │       ├── actor-sheet.mjs     # SlaActorSheet (operative/character, ApplicationV2)
 │       ├── actor-npc-sheet.mjs # SlaNPCSheet (threat/NPC, ApplicationV2)
 │       ├── actor-vehicle-sheet.mjs  # SlaVehicleSheet (vehicle, ApplicationV2)
-│       └── item-sheet.mjs      # SlaItemSheet (all item types, ApplicationV2)
+│       ├── item-sheet.mjs      # SlaItemSheet (shared base — tabs, drop zones, ProseMirror, ApplicationV2)
+│       └── item/                # One thin subclass per item type (useTwoTabs/useCataloguePart statics
+│                                 # + _prepareTypeContext override), e.g. item-weapon-sheet.mjs
 ├── templates/                  # Handlebars templates for sheets and chat cards
 ├── packs/                      # Compendium source files (.db)
 ├── module/migration/           # World migration helpers (e.g. natural-weapons.mjs)
@@ -667,7 +669,7 @@ Step-by-step file checklists for the most frequent contribution types.
 2. `module/data/item.mjs` — add a `Sla<Type>Data extends foundry.abstract.TypeDataModel` subclass with a `defineSchema()`.
 3. `module/data/model-type-keys.mjs` — add the key to `ITEM_DATA_MODEL_TYPE_KEYS`.
 4. `module/data/registry.mjs` — import the new class and add it to `ITEM_DATA_MODELS`.
-5. `module/sheets/item-sheet.mjs` (`SlaItemSheet` handles all item types) — add any type-specific rendering branches; it is already registered for all `Item` types in `module/sla-industries.mjs`.
+5. Add a `module/sheets/item/item-<type>-sheet.mjs` subclass extending `SlaItemSheet`, setting `static useTwoTabs`/`static useCataloguePart`, and overriding `_prepareTypeContext(context)` for any type-specific fields the partial needs (see `item-weapon-sheet.mjs` for an example). Register it in `module/sla-industries.mjs` via `foundry.documents.collections.Items.registerSheet('sla-industries', <SheetClass>, { types: ['<type>'], makeDefault: true })`, and add both statics + the registration to `EXPECTED` in `tests/unit/item-sheet-registration.test.mjs`.
 6. Add the Handlebars partial under `templates/item/` and list it in `module/helpers/templates.mjs`.
 7. If the type needs drop-linking behaviour (like weapon→magazine), extend `module/helpers/drop-handlers.mjs`.
 8. Add a unit test in `tests/unit/` for any new pure logic.
