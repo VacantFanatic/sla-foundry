@@ -3,6 +3,18 @@ import { bindEscapeToClose } from '../helpers/dialog-keyboard.mjs';
 const { HandlebarsApplicationMixin, ApplicationV2 } = foundry.applications.api;
 
 /**
+ * Visual "flavor" of a dialog: drives its accent color and header icon via
+ * the `flavor-<name>` class and `data-flavor` attribute. See
+ * `src/scss/components/_dialog.scss`.
+ */
+export const DIALOG_FLAVOR_ICONS = {
+    action: 'fa-solid fa-crosshairs',
+    confirm: 'fa-solid fa-circle-question',
+    danger: 'fa-solid fa-triangle-exclamation',
+    resource: 'fa-solid fa-star'
+};
+
+/**
  * Modal with arbitrary HTML body and primary action (Application V2).
  */
 export class SlaSimpleContentDialog extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -46,6 +58,7 @@ export class SlaSimpleContentDialog extends HandlebarsApplicationMixin(Applicati
      * @param {string[]} [opts.classes]
      * @param {string} [opts.actionLabel]
      * @param {boolean} [opts.showCancel]
+     * @param {'action'|'confirm'|'danger'|'resource'} [opts.flavor]
      * @param {(form: HTMLFormElement|null) => void|Promise<void>} opts.onConfirm
      */
     constructor(opts) {
@@ -56,13 +69,14 @@ export class SlaSimpleContentDialog extends HandlebarsApplicationMixin(Applicati
             classes = [],
             actionLabel = game.i18n.localize('Submit'),
             showCancel = false,
+            flavor = 'action',
             onConfirm
         } = opts;
 
         super({
-            window: { title },
+            window: { title, icon: DIALOG_FLAVOR_ICONS[flavor] ?? DIALOG_FLAVOR_ICONS.action },
             position: { width },
-            classes: ['sla-dialog-window', 'dialog', ...classes]
+            classes: ['sla-dialog-window', 'dialog', `flavor-${flavor}`, ...classes]
         });
 
         this._title = title;

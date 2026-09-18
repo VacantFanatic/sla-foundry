@@ -11,6 +11,12 @@
     --sla-text-light: #e0e0e0;
     --sla-accent: #d05e1a;
     --sla-accent-faint: #d05e1a40;
+    --sla-success: #39ff14;
+    --sla-success-bg: #002a00;
+    --sla-danger: #ff5555;
+    --sla-danger-bg: #2a0000;
+    --sla-info: #4fa8ff;
+    --sla-info-bg: #001f33;
 
     // Typography
     --sla-font-mono: #{$font-secondary};
@@ -18,9 +24,11 @@
 
     // Spacing
     --sla-radius: 4px;
+    --sla-radius-lg: 8px;
     --sla-padding-sm: #{$padding-sm};
     --sla-padding-md: #{$padding-md};
     --sla-padding-lg: #{$padding-lg};
+    --sla-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
 
     // Transitions
     --sla-transition: #{$transition-base};
