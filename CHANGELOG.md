@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Threat (NPC) sheet didn't show a Gear item's Active Effect stat bonus (#377):** equipping a
+  Gear item with a `system.stats.<STAT>.bonus` ADD Active Effect correctly updated the actor's
+  derived `.total` and rolls on both Operative and Threat actors, but the Threat sheet's stat
+  table (`templates/actor/actor-npc-sheet-v2.hbs`) only ever displayed the raw base
+  `system.stats.<STAT>.value`, never `.total` — unlike the Operative sheet's shared
+  `stat-row.hbs` partial. This made a correctly-applied bonus look like it never applied. Fixed by
+  adding an effective-value hint (reusing the existing `sla-stat-effective-hint` style) to the
+  Threat sheet's stat table whenever the AE-boosted total differs from the base value.
+
 ## [2.9.4] - 2026-09-17
 
 ### Fixed

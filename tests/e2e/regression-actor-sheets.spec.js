@@ -331,6 +331,36 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
         expect(result).toBe(6);
     });
 
+    test('issue #377: Threat sheet shows the AE-boosted stat total, not just the base value', async ({ page }) => {
+        const actorId = await createTestActor(page, { stats: { str: { value: 3, bonus: 0 } } }, 'npc');
+        const sheet = await openActorSheet(page, actorId);
+
+        await page.evaluate(async (id) => {
+            const actor = game.actors.get(id);
+            await actor.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'Gear STR Boost',
+                    disabled: false,
+                    changes: [
+                        {
+                            key: 'system.stats.str.bonus',
+                            type: 'add',
+                            value: 2
+                        }
+                    ]
+                }
+            ]);
+            await actor.sheet.render(true);
+        }, actorId);
+
+        const strBaseInput = sheet.locator('input[name="system.stats.str.value"]');
+        await expect(strBaseInput).toHaveValue('3');
+
+        const strEffectiveHint = sheet.locator('.threat-row-effective td').first().locator('.sla-stat-effective-hint');
+        await expect(strEffectiveHint).toBeVisible();
+        await expect(strEffectiveHint).toHaveText(/5/);
+    });
+
     test('issue #359: v14 SUBTRACT change type reduces the global roll modifier', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();

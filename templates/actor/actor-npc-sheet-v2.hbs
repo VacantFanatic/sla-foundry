@@ -39,6 +39,38 @@
                     <td><input type="number" name="system.stats.cha.value" value="{{#if statInputs}}{{statInputs.cha}}{{else}}{{system.stats.cha.value}}{{/if}}" /></td>
                     <td><input type="number" name="system.stats.cool.value" value="{{#if statInputs}}{{statInputs.cool}}{{else}}{{system.stats.cool.value}}{{/if}}" /></td>
                 </tr>
+                <tr class="threat-row-effective">
+                    <td>
+                        {{#if statInputs}}{{#if (ne system.stats.str.total statInputs.str)}}
+                        <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">&rarr; {{system.stats.str.total}}</span>
+                        {{/if}}{{/if}}
+                    </td>
+                    <td>
+                        {{#if statInputs}}{{#if (ne system.stats.dex.total statInputs.dex)}}
+                        <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">&rarr; {{system.stats.dex.total}}</span>
+                        {{/if}}{{/if}}
+                    </td>
+                    <td>
+                        {{#if statInputs}}{{#if (ne system.stats.know.total statInputs.know)}}
+                        <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">&rarr; {{system.stats.know.total}}</span>
+                        {{/if}}{{/if}}
+                    </td>
+                    <td>
+                        {{#if statInputs}}{{#if (ne system.stats.conc.total statInputs.conc)}}
+                        <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">&rarr; {{system.stats.conc.total}}</span>
+                        {{/if}}{{/if}}
+                    </td>
+                    <td>
+                        {{#if statInputs}}{{#if (ne system.stats.cha.total statInputs.cha)}}
+                        <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">&rarr; {{system.stats.cha.total}}</span>
+                        {{/if}}{{/if}}
+                    </td>
+                    <td>
+                        {{#if statInputs}}{{#if (ne system.stats.cool.total statInputs.cool)}}
+                        <span class="sla-stat-effective-hint" title="{{localize "SLA.StatSheetMode.EffectiveTooltip"}}">&rarr; {{system.stats.cool.total}}</span>
+                        {{/if}}{{/if}}
+                    </td>
+                </tr>
             </tbody>
         </table>
 

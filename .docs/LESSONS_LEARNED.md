@@ -400,3 +400,27 @@ victim...` (all pre-existing, none touched by the shield PR) hand it a bare worl
   the obvious entry point is exactly the class of gap issue #363 itself was about. Before adding
   type-specific logic to a single UI entry point (a drop handler, a button click), check whether
   the actor already has a centralized descendant-document hook it belongs in instead.
+- **A hand-rolled sheet template can compute the right derived value and still never show it.**
+  Issue #377 reported that Gear Active Effects on `system.stats.<STAT>.bonus` "don't apply" to
+  Threat actors, while the identical effect worked on Operatives. `SlaActor.prepareDerivedData()`
+  (`module/documents/actor.mjs`) computes `system.stats.<key>.total` identically for `character`
+  and `npc` — same branch, same `_computeCoreStatBonus` call — and `stat-rolls.mjs` reads `.total`
+  correctly for rolls on both types, so the underlying math was never broken. The bug was that
+  `templates/actor/actor-npc-sheet-v2.hbs` (the Threat sheet) is a separate hand-written table
+  that binds its stat `<input>`s straight to `system.stats.<key>.value` (the raw base) and never
+  referenced `.total` anywhere, unlike the Operative sheet's shared `templates/actor/parts/
+stat-row.hbs` partial, which always renders `.total` (as the play-mode roll target, or as a
+  `sla-stat-effective-hint` next to the base in edit mode). So an equipped item's AE bonus was
+  computed correctly and used correctly for rolls, but invisible on the Threat sheet — which reads,
+  to a GM, exactly like the effect never applied. No existing e2e test caught this because every
+  AE-on-stats regression test (`regression-actor-sheets.spec.js`) asserted
+  `actor.system.stats.str.total` via the document API directly, never rendering the Threat sheet
+  DOM — the same "test the handler, not the template" gap as #363/#369, just on a different sheet.
+  Fixed by adding an effective-value hint to the Threat sheet's stat table (reusing the existing
+  `sla-stat-effective-hint` CSS class and the `context.statInputs`/`.total` data already built for
+  both actor types in `module/sheets/actor-sheet.mjs`), plus a regression test that renders the
+  real Threat sheet and asserts the hint is visible with the boosted value. When a system has more
+  than one sheet template for actor types that share a data model (Operative vs. Threat both using
+  `stats.<key>.total`), don't assume a fix or a feature verified on one sheet's shared partial
+  automatically reaches a different, hand-rolled template for another type — check the second
+  template's markup directly, and add a rendering test for it too.
