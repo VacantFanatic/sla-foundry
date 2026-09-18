@@ -384,7 +384,7 @@ export async function processWeaponRoll(sheet, item, html, isMelee) {
         templateData
     );
 
-    roll.toMessage({
+    await roll.toMessage({
         speaker: ChatMessage.getSpeaker({ actor: sheet.actor }),
         content: chatContent,
         flags: {

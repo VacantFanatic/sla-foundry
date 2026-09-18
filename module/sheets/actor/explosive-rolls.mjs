@@ -460,7 +460,7 @@ async function resolveExplosiveRoll(sheet, item, rollData, target, blastRadius, 
         templateData
     );
 
-    roll.toMessage({
+    await roll.toMessage({
         speaker: ChatMessage.getSpeaker({ actor: sheet.actor }),
         content: chatContent,
         flags: {
