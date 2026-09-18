@@ -16,6 +16,8 @@ export function computeInitiativeBonus({ dexTotal, concTotal, armorInitBonus }) 
  *   speciesRushing: number,
  *   athleticsRank: number,
  *   armorMoveBonus: { closing?: number, rushing?: number },
+ *   aeClosingBonus: number,
+ *   aeRushingBonus: number,
  *   critical: boolean,
  *   stunned: boolean,
  *   encumbranceMoveCap: number | null,
@@ -29,6 +31,8 @@ export function computeMovement({
     speciesRushing = 0,
     athleticsRank = 0,
     armorMoveBonus,
+    aeClosingBonus = 0,
+    aeRushingBonus = 0,
     critical,
     stunned,
     encumbranceMoveCap = null,
@@ -43,6 +47,12 @@ export function computeMovement({
         closing += armorMoveBonus.closing || 0;
         rushing += armorMoveBonus.rushing || 0;
     }
+
+    // Active Effect changes targeting system.move.closing/rushing directly (e.g. an Ebb
+    // Formulae bonus) — resolved once per pass in actor.mjs and folded in here so the
+    // subsequent derived-field overwrite doesn't discard them (see issue #373).
+    closing += aeClosingBonus;
+    rushing += aeRushingBonus;
 
     // Critical / Stunned: may not move faster than Closing (rushing capped to closing)
     if (critical || stunned) {

@@ -400,3 +400,25 @@ victim...` (all pre-existing, none touched by the shield PR) hand it a bare worl
   the obvious entry point is exactly the class of gap issue #363 itself was about. Before adding
   type-specific logic to a single UI entry point (a drop handler, a button click), check whether
   the actor already has a centralized descendant-document hook it belongs in instead.
+- **A derived field that's fully recomputed every `prepareDerivedData` pass silently drops any
+  Active Effect change applied to it, unless that recompute explicitly re-resolves the AE
+  contribution and folds it back in.** Issue #373: an Ebb Formulae effect with changes on
+  `system.move.closing`/`system.move.rushing` (mode Add) applied its `system.stats.str`/`dex`
+  changes correctly but never moved Closing/Rushing. `SlaActor` only overrides
+  `prepareDerivedData()`, so Foundry's own lifecycle (`prepareBaseData()` → `applyActiveEffects()`
+  → `prepareDerivedData()`) does write the AE's Add change into `system.move.closing`/`rushing`
+  first — but `_calculateDerived()` (`module/documents/actor.mjs`) then unconditionally overwrote
+  both fields from `computeMovement()`'s output (species base + Athletics rank + armor bonus +
+  caps), discarding whatever core just applied. Core stats don't have this problem because step 1
+  of `prepareDerivedData` re-resolves `.total` fresh every pass via `computeActiveEffectStatBonus`
+  rather than trusting core's one-time `setProperty`; HP had already gotten the same treatment
+  (`system.hp.bonus`, resolved via `computeActiveEffectKeyValue` and folded into
+  `resolveDerivedHpMax`) after an earlier session found it needed it too — movement was simply the
+  one derived field nobody had gotten to yet. Fixed by resolving
+  `computeActiveEffectKeyValue(this.effects, 'system.move.closing'/'system.move.rushing', 0)` fresh
+  in `_calculateDerived()` and passing both into `computeMovement()` as new `aeClosingBonus`/
+  `aeRushingBonus` params, added in before the existing critical/stunned/encumbrance caps (same
+  spot `armorMoveBonus` already gets added). When you find one derived field with this bug, check
+  every other field computed by the same `prepareDerivedData` override for the same missing
+  "re-resolve AE contribution, then recompute" step — it's not a one-off, it's a pattern that has
+  to be applied field-by-field.
