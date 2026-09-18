@@ -60,7 +60,7 @@ export async function executeSkillRollFromItem(sheet, item) {
         templateData
     );
 
-    roll.toMessage({
+    await roll.toMessage({
         speaker: ChatMessage.getSpeaker({ actor }),
         content: chatContent,
         flags: {

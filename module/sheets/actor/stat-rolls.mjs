@@ -58,7 +58,7 @@ export async function executeStatRoll(sheet, statKey) {
         templateData
     );
 
-    roll.toMessage({
+    await roll.toMessage({
         speaker: ChatMessage.getSpeaker({ actor }),
         content: chatContent,
         flags: {

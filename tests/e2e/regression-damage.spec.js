@@ -44,8 +44,10 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
     test('applyHpHeal writes healed total to system.hp.value, capped at max', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();
+            // type: 'npc' — a character's hp.max is always recomputed from species+STR in derived
+            // data (see resolveDerivedHpMax), so an authored max only sticks on a GM-authored NPC.
             const [actor] = await Actor.createDocuments([
-                { name: `E2E HP Heal ${stamp}`, type: 'character', system: { hp: { value: 6, max: 10 } } }
+                { name: `E2E HP Heal ${stamp}`, type: 'npc', system: { hp: { value: 6, max: 10 } } }
             ]);
             const { applyHpHeal } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
             const overheal = await applyHpHeal(actor, 20);

@@ -3,8 +3,8 @@
  * Ebb-formula cast orchestrator. It gates on/deducts system.stats.flux.value
  * (a resource spend with an insufficient-flux guard), resolves the caster's
  * discipline rank, and was previously entirely untested. Calls it directly
- * with a minimal sheet stub exposing only the two methods it delegates to
- * (both thin wrappers around already-unit-tested sheet-helpers.mjs functions).
+ * with a minimal sheet stub exposing only the methods it delegates to
+ * (all thin wrappers around already-unit-tested sheet-helpers.mjs functions).
  */
 const { test, expect } = require('@playwright/test');
 const { joinGame, waitForSLASystem } = require('./fixtures');
@@ -32,12 +32,13 @@ test.describe('GM: executeEbbRoll (document API)', () => {
                 { name: `E2E Formula ${stamp}`, type: 'ebbFormula', system: { cost: 2, discipline: 'Blast' } }
             ]);
 
-            const { generateSheetTooltip, resolveSheetDamageDisplay } =
+            const { generateSheetTooltip, resolveSheetDamageDisplay, buildSlaRollFlags } =
                 await import('/systems/sla-industries/module/sheets/actor/sheet-helpers.mjs');
             const sheet = {
                 actor,
                 _generateTooltip: (roll, mod, sdMod) => generateSheetTooltip(roll, mod, sdMod),
-                _resolveDamageDisplay: (formula) => resolveSheetDamageDisplay(formula, actor)
+                _resolveDamageDisplay: (formula) => resolveSheetDamageDisplay(formula, actor),
+                _buildSlaRollFlags: (params) => buildSlaRollFlags(params)
             };
 
             const { executeEbbRoll } = await import('/systems/sla-industries/module/sheets/actor/ebb-rolls.mjs');
@@ -55,7 +56,7 @@ test.describe('GM: executeEbbRoll (document API)', () => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();
             const [actor] = await Actor.createDocuments([
-                { name: `E2E Ebb Cast ${stamp}`, type: 'character', system: { stats: { flux: { value: 5 } } } }
+                { name: `E2E Ebb Cast ${stamp}`, type: 'character', system: { stats: { flux: { value: 5, max: 6 } } } }
             ]);
             await actor.createEmbeddedDocuments('Item', [
                 { name: `E2E Blast Discipline ${stamp}`, type: 'discipline', system: { rank: 2 } }
@@ -72,12 +73,13 @@ test.describe('GM: executeEbbRoll (document API)', () => {
 
             const messageCountBefore = game.messages.size;
 
-            const { generateSheetTooltip, resolveSheetDamageDisplay } =
+            const { generateSheetTooltip, resolveSheetDamageDisplay, buildSlaRollFlags } =
                 await import('/systems/sla-industries/module/sheets/actor/sheet-helpers.mjs');
             const sheet = {
                 actor,
                 _generateTooltip: (roll, mod, sdMod) => generateSheetTooltip(roll, mod, sdMod),
-                _resolveDamageDisplay: (formula) => resolveSheetDamageDisplay(formula, actor)
+                _resolveDamageDisplay: (formula) => resolveSheetDamageDisplay(formula, actor),
+                _buildSlaRollFlags: (params) => buildSlaRollFlags(params)
             };
 
             const { executeEbbRoll } = await import('/systems/sla-industries/module/sheets/actor/ebb-rolls.mjs');
@@ -99,7 +101,11 @@ test.describe('GM: executeEbbRoll (document API)', () => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();
             const [actor] = await Actor.createDocuments([
-                { name: `E2E Ebb NoDiscipline ${stamp}`, type: 'character', system: { stats: { flux: { value: 5 } } } }
+                {
+                    name: `E2E Ebb NoDiscipline ${stamp}`,
+                    type: 'character',
+                    system: { stats: { flux: { value: 5, max: 6 } } }
+                }
             ]);
             const [formula] = await actor.createEmbeddedDocuments('Item', [
                 {
@@ -109,12 +115,13 @@ test.describe('GM: executeEbbRoll (document API)', () => {
                 }
             ]);
 
-            const { generateSheetTooltip, resolveSheetDamageDisplay } =
+            const { generateSheetTooltip, resolveSheetDamageDisplay, buildSlaRollFlags } =
                 await import('/systems/sla-industries/module/sheets/actor/sheet-helpers.mjs');
             const sheet = {
                 actor,
                 _generateTooltip: (roll, mod, sdMod) => generateSheetTooltip(roll, mod, sdMod),
-                _resolveDamageDisplay: (formula) => resolveSheetDamageDisplay(formula, actor)
+                _resolveDamageDisplay: (formula) => resolveSheetDamageDisplay(formula, actor),
+                _buildSlaRollFlags: (params) => buildSlaRollFlags(params)
             };
 
             const { executeEbbRoll } = await import('/systems/sla-industries/module/sheets/actor/ebb-rolls.mjs');
