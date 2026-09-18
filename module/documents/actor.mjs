@@ -12,15 +12,12 @@ import {
 } from './derived/active-effects.mjs';
 import { applyStatPenalties } from './derived/penalties.mjs';
 import { clampHpValue } from '../sheets/actor/sheet-ux-pure.mjs';
-import {
-    countWounds,
-    deriveLogicConditions,
-    resolveStunnedFromHeadWound,
-    shouldSuppressBleeding
-} from './derived/wounds.mjs';
+import { countWounds, deriveLogicConditions } from './derived/wounds.mjs';
 import { resolveDerivedHpMax } from './derived/hp.mjs';
 import { computeArmorModifierEffects } from './derived/armor-modifiers.mjs';
 import { computeInitiativeBonus, computeMovement } from './derived/movement.mjs';
+import { handleSpeciesAdd, handleSpeciesRemove } from './actor/species-lifecycle.mjs';
+import { syncBleedingToWounds, handleWoundEffects, handleWoundThresholds } from './actor/wound-lifecycle.mjs';
 
 /**
  * Extend the basic Actor document.
@@ -222,8 +219,8 @@ export class SlaActor extends Actor {
         // Stunned is intentionally NOT force-derived from the head wound here: it's the actual
         // Stunned effect (hasEffect above) that must drive display, so a manually-cleared Stunned
         // (rest/drugs/medical intervention) stays cleared while the head wound persists, per the
-        // rulebook's wound-vs-condition removal rules. _handleWoundEffects() below is what applies
-        // Stunned when the head wound first appears.
+        // rulebook's wound-vs-condition removal rules. handleWoundEffects() (actor/wound-lifecycle.mjs)
+        // is what applies Stunned when the head wound first appears.
         if (logic.immobile) system.conditions.immobile = true;
     }
 
@@ -426,7 +423,7 @@ export class SlaActor extends Actor {
 
         for (const doc of documents) {
             if (doc.type === 'species') {
-                this._handleSpeciesAdd(doc);
+                handleSpeciesAdd(this, doc);
             } else if (doc.type === 'trait') {
                 doc.applyItemEffectsToActor(this);
             }
@@ -443,214 +440,10 @@ export class SlaActor extends Actor {
 
         for (const doc of documents) {
             if (doc.type === 'species') {
-                this._handleSpeciesRemove(doc);
+                handleSpeciesRemove(this, doc);
             } else if (doc.type === 'trait') {
                 doc._removeEffectsByOrigin(this, doc.uuid);
             }
-        }
-    }
-
-    async _handleSpeciesAdd(speciesItem) {
-        // 0. SINGLETON ENFORCEMENT: Check for existing species and delete them
-        const existingSpecies = this.items.filter((i) => i.type === 'species' && i.id !== speciesItem.id);
-        if (existingSpecies.length > 0) {
-            const deleteIds = existingSpecies.map((i) => i.id);
-            if (typeof ui !== 'undefined') ui.notifications.info(`Replacing existing species...`);
-            await this.deleteEmbeddedDocuments('Item', deleteIds);
-        }
-
-        const speciesName = speciesItem.name.toLowerCase();
-        let weaponToAdd = null;
-
-        // 1. Natural Weapons Logic
-        if (speciesName.includes('stormer')) {
-            weaponToAdd = NATURAL_WEAPONS.teethClaws;
-        } else if (speciesName.includes('neophron')) {
-            weaponToAdd = NATURAL_WEAPONS.beak;
-        }
-
-        if (weaponToAdd) {
-            // Check if it already exists to avoid duplicates
-            // We use 'find' but since we just cleared species, we might need to check if we cleared weapons too?
-            // Natural Weapons are separate Items. _handleSpeciesRemove handles their deletion.
-            // So if we just deleted the old species, its weapons are gone (via _handleSpeciesRemove).
-            const exists = this.items.find((i) => i.name === weaponToAdd.name);
-            if (!exists) {
-                await this.createEmbeddedDocuments('Item', [weaponToAdd]);
-                if (typeof ui !== 'undefined') ui.notifications.info(`Added natural weapon: ${weaponToAdd.name}`);
-            }
-        }
-
-        // 2. Determine Stats (Prioritize Item Data, Fallback to Defaults if missing)
-        const sys = speciesItem.system;
-        let luckInit = sys.luck?.initial ?? 0;
-        let luckMax = sys.luck?.max ?? 0;
-        let fluxInit = sys.flux?.initial ?? 0;
-        let fluxMax = sys.flux?.max ?? 0;
-        let hpBase = sys.hp ?? 0;
-        let moveClosing = sys.move?.closing ?? 0;
-        let moveRushing = sys.move?.rushing ?? 0;
-
-        // CHECK: If this looks like an "Unmigrated/Broken" item (all zeros), try to apply known defaults
-        const isBlank = luckMax === 0 && fluxMax === 0 && hpBase <= 10 && moveClosing === 0;
-
-        if (isBlank) {
-            console.warn(
-                `SLA Industries | Detected potentially unmigrated Species Item: ${speciesItem.name}. Applying system defaults.`
-            );
-            if (speciesName.includes('ebon')) {
-                fluxInit = 2;
-                fluxMax = 6;
-                hpBase = 14;
-                moveClosing = 2;
-                moveRushing = 5;
-            } else if (speciesName.includes('human')) {
-                luckInit = 1;
-                luckMax = 6;
-                hpBase = 14;
-                moveClosing = 2;
-                moveRushing = 5;
-            } else if (speciesName.includes('frother')) {
-                luckInit = 1;
-                luckMax = 3;
-                hpBase = 15;
-                moveClosing = 2;
-                moveRushing = 5;
-            } else if (speciesName.includes('wraithen')) {
-                luckInit = 1;
-                luckMax = 4;
-                hpBase = 14;
-                moveClosing = 4;
-                moveRushing = 8;
-            } else if (speciesName.includes('shaktar')) {
-                luckInit = 0;
-                luckMax = 3;
-                hpBase = 19;
-                moveClosing = 3;
-                moveRushing = 6;
-            } else if (speciesName.includes('carrien')) {
-                // Advanced Carrien
-                luckInit = 0;
-                luckMax = 3;
-                hpBase = 20;
-                moveClosing = 4;
-                moveRushing = 7;
-            } else if (speciesName.includes('neophron')) {
-                luckInit = 0;
-                luckMax = 3;
-                hpBase = 11;
-                moveClosing = 2;
-                moveRushing = 5;
-            } else if (speciesName.includes('stormer')) {
-                if (speciesName.includes('313') || speciesName.includes('malice')) {
-                    luckInit = 0;
-                    luckMax = 2;
-                    hpBase = 22;
-                    moveClosing = 3;
-                    moveRushing = 6;
-                } else if (speciesName.includes('711') || speciesName.includes('xeno')) {
-                    luckInit = 0;
-                    luckMax = 2;
-                    hpBase = 20;
-                    moveClosing = 4;
-                    moveRushing = 6;
-                } else {
-                    luckInit = 0;
-                    luckMax = 2;
-                    hpBase = 20;
-                    moveClosing = 3;
-                    moveRushing = 6;
-                }
-            }
-        }
-
-        // Prepare Updates
-        const updateData = {};
-        const itemUpdateData = {};
-
-        // LUCK
-        if (luckMax > 0) {
-            updateData['system.stats.luck.value'] = luckInit;
-            updateData['system.stats.luck.max'] = luckMax;
-            if (isBlank) {
-                itemUpdateData['system.luck.initial'] = luckInit;
-                itemUpdateData['system.luck.max'] = luckMax;
-            }
-        }
-
-        // FLUX
-        if (fluxMax > 0) {
-            updateData['system.stats.flux.value'] = fluxInit;
-            updateData['system.stats.flux.max'] = fluxMax;
-            if (isBlank) {
-                itemUpdateData['system.flux.initial'] = fluxInit;
-                itemUpdateData['system.flux.max'] = fluxMax;
-            }
-        }
-
-        // HP Base
-        if (hpBase > 0) {
-            // Note: Actor HP is derived in _calculateDerived, so we don't strictly need to set actor.system.hp.max here
-            // But we SHOULD ensure the embedded item has the data if it was blank
-            if (isBlank) itemUpdateData['system.hp'] = hpBase;
-        }
-
-        // MOVEMENT
-        if (moveClosing > 0) {
-            if (isBlank) {
-                itemUpdateData['system.move.closing'] = moveClosing;
-                itemUpdateData['system.move.rushing'] = moveRushing;
-            }
-        }
-
-        // 3. APPLY ACTOR UPDATE
-        if (!foundry.utils.isEmpty(updateData)) {
-            await this.update(updateData);
-        }
-
-        // 4. APPLY ITEM UPDATE (Fix the Item if it was broken)
-        if (!foundry.utils.isEmpty(itemUpdateData)) {
-            await speciesItem.update(itemUpdateData);
-        }
-    }
-
-    async _handleSpeciesRemove(speciesItem) {
-        const speciesName = speciesItem.name.toLowerCase();
-
-        // 1. Remove Natural Weapons
-        let weaponToRemoveName = null;
-        if (speciesName.includes('stormer')) {
-            weaponToRemoveName = NATURAL_WEAPONS.teethClaws.name;
-        } else if (speciesName.includes('neophron')) {
-            weaponToRemoveName = NATURAL_WEAPONS.beak.name;
-        }
-
-        if (weaponToRemoveName) {
-            const weapon = this.items.find((i) => i.name === weaponToRemoveName);
-            if (weapon) {
-                await weapon.delete();
-                if (typeof ui !== 'undefined') ui.notifications.info(`Removed natural weapon: ${weaponToRemoveName}`);
-            }
-        }
-
-        // 2. CHECK: Are there any other species left?
-        // If we found any species that is NOT the one being deleted (although 'this.items' might already lack it)
-        // In _onDeleteDescendantDocuments, 'this.items' usually implies the state *after* deletion in memory?
-        // Let's rely on finding ANY species. If none, we clean up.
-        const remainingSpecies = this.items.find((i) => i.type === 'species' && i.id !== speciesItem.id);
-
-        if (!remainingSpecies) {
-            // 3. Last Species Removed -> RESET STATS
-            const updateData = {
-                'system.stats.luck.value': 0,
-                'system.stats.luck.max': 0,
-                'system.stats.flux.value': 0,
-                'system.stats.flux.max': 0
-                // HP Base is derived from item presence, so no manual reset needed for 'system.hp'?
-                // Move is derived from item presence, so no manual reset needed.
-            };
-            if (typeof ui !== 'undefined') ui.notifications.info(`Species removed: Resetting Stats.`);
-            await this.update(updateData);
         }
     }
 
@@ -796,7 +589,7 @@ export class SlaActor extends Actor {
                 await syncStatus(key, value);
             }
             // Bleeding is mandatory while wounded (Frother exception: exactly one wound); undo manual toggles
-            await this._syncBleedingToWounds();
+            await syncBleedingToWounds(this);
         }
 
         // B. Handle Wound Logic (Head -> Stunned, Legs -> Immobile, Any -> Bleeding)
@@ -820,7 +613,7 @@ export class SlaActor extends Actor {
         }
 
         if (changedWoundFields.size > 0) {
-            await this._handleWoundEffects(changedWoundFields);
+            await handleWoundEffects(this, changedWoundFields);
         }
 
         // 2. SEPARATE LOGIC: Critical / dead status vs HP (value or max threshold)
@@ -828,128 +621,7 @@ export class SlaActor extends Actor {
             foundry.utils.hasProperty(changed, 'system.hp.value') ||
             foundry.utils.hasProperty(changed, 'system.hp.max')
         ) {
-            await this._handleWoundThresholds();
-        }
-    }
-
-    /** Frother Feel No Pain: suppress Bleeding only while exactly one wound is marked. */
-    _frotherSuppressesBleeding(woundCount) {
-        const species = this.items.find((i) => i.type === 'species');
-        return shouldSuppressBleeding(species?.name, woundCount);
-    }
-
-    /**
-     * Apply/remove Bleeding from wound count and Frother exception (sheet toggles re-synced in _onUpdate).
-     */
-    async _syncBleedingToWounds() {
-        const woundCount = countWounds(this.system.wounds);
-        const hasBleeding = this.effects.some((e) => e.statuses.has('bleeding'));
-        const shouldBleed = woundCount > 0 && !this._frotherSuppressesBleeding(woundCount);
-        if (shouldBleed && !hasBleeding) {
-            await this.toggleStatusEffect('bleeding', { active: true });
-        } else if (!shouldBleed && hasBleeding) {
-            await this.toggleStatusEffect('bleeding', { active: false });
-        }
-    }
-
-    /**
-     * Handle Side-Effects of Wounds (Stunned, Immobile, Bleeding)
-     * @param {Set<string>} changedWoundFields - which wound location fields changed in this update
-     */
-    async _handleWoundEffects(changedWoundFields) {
-        // We need the *full* current state of wounds, merging the update with existing data
-        // However, 'this.system.wounds' is already updated in memory by the time _onUpdate fires?
-        // ACTUALLY: In _onUpdate, 'this.system' IS already updated to the new state.
-        // 'changed' only contains the diff.
-
-        // Ensure wounds object exists
-        if (!this.system.wounds) this.system.wounds = {};
-        const w = this.system.wounds;
-        const effectsToToggle = [];
-
-        // Helper to check if effect exists
-        const hasEffect = (id) => this.effects.some((e) => e.statuses.has(id));
-
-        // 1. HEAD WOUND -> STUNNED
-        // Only re-derive Stunned when the head field itself changed - otherwise editing an
-        // unrelated wound (e.g. a leg) would silently re-apply Stunned after a GM manually
-        // cleared it to represent rest/drugs/medical intervention without healing the head.
-        if (changedWoundFields.has('head')) {
-            const desiredStunned = resolveStunnedFromHeadWound(w.head, hasEffect('stunned'));
-            if (desiredStunned !== null) {
-                effectsToToggle.push({ id: 'stunned', active: desiredStunned });
-            }
-        }
-
-        // 2. BOT LEG WOUNDS -> IMMOBILE
-        const legsGone = w.lLeg === true && w.rLeg === true;
-        if (legsGone && !hasEffect('immobile')) {
-            effectsToToggle.push({ id: 'immobile', active: true });
-        } else if (!legsGone && hasEffect('immobile')) {
-            // Check if immobile was caused by something else (Encumbrance)?
-            // If Encumbrance is forcing immobile, we shouldn't remove it.
-            // We can check encumbrance state (only for characters, NPCs don't have encumbrance)
-            const hasEncumbrance = this.system.encumbrance && this.system.encumbrance.value !== undefined;
-            const isEncumbered = hasEncumbrance && this.system.encumbrance.value > this.system.encumbrance.max;
-
-            // Only remove if NOT encumbered (or if NPC which doesn't have encumbrance)
-            if (!isEncumbered) {
-                effectsToToggle.push({ id: 'immobile', active: false });
-            }
-        }
-
-        // EXECUTE UPDATES
-        // processing sequentially to avoid race conditions
-        for (const change of effectsToToggle) {
-            await this.toggleStatusEffect(change.id, { active: change.active });
-        }
-
-        await this._syncBleedingToWounds();
-
-        const woundCount = countWounds(w);
-        if (woundCount >= 6) {
-            if (this.system.hp.value > 0) {
-                await this.update({ 'system.hp.value': 0 });
-            } else if (!this.effects.some((e) => e.statuses.has('dead'))) {
-                await this.toggleStatusEffect('dead', { active: true, overlay: true });
-            }
-        }
-
-        // Force sheet to re-render if it's open to update the condition icons
-        if (this.sheet?.rendered) {
-            await this.sheet.render(false);
-        }
-    }
-
-    /**
-     * Separate function to handle HP math logic
-     */
-    async _handleWoundThresholds() {
-        // Calculate your thresholds
-        const hp = this.system.hp.value;
-        const max = this.system.hp.max;
-        const woundCount = countWounds(this.system.wounds);
-
-        // Helper to check if effect exists
-        const hasEffect = (id) => this.effects.some((e) => e.statuses.has(id));
-
-        // 1. DEAD (HP <= 0 or six wounds — instant death regardless of HP)
-        // We apply as overlay for visual emphasis
-        const isDead = hp <= 0 || woundCount >= 6;
-        if (isDead && !hasEffect('dead')) {
-            await this.toggleStatusEffect('dead', { active: true, overlay: true });
-        } else if (!isDead && hasEffect('dead')) {
-            await this.toggleStatusEffect('dead', { active: false });
-        }
-
-        // 2. CRITICAL (HP <= floor(Max/2) AND Not Dead)
-        // Note: We use the Effect ID (e.g., 'critical') not the boolean
-        const isCritical = hp > 0 && hp <= Math.floor(max / 2);
-
-        if (isCritical && !hasEffect('critical')) {
-            await this.toggleStatusEffect('critical', { active: true });
-        } else if (!isCritical && hasEffect('critical')) {
-            await this.toggleStatusEffect('critical', { active: false });
+            await handleWoundThresholds(this);
         }
     }
 }
