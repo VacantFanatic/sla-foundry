@@ -15,6 +15,8 @@ CI (`main.yml`) runs on every push to `main` and every PR: version sync check, P
 
 `system.json` and `package.json` in source always carry the **target stable semver** (e.g. `2.9.0`). The rc suffix is injected at build time by the pre-release workflow — it never appears in committed files.
 
+Version numbers must follow [Semantic Versioning](https://semver.org/) — `MAJOR.MINOR.PATCH`, where MAJOR bumps on breaking changes, MINOR on backward-compatible features, and PATCH on backward-compatible bug fixes. Pre-release identifiers (`-rc1`, `-rc2`, …) follow the same spec's precedence rules for pre-release versions.
+
 | Git tag         | Version shown in Foundry | What it means                              |
 | --------------- | ------------------------ | ------------------------------------------ |
 | `pre-2.9.0-rc1` | `2.9.0-rc1`              | First release candidate for 2.9.0          |
