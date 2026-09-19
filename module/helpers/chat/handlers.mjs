@@ -9,7 +9,8 @@ import {
     executeStandardDamageRoll,
     resolveDamageDisplay,
     resolveEbbFormulaVictim,
-    resolveVictimForApplyDamage
+    resolveVictimForApplyDamage,
+    undoDamageApplication
 } from './damage.mjs';
 import { getChatMessageId, readDataNumber, readDataString, setButtonDisabled, toggleTooltip } from './dom.mjs';
 import { buildDifficultyNotes, rebuildDifficultyDamageFormula, resolveTacticalWoundOutcome } from './pure.mjs';
@@ -222,6 +223,51 @@ export async function onApplyDamage(ev) {
     }
 }
 
+const UNDO_FAILURE_MESSAGES = {
+    'no-undo-data': 'SLA.UndoFailedNoData',
+    'already-undone': 'SLA.DamageAlreadyUndone',
+    'actor-deleted': 'SLA.UndoFailedActorDeleted',
+    'armor-item-missing': 'SLA.UndoFailedItemDeleted',
+    'hp-mismatch': 'SLA.UndoFailedValueChanged',
+    'armor-mismatch': 'SLA.UndoFailedValueChanged',
+    'wounds-mismatch': 'SLA.UndoFailedValueChanged'
+};
+
+export async function onUndoDamage(ev) {
+    ev.preventDefault();
+    const btn = ev.currentTarget;
+
+    try {
+        if (!game.user.isGM) {
+            ui.notifications.warn(game.i18n.localize('SLA.UndoRequiresGM'));
+            return;
+        }
+
+        const card = btn.closest('.sla-chat-card');
+        if (!card) return;
+        const messageId = getChatMessageId(card);
+        const message = game.messages.get(messageId);
+        if (!message) return;
+
+        setButtonDisabled(btn, true);
+
+        const result = await undoDamageApplication(message);
+        if (!result.ok) {
+            const reasonMsgKey = UNDO_FAILURE_MESSAGES[result.reason] || 'SLA.UndoFailedGeneric';
+            ui.notifications.warn(game.i18n.localize(reasonMsgKey));
+            setButtonDisabled(btn, false);
+            return;
+        }
+
+        setButtonDisabled(btn, true, game.i18n.localize('SLA.DamageAlreadyUndone'));
+        ui.notifications.info(game.i18n.localize('SLA.UndoSucceeded'));
+    } catch (err) {
+        console.error('SLA | Error in onUndoDamage:', err);
+        ui.notifications.error('SLA | Failed to undo damage. See console for details.');
+        setButtonDisabled(btn, false);
+    }
+}
+
 export async function onApplyEbbEffects(ev) {
     ev.preventDefault();
     const btn = ev.currentTarget;
@@ -329,9 +375,9 @@ export async function onRemoveEbbWounds(ev) {
         }
 
         try {
-            const removed = await clearNWoundsOnActor(victim, requested);
+            const { clearedCount } = await clearNWoundsOnActor(victim, requested);
             ui.notifications.info(
-                game.i18n.format('SLA.EbbNWoundsRemoved', { name: victim.name, count: removed, requested })
+                game.i18n.format('SLA.EbbNWoundsRemoved', { name: victim.name, count: clearedCount, requested })
             );
         } catch (innerErr) {
             if (healBtnPrelocked) {

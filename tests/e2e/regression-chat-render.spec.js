@@ -113,4 +113,119 @@ test.describe('GM: SLAChat card render helpers (document API)', () => {
         expect(result.ebbLabel).toContain('E2E Render Target');
         expect(result.ebbTargetUuid).toBeTruthy();
     });
+
+    test('chat-damage-result.hbs renders a clickable, enabled Undo button', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const content = await foundry.applications.handlebars.renderTemplate(
+                'systems/sla-industries/templates/chat/chat-damage-result.hbs',
+                {
+                    victimName: 'Target',
+                    rawDamage: 8,
+                    effectivePV: 2,
+                    finalDamage: 6,
+                    hpData: { old: 10, new: 4 },
+                    armorData: null,
+                    undo: { victimUuid: 'Actor.xyz', undone: false }
+                }
+            );
+            const fragment = document.createElement('div');
+            fragment.innerHTML = content;
+            const btn = fragment.querySelector('.undo-damage-btn');
+            return {
+                found: Boolean(btn),
+                disabled: btn?.disabled,
+                victimUuid: btn?.getAttribute('data-victim-uuid')
+            };
+        });
+
+        expect(result.found).toBe(true);
+        expect(result.disabled).toBe(false);
+        expect(result.victimUuid).toBe('Actor.xyz');
+    });
+
+    test('chat-damage-result.hbs renders a disabled Undo button once undo.undone is true', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const content = await foundry.applications.handlebars.renderTemplate(
+                'systems/sla-industries/templates/chat/chat-damage-result.hbs',
+                {
+                    victimName: 'Target',
+                    rawDamage: 8,
+                    effectivePV: 2,
+                    finalDamage: 6,
+                    hpData: { old: 10, new: 4 },
+                    armorData: null,
+                    undo: { victimUuid: 'Actor.xyz', undone: true }
+                }
+            );
+            const fragment = document.createElement('div');
+            fragment.innerHTML = content;
+            const btn = fragment.querySelector('.undo-damage-btn');
+            return { disabled: btn?.disabled, hasTitle: Boolean(btn?.getAttribute('title')) };
+        });
+
+        expect(result.disabled).toBe(true);
+        expect(result.hasTitle).toBe(true);
+    });
+
+    test('applyUndoLockFromMessage disables the Undo button once the message flags say undone', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const html = document.createElement('div');
+            html.innerHTML =
+                '<div class="sla-chat-card damage-result">' + '<button class="undo-damage-btn"></button>' + '</div>';
+            const message = { flags: { sla: { undo: { undone: true } } } };
+
+            const { SLAChat } = await import('/systems/sla-industries/module/helpers/chat.mjs');
+            SLAChat.applyUndoLockFromMessage(message, html);
+
+            const btn = html.querySelector('.undo-damage-btn');
+            return { disabled: btn.disabled, hasTitle: Boolean(btn.getAttribute('title')) };
+        });
+
+        expect(result.disabled).toBe(true);
+        expect(result.hasTitle).toBe(true);
+    });
+
+    test('applyUndoLockFromMessage is a no-op when the message has not been undone', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const html = document.createElement('div');
+            html.innerHTML =
+                '<div class="sla-chat-card damage-result">' + '<button class="undo-damage-btn"></button>' + '</div>';
+            const message = { flags: { sla: { undo: { undone: false } } } };
+
+            const { SLAChat } = await import('/systems/sla-industries/module/helpers/chat.mjs');
+            SLAChat.applyUndoLockFromMessage(message, html);
+
+            return { disabled: html.querySelector('.undo-damage-btn').disabled };
+        });
+
+        expect(result.disabled).toBe(false);
+    });
+
+    test('onRenderChatMessage strips the Undo button for non-GM viewers', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const html = document.createElement('div');
+            html.innerHTML = '<div class="sla-chat-card damage-result"><button class="undo-damage-btn"></button></div>';
+            const message = { flags: { sla: {} } };
+
+            // isGM is typically inherited (not an own property), so there is nothing to restore
+            // via defineProperty afterward -- deleting the instance override reveals it again.
+            const hadOwnDescriptor = Object.prototype.hasOwnProperty.call(game.user, 'isGM');
+            const originalDescriptor = hadOwnDescriptor ? Object.getOwnPropertyDescriptor(game.user, 'isGM') : null;
+            Object.defineProperty(game.user, 'isGM', { configurable: true, get: () => false });
+            try {
+                const { SLAChat } = await import('/systems/sla-industries/module/helpers/chat.mjs');
+                await SLAChat.onRenderChatMessage(message, html, {});
+            } finally {
+                if (hadOwnDescriptor) {
+                    Object.defineProperty(game.user, 'isGM', originalDescriptor);
+                } else {
+                    delete game.user.isGM;
+                }
+            }
+
+            return { found: Boolean(html.querySelector('.undo-damage-btn')) };
+        });
+
+        expect(result.found).toBe(false);
+    });
 });

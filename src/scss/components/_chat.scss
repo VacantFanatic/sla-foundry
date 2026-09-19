@@ -263,6 +263,31 @@ $_sla-chat-dark-row-selectors: (
             color: #3ab0ff;
         }
     }
+
+    .damage-undo-row {
+        margin-top: 8px;
+        text-align: center;
+    }
+
+    .undo-damage-btn {
+        background: #1a0e0e;
+        border: $border-width solid #833;
+        border-radius: $border-radius;
+        color: #f88;
+        font-size: 0.85em;
+        padding: 3px 10px;
+        cursor: pointer;
+
+        &:hover:not(:disabled) {
+            background: #2a1414;
+            border-color: #d00;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
 }
 
 /* Drug Use Card */
