@@ -13,11 +13,11 @@ describe('getEbbMosDamageBonus', () => {
         assert.equal(getEbbMosDamageBonus(true, 2, 'none'), 0);
     });
 
-    it('returns +1 / +2 / +4 for damage at 2 / 3 / 4+ skill successes', () => {
+    it('returns +1 for damage at exactly 2 skill successes, and +0 at 3/4+ (those tiers grant reuse/FLUX instead)', () => {
         assert.equal(getEbbMosDamageBonus(true, 1, 'damage'), 0);
         assert.equal(getEbbMosDamageBonus(true, 2, 'damage'), 1);
-        assert.equal(getEbbMosDamageBonus(true, 3, 'damage'), 2);
-        assert.equal(getEbbMosDamageBonus(true, 4, 'damage'), 4);
-        assert.equal(getEbbMosDamageBonus(true, 5, 'damage'), 4);
+        assert.equal(getEbbMosDamageBonus(true, 3, 'damage'), 0);
+        assert.equal(getEbbMosDamageBonus(true, 4, 'damage'), 0);
+        assert.equal(getEbbMosDamageBonus(true, 5, 'damage'), 0);
     });
 });

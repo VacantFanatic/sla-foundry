@@ -262,11 +262,12 @@ describe('calculateEbbModifier', () => {
 });
 
 describe('resolveEbbOutcomeText', () => {
-    test('MOS 4 damage attack is critical with flux regain text', () => {
+    test('MOS 4 damage attack is critical with flux regain text and no extra damage', () => {
         const r = resolveEbbOutcomeText(true, 4, 'damage');
         assert.equal(r.isSuccessful, true);
         assert.match(r.mosEffectText, /CRITICAL/);
-        assert.match(r.mosEffectText, /\+4 Dmg/);
+        assert.match(r.mosEffectText, /FLUX/);
+        assert.doesNotMatch(r.mosEffectText, /Dmg/);
     });
 
     test('all dice failed is severe failure', () => {
@@ -283,10 +284,10 @@ describe('resolveEbbOutcomeText', () => {
         assert.match(r.mosEffectText, /5 minutes/);
     });
 
-    test('MOS 3 damage formula still surfaces the reuse text alongside the damage bonus', () => {
+    test('MOS 3 damage formula surfaces only the reuse text, no damage bonus', () => {
         const r = resolveEbbOutcomeText(true, 3, 'damage');
         assert.equal(r.isSuccessful, true);
-        assert.match(r.mosEffectText, /\+2 Damage/);
+        assert.doesNotMatch(r.mosEffectText, /Damage/);
         assert.doesNotMatch(r.mosEffectText, /FLUX/);
         assert.match(r.mosEffectText, /\+3/);
     });

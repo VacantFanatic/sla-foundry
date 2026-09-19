@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Ebb Discipline MOS damage bonus no longer stacks with the tier-3/4+ rewards.** The rulebook's
+  "Ebb Disciplines & Margin of Success/Failure" table grants exactly one reward per skill-success
+  tier — +1 damage at exactly 2 successes, a reuse-the-ability option at 3, and a FLUX regain at
+  4+ — not an escalating damage bonus on top of those rewards. `getEbbMosDamageBonus`
+  (`module/helpers/ebb-mos.mjs`) previously also added +2/+4 damage at 3/4+ successes; it now adds
+  damage only at exactly 2 successes, matching the rulebook and the chat card text
+  (`resolveEbbOutcomeText` in `module/sheets/actor/roll-math.mjs`).
+- **Corrected `.docs/EBB_SYSTEM.md`**, which incorrectly documented Success Through Experience as
+  applying to Ebb rolls; the rulebook and the actual code (Ebb rolls never go through the
+  STE-aware `calculateRollResult`/`getMOS` path) agree that it does not.
+
 ## [2.10.0] - 2026-09-19
 
 ### Added
