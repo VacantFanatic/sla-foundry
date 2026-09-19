@@ -511,3 +511,24 @@ system "sla-industries": The file "module/....mjs" does not exist` (or the setup
   Playwright timeout on the exact same locator, so treat that error as ambiguous: inspect the
   actual tab header's `class` list and check server logs for `Metadata validation failed` before
   assuming the click logic itself is wrong.
+- **A "class applied correctly" e2e assertion can pass while the feature is completely invisible
+  — check the computed style too, not just `class`.** The Move AE-boosted highlight (new
+  `sla-move-ae-boosted` class, `color: var(--sla-success)` in `src/scss/sheets/_actor.scss`)
+  shipped with e2e tests asserting `toHaveClass(/sla-move-ae-boosted/)`, which passed — but a
+  live GM screenshot showed no color at all. Root cause: two pre-existing rules elsewhere in the
+  same file outranked the new one for the two contexts that actually render Move —
+  `.threat-box input { color: #000 !important; }` (Threat sheet inputs: nothing but another
+  `!important` beats `!important`) and `&.sla-move-box-mode-play .sla-move-play-val { color:
+#eee; }` (Operative play-mode span: 3 classes beats the new rule's 2, regardless of source
+  order). The class was present in the DOM exactly as asserted; the color simply never rendered.
+  Fixed by adding `!important` to the new rule (matching this file's own established pattern —
+  see `.sla-stat-readonly`/`.sla-stat-hint`-adjacent rules already doing the same at line ~384 for
+  the identical reason) and by strengthening the e2e tests to also assert
+  `toHaveCSS('color', 'rgb(57, 255, 20)')` — confirmed these new assertions actually fail against
+  the pre-fix CSS (reverted it, reran, watched both tests fail with the exact wrong-color value,
+  then restored the fix and reran green) before considering the regression test meaningful. When
+  adding a CSS class meant to make something visually distinct, grep the same stylesheet for
+  every existing rule matching the same element/class combination before assuming a plain
+  (non-`!important`, ordinary-specificity) rule will win — and assert the actual computed property
+  in the test, not just the class name, since a class can be correctly applied and still be a
+  no-op.

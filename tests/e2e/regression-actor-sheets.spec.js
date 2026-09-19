@@ -383,6 +383,13 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
         const rushingInput = sheet.locator('input[name="system.move.rushing"]');
         await expect(closingInput).toHaveClass(/sla-move-ae-boosted/);
         await expect(rushingInput).not.toHaveClass(/sla-move-ae-boosted/);
+        // Class presence alone doesn't prove the color actually renders — a prior version of
+        // this fix shipped with the class applied but visually invisible because
+        // `.threat-box input { color: #000 !important; }` (src/scss/sheets/_actor.scss)
+        // out-ranked a plain (non-!important) color override. Assert the resolved color
+        // directly so a future specificity/!important regression fails here, not just in a
+        // screenshot a human happens to notice.
+        await expect(closingInput).toHaveCSS('color', 'rgb(57, 255, 20)');
     });
 
     test('Move highlight: Operative sheet flags an AE-boosted Rushing value, leaves Closing unstyled', async ({
@@ -409,6 +416,10 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
         const closingPlayVal = sheet.locator('.sla-move-play-cell').nth(0).locator('.sla-move-play-val');
         await expect(rushingPlayVal).toHaveClass(/sla-move-ae-boosted/);
         await expect(closingPlayVal).not.toHaveClass(/sla-move-ae-boosted/);
+        // See the Threat-sheet test above: class presence doesn't prove the color renders.
+        // `.sla-move-box-mode-play .sla-move-play-val { color: #eee; }` (3 classes) beat a
+        // plain 2-class override here the same way the Threat sheet's !important did.
+        await expect(rushingPlayVal).toHaveCSS('color', 'rgb(57, 255, 20)');
     });
 
     test('Move highlight: absent on an actor with no Active Effects on Move (no false positives)', async ({ page }) => {
