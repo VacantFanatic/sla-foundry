@@ -342,11 +342,9 @@ export function resolveEbbOutcomeText(isBaseSuccess, skillSuccesses, ebbEffectRa
         if (skillSuccesses === 2) {
             mosEffectText = attackMos ? '+1 Damage / Effect' : 'Standard Success';
         } else if (skillSuccesses === 3) {
-            mosEffectText = attackMos ? `+2 Damage / ${EBB_MOS3_REUSE_TEXT}` : EBB_MOS3_REUSE_TEXT;
+            mosEffectText = EBB_MOS3_REUSE_TEXT;
         } else if (skillSuccesses >= 4) {
-            mosEffectText = attackMos
-                ? "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX"
-                : "<strong style='color:#39ff14'>CRITICAL:</strong> Regain 1 FLUX";
+            mosEffectText = "<strong style='color:#39ff14'>CRITICAL:</strong> Regain 1 FLUX";
         }
     } else if (allDiceFailed) {
         failureConsequence = "<strong style='color:#ff5555'>SEVERE FAILURE:</strong> -3 HP & -1 Extra FLUX";
