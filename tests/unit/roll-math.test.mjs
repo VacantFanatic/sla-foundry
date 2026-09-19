@@ -274,6 +274,22 @@ describe('resolveEbbOutcomeText', () => {
         assert.equal(r.isSuccessful, false);
         assert.match(r.failureConsequence, /SEVERE FAILURE/);
     });
+
+    test('MOS 3 effect formula describes the +3 reuse modifier, not FLUX', () => {
+        const r = resolveEbbOutcomeText(true, 3, 'effect');
+        assert.equal(r.isSuccessful, true);
+        assert.doesNotMatch(r.mosEffectText, /FLUX/);
+        assert.match(r.mosEffectText, /\+3/);
+        assert.match(r.mosEffectText, /5 minutes/);
+    });
+
+    test('MOS 3 damage formula still surfaces the reuse text alongside the damage bonus', () => {
+        const r = resolveEbbOutcomeText(true, 3, 'damage');
+        assert.equal(r.isSuccessful, true);
+        assert.match(r.mosEffectText, /\+2 Damage/);
+        assert.doesNotMatch(r.mosEffectText, /FLUX/);
+        assert.match(r.mosEffectText, /\+3/);
+    });
 });
 
 describe('buildEbbDamageFormula', () => {

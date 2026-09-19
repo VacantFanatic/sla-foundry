@@ -363,11 +363,20 @@ export class SlaActor extends Actor {
 
             const athletics = this.items.find((i) => i.type === 'skill' && i.name.toLowerCase() === 'athletics');
 
+            // Active Effect changes targeting system.move.closing/rushing directly (e.g. an Ebb
+            // Formulae bonus) are applied by core before this method runs, then would otherwise be
+            // clobbered by the unconditional recompute below. Re-resolve them fresh from the
+            // actor's effects each pass, same pattern as _computeHpBonusTotal (see issue #373).
+            const aeClosingBonus = computeActiveEffectKeyValue(this.effects, 'system.move.closing', 0);
+            const aeRushingBonus = computeActiveEffectKeyValue(this.effects, 'system.move.rushing', 0);
+
             const { closing, rushing } = computeMovement({
                 speciesClosing: speciesItem?.system.move.closing || 0,
                 speciesRushing: speciesItem?.system.move.rushing || 0,
                 athleticsRank: athletics?.system.rank || 0,
                 armorMoveBonus: system.move.armorBonus,
+                aeClosingBonus,
+                aeRushingBonus,
                 critical: system.conditions.critical,
                 stunned: system.conditions.stunned,
                 encumbranceMoveCap: system.encumbrance.moveCap,
@@ -377,6 +386,8 @@ export class SlaActor extends Actor {
 
             system.move.closing = closing;
             system.move.rushing = rushing;
+            system.move.aeClosingBoosted = aeClosingBonus !== 0;
+            system.move.aeRushingBoosted = aeRushingBonus !== 0;
         }
     }
 

@@ -1,26 +1,25 @@
-<div class="luck-dialog" role="dialog" aria-label="{{localize 'SLA.LuckDialog.AriaLabel'}}" style="color:#eee;">
-    <p class="notes" style="margin-bottom:10px;">Select a benefit to apply. You have <strong>{{luck.value}}</strong> /
-        {{luck.max}} Luck remaining.</p>
+<div class="luck-dialog" role="dialog" aria-label="{{localize 'SLA.LuckDialog.AriaLabel'}}">
+    <p class="sla-dialog-hint sla-dialog-hint--block">Select a benefit to apply. You have
+        <strong>{{luck.value}}</strong> / {{luck.max}} Luck remaining.</p>
 
     <!-- SECTION 1: GENERIC OPTIONS -->
-    <div class="sla-panel sla-dialog-panel" style="margin-bottom: 10px;">
+    <div class="sla-panel sla-dialog-panel">
         <div class="sla-header-bar-small">Generic Options</div>
-        <div style="padding: 5px;">
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <button type="button" data-action="rerollSd"
-                    style="background:#111; border:1px solid #444; color:#fff;" {{#if (or (lt luck.value 1)
-                    rofRerollSD)}}disabled{{/if}}>
+        <div class="sla-dialog-panel-body">
+            <div class="sla-dialog-field-stack">
+                <button type="button" data-action="rerollSd" class="sla-dialog-btn sla-dialog-btn--outline"
+                    {{#if (or (lt luck.value 1) rofRerollSD)}}disabled{{/if}}>
                     Reroll Success Die {{#if rofRerollSD}}(ROF Rerolled){{else}}(Cost: 1){{/if}}
                 </button>
 
-                <div class="flexrow" style="align-items: center; justify-content: space-between; gap: 5px;">
+                <div class="sla-dialog-row-inline">
                     <button type="button" data-action="addMod"
-                        style="flex:1; background:#111; border:1px solid #444; color:#fff;" {{#if (lt luck.value
+                        class="sla-dialog-btn sla-dialog-btn--outline sla-dialog-btn--grow" {{#if (lt luck.value
                         1)}}disabled{{/if}}>
                         Add Modifier (Cost: Variable)
                     </button>
                     <input type="number" name="modAmount" value="1" min="1" max="{{luck.value}}"
-                        style="max-width: 50px; text-align: center; background:#333; color:#fff; border:1px solid #555; height: 26px;">
+                        class="sla-dialog-input-sm">
                 </div>
             </div>
         </div>
@@ -29,21 +28,19 @@
     <!-- SECTION 2: REROLL SKILL DICE -->
     <div class="sla-panel sla-dialog-panel">
         <div class="sla-header-bar-small">Reroll Skill Dice (Cost: 1 Total)</div>
-        <div style="padding: 5px;">
-            <p class="notes" style="font-size: 0.8em; margin: 0 0 5px 0;">Select dice to reroll:</p>
-            <div class="skill-dice-list" style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px;">
+        <div class="sla-dialog-panel-body">
+            <p class="sla-dialog-hint">Select dice to reroll:</p>
+            <div class="sla-dialog-dice-list">
                 {{#each skillDice}}
-                <label class="dice-checkbox"
-                    style="border: 1px solid #555; padding: 5px; border-radius: 4px; display: flex; align-items: center; cursor: pointer; background:#222; {{#if this.disabled}}opacity:0.5; cursor:not-allowed;{{/if}}">
+                <label class="sla-dialog-die {{#if this.disabled}}is-disabled{{/if}}">
                     <input type="checkbox" name="rerollSelect" value="{{@index}}" {{#if this.disabled}}disabled{{/if}}>
-                    <span
-                        style="font-weight: bold; margin-left: 5px; color: {{this.borderColor}};">{{this.total}}</span>
+                    <span class="sla-dialog-die-value" style="color: {{this.borderColor}};">{{this.total}}</span>
                 </label>
                 {{/each}}
             </div>
 
             <button type="button" data-action="rerollSkill"
-                style="background:#111; border:1px solid #444; color:#fff; width: 100%;" {{#if (lt luck.value
+                class="sla-dialog-btn sla-dialog-btn--outline sla-dialog-btn--block" {{#if (lt luck.value
                 1)}}disabled{{/if}}>
                 Reroll Selected Dice
             </button>

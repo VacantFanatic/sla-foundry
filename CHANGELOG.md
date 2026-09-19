@@ -6,6 +6,72 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.10.0] - 2026-09-19
+
+### Added
+
+- **Move (Closing/Rushing) now highlights when boosted by an Active Effect**, on both Operative
+  and Threat sheets: the value's text/border recolors (reusing the `--sla-success` token already
+  used for the core-stat effective-value hint) whenever an Active Effect contributes a nonzero
+  bonus to `system.move.closing`/`.rushing`. No numeric delta is shown, just a visual "this is
+  modified" signal — matching the recent #373 fix that made these Active Effects actually apply.
+
+### Changed
+
+- **Modernized roll/confirmation dialog styling with a "flavor" system:** the Attack/Throw,
+  Reload, Luck, XP, and generic confirm dialogs now share one visual shell
+  (`.sla-dialog-window.dialog` in `src/scss/components/_dialog.scss`) instead of each having its
+  own ad hoc inline styles, with a `flavor-<name>` class (`action`, `confirm`, `danger`,
+  `resource`) driving a consistent accent color, header icon, and primary-button color per dialog
+  type. `SlaSimpleContentDialog` takes a new `flavor` option; `LuckDialog`/`XPDialog` are always
+  `resource`. New `--sla-success`/`--sla-danger`/`--sla-info` design tokens replace scattered
+  hardcoded hex colors, and a dead `.dialog-buttons .dialog-button` CSS rule that matched nothing
+  in the actual markup was removed. No field, button, or behavior changed — purely visual.
+
+### Added
+
+- **Ebb MOS-3 "reuse" outcome now actually applies a modifier, via a pre-roll confirmation
+  dialog (#380):** casting an Ebb Discipline formula now opens a confirmation dialog with a
+  generic **Situational Modifier** input before rolling. The rulebook's MOS-3 outcome ("may use
+  the same Ebb Discipline ability again within 5 minutes, at -3 Formula Rating") is implemented
+  as a **+3 roll modifier** — mathematically equivalent since success requires `roll >=
+targetNumber` — entered by the player when applicable, rather than the system automatically
+  tracking eligibility/the 5-minute window. The same input covers any other one-off situational
+  modifier (e.g. a house-ruled penalty for choking). Also fixes the MOS-3 chat flavor text, which
+  previously said "(-3 FLUX)" instead of describing the actual Formula Rating mechanic.
+
+### Fixed
+
+- **Threat (NPC) sheet didn't show a Gear item's Active Effect stat bonus (#377):** equipping a
+  Gear item with a `system.stats.<STAT>.bonus` ADD Active Effect correctly updated the actor's
+  derived `.total` and rolls on both Operative and Threat actors, but the Threat sheet's stat
+  table (`templates/actor/actor-npc-sheet-v2.hbs`) only ever displayed the raw base
+  `system.stats.<STAT>.value`, never `.total` — unlike the Operative sheet's shared
+  `stat-row.hbs` partial. This made a correctly-applied bonus look like it never applied. Fixed by
+  adding an effective-value hint (reusing the existing `sla-stat-effective-hint` style) to the
+  Threat sheet's stat table whenever the AE-boosted total differs from the base value.
+- **Active Effect changes on `system.move.closing`/`system.move.rushing` never applied (#373):**
+  an Ebb Formulae (or any other) Active Effect targeting Closing/Rushing directly applied
+  correctly to stats like STR/DEX but had no effect on movement, because `_calculateDerived`
+  unconditionally recomputed both fields from species base + Athletics + armor bonus each pass,
+  overwriting whatever core's own Active Effect application had just written. Fixed by resolving
+  each field's Active Effect contribution fresh every pass (`computeActiveEffectKeyValue`) and
+  folding it into the movement calculation instead of being clobbered by it.
+- **Apply Damage / Apply Ebb Effects / Remove Ebb Wounds chat buttons silently no-op against a
+  world actor with no token (#379):** `resolveActorFromUuid` (`module/helpers/chat/damage.mjs`)
+  assumed every UUID it received was a Token UUID and unconditionally read `.actor` off the
+  resolved document. When given a plain Actor UUID instead (no token/scene involved), `fromUuid`
+  returns the `Actor` document itself, which has no `.actor` property, so the helper returned
+  `null` and every caller's `if (!victim) return;` guard silently aborted — no HP damage applied,
+  no Active Effect copied, no wounds cleared. Fixed by accepting both Token and Actor UUIDs.
+- **Checked/unchecked checkboxes changed visual footprint instead of staying flush:** the shared
+  checkbox styling (`src/scss/sheets/_actor.scss`, used by actor sheets, item sheets, and dialogs
+  including the Luck dialog's dice-reroll selector) applied an `outline` only to the unchecked
+  state, which draws outside the box's border edge and made the unchecked footprint visibly
+  larger than the checked one — so toggling a checkbox looked like it jumped/resized instead of
+  staying in place. Fixed by applying the same outline in both states, so only the fill color
+  changes on check.
+
 ## [2.9.4] - 2026-09-17
 
 ### Fixed
@@ -1158,7 +1224,8 @@ quantity` (armor and weapon item sheets), and `system.typeNote` (generic item sh
 - Damage application targeting both selected token and target.
 - Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.9.4...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.10.0...HEAD
+[2.10.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.10.0
 [2.9.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.4
 [2.9.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.2
 [2.9.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.1

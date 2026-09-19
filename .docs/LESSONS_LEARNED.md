@@ -400,3 +400,135 @@ victim...` (all pre-existing, none touched by the shield PR) hand it a bare worl
   the obvious entry point is exactly the class of gap issue #363 itself was about. Before adding
   type-specific logic to a single UI entry point (a drop handler, a button click), check whether
   the actor already has a centralized descendant-document hook it belongs in instead.
+- **A hand-rolled sheet template can compute the right derived value and still never show it.**
+  Issue #377 reported that Gear Active Effects on `system.stats.<STAT>.bonus` "don't apply" to
+  Threat actors, while the identical effect worked on Operatives. `SlaActor.prepareDerivedData()`
+  (`module/documents/actor.mjs`) computes `system.stats.<key>.total` identically for `character`
+  and `npc` — same branch, same `_computeCoreStatBonus` call — and `stat-rolls.mjs` reads `.total`
+  correctly for rolls on both types, so the underlying math was never broken. The bug was that
+  `templates/actor/actor-npc-sheet-v2.hbs` (the Threat sheet) is a separate hand-written table
+  that binds its stat `<input>`s straight to `system.stats.<key>.value` (the raw base) and never
+  referenced `.total` anywhere, unlike the Operative sheet's shared `templates/actor/parts/
+stat-row.hbs` partial, which always renders `.total` (as the play-mode roll target, or as a
+  `sla-stat-effective-hint` next to the base in edit mode). So an equipped item's AE bonus was
+  computed correctly and used correctly for rolls, but invisible on the Threat sheet — which reads,
+  to a GM, exactly like the effect never applied. No existing e2e test caught this because every
+  AE-on-stats regression test (`regression-actor-sheets.spec.js`) asserted
+  `actor.system.stats.str.total` via the document API directly, never rendering the Threat sheet
+  DOM — the same "test the handler, not the template" gap as #363/#369, just on a different sheet.
+  Fixed by adding an effective-value hint to the Threat sheet's stat table (reusing the existing
+  `sla-stat-effective-hint` CSS class and the `context.statInputs`/`.total` data already built for
+  both actor types in `module/sheets/actor-sheet.mjs`), plus a regression test that renders the
+  real Threat sheet and asserts the hint is visible with the boosted value. When a system has more
+  than one sheet template for actor types that share a data model (Operative vs. Threat both using
+  `stats.<key>.total`), don't assume a fix or a feature verified on one sheet's shared partial
+  automatically reaches a different, hand-rolled template for another type — check the second
+  template's markup directly, and add a rendering test for it too.
+- **A derived field that's fully recomputed every `prepareDerivedData` pass silently drops any
+  Active Effect change applied to it, unless that recompute explicitly re-resolves the AE
+  contribution and folds it back in.** Issue #373: an Ebb Formulae effect with changes on
+  `system.move.closing`/`system.move.rushing` (mode Add) applied its `system.stats.str`/`dex`
+  changes correctly but never moved Closing/Rushing. `SlaActor` only overrides
+  `prepareDerivedData()`, so Foundry's own lifecycle (`prepareBaseData()` → `applyActiveEffects()`
+  → `prepareDerivedData()`) does write the AE's Add change into `system.move.closing`/`rushing`
+  first — but `_calculateDerived()` (`module/documents/actor.mjs`) then unconditionally overwrote
+  both fields from `computeMovement()`'s output (species base + Athletics rank + armor bonus +
+  caps), discarding whatever core just applied. Core stats don't have this problem because step 1
+  of `prepareDerivedData` re-resolves `.total` fresh every pass via `computeActiveEffectStatBonus`
+  rather than trusting core's one-time `setProperty`; HP had already gotten the same treatment
+  (`system.hp.bonus`, resolved via `computeActiveEffectKeyValue` and folded into
+  `resolveDerivedHpMax`) after an earlier session found it needed it too — movement was simply the
+  one derived field nobody had gotten to yet. Fixed by resolving
+  `computeActiveEffectKeyValue(this.effects, 'system.move.closing'/'system.move.rushing', 0)` fresh
+  in `_calculateDerived()` and passing both into `computeMovement()` as new `aeClosingBonus`/
+  `aeRushingBonus` params, added in before the existing critical/stunned/encumbrance caps (same
+  spot `armorMoveBonus` already gets added). When you find one derived field with this bug, check
+  every other field computed by the same `prepareDerivedData` override for the same missing
+  "re-resolve AE contribution, then recompute" step — it's not a one-off, it's a pattern that has
+  to be applied field-by-field.
+- **A UUID resolution helper that assumes one document type for every caller breaks silently for
+  the others.** Issue #379: `resolveActorFromUuid` (`module/helpers/chat/damage.mjs`) unconditionally
+  did `(await fromUuid(targetUuid))?.actor` — correct when `targetUuid` is a Token UUID (the case
+  for live play, where `flags.sla.targets` / `data-target-uuid` are populated from
+  `game.user.targets` as `t.document.uuid` — see `weapon-rolls.mjs`, `explosive-rolls.mjs`,
+  `ebb-rolls.mjs`, `weapon-gates.mjs`), but silently wrong for a plain Actor UUID (a world actor
+  with no token/scene involved): `fromUuid()` on an Actor UUID returns the `Actor` document
+  itself, which has no `.actor` property, so the helper returned `null`. Every one of its three
+  callers (`onApplyDamage`, `onApplyEbbEffects`, `onRemoveEbbWounds` in
+  `module/helpers/chat/handlers.mjs`) then hit an `if (!victim) return;` guard and silently
+  no-op'd — no error, no HP change, no effect applied, no wound cleared — which looked like three
+  unrelated bugs (broken mitigation math, broken effect copy, broken wound-clear order) until
+  tracing all three back to the same choke point. None of the surrounding math/logic was actually
+  broken. When a resolver/helper takes a generic "uuid" or "id" parameter, check every caller for
+  which document types it's actually handed, not just the type the helper's author had in mind —
+  and prefer a type check (`doc instanceof Actor`) over drilling into a type-specific property.
+- **A selector-based CSS rule that doesn't match anything in the actual DOM fails completely
+  silently — no build error, no lint warning, nothing.** Before the dialog redesign,
+  `src/scss/components/_dialog.scss` had a `.dialog-buttons .dialog-button { ... }` rule sitting
+  right next to the working `.sla-dialog-window.dialog` shell rules, styled as if it controlled
+  every dialog's Confirm/Cancel buttons. It never matched anything: `SlaSimpleContentDialog`
+  (`module/apps/sla-simple-dialog.mjs`) is a hand-rolled ApplicationV2 whose footer buttons
+  (`templates/dialogs/simple-content-dialog.hbs`) use plain `<button data-action="...">` markup
+  with no `.dialog-buttons`/`.dialog-button` wrapper — those class names are what Foundry's own
+  legacy `Dialog`/`DialogV2` classes generate, not anything this codebase's custom dialog shell
+  produces. The rule was dead from the day it was written, and nothing caught it because a CSS
+  selector that matches zero elements compiles and ships exactly like one that matches the right
+  element. When styling a custom Application/ApplicationV2 shell (here or elsewhere), verify the
+  selector against the actual rendered markup (or the `.hbs` source) rather than against what a
+  similarly-named Foundry core class would produce — grepping the template's real button classes
+  before writing the CSS rule would have caught this immediately.
+- \*\*`.docs/CLOUD_ENVIRONMENT.md`'s `FOUNDRY_DATA_DIR=/root/foundry-data` is exported by the
+  session-start hook, not by the shell — calling `scripts/cloud-foundry.sh` directly (a fresh
+  `Bash` tool call, an ad hoc debugging session) silently falls back to the script's own default,
+  `/home/ubuntu/foundry-data`, a path that doesn't exist in this environment and isn't the
+  container's actual bind mount (confirm the real one with
+  `docker inspect foundry --format '{{ range .Mounts }}{{ .Source }} -> {{ .Destination }}{{"\n"}}{{ end }}'`
+  — it's `/root/foundry-data:/data` here). `sync_system_install()` then builds `dist/` correctly
+  but copies it into the wrong directory, so the running container's actual installed system
+  silently stays stale — no error, no warning, since the script has no way to know its target
+  directory doesn't match the live mount. Symptom: Foundry logs `Metadata validation failed for
+system "sla-industries": The file "module/....mjs" does not exist` (or the setup page's Game
+  Worlds tab is permanently `disabled` with a "Requires sla-industries System" badge) even though
+  the file demonstrably exists on disk — because "on disk" means the wrong disk. Fixed here by
+  exporting `FOUNDRY_DATA_DIR=/root/foundry-data` explicitly before calling the script outside the
+  hook, and by restarting the container afterward — Foundry's server process caches its package
+  scan at startup and does not pick up a corrected on-disk install without a restart, so a file
+  fix alone (even to the right path) isn't enough once the server has already booted with the
+  broken version. Always confirm `docker inspect`'s real mount before trusting a script's default
+  data-dir env var, and restart the container after any manual file-level fix to Foundry's data.
+- **A Foundry setup-page automation that clicks blind can fail identically for two unrelated
+  reasons, and the error message doesn't distinguish them.** `scripts/foundry-bootstrap.mjs`'s
+  world-launch flow (`launchFromSetup`) failed with `element is not visible` on `li.world` in two
+  separate sessions, for two different root causes: (1) an auto-started Foundry "Backups Overview"
+  tour renders a `.tour-overlay` that intercepts pointer events on the whole page, unrelated to
+  world/system state — `dismissSetupTours()`'s `Escape`-key + generic `.close` click didn't
+  dismiss it; the actual control is `aside.tour-center-step [data-action="exit"]`; and (2) the
+  "Game Worlds" tab header (`h2[data-action="tab"][data-tab="worlds"]`, not an `<a>` — an earlier
+  attempted fix guessing `a[data-tab="worlds"]` matched zero elements and silently no-op'd) is
+  itself `disabled` by Foundry whenever the setup page's package scan doesn't recognize the world's
+  required system as installed (see the `FOUNDRY_DATA_DIR` entry above for why that happens) — no
+  amount of clicking makes a `disabled` tab's content visible. Both produce the exact same
+  Playwright timeout on the exact same locator, so treat that error as ambiguous: inspect the
+  actual tab header's `class` list and check server logs for `Metadata validation failed` before
+  assuming the click logic itself is wrong.
+- **A "class applied correctly" e2e assertion can pass while the feature is completely invisible
+  — check the computed style too, not just `class`.** The Move AE-boosted highlight (new
+  `sla-move-ae-boosted` class, `color: var(--sla-success)` in `src/scss/sheets/_actor.scss`)
+  shipped with e2e tests asserting `toHaveClass(/sla-move-ae-boosted/)`, which passed — but a
+  live GM screenshot showed no color at all. Root cause: two pre-existing rules elsewhere in the
+  same file outranked the new one for the two contexts that actually render Move —
+  `.threat-box input { color: #000 !important; }` (Threat sheet inputs: nothing but another
+  `!important` beats `!important`) and `&.sla-move-box-mode-play .sla-move-play-val { color:
+#eee; }` (Operative play-mode span: 3 classes beats the new rule's 2, regardless of source
+  order). The class was present in the DOM exactly as asserted; the color simply never rendered.
+  Fixed by adding `!important` to the new rule (matching this file's own established pattern —
+  see `.sla-stat-readonly`/`.sla-stat-hint`-adjacent rules already doing the same at line ~384 for
+  the identical reason) and by strengthening the e2e tests to also assert
+  `toHaveCSS('color', 'rgb(57, 255, 20)')` — confirmed these new assertions actually fail against
+  the pre-fix CSS (reverted it, reran, watched both tests fail with the exact wrong-color value,
+  then restored the fix and reran green) before considering the regression test meaningful. When
+  adding a CSS class meant to make something visually distinct, grep the same stylesheet for
+  every existing rule matching the same element/class combination before assuming a plain
+  (non-`!important`, ordinary-specificity) rule will win — and assert the actual computed property
+  in the test, not just the class name, since a class can be correctly applied and still be a
+  no-op.
