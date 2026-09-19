@@ -386,6 +386,8 @@ export class SlaActor extends Actor {
 
             system.move.closing = closing;
             system.move.rushing = rushing;
+            system.move.aeClosingBoosted = aeClosingBonus !== 0;
+            system.move.aeRushingBoosted = aeRushingBonus !== 0;
         }
     }
 

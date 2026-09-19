@@ -23,6 +23,18 @@ async function dismissSetupTours(page) {
         await page.keyboard.press('Escape');
         await page.waitForTimeout(300);
     }
+    // Foundry's built-in setup tours (e.g. "Backups Overview") render an
+    // aside.tour-center-step popover backed by a page-wide .tour-overlay that intercepts
+    // pointer events on everything underneath it — Escape and a generic window-close selector
+    // don't dismiss it; only this tour's own exit control does.
+    const tourExit = page.locator('aside.tour-center-step [data-action="exit"]');
+    if (await tourExit.count()) {
+        await tourExit
+            .first()
+            .click()
+            .catch(() => {});
+        await page.waitForTimeout(300);
+    }
     const close = page.locator('.window-header .header-control.close, button.close');
     if (await close.count()) {
         await close
@@ -111,6 +123,27 @@ async function launchFromSetup(page) {
     }
 
     await dismissSetupTours(page);
+
+    // The setup page can land on the "Game Systems" tab instead of "Game Worlds" (observed
+    // when Foundry's browser-side package scan hasn't recognized the world's required system
+    // as installed yet — Foundry marks the Worlds tab header disabled in that case). The world
+    // list items exist in the DOM either way but aren't visible unless that tab is active, so
+    // Playwright's click waits for visibility and times out. Explicitly select the Worlds tab
+    // header (an <h2 data-action="tab">, not an <a>) rather than assuming it's already active.
+    const worldsTab = page.locator('h2[data-action="tab"][data-tab="worlds"]').first();
+    if ((await worldsTab.count()) && (await worldsTab.getAttribute('class'))?.includes('disabled')) {
+        throw new Error(
+            'Game Worlds tab is disabled — Foundry does not recognize the required system as ' +
+                'installed. Check `docker logs foundry` for "Metadata validation failed", confirm ' +
+                "FOUNDRY_DATA_DIR matches the container's actual bind mount (docker inspect), and " +
+                'restart the container after any manual fix — Foundry caches its package scan at ' +
+                'startup.'
+        );
+    }
+    if (await worldsTab.count()) {
+        await worldsTab.click();
+        await page.waitForTimeout(500);
+    }
 
     const worldCards = page.locator('li.world');
     const count = await worldCards.count();

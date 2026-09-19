@@ -88,9 +88,9 @@
             <div class="threat-box">
                 <label>MOVE (Close/Rush)</label>
                 <div class="flexrow">
-                    <input type="number" name="system.move.closing" value="{{system.move.closing}}" placeholder="0" />
+                    <input type="number" name="system.move.closing" value="{{system.move.closing}}" placeholder="0" class="{{#if moveAeBoosted.closing}}sla-move-ae-boosted{{/if}}" />
                     <span>/</span>
-                    <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" placeholder="0" />
+                    <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" placeholder="0" class="{{#if moveAeBoosted.rushing}}sla-move-ae-boosted{{/if}}" />
                 </div>
             </div>
             {{#if (or system.stats.luck.max system.stats.luck.value)}}

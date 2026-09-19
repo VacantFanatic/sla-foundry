@@ -477,3 +477,37 @@ stat-row.hbs` partial, which always renders `.total` (as the play-mode roll targ
   selector against the actual rendered markup (or the `.hbs` source) rather than against what a
   similarly-named Foundry core class would produce — grepping the template's real button classes
   before writing the CSS rule would have caught this immediately.
+- \*\*`.docs/CLOUD_ENVIRONMENT.md`'s `FOUNDRY_DATA_DIR=/root/foundry-data` is exported by the
+  session-start hook, not by the shell — calling `scripts/cloud-foundry.sh` directly (a fresh
+  `Bash` tool call, an ad hoc debugging session) silently falls back to the script's own default,
+  `/home/ubuntu/foundry-data`, a path that doesn't exist in this environment and isn't the
+  container's actual bind mount (confirm the real one with
+  `docker inspect foundry --format '{{ range .Mounts }}{{ .Source }} -> {{ .Destination }}{{"\n"}}{{ end }}'`
+  — it's `/root/foundry-data:/data` here). `sync_system_install()` then builds `dist/` correctly
+  but copies it into the wrong directory, so the running container's actual installed system
+  silently stays stale — no error, no warning, since the script has no way to know its target
+  directory doesn't match the live mount. Symptom: Foundry logs `Metadata validation failed for
+system "sla-industries": The file "module/....mjs" does not exist` (or the setup page's Game
+  Worlds tab is permanently `disabled` with a "Requires sla-industries System" badge) even though
+  the file demonstrably exists on disk — because "on disk" means the wrong disk. Fixed here by
+  exporting `FOUNDRY_DATA_DIR=/root/foundry-data` explicitly before calling the script outside the
+  hook, and by restarting the container afterward — Foundry's server process caches its package
+  scan at startup and does not pick up a corrected on-disk install without a restart, so a file
+  fix alone (even to the right path) isn't enough once the server has already booted with the
+  broken version. Always confirm `docker inspect`'s real mount before trusting a script's default
+  data-dir env var, and restart the container after any manual file-level fix to Foundry's data.
+- **A Foundry setup-page automation that clicks blind can fail identically for two unrelated
+  reasons, and the error message doesn't distinguish them.** `scripts/foundry-bootstrap.mjs`'s
+  world-launch flow (`launchFromSetup`) failed with `element is not visible` on `li.world` in two
+  separate sessions, for two different root causes: (1) an auto-started Foundry "Backups Overview"
+  tour renders a `.tour-overlay` that intercepts pointer events on the whole page, unrelated to
+  world/system state — `dismissSetupTours()`'s `Escape`-key + generic `.close` click didn't
+  dismiss it; the actual control is `aside.tour-center-step [data-action="exit"]`; and (2) the
+  "Game Worlds" tab header (`h2[data-action="tab"][data-tab="worlds"]`, not an `<a>` — an earlier
+  attempted fix guessing `a[data-tab="worlds"]` matched zero elements and silently no-op'd) is
+  itself `disabled` by Foundry whenever the setup page's package scan doesn't recognize the world's
+  required system as installed (see the `FOUNDRY_DATA_DIR` entry above for why that happens) — no
+  amount of clicking makes a `disabled` tab's content visible. Both produce the exact same
+  Playwright timeout on the exact same locator, so treat that error as ambiguous: inspect the
+  actual tab header's `class` list and check server logs for `Metadata validation failed` before
+  assuming the click logic itself is wrong.

@@ -314,4 +314,41 @@ describe('computeActiveEffectKeyValue', () => {
         );
         assert.equal(total, -2);
     });
+
+    describe('system.move.closing / system.move.rushing (AE-boosted highlight detection)', () => {
+        test('no effects: both closing and rushing resolve to false (no boost)', () => {
+            const closing = computeActiveEffectKeyValue([], 'system.move.closing', 0) !== 0;
+            const rushing = computeActiveEffectKeyValue([], 'system.move.rushing', 0) !== 0;
+            assert.equal(closing, false);
+            assert.equal(rushing, false);
+        });
+
+        test('an effect targeting an unrelated key does not flag either field', () => {
+            const effects = [{ disabled: false, changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 3 }] }];
+            assert.equal(computeActiveEffectKeyValue(effects, 'system.move.closing', 0) !== 0, false);
+            assert.equal(computeActiveEffectKeyValue(effects, 'system.move.rushing', 0) !== 0, false);
+        });
+
+        test('a disabled effect targeting closing with a nonzero value does not flag it', () => {
+            const effects = [{ disabled: true, changes: [{ key: 'system.move.closing', type: 'add', value: 2 }] }];
+            assert.equal(computeActiveEffectKeyValue(effects, 'system.move.closing', 0) !== 0, false);
+        });
+
+        test('an enabled Add row on closing flags closing only', () => {
+            const effects = [{ disabled: false, changes: [{ key: 'system.move.closing', type: 'add', value: 2 }] }];
+            assert.equal(computeActiveEffectKeyValue(effects, 'system.move.closing', 0) !== 0, true);
+            assert.equal(computeActiveEffectKeyValue(effects, 'system.move.rushing', 0) !== 0, false);
+        });
+
+        test('an enabled Add row on rushing flags rushing only (independence of the two fields)', () => {
+            const effects = [{ disabled: false, changes: [{ key: 'system.move.rushing', type: 'add', value: 3 }] }];
+            assert.equal(computeActiveEffectKeyValue(effects, 'system.move.closing', 0) !== 0, false);
+            assert.equal(computeActiveEffectKeyValue(effects, 'system.move.rushing', 0) !== 0, true);
+        });
+
+        test('a net-zero Add row does not flag the field (checks the resulting value, not mere presence)', () => {
+            const effects = [{ disabled: false, changes: [{ key: 'system.move.closing', type: 'add', value: 0 }] }];
+            assert.equal(computeActiveEffectKeyValue(effects, 'system.move.closing', 0) !== 0, false);
+        });
+    });
 });

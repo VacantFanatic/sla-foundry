@@ -114,7 +114,9 @@
     box-shadow: 0 0 0 1px var(--sla-accent);
 }
 
-/* Checkboxes: clear bounding box when unchecked (native control fades on dark UI) */
+/* Checkboxes: clear bounding box in both states so checking/unchecking doesn't change the
+   visible footprint (an outline applied only when unchecked used to make the box grow/shrink
+   as it toggled, since outline draws outside the border edge). */
 .sla-sheet input[type='checkbox'],
 .sla-item-root input[type='checkbox'],
 .sla-dialog-window.dialog input[type='checkbox'] {
@@ -126,11 +128,6 @@
     accent-color: var(--sla-accent);
     vertical-align: middle;
     flex-shrink: 0;
-}
-
-.sla-sheet input[type='checkbox']:not(:checked),
-.sla-item-root input[type='checkbox']:not(:checked),
-.sla-dialog-window.dialog input[type='checkbox']:not(:checked) {
     outline: 2px solid rgba(255, 255, 255, 0.55);
     outline-offset: 1px;
     border-radius: 2px;
@@ -384,6 +381,15 @@
     font-size: 0.75em;
     color: #39ff14;
     white-space: nowrap;
+}
+
+.sla-sheet .sla-move-ae-boosted {
+    color: var(--sla-success);
+}
+
+.sla-sheet input.sla-move-ae-boosted {
+    color: var(--sla-success);
+    border-color: var(--sla-success);
 }
 
 .sla-sheet .sla-stat-play-base-label {

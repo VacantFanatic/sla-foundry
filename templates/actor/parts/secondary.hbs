@@ -5,22 +5,22 @@
         <div class="compact-row">
             <label title="{{localize 'SLA.ActorSheet.ClosingSpeed'}}">{{localize "SLA.ActorSheet.ClosingSpeed"}}</label>
             {{#if (eq statSheetMode "edit")}}
-            <input type="number" name="system.move.closing" value="{{system.move.closing}}" class="sla-input-mini"/>
+            <input type="number" name="system.move.closing" value="{{system.move.closing}}" class="sla-input-mini{{#if moveAeBoosted.closing}} sla-move-ae-boosted{{/if}}"/>
             {{else}}
             <div class="sla-move-play-cell">
                 <input type="hidden" name="system.move.closing" value="{{system.move.closing}}" />
-                <span class="sla-move-play-val">{{system.move.closing}}</span>
+                <span class="sla-move-play-val{{#if moveAeBoosted.closing}} sla-move-ae-boosted{{/if}}">{{system.move.closing}}</span>
             </div>
             {{/if}}
         </div>
         <div class="compact-row">
             <label title="{{localize 'SLA.ActorSheet.RushingSpeed'}}">{{localize "SLA.ActorSheet.RushingSpeed"}}</label>
             {{#if (eq statSheetMode "edit")}}
-            <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" class="sla-input-mini"/>
+            <input type="number" name="system.move.rushing" value="{{system.move.rushing}}" class="sla-input-mini{{#if moveAeBoosted.rushing}} sla-move-ae-boosted{{/if}}"/>
             {{else}}
             <div class="sla-move-play-cell">
                 <input type="hidden" name="system.move.rushing" value="{{system.move.rushing}}" />
-                <span class="sla-move-play-val">{{system.move.rushing}}</span>
+                <span class="sla-move-play-val{{#if moveAeBoosted.rushing}} sla-move-ae-boosted{{/if}}">{{system.move.rushing}}</span>
             </div>
             {{/if}}
         </div>

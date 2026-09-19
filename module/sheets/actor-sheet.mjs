@@ -32,6 +32,7 @@ import { executeSkillRollFromItem } from './actor/skill-rolls.mjs';
 import { renderEbbCastDialog } from './actor/ebb-rolls.mjs';
 import { processExplosiveRoll, renderExplosiveDialog } from './actor/explosive-rolls.mjs';
 import { processWeaponRoll, renderAttackDialog } from './actor/weapon-rolls.mjs';
+import { computeActiveEffectKeyValue } from '../documents/derived/active-effects.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -366,6 +367,22 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
                     return [k, statPlayColorClass(total, base)];
                 })
             );
+
+            if (this.actor.type === 'character') {
+                // Already computed and stashed by _calculateDerived; just surface it.
+                context.moveAeBoosted = {
+                    closing: Boolean(this.actor.system.move?.aeClosingBoosted),
+                    rushing: Boolean(this.actor.system.move?.aeRushingBoosted)
+                };
+            } else {
+                // NPC/Threat: _calculateDerived deliberately skips movement for this type
+                // (issue #373) — compute the boolean fresh here, read-only, never touching
+                // actor.system.move.
+                context.moveAeBoosted = {
+                    closing: computeActiveEffectKeyValue(this.actor.effects, 'system.move.closing', 0) !== 0,
+                    rushing: computeActiveEffectKeyValue(this.actor.effects, 'system.move.rushing', 0) !== 0
+                };
+            }
         }
 
         // ... (Keep your existing stats/ratings/wounds initialization) ...

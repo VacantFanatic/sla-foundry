@@ -361,6 +361,63 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
         await expect(strEffectiveHint).toHaveText(/5/);
     });
 
+    test('Move highlight: Threat sheet flags an AE-boosted Closing input, leaves Rushing unstyled', async ({
+        page
+    }) => {
+        const actorId = await createTestActor(page, {}, 'npc');
+        const sheet = await openActorSheet(page, actorId);
+
+        await page.evaluate(async (id) => {
+            const actor = game.actors.get(id);
+            await actor.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'Move Closing Boost',
+                    disabled: false,
+                    changes: [{ key: 'system.move.closing', type: 'add', value: 3 }]
+                }
+            ]);
+            await actor.sheet.render(true);
+        }, actorId);
+
+        const closingInput = sheet.locator('input[name="system.move.closing"]');
+        const rushingInput = sheet.locator('input[name="system.move.rushing"]');
+        await expect(closingInput).toHaveClass(/sla-move-ae-boosted/);
+        await expect(rushingInput).not.toHaveClass(/sla-move-ae-boosted/);
+    });
+
+    test('Move highlight: Operative sheet flags an AE-boosted Rushing value, leaves Closing unstyled', async ({
+        page
+    }) => {
+        const actorId = await createTestActor(page, {}, 'character');
+        const sheet = await openActorSheet(page, actorId);
+
+        await page.evaluate(async (id) => {
+            const actor = game.actors.get(id);
+            await actor.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'Move Rushing Boost',
+                    disabled: false,
+                    changes: [{ key: 'system.move.rushing', type: 'add', value: 3 }]
+                }
+            ]);
+            await actor.sheet.render(true);
+        }, actorId);
+
+        // Fresh actors default to statSheetMode 'play' (module/sheets/actor-sheet.mjs), which
+        // renders Move as a <span class="sla-move-play-val">, not an <input>.
+        const rushingPlayVal = sheet.locator('.sla-move-play-cell').nth(1).locator('.sla-move-play-val');
+        const closingPlayVal = sheet.locator('.sla-move-play-cell').nth(0).locator('.sla-move-play-val');
+        await expect(rushingPlayVal).toHaveClass(/sla-move-ae-boosted/);
+        await expect(closingPlayVal).not.toHaveClass(/sla-move-ae-boosted/);
+    });
+
+    test('Move highlight: absent on an actor with no Active Effects on Move (no false positives)', async ({ page }) => {
+        const npcId = await createTestActor(page, {}, 'npc');
+        const npcSheet = await openActorSheet(page, npcId);
+        await expect(npcSheet.locator('input[name="system.move.closing"]')).not.toHaveClass(/sla-move-ae-boosted/);
+        await expect(npcSheet.locator('input[name="system.move.rushing"]')).not.toHaveClass(/sla-move-ae-boosted/);
+    });
+
     test('issue #359: v14 SUBTRACT change type reduces the global roll modifier', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();

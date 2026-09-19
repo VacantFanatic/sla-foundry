@@ -6,7 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-## [2.9.5] - 2026-09-19
+## [2.10.0] - 2026-09-19
+
+### Added
+
+- **Move (Closing/Rushing) now highlights when boosted by an Active Effect**, on both Operative
+  and Threat sheets: the value's text/border recolors (reusing the `--sla-success` token already
+  used for the core-stat effective-value hint) whenever an Active Effect contributes a nonzero
+  bonus to `system.move.closing`/`.rushing`. No numeric delta is shown, just a visual "this is
+  modified" signal — matching the recent #373 fix that made these Active Effects actually apply.
 
 ### Changed
 
@@ -56,6 +64,13 @@ targetNumber` — entered by the player when applicable, rather than the system 
   returns the `Actor` document itself, which has no `.actor` property, so the helper returned
   `null` and every caller's `if (!victim) return;` guard silently aborted — no HP damage applied,
   no Active Effect copied, no wounds cleared. Fixed by accepting both Token and Actor UUIDs.
+- **Checked/unchecked checkboxes changed visual footprint instead of staying flush:** the shared
+  checkbox styling (`src/scss/sheets/_actor.scss`, used by actor sheets, item sheets, and dialogs
+  including the Luck dialog's dice-reroll selector) applied an `outline` only to the unchecked
+  state, which draws outside the box's border edge and made the unchecked footprint visibly
+  larger than the checked one — so toggling a checkbox looked like it jumped/resized instead of
+  staying in place. Fixed by applying the same outline in both states, so only the fill color
+  changes on check.
 
 ## [2.9.4] - 2026-09-17
 
@@ -1209,8 +1224,8 @@ quantity` (armor and weapon item sheets), and `system.typeNote` (generic item sh
 - Damage application targeting both selected token and target.
 - Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.9.5...HEAD
-[2.9.5]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.5
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.10.0...HEAD
+[2.10.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.10.0
 [2.9.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.4
 [2.9.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.2
 [2.9.1]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.1
