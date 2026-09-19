@@ -207,13 +207,20 @@ test.describe('GM: SLAChat card render helpers (document API)', () => {
             html.innerHTML = '<div class="sla-chat-card damage-result"><button class="undo-damage-btn"></button></div>';
             const message = { flags: { sla: {} } };
 
-            const originalIsGM = Object.getOwnPropertyDescriptor(game.user, 'isGM');
+            // isGM is typically inherited (not an own property), so there is nothing to restore
+            // via defineProperty afterward -- deleting the instance override reveals it again.
+            const hadOwnDescriptor = Object.prototype.hasOwnProperty.call(game.user, 'isGM');
+            const originalDescriptor = hadOwnDescriptor ? Object.getOwnPropertyDescriptor(game.user, 'isGM') : null;
             Object.defineProperty(game.user, 'isGM', { configurable: true, get: () => false });
             try {
                 const { SLAChat } = await import('/systems/sla-industries/module/helpers/chat.mjs');
                 await SLAChat.onRenderChatMessage(message, html, {});
             } finally {
-                Object.defineProperty(game.user, 'isGM', originalIsGM);
+                if (hadOwnDescriptor) {
+                    Object.defineProperty(game.user, 'isGM', originalDescriptor);
+                } else {
+                    delete game.user.isGM;
+                }
             }
 
             return { found: Boolean(html.querySelector('.undo-damage-btn')) };

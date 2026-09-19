@@ -222,8 +222,11 @@ export async function resolveEbbFormulaVictim(rollingActor, ebbTarget, { type, t
 export async function clearNWoundsOnActor(actor, count) {
     const { updates, clearedCount } = buildWoundClearUpdates(actor?.system?.wounds, count);
     if (!clearedCount) return { clearedCount: 0, clearedKeys: [] };
-    await actor.update(updates);
+    // Object.keys(updates) must be read before actor.update(), which mutates the passed
+    // object in place (Foundry adds `_id` to the payload), which would otherwise leak into
+    // clearedKeys.
     const clearedKeys = Object.keys(updates).map((k) => k.replace('system.wounds.', ''));
+    await actor.update(updates);
     return { clearedCount, clearedKeys };
 }
 
