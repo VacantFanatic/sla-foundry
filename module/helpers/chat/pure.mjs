@@ -28,6 +28,55 @@ export function buildWoundClearUpdates(wounds, count) {
 }
 
 /**
+ * Computes the actor/item update payloads needed to reverse a previously-applied damage or heal
+ * result, validating that nothing else has changed the tracked values in the meantime. Aborts
+ * with no updates at all on the first mismatch found, so an undo never partially reverts state.
+ *
+ * @param {{
+ *   hp?: {old: number, new: number}|null,
+ *   armor?: Array<{itemUuid: string, resistance: {old: number, new: number}}>|null,
+ *   wounds?: {cleared: string[]}|null
+ * }} undoFlags
+ * @param {{
+ *   hpValue?: number,
+ *   itemResistances?: Record<string, number>,
+ *   wounds?: Record<string, boolean>
+ * }} currentState
+ * @returns {{ ok: boolean, reason?: string, actorUpdates: object, itemUpdates: Record<string, object> }}
+ */
+export function buildUndoDamageUpdates(undoFlags, currentState) {
+    const actorUpdates = {};
+    const itemUpdates = {};
+
+    if (undoFlags?.hp) {
+        if (currentState?.hpValue !== undoFlags.hp.new) {
+            return { ok: false, reason: 'hp-mismatch', actorUpdates: {}, itemUpdates: {} };
+        }
+        actorUpdates['system.hp.value'] = undoFlags.hp.old;
+    }
+
+    for (const entry of undoFlags?.armor ?? []) {
+        const current = currentState?.itemResistances?.[entry.itemUuid];
+        if (current === undefined) {
+            return { ok: false, reason: 'armor-item-missing', actorUpdates: {}, itemUpdates: {} };
+        }
+        if (current !== entry.resistance.new) {
+            return { ok: false, reason: 'armor-mismatch', actorUpdates: {}, itemUpdates: {} };
+        }
+        itemUpdates[entry.itemUuid] = { 'system.resistance.value': entry.resistance.old };
+    }
+
+    for (const key of undoFlags?.wounds?.cleared ?? []) {
+        if (currentState?.wounds?.[key] !== false) {
+            return { ok: false, reason: 'wounds-mismatch', actorUpdates: {}, itemUpdates: {} };
+        }
+        actorUpdates[`system.wounds.${key}`] = true;
+    }
+
+    return { ok: true, actorUpdates, itemUpdates };
+}
+
+/**
  * @param {number} rawDamage
  * @param {number} effectivePV
  */

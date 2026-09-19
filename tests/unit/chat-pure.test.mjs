@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import {
     applyPvModifierToArmor,
     buildDifficultyNotes,
+    buildUndoDamageUpdates,
     buildWoundClearUpdates,
     computeHealHpBounds,
     computeMitigatedDamage,
@@ -79,6 +80,84 @@ describe('rebuildDifficultyDamageFormula', () => {
     test('combines damage mod and MOS bonus', () => {
         assert.equal(rebuildDifficultyDamageFormula('2d10', 1, 2), '2d10 + 3');
         assert.equal(rebuildDifficultyDamageFormula('0', 0, 4), '4');
+    });
+});
+
+describe('buildUndoDamageUpdates', () => {
+    test('reverts HP when current HP matches the recorded new value', () => {
+        const { ok, actorUpdates, itemUpdates } = buildUndoDamageUpdates(
+            { hp: { old: 10, new: 4 }, armor: null, wounds: null },
+            { hpValue: 4, itemResistances: {}, wounds: {} }
+        );
+        assert.equal(ok, true);
+        assert.equal(actorUpdates['system.hp.value'], 10);
+        assert.deepEqual(itemUpdates, {});
+    });
+
+    test('aborts with hp-mismatch when HP has changed since apply', () => {
+        const r = buildUndoDamageUpdates(
+            { hp: { old: 10, new: 4 }, armor: null, wounds: null },
+            { hpValue: 7, itemResistances: {}, wounds: {} }
+        );
+        assert.equal(r.ok, false);
+        assert.equal(r.reason, 'hp-mismatch');
+        assert.deepEqual(r.actorUpdates, {});
+    });
+
+    test('reverts one armor item resistance keyed by itemUuid', () => {
+        const { ok, itemUpdates } = buildUndoDamageUpdates(
+            { hp: null, armor: [{ itemUuid: 'Item.abc', resistance: { old: 10, new: 6 } }], wounds: null },
+            { hpValue: 0, itemResistances: { 'Item.abc': 6 }, wounds: {} }
+        );
+        assert.equal(ok, true);
+        assert.equal(itemUpdates['Item.abc']['system.resistance.value'], 10);
+    });
+
+    test('aborts with armor-item-missing when the item is gone', () => {
+        const r = buildUndoDamageUpdates(
+            { hp: null, armor: [{ itemUuid: 'Item.abc', resistance: { old: 10, new: 6 } }], wounds: null },
+            { hpValue: 0, itemResistances: {}, wounds: {} }
+        );
+        assert.equal(r.ok, false);
+        assert.equal(r.reason, 'armor-item-missing');
+    });
+
+    test('aborts with armor-mismatch when resistance changed since apply', () => {
+        const r = buildUndoDamageUpdates(
+            { hp: null, armor: [{ itemUuid: 'Item.abc', resistance: { old: 10, new: 6 } }], wounds: null },
+            { hpValue: 0, itemResistances: { 'Item.abc': 3 }, wounds: {} }
+        );
+        assert.equal(r.ok, false);
+        assert.equal(r.reason, 'armor-mismatch');
+    });
+
+    test('reverts cleared wound keys back to true', () => {
+        const { ok, actorUpdates } = buildUndoDamageUpdates(
+            { hp: null, armor: null, wounds: { cleared: ['head', 'lArm'] } },
+            { hpValue: 0, itemResistances: {}, wounds: { head: false, lArm: false } }
+        );
+        assert.equal(ok, true);
+        assert.equal(actorUpdates['system.wounds.head'], true);
+        assert.equal(actorUpdates['system.wounds.lArm'], true);
+    });
+
+    test('aborts with wounds-mismatch when a wound was independently toggled back', () => {
+        const r = buildUndoDamageUpdates(
+            { hp: null, armor: null, wounds: { cleared: ['head'] } },
+            { hpValue: 0, itemResistances: {}, wounds: { head: true } }
+        );
+        assert.equal(r.ok, false);
+        assert.equal(r.reason, 'wounds-mismatch');
+    });
+
+    test('returns ok with empty updates when there is nothing to undo', () => {
+        const r = buildUndoDamageUpdates(
+            { hp: null, armor: null, wounds: null },
+            { hpValue: 0, itemResistances: {}, wounds: {} }
+        );
+        assert.equal(r.ok, true);
+        assert.deepEqual(r.actorUpdates, {});
+        assert.deepEqual(r.itemUpdates, {});
     });
 });
 
