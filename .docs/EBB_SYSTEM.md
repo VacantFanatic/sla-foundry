@@ -55,12 +55,17 @@ The Skill Dice are compared against the Formula Rating. Each skill die that meet
 
 ### Damage formulas (ebbEffect = "damage")
 
-| Skill successes | Bonus     |
-| --------------- | --------- |
-| 0–1             | +0        |
-| 2               | +1 damage |
-| 3               | +2 damage |
-| 4+              | +4 damage |
+The rulebook grants exactly **one** reward per skill-success tier — the bonuses are "fairly
+different" and it is "not possible to downgrade to a lower bonus" — so the damage bonus does
+**not** escalate at 3 and 4+ successes; those tiers grant the reuse and FLUX-regain rewards
+described below instead of additional damage.
+
+| Skill successes | Bonus                                         |
+| --------------- | --------------------------------------------- |
+| 0–1             | +0                                            |
+| 2               | +1 damage                                     |
+| 3               | +0 damage (see "MOS 3 — Reuse" below instead) |
+| 4+              | +0 damage (see "Critical FLUX" below instead) |
 
 Source: `module/helpers/ebb-mos.mjs → getEbbMosDamageBonus`
 
@@ -70,7 +75,12 @@ MOS damage bonuses **do not apply** to heal or effect formulas. The skill succes
 
 ### Success Through Experience
 
-If the Success Die fails but the actor gets **4 or more** skill successes, the roll is counted as a success at the "Success Through Experience" level with no MOS bonus.
+The rulebook states Success Through Experience (STE) does **not** apply to Ebb disciplines. The
+code honors this: Ebb rolls resolve their base success via `computeSuccessDieOutcome`
+(`module/sheets/actor/roll-math.mjs`), a separate path from the STE-aware
+`calculateRollResult`/`getMOS` in `module/helpers/dice.mjs` used by weapon/skill rolls. A failed
+Success Die on an Ebb roll is therefore never upgraded to a success, regardless of skill-success
+count.
 
 ---
 
