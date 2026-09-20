@@ -532,3 +532,23 @@ system "sla-industries": The file "module/....mjs" does not exist` (or the setup
   (non-`!important`, ordinary-specificity) rule will win — and assert the actual computed property
   in the test, not just the class name, since a class can be correctly applied and still be a
   no-op.
+- **A rulebook table with distinct, mutually-exclusive tiers is easy to mis-implement as an
+  escalating numeric scale — read the surrounding prose, not just the table.** The Ebb Disciplines
+  MOS table grants exactly one reward per skill-success tier (+1 damage at exactly 2 successes; a
+  reuse-the-ability option at 3; a FLUX regain at 4+), and the rulebook prose explicitly says these
+  bonuses are "fairly different" and it is "not possible to downgrade to a lower bonus" — i.e. each
+  tier replaces the previous one rather than adding to it. `getEbbMosDamageBonus`
+  (`module/helpers/ebb-mos.mjs`) had instead implemented it as a growing damage bonus (+1/+2/+4 at
+  2/3/4 successes) stacked on top of the reuse/FLUX rewards, which both over-rewarded high-MOS Ebb
+  attacks and silently duplicated a distinct effect (`resolveEbbOutcomeText` in
+  `module/sheets/actor/roll-math.mjs`) as extra damage text. When translating any success/MOS table
+  from the rulebook into code, check the accompanying paragraph for "instead of" / "not
+  cumulative" / "cannot downgrade" language before assuming later rows include earlier ones.
+- **`.docs/EBB_SYSTEM.md` had drifted from the actual code on "Success Through Experience"** —
+  claiming it applies to Ebb rolls ("counted as a success ... with no MOS bonus") when the
+  rulebook explicitly says it does not, and the code already agreed with the rulebook (Ebb rolls
+  resolve success via `computeSuccessDieOutcome`, never the STE-aware `calculateRollResult`/
+  `getMOS` path in `module/helpers/dice.mjs`). Nothing exercised this doc text against the code, so
+  it went stale silently. When a doc makes a specific behavioral claim, grep for the function it
+  names and re-read that section on any related change — a design doc is only trustworthy if
+  something keeps it honest.

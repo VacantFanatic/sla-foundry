@@ -1,6 +1,7 @@
 import { calculateRollResult, getMOS, generateDiceTooltip } from '../helpers/dice.mjs';
 import { bindEscapeToClose } from '../helpers/dialog-keyboard.mjs';
 import { syncEbbCriticalFlux } from '../helpers/ebb-flux.mjs';
+import { getEbbMosDamageBonus } from '../helpers/ebb-mos.mjs';
 import { normalizeEbbEffect } from '../helpers/items.mjs';
 import { EBB_MOS3_REUSE_TEXT } from '../sheets/actor/roll-math.mjs';
 
@@ -275,18 +276,14 @@ export class LuckDialog extends HandlebarsApplicationMixin(ApplicationV2) {
             const skillHits = result.skillHits;
             const attackMos = normalizeEbbEffect(flags.ebbEffect) === 'damage';
             mosEffectText = result.isSuccess ? 'Standard Success' : 'Failed';
+            mosDamageBonus = getEbbMosDamageBonus(result.isSuccess, skillHits, flags.ebbEffect);
             if (result.isSuccess) {
                 if (skillHits === 2) {
                     mosEffectText = attackMos ? '+1 Damage / Effect' : 'Standard Success';
-                    if (attackMos) mosDamageBonus = 1;
                 } else if (skillHits === 3) {
-                    mosEffectText = attackMos ? `+2 Damage / ${EBB_MOS3_REUSE_TEXT}` : EBB_MOS3_REUSE_TEXT;
-                    if (attackMos) mosDamageBonus = 2;
+                    mosEffectText = EBB_MOS3_REUSE_TEXT;
                 } else if (skillHits >= 4) {
-                    mosEffectText = attackMos
-                        ? "<strong style='color:#39ff14'>CRITICAL:</strong> +4 Dmg | Regain 1 FLUX"
-                        : "<strong style='color:#39ff14'>CRITICAL:</strong> Regain 1 FLUX";
-                    if (attackMos) mosDamageBonus = 4;
+                    mosEffectText = "<strong style='color:#39ff14'>CRITICAL:</strong> Regain 1 FLUX";
                 }
             }
         } else {
