@@ -211,6 +211,14 @@ export async function resolveEbbFormulaVictim(rollingActor, ebbTarget, { type, t
         return selectedActor;
     }
 
+    // "Apply to Selected" must win over the roll's original target even when that target is
+    // still recorded in parentTargets -- otherwise the button is indistinguishable from
+    // "Apply to Target" whenever the roll had a target, which is exactly what it exists to
+    // let a GM override.
+    if (type === 'selected') {
+        return await resolveVictimForApplyDamage({ targetUuid: null, type: 'selected' });
+    }
+
     if (parentTargets.length > 0) {
         const a = await resolveActorFromUuid(parentTargets[0]);
         if (a) return a;

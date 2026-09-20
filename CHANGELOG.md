@@ -26,6 +26,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Corrected `.docs/EBB_SYSTEM.md`**, which incorrectly documented Success Through Experience as
   applying to Ebb rolls; the rulebook and the actual code (Ebb rolls never go through the
   STE-aware `calculateRollResult`/`getMOS` path) agree that it does not.
+- **"Apply to Selected" on the damage/heal roll chat card now actually targets the selected
+  token.** Whenever the originating roll had already recorded a target (`flags.sla.targets`),
+  `resolveEbbFormulaVictim` (`module/helpers/chat/damage.mjs`) applied to that recorded target
+  regardless of which button was clicked, making "Apply to Selected" indistinguishable from
+  "Apply to Target." The `type === 'selected'` case is now checked before falling back to the
+  recorded target, so selecting a different token and clicking "Apply to Selected" overrides it
+  as intended.
 
 ## [2.10.0] - 2026-09-19
 

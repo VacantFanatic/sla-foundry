@@ -572,6 +572,89 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
         expect(result.persistedHp).toBe(6);
     });
 
+    // Regression: "Apply to Selected" ignored the actually-controlled token and always applied
+    // to the roll's recorded target (flags.sla.targets) whenever one existed, making it behave
+    // identically to "Apply to Target." Exercises the real `canvas.tokens.controlled` array from
+    // an actual token control() call rather than a hand-built mock, per the "don't fake
+    // canvas/token state" lesson in .docs/LESSONS_LEARNED.md.
+    test('onApplyDamage "Apply to Selected" targets the controlled token even when a target was recorded', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [caster] = await Actor.createDocuments([{ name: `E2E Selected Caster ${stamp}`, type: 'character' }]);
+            const [recordedTarget] = await Actor.createDocuments([
+                { name: `E2E Recorded Target ${stamp}`, type: 'character', system: { hp: { value: 10, max: 10 } } }
+            ]);
+            const [selectedVictim] = await Actor.createDocuments([
+                { name: `E2E Selected Victim ${stamp}`, type: 'character', system: { hp: { value: 10, max: 10 } } }
+            ]);
+
+            let scene = game.scenes.active;
+            let createdScene = false;
+            if (!scene) {
+                scene = await Scene.create({ name: `E2E Selected Scene ${stamp}`, width: 1000, height: 1000 });
+                await scene.activate();
+                createdScene = true;
+            }
+            const [targetTokenDoc, selectedTokenDoc] = await scene.createEmbeddedDocuments('Token', [
+                { ...recordedTarget.prototypeToken.toObject(), actorId: recordedTarget.id, x: 100, y: 100 },
+                { ...selectedVictim.prototypeToken.toObject(), actorId: selectedVictim.id, x: 300, y: 300 }
+            ]);
+
+            const deadline = Date.now() + 10_000;
+            let selectedPlaceable = null;
+            while (Date.now() < deadline) {
+                selectedPlaceable = canvas.tokens?.get(selectedTokenDoc.id) ?? null;
+                if (canvas.ready && selectedPlaceable) break;
+                await new Promise((r) => setTimeout(r, 100));
+            }
+            if (!selectedPlaceable) throw new Error('Selected token placeable never appeared on canvas');
+            selectedPlaceable.control({ releaseOthers: true });
+
+            const message = await ChatMessage.create({
+                speaker: ChatMessage.getSpeaker({ actor: caster }),
+                content: '<div class="sla-chat-card"></div>',
+                flags: { sla: { ammoName: null, ebbTarget: 'enemy', targets: [targetTokenDoc.uuid] } }
+            });
+
+            const card = document.createElement('div');
+            card.className = 'sla-chat-card';
+            card.dataset.actorUuid = caster.uuid;
+
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = 'message';
+            messageWrapper.dataset.messageId = message.id;
+            messageWrapper.appendChild(card);
+
+            const applyBtn = document.createElement('button');
+            applyBtn.dataset.dmg = '10';
+            applyBtn.dataset.ad = '0';
+            applyBtn.dataset.pvMod = '0';
+            applyBtn.dataset.target = 'selected';
+            card.appendChild(applyBtn);
+
+            const { onApplyDamage } = await import('/systems/sla-industries/module/helpers/chat/handlers.mjs');
+            await onApplyDamage({ preventDefault: () => {}, currentTarget: applyBtn });
+
+            const selectedHp = game.actors.get(selectedVictim.id).system.hp.value;
+            const recordedTargetHp = game.actors.get(recordedTarget.id).system.hp.value;
+
+            canvas.tokens.releaseAll();
+            await message.delete();
+            await scene.deleteEmbeddedDocuments('Token', [targetTokenDoc.id, selectedTokenDoc.id]);
+            if (createdScene) await scene.delete();
+            await caster.delete();
+            await recordedTarget.delete();
+            await selectedVictim.delete();
+
+            return { selectedHp, recordedTargetHp };
+        });
+
+        expect(result.selectedHp).toBe(0);
+        expect(result.recordedTargetHp).toBe(10);
+    });
+
     test('onApplyDamage reads the live "Shield Craft Succeeded" checkbox and gates the shield accordingly', async ({
         page
     }) => {
