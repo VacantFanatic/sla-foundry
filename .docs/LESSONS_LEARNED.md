@@ -552,3 +552,19 @@ system "sla-industries": The file "module/....mjs" does not exist` (or the setup
   it went stale silently. When a doc makes a specific behavioral claim, grep for the function it
   names and re-read that section on any related change — a design doc is only trustworthy if
   something keeps it honest.
+- **A fallback check placed before the explicit-choice check silently wins, even when the
+  explicit choice has its own branch further down.** `resolveEbbFormulaVictim`
+  (`module/helpers/chat/damage.mjs`) took a `type` ('target' | 'selected') telling it which
+  button the GM clicked, but checked `parentTargets.length > 0` (the roll's already-recorded
+  target) _before_ ever looking at `type === 'selected'`. Whenever a roll had recorded a target —
+  the normal case, since most damage rolls originate from an attack against a target — "Apply to
+  Selected" silently resolved to that recorded target instead of the controlled token, making it
+  indistinguishable from "Apply to Target." The `ebbTarget === 'ally'` branch a few lines above
+  already checked `type` correctly, which is exactly why this was easy to miss: the bug wasn't a
+  missing feature, it was one branch ordering its checks correctly and a sibling branch not. There
+  was no unit test for this function at all (`git grep resolveEbbFormulaVictim tests/` found
+  nothing) and the only e2e coverage rendered the buttons without ever clicking them, so a
+  reordering regression like this had no test to catch it. When a function branches on an explicit
+  user choice AND a recorded/implicit fallback, put the explicit-choice check first (or write a
+  test asserting the explicit choice always wins over a non-empty fallback) — don't rely on
+  reading the whole function correctly by eye.
