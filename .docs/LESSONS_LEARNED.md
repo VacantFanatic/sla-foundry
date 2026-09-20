@@ -568,3 +568,21 @@ system "sla-industries": The file "module/....mjs" does not exist` (or the setup
   user choice AND a recorded/implicit fallback, put the explicit-choice check first (or write a
   test asserting the explicit choice always wins over a non-empty fallback) — don't rely on
   reading the whole function correctly by eye.
+- **A correctly-computed derived value can still look broken if the UI collapses several stacked
+  modifiers into one opaque number.** Issue #390 ("Power armor not providing bonuses") reported a
+  Threat's `STR CHECK` chat card showing `Base 2`/`Base 3` right next to the actor sheet's
+  `sla-stat-effective-hint` showing the correctly armor-boosted `→5` — reading exactly like the
+  powersuit bonus wasn't being applied to rolls. It was a false alarm: `computeSkillRollModifier`
+  (`module/sheets/actor/roll-math.mjs`) was correctly summing `statValue + rank + globalMod
+(Prone/Stunned) - woundPenalty + rollModifier`, and `5 (boosted STR) - 1 (Stunned) - 2 (2 wound
+penalty) = 2` and `5 - 1 (Stunned) - 1 (1 wound penalty) = 3` both match the reported numbers
+  exactly — the roll math was right, the wound/Stunned penalties were right, and the sheet hint
+  was right; nothing in the chat card ever showed _why_ `Base` was lower than the hinted total.
+  Before concluding a derived-stat pipeline is broken because a chat card's total doesn't match a
+  sheet's displayed value, check whether the chat card's number is actually a sum of several
+  correct modifiers (conditions, wounds, roll modifiers) that the UI never breaks down — reproduce
+  the exact arithmetic by hand against every contributing field before assuming the bug is in the
+  computation rather than in what's rendered. Fixed by adding
+  `buildSkillRollModifierBreakdown` (mirrors `computeSkillRollModifier`'s arithmetic as named
+  entries) and rendering it in `generateDiceTooltip` (`module/helpers/dice.mjs`), so `Base 3` now
+  reads `Base 3 (STR +5, Stunned -1, Wound Penalty -1)`.

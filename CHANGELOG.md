@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Stat/skill check roll cards now show a breakdown of what makes up "Base"** (e.g. `Base 3 (STR
++5, Stunned -1, Wound Penalty -1)`) instead of a single collapsed number. Investigating #390
+  ("Power armor not providing bonuses") found the armor-bonus math was correct all along — the
+  roll's `Base` was the boosted stat total with wound/Stunned penalties correctly subtracted on
+  top, but nothing in the chat card showed those components, so a boosted `→5` hint next to a
+  lower `Base` looked like a bug. New `buildSkillRollModifierBreakdown`
+  (`module/sheets/actor/roll-math.mjs`) mirrors `computeSkillRollModifier`'s arithmetic as a list
+  of named contributors, rendered by `generateDiceTooltip` (`module/helpers/dice.mjs`) when
+  passed; wired into STR/DEX/etc. stat checks (`stat-rolls.mjs`) and embedded skill rolls
+  (`skill-rolls.mjs`). Weapon/Ebb/Explosive rolls are unchanged (different modifier shape).
+
 ## [2.11.0] - 2026-09-20
 
 ### Added

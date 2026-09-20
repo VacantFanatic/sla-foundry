@@ -35,6 +35,35 @@ export function computeSkillRollModifier({
 }
 
 /**
+ * Breaks `computeSkillRollModifier`'s sum down into its named, nonzero contributors, for display
+ * in a roll card (e.g. "Base 3 (STR 5, Stunned -1, Wound -1)") instead of an opaque total. Mirrors
+ * that function's exact arithmetic — the returned entries always sum to
+ * `computeSkillRollModifier`'s result for the same inputs.
+ * @param {{ statLabel: string, statValue: number, rank: number, prone: boolean, stunned: boolean, woundPenalty: number, applyWoundPenalties: boolean, rollModifier?: number }} params
+ * @returns {Array<{ label: string, value: number }>}
+ */
+export function buildSkillRollModifierBreakdown({
+    statLabel,
+    statValue,
+    rank,
+    prone,
+    stunned,
+    woundPenalty,
+    applyWoundPenalties,
+    rollModifier = 0
+}) {
+    const entries = [];
+    if (statValue !== 0) entries.push({ label: statLabel, value: statValue });
+    if (rank !== 0) entries.push({ label: 'Rank', value: rank });
+    if (prone) entries.push({ label: 'Prone', value: -1 });
+    if (stunned) entries.push({ label: 'Stunned', value: -1 });
+    const penalty = applyWoundPenalties ? woundPenalty : 0;
+    if (penalty !== 0) entries.push({ label: 'Wound Penalty', value: -penalty });
+    if (rollModifier !== 0) entries.push({ label: 'Roll Modifier', value: rollModifier });
+    return entries;
+}
+
+/**
  * Stat checks succeed when the modified total exceeds the target (legacy SLA: > 10).
  * @param {number} finalTotal
  * @param {number} [targetNumber=10]

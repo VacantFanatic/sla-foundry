@@ -11,6 +11,7 @@ import {
     buildExplosiveMods,
     buildSkillDiceResults,
     buildSkillRollFormula,
+    buildSkillRollModifierBreakdown,
     buildWeaponRollMods,
     calculateEbbModifier,
     computeExplosiveMaxRange,
@@ -111,6 +112,138 @@ describe('computeSkillRollModifier', () => {
             applyWoundPenalties: true
         });
         assert.equal(mod, 5);
+    });
+});
+
+describe('buildSkillRollModifierBreakdown', () => {
+    function sumOf(entries) {
+        return entries.reduce((total, entry) => total + entry.value, 0);
+    }
+
+    test('always sums to the same total computeSkillRollModifier returns for the same inputs', () => {
+        const cases = [
+            {
+                statLabel: 'STR',
+                statValue: 3,
+                rank: 2,
+                prone: false,
+                stunned: false,
+                woundPenalty: 0,
+                applyWoundPenalties: true
+            },
+            {
+                statLabel: 'DEX',
+                statValue: 5,
+                rank: 0,
+                prone: true,
+                stunned: true,
+                woundPenalty: 1,
+                applyWoundPenalties: true
+            },
+            {
+                statLabel: 'STR',
+                statValue: 5,
+                rank: 0,
+                prone: false,
+                stunned: true,
+                woundPenalty: 1,
+                applyWoundPenalties: true
+            },
+            {
+                statLabel: 'STR',
+                statValue: 5,
+                rank: 0,
+                prone: false,
+                stunned: true,
+                woundPenalty: 2,
+                applyWoundPenalties: true
+            },
+            {
+                statLabel: 'CONC',
+                statValue: 4,
+                rank: 1,
+                prone: false,
+                stunned: false,
+                woundPenalty: 2,
+                applyWoundPenalties: false
+            },
+            {
+                statLabel: 'CHA',
+                statValue: 3,
+                rank: 2,
+                prone: false,
+                stunned: false,
+                woundPenalty: 0,
+                applyWoundPenalties: true,
+                rollModifier: -2
+            }
+        ];
+        for (const params of cases) {
+            const breakdown = buildSkillRollModifierBreakdown(params);
+            assert.equal(sumOf(breakdown), computeSkillRollModifier(params));
+        }
+    });
+
+    test('lists only the stat when nothing else contributes', () => {
+        const breakdown = buildSkillRollModifierBreakdown({
+            statLabel: 'STR',
+            statValue: 3,
+            rank: 0,
+            prone: false,
+            stunned: false,
+            woundPenalty: 0,
+            applyWoundPenalties: true
+        });
+        assert.deepEqual(breakdown, [{ label: 'STR', value: 3 }]);
+    });
+
+    test('omits the wound entry when automatic wound penalties are disabled', () => {
+        const breakdown = buildSkillRollModifierBreakdown({
+            statLabel: 'STR',
+            statValue: 4,
+            rank: 0,
+            prone: false,
+            stunned: false,
+            woundPenalty: 2,
+            applyWoundPenalties: false
+        });
+        assert.deepEqual(breakdown, [{ label: 'STR', value: 4 }]);
+    });
+
+    test('matches issue #390: STR 5, 1 wound, Stunned -> Base 3', () => {
+        const breakdown = buildSkillRollModifierBreakdown({
+            statLabel: 'STR',
+            statValue: 5,
+            rank: 0,
+            prone: false,
+            stunned: true,
+            woundPenalty: 1,
+            applyWoundPenalties: true
+        });
+        assert.deepEqual(breakdown, [
+            { label: 'STR', value: 5 },
+            { label: 'Stunned', value: -1 },
+            { label: 'Wound Penalty', value: -1 }
+        ]);
+        assert.equal(sumOf(breakdown), 3);
+    });
+
+    test('includes rank and a nonzero roll modifier', () => {
+        const breakdown = buildSkillRollModifierBreakdown({
+            statLabel: 'DEX',
+            statValue: 2,
+            rank: 2,
+            prone: false,
+            stunned: false,
+            woundPenalty: 0,
+            applyWoundPenalties: true,
+            rollModifier: 1
+        });
+        assert.deepEqual(breakdown, [
+            { label: 'DEX', value: 2 },
+            { label: 'Rank', value: 2 },
+            { label: 'Roll Modifier', value: 1 }
+        ]);
     });
 });
 
