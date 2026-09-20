@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.11.0] - 2026-09-20
+
 ### Added
 
 - **Undo button on the damage/heal result chat card** (#385): lets a GM reverse a mistaken or
