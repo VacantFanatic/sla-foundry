@@ -1,5 +1,5 @@
 import { createSLARoll } from '../../helpers/dice.mjs';
-import { computeSkillRollModifier, isStatCheckSuccess } from './roll-math.mjs';
+import { buildSkillRollModifierBreakdown, computeSkillRollModifier, isStatCheckSuccess } from './roll-math.mjs';
 import { buildSlaRollFlags, generateSheetTooltip } from './sheet-helpers.mjs';
 
 /**
@@ -13,7 +13,7 @@ export async function executeStatRoll(sheet, statKey) {
     const statValue = actor.system.stats[normalizedKey]?.total ?? actor.system.stats[normalizedKey]?.value ?? 0;
     const rollModifierTotal = actor.system.rollModifier?.total ?? 0;
 
-    const finalMod = computeSkillRollModifier({
+    const modifierParams = {
         statValue,
         rank: 0,
         prone: Boolean(actor.system.conditions?.prone),
@@ -21,7 +21,9 @@ export async function executeStatRoll(sheet, statKey) {
         woundPenalty: actor.system.wounds.penalty || 0,
         applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties'),
         rollModifier: rollModifierTotal
-    });
+    };
+    const finalMod = computeSkillRollModifier(modifierParams);
+    const modifierBreakdown = buildSkillRollModifierBreakdown({ statLabel, ...modifierParams });
 
     const roll = createSLARoll('1d10');
     await roll.evaluate();
@@ -39,7 +41,7 @@ export async function executeStatRoll(sheet, statKey) {
         actorUuid: actor.uuid,
         itemName: `${statLabel} CHECK`,
         successTotal: finalTotal,
-        tooltip: generateSheetTooltip(roll, finalMod, 0),
+        tooltip: generateSheetTooltip(roll, finalMod, 0, modifierBreakdown),
         skillDice: [],
         notes: rollModifierNote,
         showDamageButton: false,

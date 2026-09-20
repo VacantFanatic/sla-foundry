@@ -109,14 +109,22 @@ export function getMOS(result) {
  * @param {number} baseModifier - The skill/stat modifier.
  * @param {number} luckBonus - Any extra luck added to the success die.
  * @param {number} successDieMod - Additional modifier specific to the success die.
+ * @param {Array<{ label: string, value: number }>} [breakdown] - Named contributors that sum to
+ *   `baseModifier` (e.g. from `buildSkillRollModifierBreakdown`), rendered next to "Base" so a
+ *   collapsed modifier like "Base 3" also shows why (e.g. "(STR 5, Stunned -1, Wound -1)").
+ *   Omitted/empty renders exactly as before, so existing callers are unaffected.
  * @returns {string} HTML string.
  */
-export function generateDiceTooltip(roll, baseModifier, luckBonus = 0, successDieMod = 0) {
+export function generateDiceTooltip(roll, baseModifier, luckBonus = 0, successDieMod = 0, breakdown = []) {
     const sdRaw = roll.terms[0] && roll.terms[0].results[0] ? roll.terms[0].results[0].result : 0;
     const sdTotal = sdRaw + baseModifier + luckBonus + successDieMod;
 
     let html = `<div class="dice-tooltip" hidden style="margin-top:10px; padding-top:5px; border-top:1px solid #444; font-size:0.8em; color:#ccc;">`;
     html += `<div><strong>Success Die:</strong> Raw ${sdRaw} + Base ${baseModifier}`;
+    if (breakdown.length) {
+        const parts = breakdown.map((entry) => `${entry.label} ${entry.value > 0 ? '+' : ''}${entry.value}`);
+        html += ` <span style="color:#999;">(${parts.join(', ')})</span>`;
+    }
     if (luckBonus > 0) html += ` + Luck ${luckBonus}`;
     if (successDieMod !== 0) html += ` + Mod ${successDieMod}`;
     html += ` = <strong>${sdTotal}</strong></div>`;

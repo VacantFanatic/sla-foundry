@@ -1,8 +1,8 @@
 import { generateDiceTooltip } from '../../helpers/dice.mjs';
 import { applySuccessThroughExperience, buildSkillDiceResults, computeSuccessDieOutcome } from './roll-math.mjs';
 
-export function generateSheetTooltip(roll, baseModifier, successDieMod) {
-    return generateDiceTooltip(roll, baseModifier, 0, successDieMod);
+export function generateSheetTooltip(roll, baseModifier, successDieMod, breakdown = []) {
+    return generateDiceTooltip(roll, baseModifier, 0, successDieMod, breakdown);
 }
 
 export function buildSlaRollFlags({ baseModifier, itemName, notes = '', tn = 10, extra = {} }) {

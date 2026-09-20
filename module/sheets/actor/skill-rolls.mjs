@@ -1,5 +1,5 @@
 import { calculateRollResult, generateDiceTooltip, createSLARoll } from '../../helpers/dice.mjs';
-import { buildSkillRollFormula, computeSkillRollModifier } from './roll-math.mjs';
+import { buildSkillRollFormula, buildSkillRollModifierBreakdown, computeSkillRollModifier } from './roll-math.mjs';
 
 /**
  * Execute a skill roll from an embedded skill item (shared by sheet and hotbar flows).
@@ -15,7 +15,7 @@ export async function executeSkillRollFromItem(sheet, item) {
     const rank = Number(item.system.rank) || 0;
     const rollModifierTotal = actor.system.rollModifier?.total ?? 0;
 
-    const baseModifier = computeSkillRollModifier({
+    const modifierParams = {
         statValue,
         rank,
         prone: Boolean(actor.system.conditions?.prone),
@@ -23,6 +23,11 @@ export async function executeSkillRollFromItem(sheet, item) {
         woundPenalty: actor.system.wounds.penalty || 0,
         applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties'),
         rollModifier: rollModifierTotal
+    };
+    const baseModifier = computeSkillRollModifier(modifierParams);
+    const modifierBreakdown = buildSkillRollModifierBreakdown({
+        statLabel: statKey.toUpperCase(),
+        ...modifierParams
     });
 
     const rollFormula = buildSkillRollFormula(rank);
@@ -41,7 +46,7 @@ export async function executeSkillRollFromItem(sheet, item) {
         actorUuid: actor.uuid,
         itemName: item.name.toUpperCase(),
         successTotal: result.total,
-        tooltip: generateDiceTooltip(roll, baseModifier),
+        tooltip: generateDiceTooltip(roll, baseModifier, 0, 0, modifierBreakdown),
         skillDice: result.skillDiceData,
         notes: rollModifierNote,
         showDamageButton: false,
