@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Undo button on the damage/heal result chat card** (#385): lets a GM reverse a mistaken or
+  mis-targeted damage/heal application — HP, any degraded armor/shield resistance, and any
+  Ebb-cleared wounds — without manually editing the actor. The result card records enough state
+  in `flags.sla.undo` to reverse exactly what that application changed, validates nothing else
+  touched those values in the meantime before reverting, and locks the button once used.
+
 ### Fixed
 
 - **Ebb Discipline MOS damage bonus no longer stacks with the tier-3/4+ rewards.** The rulebook's

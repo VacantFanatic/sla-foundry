@@ -491,7 +491,7 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
             return { cleared, wounds };
         });
 
-        expect(result.cleared).toBe(1);
+        expect(result.cleared).toEqual({ clearedCount: 1, clearedKeys: ['head'] });
         expect(result.wounds).toEqual({ head: false, torso: true });
     });
 
@@ -916,5 +916,198 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
 
         // WOUND_CLEAR_ORDER clears head first.
         expect(result).toEqual({ head: false, torso: true });
+    });
+});
+
+test.describe('GM: undoDamageApplication (document API)', () => {
+    test.beforeEach(async ({ page }) => {
+        needsAuth();
+        await joinGame(page);
+        await waitForSLASystem(page);
+        const gm = await page.evaluate(() => game.user?.isGM === true);
+        test.skip(!gm, 'Requires GM — use a Gamemaster account for FOUNDRY_USER');
+    });
+
+    test('reverts HP and armor resistance to their pre-apply values and locks the message', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [victim] = await Actor.createDocuments([
+                { name: `E2E Undo Victim ${stamp}`, type: 'character', system: { hp: { value: 10, max: 10 } } }
+            ]);
+            const [armor] = await victim.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Undo Armor ${stamp}`,
+                    type: 'armor',
+                    system: { pv: 6, equipped: true, resistance: { value: 10, max: 10 } }
+                }
+            ]);
+
+            const { applyDamageToVictim, undoDamageApplication } =
+                await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            await applyDamageToVictim(victim, 10, 3, 0, null, 'melee', false, false);
+
+            const message = game.messages.contents.at(-1);
+            const beforeUndo = {
+                hp: victim.system.hp.value,
+                resistance: game.items.get(armor.id)?.system.resistance.value ?? armor.system.resistance.value
+            };
+
+            const undoResult = await undoDamageApplication(message);
+
+            const fresh = game.actors.get(victim.id);
+            const freshArmor = fresh.items.get(armor.id);
+            const persisted = {
+                hp: fresh.system.hp.value,
+                resistance: freshArmor.system.resistance.value,
+                undone: game.messages.get(message.id)?.flags?.sla?.undo?.undone
+            };
+
+            await message.delete();
+            await victim.delete();
+            return { undoResult, beforeUndo, persisted };
+        });
+
+        expect(result.beforeUndo).toEqual({ hp: 6, resistance: 7 });
+        expect(result.undoResult).toEqual({ ok: true });
+        expect(result.persisted).toEqual({ hp: 10, resistance: 10, undone: true });
+    });
+
+    test('refuses to undo the same message twice', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [victim] = await Actor.createDocuments([
+                { name: `E2E Undo Twice ${stamp}`, type: 'character', system: { hp: { value: 10, max: 10 } } }
+            ]);
+
+            const { applyDamageToVictim, undoDamageApplication } =
+                await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            await applyDamageToVictim(victim, 4, 0, 0, null, 'melee', false, false);
+            const message = game.messages.contents.at(-1);
+
+            const first = await undoDamageApplication(message);
+            const second = await undoDamageApplication(game.messages.get(message.id));
+
+            const hp = game.actors.get(victim.id).system.hp.value;
+
+            await message.delete();
+            await victim.delete();
+            return { first, second, hp };
+        });
+
+        expect(result.first).toEqual({ ok: true });
+        expect(result.second).toEqual({ ok: false, reason: 'already-undone' });
+        expect(result.hp).toBe(10);
+    });
+
+    test('refuses to undo when the victim actor has been deleted', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [victim] = await Actor.createDocuments([
+                { name: `E2E Undo Deleted ${stamp}`, type: 'character', system: { hp: { value: 10, max: 10 } } }
+            ]);
+
+            const { applyDamageToVictim, undoDamageApplication } =
+                await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            await applyDamageToVictim(victim, 4, 0, 0, null, 'melee', false, false);
+            const message = game.messages.contents.at(-1);
+
+            await victim.delete();
+            const undoResult = await undoDamageApplication(message);
+
+            await message.delete();
+            return undoResult;
+        });
+
+        expect(result).toEqual({ ok: false, reason: 'actor-deleted' });
+    });
+
+    test('refuses to undo and leaves HP untouched when HP changed by something else since apply', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [victim] = await Actor.createDocuments([
+                { name: `E2E Undo Stale HP ${stamp}`, type: 'character', system: { hp: { value: 10, max: 10 } } }
+            ]);
+
+            const { applyDamageToVictim, undoDamageApplication } =
+                await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            await applyDamageToVictim(victim, 4, 0, 0, null, 'melee', false, false);
+            const message = game.messages.contents.at(-1);
+
+            // Simulate an out-of-band HP change (manual GM edit / another effect) after the apply.
+            await victim.update({ 'system.hp.value': 3 });
+
+            const undoResult = await undoDamageApplication(message);
+            const hp = game.actors.get(victim.id).system.hp.value;
+
+            await message.delete();
+            await victim.delete();
+            return { undoResult, hp };
+        });
+
+        expect(result.undoResult).toEqual({ ok: false, reason: 'hp-mismatch' });
+        expect(result.hp).toBe(3);
+    });
+
+    test('reverts Ebb-cleared wounds alongside damage in one undo', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [victim] = await Actor.createDocuments([
+                {
+                    name: `E2E Undo Wounds ${stamp}`,
+                    type: 'character',
+                    system: { hp: { value: 10, max: 10 }, wounds: { head: true } }
+                }
+            ]);
+
+            const { applyEbbOutcomeToActor, undoDamageApplication } =
+                await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            await applyEbbOutcomeToActor(victim, 4, 0, {
+                isHeal: false,
+                removeWoundsCount: 1,
+                pvMod: 0,
+                ammoName: null
+            });
+            const message = game.messages.contents.at(-1);
+
+            const midway = { headWound: game.actors.get(victim.id).system.wounds.head };
+
+            const undoResult = await undoDamageApplication(message);
+            const fresh = game.actors.get(victim.id);
+            const persisted = { hp: fresh.system.hp.value, headWound: fresh.system.wounds.head };
+
+            await message.delete();
+            await victim.delete();
+            return { undoResult, midway, persisted };
+        });
+
+        expect(result.midway).toEqual({ headWound: false });
+        expect(result.undoResult).toEqual({ ok: true });
+        expect(result.persisted).toEqual({ hp: 10, headWound: true });
+    });
+
+    test('reverts a heal application', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [victim] = await Actor.createDocuments([
+                { name: `E2E Undo Heal ${stamp}`, type: 'character', system: { hp: { value: 3, max: 10 } } }
+            ]);
+
+            const { applyEbbOutcomeToActor, undoDamageApplication } =
+                await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
+            await applyEbbOutcomeToActor(victim, 5, 0, { isHeal: true, removeWoundsCount: 0, pvMod: 0 });
+            const message = game.messages.contents.at(-1);
+
+            const beforeUndo = { hp: game.actors.get(victim.id).system.hp.value };
+            const undoResult = await undoDamageApplication(message);
+            const hp = game.actors.get(victim.id).system.hp.value;
+
+            await message.delete();
+            await victim.delete();
+            return { undoResult, beforeUndo, hp };
+        });
+
+        expect(result.beforeUndo).toEqual({ hp: 8 });
+        expect(result.undoResult).toEqual({ ok: true });
+        expect(result.hp).toBe(3);
     });
 });

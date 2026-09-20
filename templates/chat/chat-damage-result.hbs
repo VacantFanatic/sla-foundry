@@ -12,6 +12,12 @@
     <div class="damage-hp">
         HP: {{hpData.old}} &rarr; <strong>{{hpData.new}}</strong>
     </div>
+    <div class="damage-undo-row">
+        <button class="undo-damage-btn" data-victim-uuid="{{undo.victimUuid}}"
+                {{#if undo.undone}}disabled title="{{localize 'SLA.DamageAlreadyUndone'}}"{{/if}}>
+            <i class="fas fa-undo"></i> {{localize "SLA.UndoDamage"}}
+        </button>
+    </div>
     {{else}}
     <div class="damage-header">
         {{victimName}} Hit!
@@ -45,5 +51,12 @@
         <i class="fas fa-flask"></i> Armor PV: {{rawPv}} &rarr; {{targetPV}}{{#if ammoName}} ({{ammoName}}){{/if}}
     </div>
     {{/if}}
+
+    <div class="damage-undo-row">
+        <button class="undo-damage-btn" data-victim-uuid="{{undo.victimUuid}}"
+                {{#if undo.undone}}disabled title="{{localize 'SLA.DamageAlreadyUndone'}}"{{/if}}>
+            <i class="fas fa-undo"></i> {{localize "SLA.UndoDamage"}}
+        </button>
+    </div>
     {{/if}}
 </div>

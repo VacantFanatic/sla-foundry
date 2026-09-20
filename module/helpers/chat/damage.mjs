@@ -1,5 +1,6 @@
 import {
     applyPvModifierToArmor,
+    buildUndoDamageUpdates,
     buildWoundClearUpdates,
     computeHealHpBounds,
     computeMitigatedDamage
@@ -220,9 +221,13 @@ export async function resolveEbbFormulaVictim(rollingActor, ebbTarget, { type, t
 
 export async function clearNWoundsOnActor(actor, count) {
     const { updates, clearedCount } = buildWoundClearUpdates(actor?.system?.wounds, count);
-    if (!clearedCount) return 0;
+    if (!clearedCount) return { clearedCount: 0, clearedKeys: [] };
+    // Object.keys(updates) must be read before actor.update(), which mutates the passed
+    // object in place (Foundry adds `_id` to the payload), which would otherwise leak into
+    // clearedKeys.
+    const clearedKeys = Object.keys(updates).map((k) => k.replace('system.wounds.', ''));
     await actor.update(updates);
-    return clearedCount;
+    return { clearedCount, clearedKeys };
 }
 
 export async function applyHpHeal(victim, rawHeal) {
@@ -250,19 +255,47 @@ export async function applyEbbOutcomeToActor(
         ignorePV = false
     }
 ) {
+    const n = Math.max(0, Math.min(6, Math.floor(Number(removeWoundsCount) || 0)));
+    let woundsCleared = [];
+
     if (isHeal) {
         const { finalHeal, hpData } = await applyHpHeal(actor, rawAmount);
-        await postHealResultChat({ victim: actor, rawHeal: rawAmount, finalHeal, hpData });
+        if (n > 0) {
+            ({ clearedKeys: woundsCleared } = await clearNWoundsOnActor(actor, n));
+        }
+        await postHealResultChat({ victim: actor, rawHeal: rawAmount, finalHeal, hpData, woundsCleared });
     } else {
-        await applyDamageToVictim(actor, rawAmount, ad, pvMod, ammoName, attackType, shieldCraftSuccess, ignorePV);
-    }
-    const n = Math.max(0, Math.min(6, Math.floor(Number(removeWoundsCount) || 0)));
-    if (n > 0) {
-        await clearNWoundsOnActor(actor, n);
+        if (n > 0) {
+            ({ clearedKeys: woundsCleared } = await clearNWoundsOnActor(actor, n));
+        }
+        await applyDamageToVictim(
+            actor,
+            rawAmount,
+            ad,
+            pvMod,
+            ammoName,
+            attackType,
+            shieldCraftSuccess,
+            ignorePV,
+            woundsCleared
+        );
     }
 }
 
-export async function postHealResultChat({ victim, rawHeal, finalHeal, hpData }) {
+export async function postHealResultChat({ victim, rawHeal, finalHeal, hpData, woundsCleared = [] }) {
+    const undo = {
+        kind: 'heal',
+        victimUuid: victim.uuid,
+        appliedBy: game.user.id,
+        appliedAt: Date.now(),
+        hp: hpData,
+        armor: null,
+        wounds: woundsCleared.length ? { cleared: woundsCleared } : null,
+        undone: false,
+        undoneBy: null,
+        undoneAt: null
+    };
+
     const content = await foundry.applications.handlebars.renderTemplate(
         'systems/sla-industries/templates/chat/chat-damage-result.hbs',
         {
@@ -272,10 +305,11 @@ export async function postHealResultChat({ victim, rawHeal, finalHeal, hpData })
             finalDamage: finalHeal,
             hpData,
             armorData: null,
-            isHeal: true
+            isHeal: true,
+            undo
         }
     );
-    await ChatMessage.create({ content });
+    await ChatMessage.create({ content, flags: { sla: { undo } } });
 }
 
 /**
@@ -293,7 +327,7 @@ async function degradeArmorItemResistance(item, ad, basePv) {
 
     const effectivePv = applyResistanceToPv(basePv, { value: newRes, max: maxRes });
 
-    return { effectivePv, resistanceUpdate: { current: currentRes, new: newRes, ad } };
+    return { effectivePv, resistanceUpdate: { current: currentRes, new: newRes, ad, itemUuid: item.uuid } };
 }
 
 /**
@@ -411,8 +445,28 @@ export async function postDamageResultChat({
     ammoName = null,
     finalDamage,
     hpData,
-    armorData
+    armorData,
+    woundsCleared = []
 }) {
+    const undo = {
+        kind: 'damage',
+        victimUuid: victim.uuid,
+        appliedBy: game.user.id,
+        appliedAt: Date.now(),
+        hp: hpData,
+        armor: armorData
+            ? armorData.map((a) => ({
+                  kind: a.kind,
+                  itemUuid: a.itemUuid,
+                  resistance: { old: a.current, new: a.new }
+              }))
+            : null,
+        wounds: woundsCleared.length ? { cleared: woundsCleared } : null,
+        undone: false,
+        undoneBy: null,
+        undoneAt: null
+    };
+
     const content = await foundry.applications.handlebars.renderTemplate(
         'systems/sla-industries/templates/chat/chat-damage-result.hbs',
         {
@@ -425,11 +479,12 @@ export async function postDamageResultChat({
             ammoName: ammoName,
             finalDamage: finalDamage,
             hpData: hpData,
-            armorData: armorData
+            armorData: armorData,
+            undo
         }
     );
 
-    await ChatMessage.create({ content });
+    await ChatMessage.create({ content, flags: { sla: { undo } } });
 }
 
 export async function applyDamageToVictim(
@@ -440,7 +495,8 @@ export async function applyDamageToVictim(
     ammoName = null,
     attackType = 'melee',
     shieldCraftSuccess = false,
-    ignorePV = false
+    ignorePV = false,
+    woundsCleared = []
 ) {
     const { targetPV, rawPv, effectivePV, armorData } = await computeArmorMitigation(
         victim,
@@ -461,7 +517,8 @@ export async function applyDamageToVictim(
         ammoName,
         finalDamage,
         hpData,
-        armorData
+        armorData,
+        woundsCleared
     });
 }
 
@@ -481,4 +538,54 @@ export async function applyDamageToTarget(
         return;
     }
     await applyDamageToVictim(victim, rawDamage, ad, pvMod, ammoName, attackType, shieldCraftSuccess, ignorePV);
+}
+
+/**
+ * Reverses a previously-applied damage/heal result recorded in a ChatMessage's
+ * `flags.sla.undo`, restoring the victim's HP, any degraded armor/shield item resistance, and
+ * any Ebb-cleared wound fields — but only if nothing else has changed those values since the
+ * original application (see buildUndoDamageUpdates). Never partially reverts.
+ *
+ * @param {ChatMessage} message
+ * @returns {Promise<{ ok: boolean, reason?: string }>}
+ */
+export async function undoDamageApplication(message) {
+    const undo = message?.flags?.sla?.undo;
+    if (!undo) return { ok: false, reason: 'no-undo-data' };
+    if (undo.undone) return { ok: false, reason: 'already-undone' };
+
+    const victim = await resolveActorFromUuid(undo.victimUuid);
+    if (!victim) return { ok: false, reason: 'actor-deleted' };
+
+    const itemResistances = {};
+    for (const entry of undo.armor ?? []) {
+        const item = await fromUuid(entry.itemUuid);
+        if (!item) return { ok: false, reason: 'armor-item-missing' };
+        itemResistances[entry.itemUuid] = item.system.resistance?.value ?? null;
+    }
+
+    const currentState = {
+        hpValue: victim.system.hp.value,
+        itemResistances,
+        wounds: victim.system.wounds ?? {}
+    };
+
+    const { ok, reason, actorUpdates, itemUpdates } = buildUndoDamageUpdates(undo, currentState);
+    if (!ok) return { ok: false, reason };
+
+    if (Object.keys(actorUpdates).length) {
+        await victim.update(actorUpdates);
+    }
+    for (const [itemUuid, update] of Object.entries(itemUpdates)) {
+        const item = await fromUuid(itemUuid);
+        if (item) await item.update(update);
+    }
+
+    await message.update({
+        'flags.sla.undo.undone': true,
+        'flags.sla.undo.undoneBy': game.user.id,
+        'flags.sla.undo.undoneAt': Date.now()
+    });
+
+    return { ok: true };
 }

@@ -387,12 +387,37 @@ Chat state is persisted on `ChatMessage.flags.sla`:
 
 ### Step 4 — Damage application
 
-`_applyDamageToTarget(finalTotal, adValue, targetUuid)` in `chat.mjs`:
+`applyDamageToTarget(finalTotal, adValue, targetUuid, ...)` in `module/helpers/chat/damage.mjs`:
 
 1. Looks up the target actor by UUID.
 2. Subtracts `system.armor.pv` from `finalTotal`. Armour Piercing (AP) ammo applies an additional −2 PV.
 3. Updates `system.hp.value` (clamped to 0..max).
 4. If the wound button was used: toggles the relevant `system.wounds.<location>` flag.
+
+### Step 5 — Undo
+
+`postDamageResultChat()`/`postHealResultChat()` (`module/helpers/chat/damage.mjs`) post the
+damage/heal _result_ card (`templates/chat/chat-damage-result.hbs`) with its own
+`flags.sla.undo` block, enough to reverse exactly what that one application changed:
+
+| Field        | Type                                                    | Purpose                                            |
+| ------------ | ------------------------------------------------------- | -------------------------------------------------- |
+| `kind`       | `"damage"\|"heal"`                                      | Which post-apply flow created this card            |
+| `victimUuid` | `string`                                                | Actor to revert                                    |
+| `hp`         | `{old, new}`                                            | HP values to compare/revert against                |
+| `armor`      | `Array<{kind, itemUuid, resistance: {old, new}}>\|null` | Per-item armor/shield resistance degraded this hit |
+| `wounds`     | `{cleared: string[]}\|null`                             | Wound fields this application cleared (Ebb)        |
+| `undone`     | `boolean`                                               | Locks the Undo button once reversed                |
+
+The result card's **Undo** button (`.undo-damage-btn`, GM-only — stripped for non-GMs the same
+way `.apply-damage-btn` is in `SLAChat.onRenderChatMessage`) calls `onUndoDamage` →
+`undoDamageApplication(message)`, which validates each tracked value against the actor/item's
+_current_ state (via the pure `buildUndoDamageUpdates()` in `pure.mjs`) before reverting anything —
+if HP, an item's resistance, or a wound field changed by any other means since the original apply,
+undo aborts entirely rather than partially reverting. A successful undo goes through the actor's
+normal `update()` call (not a lower-level write) so the wound-effect cascade below re-evaluates
+correctly, then sets `flags.sla.undo.undone = true`, which `SLAChat.applyUndoLockFromMessage`
+reads to keep the button disabled across re-renders.
 
 ### Wound cascade
 

@@ -7,11 +7,12 @@ import {
     onLuck,
     onRemoveEbbWounds,
     onRollDamage,
-    onToggleRoll
+    onToggleRoll,
+    onUndoDamage
 } from './chat/handlers.mjs';
 
 const CHAT_CLICK_SELECTOR =
-    '.chat-btn-wound, .chat-btn-damage, .damage-roll, .apply-damage-btn, .roll-toggle, .chat-btn-luck, .diff-btn, .sla-ebb-apply-effect-btn, .sla-ebb-remove-wounds-btn';
+    '.chat-btn-wound, .chat-btn-damage, .damage-roll, .apply-damage-btn, .roll-toggle, .chat-btn-luck, .diff-btn, .sla-ebb-apply-effect-btn, .sla-ebb-remove-wounds-btn, .undo-damage-btn';
 
 /** @type {((ev: Event) => void)|null} */
 let _chatClickHandler = null;
@@ -52,8 +53,22 @@ export class SLAChat {
         }
     }
 
-    static _ebbHealWoundRenderHook(message, html) {
+    /**
+     * @param {ChatMessage} message
+     * @param {HTMLElement|JQuery} html
+     */
+    static applyUndoLockFromMessage(message, html) {
+        const undo = message.flags?.sla?.undo;
+        if (!undo?.undone) return;
+        const root = html instanceof HTMLElement ? html : html[0];
+        const btn = root?.querySelector?.('.undo-damage-btn');
+        if (!btn) return;
+        setButtonDisabled(btn, true, game.i18n.localize('SLA.DamageAlreadyUndone'));
+    }
+
+    static _chatCardLockHook(message, html) {
         SLAChat.applyEbbHealWoundOrLockFromMessage(message, html);
+        SLAChat.applyUndoLockFromMessage(message, html);
     }
 
     static _resolveDamageDisplay(formula, actor = null) {
@@ -87,13 +102,15 @@ export class SLAChat {
                 void onLuck(handlerEv);
             } else if (el.matches('.diff-btn')) {
                 void onChangeDifficulty(handlerEv);
+            } else if (el.matches('.undo-damage-btn')) {
+                void onUndoDamage(handlerEv);
             }
         };
 
         document.body.addEventListener('click', _chatClickHandler);
 
-        Hooks.off('renderChatMessage', SLAChat._ebbHealWoundRenderHook);
-        Hooks.on('renderChatMessage', SLAChat._ebbHealWoundRenderHook);
+        Hooks.off('renderChatMessage', SLAChat._chatCardLockHook);
+        Hooks.on('renderChatMessage', SLAChat._chatCardLockHook);
     }
 
     static async executeStandardDamageRoll(options) {
@@ -128,6 +145,11 @@ export class SLAChat {
                     }
                 }
             }
+        }
+
+        const undoButtons = htmlElement.querySelectorAll('.undo-damage-btn');
+        if (undoButtons.length && !game.user.isGM) {
+            for (const btn of undoButtons) btn.remove();
         }
 
         const dmgButtons = htmlElement.querySelectorAll('.apply-damage-btn');
