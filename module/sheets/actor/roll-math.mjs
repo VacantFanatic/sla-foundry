@@ -357,8 +357,9 @@ export const EBB_MOS3_REUSE_TEXT = 'May use the same Ebb ability again within 5 
  * @param {boolean} isBaseSuccess
  * @param {number} skillSuccesses
  * @param {string} ebbEffectRaw
+ * @param {string} [resourceLabel] - display name for the FLUX-equivalent resource (default "FLUX")
  */
-export function resolveEbbOutcomeText(isBaseSuccess, skillSuccesses, ebbEffectRaw) {
+export function resolveEbbOutcomeText(isBaseSuccess, skillSuccesses, ebbEffectRaw, resourceLabel = 'FLUX') {
     const allDiceFailed = !isBaseSuccess && skillSuccesses === 0;
     const isSuccessful = isBaseSuccess;
     const ebbEffect = normalizeEbbEffect(ebbEffectRaw);
@@ -373,10 +374,10 @@ export function resolveEbbOutcomeText(isBaseSuccess, skillSuccesses, ebbEffectRa
         } else if (skillSuccesses === 3) {
             mosEffectText = EBB_MOS3_REUSE_TEXT;
         } else if (skillSuccesses >= 4) {
-            mosEffectText = "<strong style='color:#39ff14'>CRITICAL:</strong> Regain 1 FLUX";
+            mosEffectText = `<strong style='color:#39ff14'>CRITICAL:</strong> Regain 1 ${resourceLabel}`;
         }
     } else if (allDiceFailed) {
-        failureConsequence = "<strong style='color:#ff5555'>SEVERE FAILURE:</strong> -3 HP & -1 Extra FLUX";
+        failureConsequence = `<strong style='color:#ff5555'>SEVERE FAILURE:</strong> -3 HP & -1 Extra ${resourceLabel}`;
     }
 
     return { isSuccessful, mosEffectText, failureConsequence };

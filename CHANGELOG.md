@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.12.0] - 2026-09-21
+
+### Added
+
+- **NPCs/Threats can be granted Ebb-style powers under a custom resource name** (e.g. Shi'an
+  "Flow" instead of "FLUX"). A new `system.ebb.enabled` checkbox on the Threat sheet reveals a
+  full Ebb tab reusing the same discipline/formula UI and roll math PCs already get (spend/regain
+  the pool, MOS-based outcomes, the cast dialog); `system.ebb.resourceLabel` (blank falls back to
+  "FLUX") renames every user-facing mention of the resource for that actor — the derived-stat box,
+  the tab label, chat/dialog text — without touching the underlying `system.stats.flux` data path.
+  New `resolveEbbResourceLabel` (`module/helpers/ebb-resource-label.mjs`) is the single source of
+  truth for that label, threaded through `ebb-rolls.mjs`, `ebb-flux.mjs`, `roll-math.mjs`, and
+  `luck-dialog.mjs`; tab visibility is decided by the new `shouldRedirectEbbTab`
+  (`module/sheets/actor/sheet-ux-pure.mjs`), which generalizes the existing Ebonite-only gate to
+  also cover this NPC flag.
+
 ### Changed
 
 - **Stat/skill check roll cards now show a breakdown of what makes up "Base"** (e.g. `Base 3 (STR

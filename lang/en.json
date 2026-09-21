@@ -353,6 +353,6 @@
     "SLA.NoEbbFormulas": "No formulas.",
     "SLA.EbbDisciplineTitle": "Discipline",
     "SLA.EbbCasterNotFound": "Could not resolve the rolling actor for this apply action.",
-    "SLA.EbbCriticalFluxRegained": "{name} regains 1 FLUX (Ebb critical).",
-    "SLA.EbbCriticalFluxRevoked": "{name} loses 1 FLUX (Ebb roll no longer a critical after TN change)."
+    "SLA.EbbCriticalFluxRegained": "{name} regains 1 {resource} (Ebb critical).",
+    "SLA.EbbCriticalFluxRevoked": "{name} loses 1 {resource} (Ebb roll no longer a critical after TN change)."
 }

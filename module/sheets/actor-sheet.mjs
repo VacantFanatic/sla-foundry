@@ -26,6 +26,7 @@ import {
     isEncumbranceOverloaded,
     isEncumbranceWarning,
     normalizeOperativeTabId,
+    shouldRedirectEbbTab,
     statPlayColorClass
 } from './actor/sheet-ux-pure.mjs';
 import { executeSkillRollFromItem } from './actor/skill-rolls.mjs';
@@ -100,9 +101,11 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     changeTab(tab, group, options) {
         if (group === 'primary') {
             tab = normalizeOperativeTabId(tab);
-            if (tab === 'ebb' && !this.#actorIsEbonite()) {
-                tab = 'combat';
-            }
+            const redirect = shouldRedirectEbbTab(this.actor.type, tab, {
+                isEbonite: this.#actorIsEbonite(),
+                ebbEnabled: Boolean(this.actor.system.ebb?.enabled)
+            });
+            if (redirect) tab = 'combat';
         }
         const result = super.changeTab(tab, group, options);
         if (this.element instanceof HTMLElement) this.#syncTabAccessibility(this.element);

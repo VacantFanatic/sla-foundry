@@ -103,3 +103,20 @@ export function operativeTabOrder(isEbonite) {
     if (isEbonite) tabs.push('ebb');
     return tabs;
 }
+
+/**
+ * Whether the primary sheet's `ebb` tab should redirect to `combat` for the given actor. Characters
+ * gate on the Ebonite species check; NPCs/Threats gate on the GM-set `system.ebb.enabled` flag
+ * (see resolveEbbResourceLabel for the paired resource-label override). Any other actor type never
+ * has an ebb tab. Tabs other than `ebb` are never redirected by this check.
+ * @param {'character'|'npc'|'vehicle'|string} actorType
+ * @param {string} tab
+ * @param {{ isEbonite?: boolean, ebbEnabled?: boolean }} [flags]
+ * @returns {boolean}
+ */
+export function shouldRedirectEbbTab(actorType, tab, { isEbonite = false, ebbEnabled = false } = {}) {
+    if (tab !== 'ebb') return false;
+    if (actorType === 'character') return !isEbonite;
+    if (actorType === 'npc') return !ebbEnabled;
+    return true;
+}

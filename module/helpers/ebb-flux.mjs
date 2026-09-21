@@ -1,3 +1,5 @@
+import { resolveEbbResourceLabel } from './ebb-resource-label.mjs';
+
 /**
  * Apply Ebb critical (MOS 4+): regain 1 FLUX, capped at max.
  * Keeps actor flux in sync when GM changes TN or luck alters the roll.
@@ -20,17 +22,18 @@ export async function syncEbbCriticalFlux(message, actor, flags, isSuccess, skil
 
     const max = Number(actor.system?.stats?.flux?.max) || 0;
     const cur = Number(actor.system?.stats?.flux?.value) || 0;
+    const resource = resolveEbbResourceLabel(actor.system);
 
     if (shouldHave && !applied) {
         const next = Math.min(max, cur + 1);
         await actor.update({ 'system.stats.flux.value': next });
         await message.update({ 'flags.sla.ebbFluxRegainApplied': true });
         if (next > cur) {
-            ui.notifications.info(game.i18n.format('SLA.EbbCriticalFluxRegained', { name: actor.name }));
+            ui.notifications.info(game.i18n.format('SLA.EbbCriticalFluxRegained', { name: actor.name, resource }));
         }
     } else if (!shouldHave && applied) {
         await actor.update({ 'system.stats.flux.value': Math.max(0, cur - 1) });
         await message.update({ 'flags.sla.ebbFluxRegainApplied': false });
-        ui.notifications.info(game.i18n.format('SLA.EbbCriticalFluxRevoked', { name: actor.name }));
+        ui.notifications.info(game.i18n.format('SLA.EbbCriticalFluxRevoked', { name: actor.name, resource }));
     }
 }
