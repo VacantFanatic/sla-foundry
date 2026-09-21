@@ -6,14 +6,15 @@ Quick reference to every doc in this repo, grouped by purpose. Start with [CONTR
 
 ### Contributing
 
-| Doc                                                      | Covers                                                                                          |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [CONTRIBUTING.md](CONTRIBUTING.md)                       | Workflow, branching, TDD, code style, opening a PR                                              |
-| [.docs/DEVELOPER.md](.docs/DEVELOPER.md)                 | Architecture, project structure, data models, migration system, public API, common-task recipes |
-| [.docs/LESSONS_LEARNED.md](.docs/LESSONS_LEARNED.md)     | Non-obvious bugs/footguns found in past sessions — read before non-trivial changes              |
-| [.docs/CLOUD_ENVIRONMENT.md](.docs/CLOUD_ENVIRONMENT.md) | Foundry setup for a Claude Code on the web / Claude Code Remote session                         |
-| [.docs/AGENTS.md](.docs/AGENTS.md)                       | Cursor Cloud agent setup — Foundry secrets, Docker, E2E                                         |
-| [SECURITY.md](SECURITY.md)                               | Private vulnerability reporting process                                                         |
+| Doc                                                      | Covers                                                                                                    |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| [CONTRIBUTING.md](CONTRIBUTING.md)                       | Workflow, branching, TDD, code style, opening a PR                                                        |
+| [.docs/DEVELOPER.md](.docs/DEVELOPER.md)                 | Architecture, project structure, data models, migration system, public API, common-task recipes           |
+| [.docs/DESIGN_PRINCIPLES.md](.docs/DESIGN_PRINCIPLES.md) | Design principles for architecture, UI/UX, API, and process decisions — the tiebreaker for real tradeoffs |
+| [.docs/LESSONS_LEARNED.md](.docs/LESSONS_LEARNED.md)     | Non-obvious bugs/footguns found in past sessions — read before non-trivial changes                        |
+| [.docs/CLOUD_ENVIRONMENT.md](.docs/CLOUD_ENVIRONMENT.md) | Foundry setup for a Claude Code on the web / Claude Code Remote session                                   |
+| [.docs/AGENTS.md](.docs/AGENTS.md)                       | Cursor Cloud agent setup — Foundry secrets, Docker, E2E                                                   |
+| [SECURITY.md](SECURITY.md)                               | Private vulnerability reporting process                                                                   |
 
 ### Gameplay systems (for GMs and contributors)
 
@@ -48,9 +49,11 @@ Quick reference to every doc in this repo, grouped by purpose. Start with [CONTR
 ## Before starting work
 
 Read [.docs/DEVELOPER.md](.docs/DEVELOPER.md) (architecture, data models, combat flow,
-migrations) and [.docs/LESSONS_LEARNED.md](.docs/LESSONS_LEARNED.md) (footguns already found the
-hard way) before making non-trivial changes. For anything release-related, also read
-[.docs/RELEASE.md](.docs/RELEASE.md) (version numbering, pre-release/stable cycle). All three
+migrations), [.docs/DESIGN_PRINCIPLES.md](.docs/DESIGN_PRINCIPLES.md) (the rules that settle real
+tradeoffs in architecture, UI/UX, API, and process), and
+[.docs/LESSONS_LEARNED.md](.docs/LESSONS_LEARNED.md) (footguns already found the hard way) before
+making non-trivial changes. For anything release-related, also read
+[.docs/RELEASE.md](.docs/RELEASE.md) (version numbering, pre-release/stable cycle). All four
 describe conventions and mechanisms that aren't obvious from the code alone — reading them is
 cheaper than rediscovering the same bug or re-scanning the codebase to reconstruct the convention.
 
