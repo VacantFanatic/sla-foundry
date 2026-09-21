@@ -14,8 +14,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Departmental Authorisation, recommended Training Package, a Colour Code dropdown covering all
   eleven rulebook tiers (Blue through Platinum), Station Analysis/Third Eye News flags, and
   free-text Credits Reward/SCL Increase fields (ranges like "0.5 upwards" or "[D-NOTICE]" aren't
-  plain numbers). Reference-only for now — rewards aren't auto-applied to any actor. See
-  [.docs/item_setup.md](.docs/item_setup.md) §10.
+  plain numbers). Reference-only for now — rewards aren't auto-applied to any actor. The sheet
+  layout mirrors the printed BPN card: a masthead banner, a main fields column next to a Colour
+  Code side rail, and a footer bar for the flags/reward fields; the side rail's own colour
+  switches to match whichever Colour Code tier is selected (Blue/Red/Jade/etc.), not just the
+  item type's fixed accent. See [.docs/item_setup.md](.docs/item_setup.md) §10.
 
 ## [2.12.0] - 2026-09-21
 

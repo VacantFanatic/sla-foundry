@@ -1,8 +1,10 @@
 /**
  * Field bulletin theme — Blueprint News.
  *
- * A teletype/bulletin-board look distinct from the training-package dossier: a stamped
- * masthead, monospace body text, and a blue accent (the most common BPN colour tier).
+ * Echoes the printed BPN card: a masthead banner across the top, a main content column
+ * next to a colour-coded side rail (the card's vertical "BLUE" strip), and a footer bar
+ * for the flags/reward fields (the card's "Station Analysis / Third Eye News" and
+ * "Per Op / Per Squad" row).
  */
 
 form.application.sla-industries.item .blueprintNews-theme .sheet-header {
@@ -33,7 +35,7 @@ form.application.sla-industries.item .blueprintNews-theme .sheet-header::after {
 form.application.sla-industries.item .field-bulletin {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     padding: 12px;
     font-family: var(--sla-font-mono);
     border-radius: var(--sla-radius);
@@ -41,30 +43,181 @@ form.application.sla-industries.item .field-bulletin {
     border: 1px solid rgba(90, 155, 212, 0.25);
 }
 
-form.application.sla-industries.item .bulletin-stamp {
-    align-self: flex-start;
+/* Masthead — the card's "BLUEPRINT NEWS" title bar */
+form.application.sla-industries.item .bulletin-masthead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    border: 2px solid var(--sla-type-frame);
+    background: linear-gradient(180deg, #a8caee 0%, #5a9bd4 100%);
+    box-shadow: 1px 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+form.application.sla-industries.item .bulletin-masthead__title {
+    color: #0d2438;
     font-family: var(--sla-font-header);
     font-weight: 700;
     font-size: 1.1rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    display: inline-block;
-    padding: 6px 14px;
-    transform: rotate(-3deg);
-    margin-bottom: 4px;
 }
 
-form.application.sla-industries.item .bulletin-stamp--bpn {
+form.application.sla-industries.item .bulletin-masthead__icon {
     color: #0d2438;
-    border: 3px solid var(--sla-type-frame);
-    background: linear-gradient(180deg, #a8caee 0%, #5a9bd4 100%);
-    box-shadow: 1px 3px 6px rgba(0, 0, 0, 0.4);
+    opacity: 0.7;
 }
 
-form.application.sla-industries.item .bulletin-panel--masthead,
-form.application.sla-industries.item .bulletin-panel--flags,
-form.application.sla-industries.item .bulletin-panel--rewards {
+/* Body — main fields column + colour-code side rail, like the card's vertical BLUE strip */
+form.application.sla-industries.item .bulletin-body {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 120px;
     gap: 10px;
+    align-items: stretch;
+}
+
+form.application.sla-industries.item .bulletin-main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+form.application.sla-industries.item .bulletin-details-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 8px 10px;
+    font-size: 0.82rem;
+    font-style: italic;
+    color: var(--sla-type-accent);
+    opacity: 0.85;
+    border: 1px dashed rgba(90, 155, 212, 0.3);
+    border-radius: var(--sla-radius);
+}
+
+/* Side rail colour — defaults to the item-type accent until a Colour Code is chosen, then
+   switches to that colour's own tone (matching the card's coloured "BLUE"/"RED"/etc. strip). */
+form.application.sla-industries.item .bulletin-sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 8px;
+    background: var(--bpn-colour-bg, var(--sla-type-frame));
+    color: var(--bpn-colour-fg, #0d1420);
+    border-radius: var(--sla-radius);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+form.application.sla-industries.item .bulletin-sidebar[data-colour='blue'] {
+    --bpn-colour-bg: #2e6da4;
+    --bpn-colour-fg: #eaf3ff;
+}
+form.application.sla-industries.item .bulletin-sidebar[data-colour='white'] {
+    --bpn-colour-bg: #e9eaec;
+    --bpn-colour-fg: #14161a;
+}
+form.application.sla-industries.item .bulletin-sidebar[data-colour='yellow'] {
+    --bpn-colour-bg: #d8b400;
+    --bpn-colour-fg: #1a1500;
+}
+form.application.sla-industries.item .bulletin-sidebar[data-colour='green'] {
+    --bpn-colour-bg: #2f7d3c;
+    --bpn-colour-fg: #eafbea;
+}
+form.application.sla-industries.item .bulletin-sidebar[data-colour='red'] {
+    --bpn-colour-bg: #a5342a;
+    --bpn-colour-fg: #ffecea;
+}
+form.application.sla-industries.item .bulletin-sidebar[data-colour='grey'] {
+    --bpn-colour-bg: #6b7280;
+    --bpn-colour-fg: #f5f5f7;
+}
+form.application.sla-industries.item .bulletin-sidebar[data-colour='jade'] {
+    --bpn-colour-bg: #1f9d7c;
+    --bpn-colour-fg: #eafff8;
+}
+form.application.sla-industries.item .bulletin-sidebar[data-colour='orange'] {
+    --bpn-colour-bg: #c97a2b;
+    --bpn-colour-fg: #1c0f00;
+}
+form.application.sla-industries.item .bulletin-sidebar[data-colour='black'] {
+    --bpn-colour-bg: #17181c;
+    --bpn-colour-fg: #f2f2f2;
+}
+form.application.sla-industries.item .bulletin-sidebar[data-colour='silver'] {
+    --bpn-colour-bg: #b7bcc4;
+    --bpn-colour-fg: #14161a;
+}
+form.application.sla-industries.item .bulletin-sidebar[data-colour='platinum'] {
+    --bpn-colour-bg: #d7d3e6;
+    --bpn-colour-fg: #14161a;
+}
+
+form.application.sla-industries.item .bulletin-sidebar__label {
+    text-align: center;
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: inherit;
+    opacity: 0.85;
+}
+
+form.application.sla-industries.item .bulletin-sidebar__select {
+    width: 100%;
+}
+
+form.application.sla-industries.item .bulletin-sidebar__rating {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+form.application.sla-industries.item .bulletin-sidebar__rating label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: inherit;
+    opacity: 0.8;
+}
+
+form.application.sla-industries.item .bulletin-sidebar__rating input {
+    width: 100%;
+    text-align: center;
+    font-weight: 700;
+}
+
+/* Footer bar — the card's Station Analysis/Third Eye News + Per Op/Per Squad row */
+form.application.sla-industries.item .bulletin-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(90, 155, 212, 0.25);
+}
+
+form.application.sla-industries.item .bulletin-footer__flags,
+form.application.sla-industries.item .bulletin-footer__rewards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+form.application.sla-industries.item .bulletin-footer__flags {
+    flex: 1 1 auto;
+}
+
+form.application.sla-industries.item .bulletin-footer__rewards {
+    flex: 1 1 auto;
+    justify-content: flex-end;
 }
