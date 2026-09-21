@@ -302,3 +302,36 @@ export class SlaPackageData extends foundry.abstract.TypeDataModel {
         };
     }
 }
+
+export class SlaBlueprintNewsData extends foundry.abstract.TypeDataModel {
+    static defineSchema() {
+        const fields = foundry.data.fields;
+        return {
+            authorisation: new fields.StringField({ initial: '' }),
+            trainingPackage: new fields.StringField({ initial: '' }),
+            colourCode: new fields.StringField({
+                initial: '',
+                blank: true,
+                choices: {
+                    blue: 'SLA.ItemSheet.BlueprintNews.Colour.Blue',
+                    white: 'SLA.ItemSheet.BlueprintNews.Colour.White',
+                    yellow: 'SLA.ItemSheet.BlueprintNews.Colour.Yellow',
+                    green: 'SLA.ItemSheet.BlueprintNews.Colour.Green',
+                    red: 'SLA.ItemSheet.BlueprintNews.Colour.Red',
+                    grey: 'SLA.ItemSheet.BlueprintNews.Colour.Grey',
+                    jade: 'SLA.ItemSheet.BlueprintNews.Colour.Jade',
+                    orange: 'SLA.ItemSheet.BlueprintNews.Colour.Orange',
+                    black: 'SLA.ItemSheet.BlueprintNews.Colour.Black',
+                    silver: 'SLA.ItemSheet.BlueprintNews.Colour.Silver',
+                    platinum: 'SLA.ItemSheet.BlueprintNews.Colour.Platinum'
+                }
+            }),
+            stationAnalysis: new fields.BooleanField({ initial: false }),
+            thirdEyeNews: new fields.BooleanField({ initial: false }),
+            creditsReward: new fields.StringField({ initial: '' }),
+            sclIncrease: new fields.StringField({ initial: '' }),
+            rating: new fields.NumberField({ initial: 0, integer: true }),
+            description: new fields.HTMLField()
+        };
+    }
+}

@@ -17,5 +17,6 @@ export const ITEM_DATA_MODEL_TYPE_KEYS = Object.freeze([
     'toxicant',
     'species',
     'package',
-    'magazine'
+    'magazine',
+    'blueprintNews'
 ]);

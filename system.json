@@ -104,7 +104,8 @@
             "toxicant": {},
             "species": {},
             "package": {},
-            "magazine": {}
+            "magazine": {},
+            "blueprintNews": {}
         }
     }
 }

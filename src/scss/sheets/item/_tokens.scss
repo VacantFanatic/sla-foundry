@@ -90,6 +90,13 @@
     --sla-type-frame: #3b8c3b;
 }
 
+/* Blueprint News: teletype bulletin blue */
+.sla-item-root.blueprintNews-theme {
+    --sla-type-accent: #5a9bd4;
+    --sla-type-accent-soft: rgba(90, 155, 212, 0.18);
+    --sla-type-frame: #2e5f8a;
+}
+
 /* Ebb formula / discipline: spectral purple */
 .sla-item-root.ebbFormula-theme,
 .sla-item-root.discipline-theme {

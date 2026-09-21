@@ -23,6 +23,7 @@ import { SlaSkillItemSheet } from './sheets/item/item-skill-sheet.mjs';
 import { SlaDisciplineItemSheet } from './sheets/item/item-discipline-sheet.mjs';
 import { SlaSpeciesItemSheet } from './sheets/item/item-species-sheet.mjs';
 import { SlaPackageItemSheet } from './sheets/item/item-package-sheet.mjs';
+import { SlaBlueprintNewsItemSheet } from './sheets/item/item-blueprint-news-sheet.mjs';
 
 // Import ruler.
 import { SLATokenRuler } from './canvas/sla-ruler.mjs';
@@ -378,6 +379,11 @@ Hooks.once('init', async function () {
         types: ['package'],
         makeDefault: true,
         label: 'SLA Package Sheet'
+    });
+    foundry.documents.collections.Items.registerSheet('sla-industries', SlaBlueprintNewsItemSheet, {
+        types: ['blueprintNews'],
+        makeDefault: true,
+        label: 'SLA Blueprint News Sheet'
     });
     foundry.documents.collections.Items.registerSheet('sla-industries', SlaMagazineItemSheet, {
         types: ['magazine'],

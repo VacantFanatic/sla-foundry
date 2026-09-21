@@ -157,6 +157,10 @@ The Actor Sheet automatically sorts items into the following categories based on
 | `discipline` | Ebb tab (Ebonites only)   | Nested with formulas                |
 | `ebbFormula` | Ebb tab (Ebonites only)   | Rolls, flux, wounds                 |
 
+`species`, `package`, and `blueprintNews` are non-physical reference items (no weight/price/
+quantity) and are not sorted into any inventory tab — manage them from the Items directory or a
+compendium.
+
 ### Stackable Items
 
 Dragging **gear**, **explosives**, **magazines**, or **drugs** onto an actor sheet **merges** into an existing stack when the system considers it the same item:
@@ -171,14 +175,14 @@ Only some item types have an **Effects** tab, and only for those types does putt
 row there actually do anything — every one of them has a real, specific trigger that copies the
 item's embedded effects onto the actor:
 
-| Type                                                             | Effects tab? | Applies to the actor...                                       |
-| ---------------------------------------------------------------- | ------------ | ------------------------------------------------------------- |
-| `item`                                                           | Yes          | While **Equipped** (toggle on the sheet)                      |
-| `trait`                                                          | Yes          | While the actor **owns** the trait (grant/revoke — see below) |
-| `drug`                                                           | Yes          | While **Active** (Consume/toggle)                             |
-| `toxicant`                                                       | Yes          | On a **failed** infection test (§5)                           |
-| `ebbFormula`                                                     | Yes          | Via the post-roll chat button (§3C)                           |
-| `weapon`, `armor`, `explosive`, `magazine`, `species`, `package` | No           | —                                                             |
+| Type                                                                              | Effects tab? | Applies to the actor...                                       |
+| --------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------- |
+| `item`                                                                            | Yes          | While **Equipped** (toggle on the sheet)                      |
+| `trait`                                                                           | Yes          | While the actor **owns** the trait (grant/revoke — see below) |
+| `drug`                                                                            | Yes          | While **Active** (Consume/toggle)                             |
+| `toxicant`                                                                        | Yes          | On a **failed** infection test (§5)                           |
+| `ebbFormula`                                                                      | Yes          | Via the post-roll chat button (§3C)                           |
+| `weapon`, `armor`, `explosive`, `magazine`, `species`, `package`, `blueprintNews` | No           | —                                                             |
 
 The second group has no Effects tab at all — nothing in the system ever reads an embedded effect
 on those types, so the tab was removed rather than leaving a control on the sheet that silently
@@ -334,7 +338,33 @@ A starter set of vehicle actors is available in the **Vehicles** compendium pack
 
 ---
 
-## 10. Quick Troubleshooting
+## 10. Blueprint News (Mission Bulletins)
+
+`blueprintNews` items model BPNs — the mission bulletins operatives pick up to get assigned (and
+rewarded for) a job. Like `species` and `package`, it's a non-physical reference item: create one
+per mission and keep it in a world compendium, or hand a copy to the party.
+
+1. Create an item of type **Blueprint News**.
+2. Fill in the Details tab:
+    - **Departmental Authorisation** — which department issued it.
+    - **Training Package Recommended** — free text (e.g. "Any", a specific package name).
+    - **Colour Code** — one of the eleven canonical tiers (Blue, White, Yellow, Green, Red, Grey,
+      Jade, Orange, Black, Silver, Platinum), each with its own risk profile and typical reward
+      range per the rulebook.
+    - **Station Analysis** / **Third Eye News** — flags noting whether the mission was flagged by
+      Station Analysis and/or covered by Third Eye News.
+    - **Credits Reward** / **SCL Increase** — free text, since rulebook ranges aren't always plain
+      numbers (e.g. "300-1200c", "0.5 upwards", "[D-NOTICE]" for classified Platinum-tier jobs).
+    - **Rating** — the BPN's numeric rating/reference number.
+3. Use the **Description** tab for the mission briefing text itself.
+
+This is reference-only: nothing on this item automatically writes Credits or SCL to any actor.
+Apply rewards manually (e.g. editing an operative's SCL field, or a future ledger feature) once
+the mission resolves.
+
+---
+
+## 11. Quick Troubleshooting
 
 - **"Skill Not Found" during Attack:** Ensure the Weapon has a skill linked in the "Required Skill" box, and that the Actor actually possesses that skill.
 - **Reload Button Missing:** The reload button only appears for **ranged** weapons. Ensure the weapon's `Required Skill` is not `melee` or `unarmed`, and that `Max Ammo` is greater than 0.

@@ -37,6 +37,7 @@ export const preloadHandlebarsTemplates = async function () {
         'systems/sla-industries/templates/item/parts/item-ebb-formula.hbs',
         'systems/sla-industries/templates/item/parts/item-species.hbs',
         'systems/sla-industries/templates/item/parts/item-package.hbs',
+        'systems/sla-industries/templates/item/parts/item-blueprint-news.hbs',
         'systems/sla-industries/templates/item/parts/item-dossier-skills.hbs',
         'systems/sla-industries/templates/actor/parts/combat-tab.hbs',
         'systems/sla-industries/templates/actor/parts/ebb-tab.hbs',

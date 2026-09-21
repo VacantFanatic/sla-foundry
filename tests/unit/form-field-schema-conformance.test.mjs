@@ -38,7 +38,8 @@ const ITEM_CLASS_NAMES = [
     'SlaToxicantData',
     'SlaSpeciesData',
     'SlaPackageData',
-    'SlaMagazineData'
+    'SlaMagazineData',
+    'SlaBlueprintNewsData'
 ];
 
 /** @param {string} src */
