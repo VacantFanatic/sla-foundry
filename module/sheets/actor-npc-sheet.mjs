@@ -1,4 +1,5 @@
 import { SlaActorSheet } from './actor-sheet.mjs';
+import { resolveEbbResourceLabel } from '../helpers/ebb-resource-label.mjs';
 
 /**
  * NPC / threat sheet (Application V2).
@@ -13,6 +14,7 @@ export class SlaNPCSheet extends SlaActorSheet {
                 { id: 'inventory', label: 'Inventory', icon: 'fa-box-open' },
                 { id: 'effects', label: 'Effects', icon: 'fa-bolt' },
                 { id: 'skills', label: 'Skills', icon: 'fa-graduation-cap' },
+                { id: 'ebb', label: 'Ebb', icon: 'fa-hand-sparkles' },
                 { id: 'notes', label: 'Notes', icon: 'fa-book-open' }
             ],
             initial: 'combat'
@@ -44,6 +46,8 @@ export class SlaNPCSheet extends SlaActorSheet {
     async _prepareContext(options) {
         const context = await super._prepareContext(options);
         context.enableNPCWoundTracking = game.settings.get('sla-industries', 'enableNPCWoundTracking');
+        context.npcEbbEnabled = Boolean(this.actor.system.ebb?.enabled);
+        context.ebbResourceLabel = resolveEbbResourceLabel(this.actor.system);
         return context;
     }
 }

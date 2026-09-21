@@ -1,5 +1,6 @@
 import { normalizeEbbEffect, normalizeEbbHealWoundMode } from '../../helpers/items.mjs';
 import { syncEbbCriticalFlux } from '../../helpers/ebb-flux.mjs';
+import { resolveEbbResourceLabel } from '../../helpers/ebb-resource-label.mjs';
 import { SlaSimpleContentDialog } from '../../apps/sla-simple-dialog.mjs';
 import {
     buildEbbDamageFormula,
@@ -129,8 +130,9 @@ export async function executeEbbRoll(sheet, item, overrides = {}) {
         sheet,
         item
     );
+    const resourceLabel = resolveEbbResourceLabel(sheet.actor.system);
     if (currentFlux < fluxCost) {
-        ui.notifications.error('Insufficient FLUX.');
+        ui.notifications.error(`Insufficient ${resourceLabel}.`);
         return;
     }
     await sheet.actor.update({ 'system.stats.flux.value': Math.max(0, currentFlux - fluxCost) });
@@ -175,7 +177,8 @@ export async function executeEbbRoll(sheet, item, overrides = {}) {
     const { isSuccessful, mosEffectText, failureConsequence } = resolveEbbOutcomeText(
         isBaseSuccess,
         skillSuccesses,
-        item.system.ebbEffect
+        item.system.ebbEffect,
+        resourceLabel
     );
     const {
         finalDmgFormula,
@@ -282,7 +285,8 @@ export async function renderEbbCastDialog(sheet, item) {
     const templateData = {
         item,
         formulaRating,
-        fluxCost
+        fluxCost,
+        resourceLabel: resolveEbbResourceLabel(sheet.actor.system)
     };
 
     const content = await foundry.applications.handlebars.renderTemplate(

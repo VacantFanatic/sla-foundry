@@ -150,6 +150,13 @@ export class SlaNPCData extends foundry.abstract.TypeDataModel {
                     max: new fields.NumberField({ initial: 0, integer: true })
                 })
             }),
+            // Lets a GM grant a specific NPC/Threat Ebb-style powers (discipline/formula items, the Ebb
+            // tab) without an Ebonite species check, and rename the FLUX resource per-actor for reskins
+            // (e.g. Shi'an "Flow") — see resolveEbbResourceLabel (module/helpers/ebb-resource-label.mjs).
+            ebb: new fields.SchemaField({
+                enabled: new fields.BooleanField({ initial: false }),
+                resourceLabel: new fields.StringField({ initial: '' })
+            }),
             // Persistent modifier applied to every roll (skill, stat, weapon, explosive, Ebb). Active Effects
             // should target `bonus` (mode Add) so a standing penalty/bonus doesn't require re-entering it per roll.
             rollModifier: new fields.SchemaField({

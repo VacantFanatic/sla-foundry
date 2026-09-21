@@ -108,7 +108,7 @@
 
             {{#if (or system.stats.flux.max system.stats.flux.value)}}
             <div class="threat-box">
-                <label>FLUX</label>
+                <label>{{ebbResourceLabel}}</label>
                 <div class="flexrow">
                     <input type="number" name="system.stats.flux.value" value="{{system.stats.flux.value}}"
                         placeholder="0" />
@@ -118,6 +118,17 @@
                 </div>
             </div>
             {{/if}}
+        </div>
+
+        {{!-- Ebb powers: lets a GM grant this NPC Ebb-style powers (a full Ebb tab, disciplines,
+        formula casting) under a per-actor resource name instead of the default "FLUX" --}}
+        <div class="threat-box threat-ebb-config">
+            <label class="threat-ebb-config__toggle">
+                <input type="checkbox" name="system.ebb.enabled" {{checked system.ebb.enabled}} />
+                {{localize "SLA.SheetTab.ebb"}} Powers
+            </label>
+            <input type="text" name="system.ebb.resourceLabel" value="{{system.ebb.resourceLabel}}"
+                placeholder="Flux" title="Resource name (defaults to Flux)" />
         </div>
 
         <div class="sla-actor-tabbed-area threat-tabbed-area">
@@ -157,6 +168,12 @@
                 <div class="tab {{tabs.effects.cssClass}}" data-group="primary" data-tab="effects" role="tabpanel" id="sla-npc-tabpanel-effects" aria-labelledby="sla-npc-tab-effects">
                     {{> "systems/sla-industries/templates/actor/parts/effects-tab.hbs"}}
                 </div>
+
+                {{#if npcEbbEnabled}}
+                <div class="tab {{tabs.ebb.cssClass}}" data-group="primary" data-tab="ebb" role="tabpanel" id="sla-npc-tabpanel-ebb" aria-labelledby="sla-npc-tab-ebb">
+                    {{> "systems/sla-industries/templates/actor/parts/ebb-tab.hbs"}}
+                </div>
+                {{/if}}
             </section>
 
             <nav class="sheet-tabs tabs sla-sheet-tab-rail" data-group="primary" role="tablist" aria-label="{{localize 'SLA.ActorSheet.TabNavLabel'}}">
@@ -180,6 +197,13 @@
                     <i class="fas {{tabs.skills.icon}}" aria-hidden="true"></i>
                     <span class="sla-tab-rail-tooltip">{{tabs.skills.label}}</span>
                 </a>
+                {{#if npcEbbEnabled}}
+                <a class="item sla-tab-rail-btn {{tabs.ebb.cssClass}}" href="#" id="sla-npc-tab-ebb" role="tab" data-group="primary" data-tab="ebb"
+                    title="{{ebbResourceLabel}}" aria-label="{{ebbResourceLabel}}" aria-controls="sla-npc-tabpanel-ebb">
+                    <i class="fas {{tabs.ebb.icon}}" aria-hidden="true"></i>
+                    <span class="sla-tab-rail-tooltip">{{ebbResourceLabel}}</span>
+                </a>
+                {{/if}}
                 <a class="item sla-tab-rail-btn {{tabs.notes.cssClass}}" href="#" id="sla-npc-tab-notes" role="tab" data-group="primary" data-tab="notes"
                     title="{{tabs.notes.label}}" aria-label="{{tabs.notes.label}}" aria-controls="sla-npc-tabpanel-notes">
                     <i class="fas {{tabs.notes.icon}}" aria-hidden="true"></i>

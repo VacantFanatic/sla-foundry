@@ -8,6 +8,7 @@ import {
     isEncumbranceWarning,
     normalizeOperativeTabId,
     operativeTabOrder,
+    shouldRedirectEbbTab,
     statPlayColorClass
 } from '../../module/sheets/actor/sheet-ux-pure.mjs';
 
@@ -52,5 +53,24 @@ describe('sheet-ux-pure', () => {
     it('operativeTabOrder appends ebb only for Ebonites', () => {
         assert.deepEqual(operativeTabOrder(false), ['main', 'combat', 'inventory', 'effects', 'traits', 'notes']);
         assert.deepEqual(operativeTabOrder(true), ['main', 'combat', 'inventory', 'effects', 'traits', 'notes', 'ebb']);
+    });
+
+    it('shouldRedirectEbbTab only ever gates the "ebb" tab', () => {
+        assert.equal(shouldRedirectEbbTab('character', 'combat', { isEbonite: false }), false);
+        assert.equal(shouldRedirectEbbTab('npc', 'combat', { ebbEnabled: false }), false);
+    });
+
+    it('shouldRedirectEbbTab redirects a non-Ebonite character off the ebb tab', () => {
+        assert.equal(shouldRedirectEbbTab('character', 'ebb', { isEbonite: false }), true);
+        assert.equal(shouldRedirectEbbTab('character', 'ebb', { isEbonite: true }), false);
+    });
+
+    it('shouldRedirectEbbTab redirects an NPC without Ebb enabled off the ebb tab', () => {
+        assert.equal(shouldRedirectEbbTab('npc', 'ebb', { ebbEnabled: false }), true);
+        assert.equal(shouldRedirectEbbTab('npc', 'ebb', { ebbEnabled: true }), false);
+    });
+
+    it('shouldRedirectEbbTab redirects any other actor type off the ebb tab', () => {
+        assert.equal(shouldRedirectEbbTab('vehicle', 'ebb', {}), true);
     });
 });

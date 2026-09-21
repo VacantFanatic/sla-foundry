@@ -361,6 +361,29 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
         await expect(strEffectiveHint).toHaveText(/5/);
     });
 
+    test('Threat sheet: Ebb tab is hidden by default and appears once system.ebb.enabled is set', async ({ page }) => {
+        const actorId = await createTestActor(page, { stats: { flux: { value: 2, max: 5 } } }, 'npc');
+        const sheet = await openActorSheet(page, actorId);
+
+        await expect(sheet.locator('nav.sheet-tabs a[data-tab="ebb"]')).toHaveCount(0);
+
+        await page.evaluate(async (id) => {
+            const actor = game.actors.get(id);
+            await actor.update({ 'system.ebb.enabled': true, 'system.ebb.resourceLabel': 'Flow' });
+            await actor.sheet.render(true);
+        }, actorId);
+
+        const ebbTab = sheet.locator('nav.sheet-tabs a[data-tab="ebb"]');
+        await expect(ebbTab).toBeVisible();
+        await expect(ebbTab).toHaveText(/Flow/);
+
+        await clickActorSheetTab(sheet, 'ebb');
+        await expect(sheet.locator('.tab[data-tab="ebb"] .sla-ebb-tab')).toBeVisible();
+
+        const flowResourceBox = sheet.locator('.threat-box').filter({ hasText: 'Flow' });
+        await expect(flowResourceBox.first()).toBeVisible();
+    });
+
     test('Move highlight: Threat sheet flags an AE-boosted Closing input, leaves Rushing unstyled', async ({
         page
     }) => {

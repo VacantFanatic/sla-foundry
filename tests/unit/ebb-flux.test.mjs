@@ -9,21 +9,22 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
 // Stub game / ui globals — accessed inside function bodies only
+const notifications = [];
 globalThis.game = {
     user: { isGM: true },
-    i18n: { format: (_key, _data) => '' }
+    i18n: { format: (key, data) => `${key}:${JSON.stringify(data)}` }
 };
-globalThis.ui = { notifications: { info: () => {} } };
+globalThis.ui = { notifications: { info: (msg) => notifications.push(msg) } };
 
 import { syncEbbCriticalFlux } from '../../module/helpers/ebb-flux.mjs';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function makeActor({ fluxValue = 3, fluxMax = 6, canModify = true } = {}) {
+function makeActor({ fluxValue = 3, fluxMax = 6, canModify = true, resourceLabel = '' } = {}) {
     const updates = [];
     const actor = {
         name: 'Test Operative',
-        system: { stats: { flux: { value: fluxValue, max: fluxMax } } },
+        system: { stats: { flux: { value: fluxValue, max: fluxMax } }, ebb: { resourceLabel } },
         testUserPermission: () => canModify,
         update: async (data) => {
             // Simulate Foundry update: reflect the change for subsequent reads
@@ -158,5 +159,33 @@ describe('syncEbbCriticalFlux — flux revoke when result is downgraded', () => 
         const { msg } = makeMessage({ ebbFluxRegainApplied: true });
         await syncEbbCriticalFlux(msg, actor, msg.flags.sla, true, 3);
         assert.equal(updates[0]['system.stats.flux.value'], 4);
+    });
+});
+
+// ─── Custom resource label (Feature: NPC "Flow"/Ebb) ──────────────────────────
+
+describe('syncEbbCriticalFlux — custom resource label', () => {
+    test('regain notification uses the actor-configured resource label', async () => {
+        const { actor } = makeActor({ fluxValue: 3, fluxMax: 6, resourceLabel: 'Flow' });
+        const { msg } = makeMessage({ ebbFluxRegainApplied: false });
+        notifications.length = 0;
+        await syncEbbCriticalFlux(msg, actor, msg.flags.sla, true, 4);
+        assert.match(notifications.at(-1), /"resource":"Flow"/);
+    });
+
+    test('revoke notification uses the actor-configured resource label', async () => {
+        const { actor } = makeActor({ fluxValue: 4, fluxMax: 6, resourceLabel: 'Flow' });
+        const { msg } = makeMessage({ ebbFluxRegainApplied: true });
+        notifications.length = 0;
+        await syncEbbCriticalFlux(msg, actor, msg.flags.sla, false, 4);
+        assert.match(notifications.at(-1), /"resource":"Flow"/);
+    });
+
+    test('notification falls back to FLUX when no custom label is set', async () => {
+        const { actor } = makeActor({ fluxValue: 3, fluxMax: 6 });
+        const { msg } = makeMessage({ ebbFluxRegainApplied: false });
+        notifications.length = 0;
+        await syncEbbCriticalFlux(msg, actor, msg.flags.sla, true, 4);
+        assert.match(notifications.at(-1), /"resource":"FLUX"/);
     });
 });

@@ -568,6 +568,19 @@ system "sla-industries": The file "module/....mjs" does not exist` (or the setup
   user choice AND a recorded/implicit fallback, put the explicit-choice check first (or write a
   test asserting the explicit choice always wins over a non-empty fallback) — don't rely on
   reading the whole function correctly by eye.
+- **A `{{#if (or field.max field.value)}}` visibility gate hides the whole box for a test actor
+  that never set either — not just when it's meant to.** `templates/actor/actor-npc-sheet-v2.hbs`
+  hides the LUCK and FLUX/Ebb-resource derived-stat boxes entirely unless `max` or `value` is
+  non-zero (so a plain Threat with neither Luck nor Ebb doesn't show empty boxes). While adding
+  the NPC "Flow"/Ebb feature, an e2e test that created an NPC with `createTestActor(page, {},
+'npc')` (no `stats.flux` override — both default to 0) and then asserted the resource box was
+  visible after enabling `system.ebb.enabled` failed, not because the enable flag or label logic
+  was wrong, but because the box itself never renders for an all-zero flux pool regardless of the
+  Ebb flag — the two conditions are independent. Fixed by passing
+  `stats: { flux: { value: 2, max: 5 } }` into `createTestActor`. When a test exercises a UI
+  element gated by an "is either of these non-zero" check, seed the test actor with a non-zero
+  value for at least one of the gating fields, even if the feature under test is a different flag
+  entirely — the same pattern gates the Luck box on this sheet too.
 - **A correctly-computed derived value can still look broken if the UI collapses several stacked
   modifiers into one opaque number.** Issue #390 ("Power armor not providing bonuses") reported a
   Threat's `STR CHECK` chat card showing `Base 2`/`Base 3` right next to the actor sheet's

@@ -1513,6 +1513,36 @@
     }
 }
 
+/* NPC/Threat Ebb configuration: lets a GM grant this actor Ebb-style powers under a custom
+   resource name (e.g. Shi'an "Flow") instead of the default "FLUX". */
+.threat-ebb-config {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+
+    &__toggle {
+        display: flex !important;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.8em;
+        font-weight: bold;
+        text-transform: uppercase;
+        border-bottom: none !important;
+        margin-bottom: 0 !important;
+        white-space: nowrap;
+
+        input[type='checkbox'] {
+            width: auto !important;
+            flex: none;
+        }
+    }
+
+    input[type='text'] {
+        max-width: 120px;
+    }
+}
+
 /* Threat Content Lists */
 .threat-content-box {
     background: #fff;
