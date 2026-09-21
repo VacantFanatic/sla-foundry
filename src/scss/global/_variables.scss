@@ -18,6 +18,12 @@
     --sla-info: #4fa8ff;
     --sla-info-bg: #001f33;
 
+    // Threat/vehicle sheet identity: a distinct accent for `.threat-sheet` (NPC + vehicle),
+    // expressed as a token so it composes with the shared dark theme instead of a hardcoded
+    // maroon-on-white reskin (see `.sla-sheet.threat-sheet` in sheets/_actor.scss).
+    --sla-threat-accent: #b33450;
+    --sla-threat-accent-faint: #b3345033;
+
     // Typography
     --sla-font-mono: #{$font-secondary};
     --sla-font-header: #{$font-primary};

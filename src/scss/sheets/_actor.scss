@@ -401,8 +401,7 @@
 }
 
 /* !important is required here: the Operative play-mode value
-   (.sla-move-box-mode-play .sla-move-play-val, 3 classes) and the Threat sheet's
-   .threat-box input (color: #000 !important) both out-specificity or out-important a plain
+   (.sla-move-box-mode-play .sla-move-play-val, 3 classes) out-specificities a plain
    override, so this class needs to win unconditionally wherever it's applied. */
 .sla-sheet .sla-move-ae-boosted {
     color: var(--sla-success) !important;
@@ -969,11 +968,6 @@
     color: #e0e0e0;
 }
 
-.threat-content-box.threat-notes-editor prose-mirror.editor {
-    background: #fff;
-    color: #000;
-}
-
 /* Core / sheet flex rules can force editor toggles to full width (#12197); keep control compact */
 .sla-industries.sheet prose-mirror.editor .editor-edit {
     width: auto !important;
@@ -1370,20 +1364,22 @@
 /* ==========================================
    13. THREAT SHEET THEMES 
    ========================================== */
-/* Threat (NPC) Sheet */
+/* Threat (NPC) / Vehicle Sheet — shares the same dark, token-driven theme as the operative
+   sheet; the maroon "Threat" identity is expressed via --sla-threat-accent (see
+   `.sla-sheet.threat-sheet` custom-property override below), not hardcoded hex. */
 .sla-industries.sheet.actor .threat-sheet {
-    background: #fdfbf7 !important;
-    color: #111 !important;
+    background: var(--sla-bg-dark) !important;
+    color: var(--sla-text-light) !important;
     font-family: var(--sla-font-mono) !important;
-    border: 2px solid #333 !important;
+    border: 2px solid var(--sla-border) !important;
     padding: 0 !important;
 }
 
 .threat-header {
-    background: #800000 !important;
+    background: var(--sla-accent) !important;
     color: #fff !important;
     font-family: var(--sla-font-header) !important;
-    border-bottom: 2px solid #000 !important;
+    border-bottom: 2px solid var(--sla-border) !important;
     padding: 5px;
     display: flex;
     align-items: center;
@@ -1418,13 +1414,13 @@
 }
 
 .threat-section-bar {
-    background: #800000;
+    background: var(--sla-accent);
     color: #fff;
     font-family: var(--sla-font-header);
     font-weight: bold;
     padding: 2px 5px;
-    border-top: 2px solid #000;
-    border-bottom: 1px solid #000;
+    border-top: 2px solid var(--sla-border);
+    border-bottom: 1px solid var(--sla-border);
     margin-top: 10px;
     text-transform: uppercase;
 }
@@ -1437,9 +1433,9 @@
 }
 
 .threat-row-label th {
-    background: #800000;
+    background: var(--sla-accent);
     color: #fff;
-    border: 1px solid #999;
+    border: 1px solid var(--sla-border);
     padding: 2px;
     font-size: 0.9em;
     font-weight: bold;
@@ -1450,13 +1446,13 @@
 .threat-row-value {
     td {
         padding: 0;
-        border: 1px solid #999;
+        border: 1px solid var(--sla-border);
     }
 
     input {
         width: 100%;
-        background: #fff !important;
-        color: #000 !important;
+        background: var(--sla-bg-panel) !important;
+        color: var(--sla-text-light) !important;
         border: none;
         text-align: center;
         font-weight: bold;
@@ -1466,7 +1462,7 @@
 
 .threat-row-effective {
     td {
-        border: 1px solid #999;
+        border: 1px solid var(--sla-border);
         border-top: none;
         text-align: center;
         padding: 1px;
@@ -1482,8 +1478,9 @@
 }
 
 .threat-box {
-    background: #fff;
-    border: 1px solid #000;
+    background: var(--sla-bg-panel);
+    border: 1px solid var(--sla-border);
+    border-radius: var(--sla-radius);
     padding: 2px 5px;
     flex: 1;
     min-width: 80px;
@@ -1493,7 +1490,8 @@
         font-size: 0.8em;
         font-weight: bold;
         text-transform: uppercase;
-        border-bottom: 1px solid #ccc;
+        color: var(--sla-text-light);
+        border-bottom: 1px solid var(--sla-border);
         margin-bottom: 2px;
     }
 
@@ -1501,8 +1499,8 @@
         background: transparent !important;
         border: none !important;
         /* Let them look cleaner inside the box */
-        border-bottom: 1px dotted #ccc !important;
-        color: #000 !important;
+        border-bottom: 1px dotted var(--sla-border) !important;
+        color: var(--sla-text-light) !important;
         font-weight: bold;
         width: 100%;
     }
@@ -1545,65 +1543,34 @@
 
 /* Threat Content Lists */
 .threat-content-box {
-    background: #fff;
-    border: 1px solid #999;
+    background: var(--sla-bg-panel);
+    border: 1px solid var(--sla-border);
+    border-radius: var(--sla-radius);
     padding: 2px;
 }
 
-/* Threat / vehicle notes editor panel (class was .editor on wrapper; inner host is prose-mirror.editor) */
+/* Threat / vehicle notes editor panel (class was .editor on wrapper; inner host is
+   prose-mirror.editor). Editor chrome (.editor-menu/.prosemirror-menu) needs no overrides here —
+   it's already dark-themed and legible by default (see the shared prosemirror-menu rules above). */
 .threat-content-box.threat-notes-editor {
     min-height: 300px;
-    background: #fff;
-    color: #000;
-
-    /* Keep editor controls readable in the light threat notes panel. */
-    .editor-menu,
-    .prosemirror-menu {
-        background: #f2f2f2 !important;
-        border-bottom: 1px solid #9a9a9a !important;
-        color: #111 !important;
-    }
-
-    .editor-menu button,
-    .prosemirror-menu button {
-        color: #111 !important;
-    }
-
-    .editor-menu button i,
-    .editor-menu button svg,
-    .editor-menu button svg path,
-    .prosemirror-menu button i,
-    .prosemirror-menu button svg,
-    .prosemirror-menu button svg path,
-    .editor-menu .pm-dropdown,
-    .editor-menu .pm-dropdown span,
-    .prosemirror-menu .pm-dropdown,
-    .prosemirror-menu .pm-dropdown span {
-        color: #111 !important;
-        fill: #111 !important;
-        opacity: 1 !important;
-    }
-
-    .editor-menu button:hover,
-    .prosemirror-menu button:hover {
-        background: #dedede !important;
-        border-color: #888 !important;
-    }
+    background: var(--sla-bg-panel);
+    color: var(--sla-text-light);
 
     .editor-content {
-        color: #111 !important;
+        color: var(--sla-text-light) !important;
     }
 
     .editor {
         min-height: 300px;
         height: 100%;
-        color: #000;
+        color: var(--sla-text-light);
     }
 }
 
 .threat-item {
     padding: 3px;
-    border-bottom: 1px dotted #ccc;
+    border-bottom: 1px dotted var(--sla-border);
     align-items: center;
 
     &:last-child {
@@ -1611,16 +1578,8 @@
     }
 
     .item-name {
-        color: #000;
+        color: var(--sla-text-light);
     }
-}
-
-/* Threat equipment: .sla-sheet number inputs use --sla-text-light on dark backgrounds; armor
-   resistance fields use a light panel via inline background, which made values illegible. */
-.sla-sheet.threat-sheet .threat-content-box input.inline-edit[type='number'] {
-    color: #111 !important;
-    background: #fff !important;
-    border-color: #888 !important;
 }
 
 /* ==========================================
@@ -1866,92 +1825,15 @@
 /* ==========================================
    16. THREAT / NPC THEME
    ========================================== */
+/* Threat (NPC) and vehicle sheets share the same dark, token-driven theme as the operative
+   sheet — no separate light palette. The maroon "Threat" identity comes entirely from
+   overriding --sla-accent/--sla-accent-faint to --sla-threat-accent here, so every shared
+   component that already reads those tokens (.sla-panel, .sla-table, the tab rail,
+   .sla-combat-loadout, .sla-effects-list, etc.) recolors itself automatically — no per-component
+   !important overrides needed. Only genuinely threat-specific layout rules remain below. */
 .sla-sheet.threat-sheet {
-    /* Unified NPC palette: maroon + white */
-    --sla-accent: #800000;
-    --sla-accent-faint: rgba(128, 0, 0, 0.2);
-    --sla-border: #7a3939;
-
-    .sheet-header {
-        border-color: var(--sla-accent);
-        background: #2a1111;
-    }
-
-    .header-section-title {
-        background: #2a1111;
-        color: #fff;
-        border-bottom-color: var(--sla-accent);
-    }
-
-    .header-left {
-        background: #3a1717;
-        border-right-color: var(--sla-accent);
-    }
-
-    .portrait-container {
-        border-right-color: var(--sla-accent);
-        background: #2a1111;
-    }
-
-    .finance-box {
-        background: #3a1717;
-
-        .finance-title {
-            color: #fff;
-            border-bottom-color: var(--sla-accent);
-        }
-    }
-
-    /* Stats Strip Overrides */
-    .rating-block {
-        background: #2a1111 !important;
-        border-color: var(--sla-border);
-
-        &::after {
-            background: var(--sla-accent);
-        }
-
-        .rating-val {
-            color: #fff !important;
-        }
-    }
-
-    .stat-box {
-        background: #2a1111 !important;
-        border-color: var(--sla-border);
-
-        label {
-            background: #3a1717 !important;
-            border-right-color: var(--sla-border);
-            color: #fff;
-        }
-
-        input {
-            color: #fff !important;
-        }
-    }
-
-    /* Tabs */
-    .sheet-tabs {
-        border-bottom-color: var(--sla-accent);
-
-        .item.active {
-            background: var(--sla-accent);
-            color: #000;
-        }
-    }
-
-    /* Editor */
-    .editor-edit {
-        background: #2a1111 !important;
-        border-color: var(--sla-accent) !important;
-        color: #fff !important;
-    }
-
-    .editor-edit:hover {
-        background: #a24848 !important;
-        color: #fff !important;
-    }
+    --sla-accent: var(--sla-threat-accent);
+    --sla-accent-faint: var(--sla-threat-accent-faint);
 
     &.sla-actor-layout .threat-tabbed-area {
         margin-top: 10px;
@@ -1964,134 +1846,6 @@
 
     &.sla-actor-layout .threat-tabbed-area .tab {
         padding-right: 2px;
-    }
-
-    .sheet-tabs.sla-sheet-tab-rail {
-        background: #f5f0e9;
-        border-color: #7a3939;
-        border-top-color: #800000;
-    }
-
-    .sheet-tabs.sla-sheet-tab-rail .item {
-        color: #5f2626;
-        border-radius: 3px;
-    }
-
-    .sheet-tabs.sla-sheet-tab-rail .item:hover {
-        color: #ffffff;
-        background: #7a3939;
-    }
-
-    .sheet-tabs.sla-sheet-tab-rail .item.active {
-        color: #ffffff;
-        background: #800000;
-    }
-
-    .sheet-tabs.sla-sheet-tab-rail .sla-tab-rail-tooltip {
-        background: #2a1111;
-        border-color: #7a3939;
-        color: #fff;
-    }
-
-    /* Unify NPC tab content to white panels + maroon accents */
-    .sla-panel,
-    .sla-dialog-panel,
-    .threat-content-box,
-    .scroll-list {
-        background: #fff !important;
-        border-color: #7a3939 !important;
-        color: #2a1111;
-    }
-
-    .sla-header-bar,
-    .sla-header-bar-small,
-    .threat-section-bar {
-        background: #800000 !important;
-        color: #fff !important;
-        border-color: #7a3939 !important;
-    }
-
-    .sla-table,
-    .sla-table thead,
-    .sla-table tbody,
-    .sla-table tr,
-    .sla-table th,
-    .sla-table td {
-        background: #fff !important;
-        color: #2a1111 !important;
-        border-color: #c9a3a3 !important;
-    }
-
-    .sla-table a,
-    .sla-panel a,
-    .threat-content-box a {
-        color: #800000;
-    }
-
-    .sla-table a:hover,
-    .sla-panel a:hover,
-    .threat-content-box a:hover {
-        color: #a24848;
-    }
-
-    .sla-combat-loadout .sla-combat-group-header,
-    .sla-combat-loadout .combat-list .sla-combat-colhead {
-        background: #f6eeee !important;
-        color: #800000 !important;
-        border-color: #c9a3a3 !important;
-    }
-
-    .sla-combat-loadout .combat-list .sla-combat-row {
-        background: #fff !important;
-        border-color: #d9b8b8 !important;
-    }
-
-    .sla-combat-loadout .sla-combat-name,
-    .sla-combat-loadout .sla-combat-stat-dmg,
-    .sla-combat-loadout .sla-combat-stat-extra,
-    .sla-combat-loadout .sla-combat-resistance-max {
-        color: #2a1111 !important;
-    }
-
-    .sla-combat-loadout .sla-combat-resistance-input {
-        background: #fff !important;
-        color: #2a1111 !important;
-        border-color: #a27171 !important;
-    }
-
-    .sla-combat-loadout .sla-combat-actions .sla-combat-action,
-    .sla-combat-loadout .sla-combat-actions > a {
-        color: #800000 !important;
-    }
-
-    .sla-combat-loadout .sla-combat-actions .sla-combat-action:hover,
-    .sla-combat-loadout .sla-combat-actions > a:hover {
-        color: #a24848 !important;
-    }
-
-    .sla-effects-toolbar input.sla-effect-search {
-        background: #fff !important;
-        color: #2a1111 !important;
-        border: 1px solid #a27171 !important;
-    }
-
-    .sla-effects-list .sla-effect-row,
-    .sla-effects-list .sla-effects-empty {
-        background: #fff !important;
-        color: #2a1111 !important;
-        border-color: #d9b8b8 !important;
-    }
-
-    .sla-effects-list .sla-effect-meta,
-    .sla-effects-list .item-detail {
-        color: #6b3b3b !important;
-    }
-
-    .threat-content-box.threat-notes-editor .editor,
-    .threat-content-box.threat-notes-editor prose-mirror.editor,
-    .threat-content-box.threat-notes-editor .editor-content {
-        background: #fff !important;
-        color: #2a1111 !important;
     }
 }
 
