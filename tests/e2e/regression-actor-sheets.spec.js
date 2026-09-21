@@ -384,6 +384,24 @@ test.describe('SlaActor derived data — active effect ADD modes', () => {
         await expect(flowResourceBox.first()).toBeVisible();
     });
 
+    test('Threat sheet: resource box appears for a freshly Ebb-enabled NPC even with 0/0 flux', async ({ page }) => {
+        // Regression: a brand-new NPC has system.stats.flux.value/max both 0, and the resource box
+        // was gated on (or flux.max flux.value) alone — so enabling Ebb gave no way to ever set a
+        // max, since the input that sets it was itself hidden until it was already non-zero.
+        const actorId = await createTestActor(page, {}, 'npc');
+        const sheet = await openActorSheet(page, actorId);
+
+        await page.evaluate(async (id) => {
+            const actor = game.actors.get(id);
+            await actor.update({ 'system.ebb.enabled': true, 'system.ebb.resourceLabel': 'Flow' });
+            await actor.sheet.render(true);
+        }, actorId);
+
+        const flowResourceBox = sheet.locator('.threat-box').filter({ hasText: 'Flow' });
+        await expect(flowResourceBox.first()).toBeVisible();
+        await expect(flowResourceBox.first().locator('input[name="system.stats.flux.max"]')).toBeVisible();
+    });
+
     test('Move highlight: Threat sheet flags an AE-boosted Closing input, leaves Rushing unstyled', async ({
         page
     }) => {

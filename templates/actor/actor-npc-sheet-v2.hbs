@@ -106,7 +106,7 @@
             </div>
             {{/if}}
 
-            {{#if (or system.stats.flux.max system.stats.flux.value)}}
+            {{#if (or npcEbbEnabled system.stats.flux.max system.stats.flux.value)}}
             <div class="threat-box">
                 <label>{{ebbResourceLabel}}</label>
                 <div class="flexrow">
