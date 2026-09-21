@@ -424,6 +424,27 @@ describe('resolveEbbOutcomeText', () => {
         assert.doesNotMatch(r.mosEffectText, /FLUX/);
         assert.match(r.mosEffectText, /\+3/);
     });
+
+    test('custom resourceLabel replaces FLUX in the MOS 4 critical text', () => {
+        const r = resolveEbbOutcomeText(true, 4, 'damage', 'Flow');
+        assert.equal(r.isSuccessful, true);
+        assert.match(r.mosEffectText, /Regain 1 Flow/);
+        assert.doesNotMatch(r.mosEffectText, /FLUX/);
+    });
+
+    test('custom resourceLabel replaces FLUX in the severe-failure text', () => {
+        const r = resolveEbbOutcomeText(false, 0, 'effect', 'Flow');
+        assert.equal(r.isSuccessful, false);
+        assert.match(r.failureConsequence, /Extra Flow/);
+        assert.doesNotMatch(r.failureConsequence, /FLUX/);
+    });
+
+    test('omitting resourceLabel keeps the default FLUX wording', () => {
+        const critical = resolveEbbOutcomeText(true, 4, 'damage');
+        const failure = resolveEbbOutcomeText(false, 0, 'effect');
+        assert.match(critical.mosEffectText, /Regain 1 FLUX/);
+        assert.match(failure.failureConsequence, /Extra FLUX/);
+    });
 });
 
 describe('buildEbbDamageFormula', () => {
