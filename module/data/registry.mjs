@@ -12,7 +12,8 @@ import {
     SlaToxicantData,
     SlaSpeciesData,
     SlaPackageData,
-    SlaMagazineData
+    SlaMagazineData,
+    SlaBlueprintNewsData
 } from './item.mjs';
 import { ACTOR_DATA_MODEL_TYPE_KEYS, ITEM_DATA_MODEL_TYPE_KEYS } from './model-type-keys.mjs';
 
@@ -37,7 +38,8 @@ export const ITEM_DATA_MODELS = {
     toxicant: SlaToxicantData,
     species: SlaSpeciesData,
     package: SlaPackageData,
-    magazine: SlaMagazineData
+    magazine: SlaMagazineData,
+    blueprintNews: SlaBlueprintNewsData
 };
 
 const actorKeys = Object.keys(ACTOR_DATA_MODELS).sort();

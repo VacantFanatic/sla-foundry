@@ -1,0 +1,71 @@
+{{!-- Field bulletin — Blueprint News item layout --}}
+<div class="field-bulletin field-bulletin--blueprint-news">
+
+    <div class="bulletin-stamp bulletin-stamp--bpn">{{localize "SLA.ItemSheet.BlueprintNews.Stamp"}}</div>
+
+    <section class="sla-section bulletin-panel">
+        <div class="sla-section__header">
+            <span class="sla-section__icon"><i class="fas fa-building-shield"></i></span>
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.BlueprintNews.Authorisation"}}</span>
+        </div>
+        <div class="sla-field">
+            <input type="text" name="system.authorisation" value="{{system.authorisation}}" />
+        </div>
+    </section>
+
+    <section class="sla-section bulletin-panel">
+        <div class="sla-section__header">
+            <span class="sla-section__icon"><i class="fas fa-graduation-cap"></i></span>
+            <span class="sla-section__title">{{localize "SLA.ItemSheet.BlueprintNews.TrainingPackage"}}</span>
+        </div>
+        <div class="sla-field">
+            <input type="text" name="system.trainingPackage" value="{{system.trainingPackage}}" />
+        </div>
+    </section>
+
+    <section class="sla-section bulletin-panel bulletin-panel--masthead">
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.BlueprintNews.ColourCode"}}</label>
+            <select name="system.colourCode">
+                <option value="" {{#unless system.colourCode}}selected{{/unless}}></option>
+                <option value="blue" {{#if (eq system.colourCode "blue")}}selected{{/if}}>{{localize "SLA.ItemSheet.BlueprintNews.Colour.Blue"}}</option>
+                <option value="white" {{#if (eq system.colourCode "white")}}selected{{/if}}>{{localize "SLA.ItemSheet.BlueprintNews.Colour.White"}}</option>
+                <option value="yellow" {{#if (eq system.colourCode "yellow")}}selected{{/if}}>{{localize "SLA.ItemSheet.BlueprintNews.Colour.Yellow"}}</option>
+                <option value="green" {{#if (eq system.colourCode "green")}}selected{{/if}}>{{localize "SLA.ItemSheet.BlueprintNews.Colour.Green"}}</option>
+                <option value="red" {{#if (eq system.colourCode "red")}}selected{{/if}}>{{localize "SLA.ItemSheet.BlueprintNews.Colour.Red"}}</option>
+                <option value="grey" {{#if (eq system.colourCode "grey")}}selected{{/if}}>{{localize "SLA.ItemSheet.BlueprintNews.Colour.Grey"}}</option>
+                <option value="jade" {{#if (eq system.colourCode "jade")}}selected{{/if}}>{{localize "SLA.ItemSheet.BlueprintNews.Colour.Jade"}}</option>
+                <option value="orange" {{#if (eq system.colourCode "orange")}}selected{{/if}}>{{localize "SLA.ItemSheet.BlueprintNews.Colour.Orange"}}</option>
+                <option value="black" {{#if (eq system.colourCode "black")}}selected{{/if}}>{{localize "SLA.ItemSheet.BlueprintNews.Colour.Black"}}</option>
+                <option value="silver" {{#if (eq system.colourCode "silver")}}selected{{/if}}>{{localize "SLA.ItemSheet.BlueprintNews.Colour.Silver"}}</option>
+                <option value="platinum" {{#if (eq system.colourCode "platinum")}}selected{{/if}}>{{localize "SLA.ItemSheet.BlueprintNews.Colour.Platinum"}}</option>
+            </select>
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label>{{localize "SLA.ItemSheet.BlueprintNews.Rating"}}</label>
+            <input type="number" name="system.rating" value="{{system.rating}}" />
+        </div>
+    </section>
+
+    <section class="sla-section bulletin-panel bulletin-panel--flags">
+        <div class="sla-field sla-field--toggle">
+            <label for="bpn-station-analysis-toggle">{{localize "SLA.ItemSheet.BlueprintNews.StationAnalysis"}}</label>
+            <input id="bpn-station-analysis-toggle" type="checkbox" name="system.stationAnalysis" {{checked system.stationAnalysis}} />
+        </div>
+        <div class="sla-field sla-field--toggle">
+            <label for="bpn-third-eye-news-toggle">{{localize "SLA.ItemSheet.BlueprintNews.ThirdEyeNews"}}</label>
+            <input id="bpn-third-eye-news-toggle" type="checkbox" name="system.thirdEyeNews" {{checked system.thirdEyeNews}} />
+        </div>
+    </section>
+
+    <section class="sla-section bulletin-panel bulletin-panel--rewards">
+        <div class="sla-field">
+            <label>{{localize "SLA.ItemSheet.BlueprintNews.CreditsReward"}}</label>
+            <input type="text" name="system.creditsReward" value="{{system.creditsReward}}" />
+        </div>
+        <div class="sla-field">
+            <label>{{localize "SLA.ItemSheet.BlueprintNews.SclIncrease"}}</label>
+            <input type="text" name="system.sclIncrease" value="{{system.sclIncrease}}" />
+        </div>
+    </section>
+</div>

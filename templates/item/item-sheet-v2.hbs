@@ -48,6 +48,10 @@
             {{#if (eq item.type "package")}}
             {{> "systems/sla-industries/templates/item/parts/item-package.hbs"}}
             {{/if}}
+
+            {{#if (eq item.type "blueprintNews")}}
+            {{> "systems/sla-industries/templates/item/parts/item-blueprint-news.hbs"}}
+            {{/if}}
         </div>
 
         <div class="tab description {{tabs.description.cssClass}}" data-group="primary" data-tab="description" role="tabpanel" id="sla-item-tabpanel-description" aria-labelledby="sla-item-tab-description">

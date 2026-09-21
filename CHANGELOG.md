@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **New item type: Blueprint News (`blueprintNews`)** — models the mission bulletins ("BPNs")
+  operatives use to get assigned and rewarded for jobs. Follows the same non-physical
+  reference-item pattern as `species`/`package` (Details + Description tabs, no Effects tab):
+  Departmental Authorisation, recommended Training Package, a Colour Code dropdown covering all
+  eleven rulebook tiers (Blue through Platinum), Station Analysis/Third Eye News flags, and
+  free-text Credits Reward/SCL Increase fields (ranges like "0.5 upwards" or "[D-NOTICE]" aren't
+  plain numbers). Reference-only for now — rewards aren't auto-applied to any actor. See
+  [.docs/item_setup.md](.docs/item_setup.md) §10.
+
 ## [2.12.0] - 2026-09-21
 
 ### Added

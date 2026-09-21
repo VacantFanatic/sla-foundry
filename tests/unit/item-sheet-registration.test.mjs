@@ -70,6 +70,12 @@ const EXPECTED = {
         className: 'SlaMagazineItemSheet',
         useTwoTabs: true,
         useCataloguePart: true
+    },
+    blueprintNews: {
+        file: 'item-blueprint-news-sheet.mjs',
+        className: 'SlaBlueprintNewsItemSheet',
+        useTwoTabs: true,
+        useCataloguePart: false
     }
 };
 

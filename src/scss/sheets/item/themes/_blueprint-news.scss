@@ -1,0 +1,70 @@
+/**
+ * Field bulletin theme — Blueprint News.
+ *
+ * A teletype/bulletin-board look distinct from the training-package dossier: a stamped
+ * masthead, monospace body text, and a blue accent (the most common BPN colour tier).
+ */
+
+form.application.sla-industries.item .blueprintNews-theme .sheet-header {
+    position: relative;
+    overflow: hidden;
+    background: #000 !important;
+    border-bottom: 2px solid var(--sla-type-frame, var(--sla-accent));
+    padding: 10px;
+}
+
+form.application.sla-industries.item .blueprintNews-theme .sheet-header::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    background: repeating-linear-gradient(
+        180deg,
+        rgba(90, 155, 212, 0.65) 0,
+        rgba(90, 155, 212, 0.65) 8px,
+        rgba(0, 0, 0, 0.5) 8px,
+        rgba(0, 0, 0, 0.5) 16px
+    );
+    pointer-events: none;
+}
+
+form.application.sla-industries.item .field-bulletin {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    font-family: var(--sla-font-mono);
+    border-radius: var(--sla-radius);
+    background: linear-gradient(180deg, rgba(8, 14, 20, 0.94) 0%, rgba(8, 12, 16, 0.97) 100%);
+    border: 1px solid rgba(90, 155, 212, 0.25);
+}
+
+form.application.sla-industries.item .bulletin-stamp {
+    align-self: flex-start;
+    font-family: var(--sla-font-header);
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    display: inline-block;
+    padding: 6px 14px;
+    transform: rotate(-3deg);
+    margin-bottom: 4px;
+}
+
+form.application.sla-industries.item .bulletin-stamp--bpn {
+    color: #0d2438;
+    border: 3px solid var(--sla-type-frame);
+    background: linear-gradient(180deg, #a8caee 0%, #5a9bd4 100%);
+    box-shadow: 1px 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+form.application.sla-industries.item .bulletin-panel--masthead,
+form.application.sla-industries.item .bulletin-panel--flags,
+form.application.sla-industries.item .bulletin-panel--rewards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}

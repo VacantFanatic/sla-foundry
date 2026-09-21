@@ -599,3 +599,15 @@ penalty) = 2` and `5 - 1 (Stunned) - 1 (1 wound penalty) = 3` both match the rep
   `buildSkillRollModifierBreakdown` (mirrors `computeSkillRollModifier`'s arithmetic as named
   entries) and rendering it in `generateDiceTooltip` (`module/helpers/dice.mjs`), so `Base 3` now
   reads `Base 3 (STR +5, Stunned -1, Wound Penalty -1)`.
+- **A `StringField` with `choices` rejects its own empty `initial` value unless `blank: true` is
+  set explicitly.** Adding the `blueprintNews` item type (`SlaBlueprintNewsData.colourCode` in
+  `module/data/item.mjs`), a `new fields.StringField({ initial: '', choices: {...} })` with no
+  colour picked yet failed server-side validation on `Item.create` with `colourCode: may not be a
+blank string` — caught immediately by manually creating the item in a live Foundry instance
+  (unit tests only source-scan `defineSchema()`, so they can't catch a runtime validation
+  constraint like this). Foundry's `StringField` defaults `blank: false` whenever `choices` is
+  present, even though `initial: ''` looks like it should be a valid "nothing selected yet" state.
+  Any new dropdown-style `StringField` that should allow an unset/blank default (as opposed to
+  every value being forced to a real choice from creation) needs `blank: true` added alongside
+  `choices` — don't assume `initial: ''` alone is enough, and verify any new `choices` field by
+  actually creating a document with it in a live world, not just a schema-level unit test.
