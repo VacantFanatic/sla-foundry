@@ -81,12 +81,16 @@ Repeat until the candidate is stable.
 ## Promoting to a stable release
 
 1. Finalise `CHANGELOG.md` — remove the draft marker from `## [2.9.0]` and fill in release notes.
-2. Commit and merge to `main`. (`system.json`'s `download` URL does **not** need manual updating —
+2. Update the version badge at the top of `README.md`
+   (`![Version](https://img.shields.io/badge/version-X.Y.Z-orange)`) to the new stable version.
+   The badge tracks the **latest published stable release**, never an in-progress rc — leave it
+   alone during the pre-release cycle above and only bump it once the stable tag is published.
+3. Commit and merge to `main`. (`system.json`'s `download` URL does **not** need manual updating —
    the **Release** workflow patches it to the exact tag being released at build time, the same
    way `pre-release.yml` already patches the pre-release channel's manifest. Source `system.json`
    keeps showing the previous release's `download` value between releases; that's expected, same
    as the pre-release `-rcN` suffix never appearing in committed source either.)
-3. Push the stable tag (no `pre-` prefix; `v` prefix optional):
+4. Push the stable tag (no `pre-` prefix; `v` prefix optional):
 
 ```bash
 git tag 2.9.0
@@ -95,12 +99,13 @@ git push origin 2.9.0
 
 The **Release** workflow builds the zip, extracts the `CHANGELOG.md` entry, and creates a **draft** GitHub release for both the version tag and `latest`.
 
-4. Review the draft on GitHub and **publish** it. The **Foundry Website Update** workflow (`foundry_manifest_update.yml`) runs on `release: published` and notifies the Foundry package browser.
+5. Review the draft on GitHub and **publish** it. The **Foundry Website Update** workflow (`foundry_manifest_update.yml`) runs on `release: published` and notifies the Foundry package browser.
 
 ### Stable release checklist
 
 - [ ] `version` bumped in `package.json` and `system.json`
 - [ ] `CHANGELOG.md` entry complete under `## [X.Y.Z]`
+- [ ] README version badge bumped to the new stable version
 - [ ] All CI checks green on `main`
 - [ ] At least one rc candidate tested against a real Foundry instance
 - [ ] Stable tag pushed
