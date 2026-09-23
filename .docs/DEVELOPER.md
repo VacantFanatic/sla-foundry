@@ -210,11 +210,17 @@ Creates or reuses a script macro for the given embedded item and assigns it to t
 
 Returns `true` if the token is allowed to move this turn (respects the **Enable Combat Movement Lock** setting and per-turn movement state).
 
+### `game.sla.openCombatHud(actorOrUuid?)` / `game.sla.toggleCombatHud()`
+
+Opens (or toggles) the **GM Combat HUD** (`module/apps/combat-hud.mjs`), a single docked panel that runs a combatant's turn without opening its sheet: HP/wounds/conditions (`wounds.hbs`), one-click stat and initiative rolls, the weapon/armor loadout (`combat-loadout.hbs`), and a collapsible skill list. Passing an actor (or its UUID) pins the HUD to it; with no argument the HUD resolves its actor as **pin → the one selected token → the active combatant → last shown** (`resolveHudActorId` in `combat-hud-pure.mjs`). Both return the HUD instance.
+
+How it works: HUD controls reuse the sheet's CSS-class actions (`.rollable[data-roll-type]`, `.item-roll-damage`, `.item-reload`, `.item-toggle`, `.condition-toggle`, wound slots) and route clicks through `handleSheetClick` on an unrendered sheet from `createEphemeralSlaSheet` (`module/helpers/sla-hotbar.mjs`) — the same path hotbar macros use — so attack gates, ammo, reloads and roll flags are identical to the full sheet. Vitals context comes from `buildVitalsContext` (`module/sheets/actor/combat-context.mjs`), shared with `SlaActorSheet._prepareContext`. Entry points: a crosshairs button in the combat tracker header, the **Shift+H** keybinding, and auto-open on combat start (client setting `combatHudAutoOpen`).
+
 ### `game.sla.SlaActor` / `game.sla.SlaItem`
 
 The registered Actor and Item document classes (`CONFIG.Actor.documentClass` / `CONFIG.Item.documentClass`). Legacy names `BoilerplateActor` and `BoilerplateItem` remain on `game.boilerplate` and as module export aliases.
 
-Source: `module/helpers/sla-hotbar.mjs`, `module/sla-industries.mjs`
+Source: `module/helpers/sla-hotbar.mjs`, `module/apps/combat-hud.mjs`, `module/sla-industries.mjs`
 
 ---
 

@@ -35,6 +35,7 @@ import { SLA } from './config.mjs';
 
 import { migrateWorld, DATA_MODEL_VERSION, notifyAmmoTypeReloadNeeded } from './migration.mjs';
 import { rollOwnedItem, addActorItemToHotbar, registerSlaHotbar } from './helpers/sla-hotbar.mjs';
+import { openCombatHud, registerCombatHud, toggleCombatHud } from './apps/combat-hud.mjs';
 
 const movementActionState = new Map();
 
@@ -391,10 +392,14 @@ Hooks.once('init', async function () {
         label: 'SLA Magazine Sheet'
     });
 
+    registerCombatHud();
+
     game.sla = foundry.utils.mergeObject(game.sla ?? {}, {
         rollOwnedItem,
         addActorItemToHotbar,
         canTokenMoveThisTurn,
+        openCombatHud,
+        toggleCombatHud,
         SlaActor,
         SlaItem
     });

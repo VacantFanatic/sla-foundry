@@ -1,0 +1,87 @@
+<div class="sla-sheet sla-combat-hud__root">
+    {{#if hasActor}}
+    <header class="sla-combat-hud__header {{#if isActiveTurn}}is-active-turn{{/if}}">
+        <img class="sla-combat-hud__portrait" src="{{img}}" alt="" />
+        <div class="sla-combat-hud__identity">
+            <div class="sla-combat-hud__name" title="{{name}}">{{name}}</div>
+            <div class="sla-combat-hud__meta">
+                {{#if isActiveTurn}}<span class="sla-combat-hud__badge">{{localize "SLA.CombatHud.ActiveTurn"}}</span>{{/if}}
+                {{#if combat.started}}<span>{{localize "SLA.CombatHud.Round" round=combat.round}}</span>{{/if}}
+                {{#if (ne initiative null)}}<span>{{localize "SLA.CombatHud.Initiative" value=initiative}}</span>{{/if}}
+            </div>
+        </div>
+        <div class="sla-combat-hud__controls">
+            {{#if canBrowse}}
+            <button type="button" class="sla-combat-hud__btn" data-action="prevCombatant" data-tooltip="{{localize 'SLA.CombatHud.Prev'}}" aria-label="{{localize 'SLA.CombatHud.Prev'}}"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+            <button type="button" class="sla-combat-hud__btn" data-action="nextCombatant" data-tooltip="{{localize 'SLA.CombatHud.Next'}}" aria-label="{{localize 'SLA.CombatHud.Next'}}"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+            {{/if}}
+            <button type="button" class="sla-combat-hud__btn sla-combat-hud__pin {{#if isPinned}}is-active{{/if}}" data-action="togglePin" aria-pressed="{{#if isPinned}}true{{else}}false{{/if}}" data-tooltip="{{#if isPinned}}{{localize 'SLA.CombatHud.Unpin'}}{{else}}{{localize 'SLA.CombatHud.Pin'}}{{/if}}" aria-label="{{#if isPinned}}{{localize 'SLA.CombatHud.Unpin'}}{{else}}{{localize 'SLA.CombatHud.Pin'}}{{/if}}"><i class="fas fa-thumbtack" aria-hidden="true"></i></button>
+            <button type="button" class="sla-combat-hud__btn" data-action="openSheet" data-tooltip="{{localize 'SLA.CombatHud.OpenSheet'}}" aria-label="{{localize 'SLA.CombatHud.OpenSheet'}}"><i class="fas fa-up-right-from-square" aria-hidden="true"></i></button>
+        </div>
+    </header>
+
+    <div class="sla-combat-hud__target {{#unless target.count}}is-empty{{/unless}}">
+        <i class="fas fa-bullseye" aria-hidden="true"></i>
+        {{#if target.count}}
+        <span>{{localize "SLA.CombatHud.Target" name=target.name}}</span>
+        {{#if target.extra}}<span class="sla-combat-hud__target-extra">+{{target.extra}}</span>{{/if}}
+        {{else}}
+        <span>{{localize "SLA.CombatHud.NoTarget"}}</span>
+        {{/if}}
+    </div>
+
+    <div class="sla-combat-hud__body">
+        {{#if hasVitals}}
+        {{> "systems/sla-industries/templates/actor/parts/wounds.hbs"}}
+
+        <div class="sla-panel sla-combat-hud__stats">
+            <div class="sla-header-bar">{{localize "SLA.CombatHud.QuickRolls"}}</div>
+            <div class="sla-combat-hud__stat-row">
+                {{#each stats as |stat|}}
+                <a class="rollable sla-combat-hud__stat" data-roll-type="stat" data-key="{{stat.key}}" role="button" aria-label="{{localize 'SLA.CombatHud.RollStat' stat=stat.label}}" data-tooltip="{{localize 'SLA.CombatHud.RollStat' stat=stat.label}}">
+                    <span class="sla-combat-hud__stat-label">{{stat.label}}</span>
+                    <span class="sla-combat-hud__stat-value">{{stat.total}}</span>
+                </a>
+                {{/each}}
+                <a class="rollable sla-combat-hud__stat sla-combat-hud__stat--init" data-roll-type="init" role="button" aria-label="{{localize 'SLA.CombatHud.RollInit'}}" data-tooltip="{{localize 'SLA.CombatHud.RollInit'}}">
+                    <span class="sla-combat-hud__stat-label">INIT</span>
+                    <i class="fas fa-dice-d20" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+        {{/if}}
+
+        {{> "systems/sla-industries/templates/actor/parts/combat-loadout.hbs"}}
+
+        {{#if skills.length}}
+        <details class="sla-panel sla-combat-hud__skills">
+            <summary class="sla-header-bar">{{localize "SLA.CombatHud.Skills"}} ({{skills.length}})</summary>
+            <ul class="sla-combat-hud__skill-list">
+                {{#each skills as |skill|}}
+                <li class="item sla-combat-hud__skill" data-item-id="{{skill._id}}">
+                    <a class="rollable" data-roll-type="skill" role="button" aria-label="{{localize 'SLA.ActorSheet.RollSkill'}}: {{skill.name}}">
+                        <i class="fas fa-dice-d20" aria-hidden="true"></i>
+                        <span class="sla-combat-hud__skill-name">{{skill.name}}</span>
+                        <span class="sla-combat-hud__skill-rank">{{skill.system.rank}}</span>
+                    </a>
+                </li>
+                {{/each}}
+            </ul>
+        </details>
+        {{/if}}
+    </div>
+    {{else}}
+    <div class="sla-combat-hud__empty">
+        <i class="fas fa-crosshairs" aria-hidden="true"></i>
+        <p>{{localize "SLA.CombatHud.Empty"}}</p>
+    </div>
+    {{/if}}
+
+    {{#if combat.canAdvance}}
+    <footer class="sla-combat-hud__footer">
+        <button type="button" class="sla-combat-hud__end-turn" data-action="nextTurn">
+            <i class="fas fa-forward-step" aria-hidden="true"></i> {{localize "SLA.CombatHud.EndTurn"}}
+        </button>
+    </footer>
+    {{/if}}
+</div>

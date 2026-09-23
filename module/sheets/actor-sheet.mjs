@@ -20,9 +20,8 @@ import {
     resolveSheetDamageDisplay
 } from './actor/sheet-helpers.mjs';
 import { canProceedWithWeaponAttack, resolveRangedAttackContext } from './actor/weapon-gates.mjs';
+import { buildVitalsContext } from './actor/combat-context.mjs';
 import {
-    countWounds,
-    hpBarState,
     isEncumbranceOverloaded,
     isEncumbranceWarning,
     normalizeOperativeTabId,
@@ -395,19 +394,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         context.system.move = context.system.move || {};
         context.system.conditions = context.system.conditions || {};
 
-        context.woundCount = countWounds(context.system.wounds);
-        if (context.woundCount > 0) {
-            context.woundCountLabel = game.i18n.format('SLA.ActorSheet.WoundCount', {
-                count: context.woundCount
-            });
-        }
-
-        const hpState = hpBarState(context.system.hp?.value, context.system.hp?.max);
-        context.hpBar = {
-            percent: hpState.percent,
-            tone: hpState.tone,
-            isCriticalHp: hpState.tone === 'critical' || Boolean(context.system.conditions?.critical)
-        };
+        Object.assign(context, buildVitalsContext(this.actor));
 
         if (isEncumbranceOverloaded(context.system.encumbrance?.value, context.system.encumbrance?.max)) {
             context.encumbranceClass = 'sla-encumbrance-over';
@@ -416,21 +403,6 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         } else {
             context.encumbranceClass = '';
         }
-
-        // ======================================================
-        // START NEW LOGIC: SYNC CONDITIONS FOR DISPLAY
-        // ======================================================
-        // Sync togglable conditions from Active Effects so sheet buttons match the token.
-        // Critical is excluded: it is derived from HP in prepareDerivedData (not user-toggled).
-        const conditionIds = ['bleeding', 'burning', 'stunned', 'prone', 'immobile'];
-
-        for (const statusId of conditionIds) {
-            const hasEffect = this.actor.effects.some((e) => e.statuses.has(statusId));
-            context.system.conditions[statusId] = hasEffect;
-        }
-        // ======================================================
-        // END NEW LOGIC
-        // ======================================================
 
         context.rollData = context.actor.getRollData();
 

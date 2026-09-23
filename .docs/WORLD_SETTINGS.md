@@ -126,6 +126,18 @@ sla-migration-backup_<world-id>_<timestamp>.json
 
 ---
 
+## Client Settings
+
+These are per-user (scope **client**) and appear under **Game Settings → System Settings** for every user.
+
+### Open Combat HUD when combat starts
+
+**Key:** `combatHudAutoOpen` | **Default:** on
+
+GM only. When an encounter begins (round 1), opens the **Combat HUD** panel: one docked window showing the active combatant's HP, wounds, conditions, quick stat rolls, and weapons with Attack / Damage / Reload / Equip. It follows the turn order, switches to a single selected token, and has a pin button to lock it to one actor. Turn this off if you prefer to open it yourself — via the crosshairs button in the combat tracker header or **Shift+H** (rebindable under **Configure Controls**).
+
+---
+
 ## Developer Notes
 
 All settings are registered in `module/sla-industries.mjs` during the `init` hook. Settings that affect runtime behavior (movement lock, wound penalties, ammo, etc.) are read at the point of use via `game.settings.get("sla-industries", "<key>")` rather than being cached, so changes take effect immediately without a reload.

@@ -11,6 +11,25 @@ section only in the PR that prepares the stable release. See
 
 ## [Unreleased]
 
+### Added
+
+- **GM Combat HUD: run a combatant's turn without opening its sheet.** A single docked panel
+  (`module/apps/combat-hud.mjs`) shows the active combatant's HP bar, wounds, conditions, one-click
+  stat/initiative rolls, weapons with Attack / Damage / Reload / Equip, armor, and a collapsible
+  skill list, plus the current target and an **End turn** button. It follows the turn order,
+  switches when the GM selects a single token, and can be pinned to one actor; arrows step through
+  owned combatants. Open it from the new crosshairs button in the combat tracker header, **Shift+H**,
+  `game.sla.openCombatHud()` / `toggleCombatHud()`, or automatically on combat start (client setting
+  `combatHudAutoOpen`, default on for GMs). Controls reuse the sheet's own action handlers via
+  `createEphemeralSlaSheet`, so rolls, gates and ammo behave exactly as on the full sheet.
+
+### Changed
+
+- The sheet's HP bar / wound count / condition-sync context moved into a shared
+  `buildVitalsContext` (`module/sheets/actor/combat-context.mjs`) used by both the actor sheets and
+  the Combat HUD. `createEphemeralSlaSheet` is now exported and gives the unrendered sheet a working
+  `isEditable` and a no-op `render`, so owner-only actions (reload, item edit) no longer throw on it.
+
 ## [2.12.0] - 2026-09-23
 
 ### Added

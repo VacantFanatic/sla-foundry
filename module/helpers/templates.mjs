@@ -50,7 +50,8 @@ export const preloadHandlebarsTemplates = async function () {
         'systems/sla-industries/templates/actor/actor-vehicle-sheet-v2.hbs',
         'systems/sla-industries/templates/chat/reload.hbs',
         'systems/sla-industries/templates/dialogs/simple-content-dialog.hbs',
-        'systems/sla-industries/templates/dialogs/xp-dialog.hbs'
+        'systems/sla-industries/templates/dialogs/xp-dialog.hbs',
+        'systems/sla-industries/templates/apps/combat-hud.hbs'
     ];
 
     // Load the template parts

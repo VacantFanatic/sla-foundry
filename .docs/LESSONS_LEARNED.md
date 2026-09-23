@@ -621,3 +621,26 @@ blank string` — caught immediately by manually creating the item in a live Fou
   `latest-pre`, so when a release decision depends on whether a change was in an rc, check that
   rc's zip (`unzip -l sla-industries.zip`) or ask the maintainer. Don't infer it from
   `git merge-base`/`git show <tag>:...` alone.
+- **An unrendered ("ephemeral") sheet only has what `createEphemeralSlaSheet` gives it.** Hotbar
+  macros and the GM Combat HUD run sheet actions on an object built with
+  `Object.create(SheetClass.prototype)` (`module/helpers/sla-hotbar.mjs`). Hotbar macros only ever
+  hit `triggerItemRoll`, so this worked for a long time. The Combat HUD routes every loadout click
+  through `handleSheetClick`, though, and that function checks `sheet.isEditable` before the
+  reload and item-edit branches. Foundry's `DocumentSheetV2#isEditable` getter reads
+  `this.options.editPermission`, and `this.options` is never initialised on an unrendered sheet,
+  so the getter throws a `TypeError`. The fix was to give the ephemeral sheet its own `isEditable`
+  (`actor.isOwner`) and a no-op `render`. When you reuse a sheet-coupled helper without a rendered
+  sheet, grep the path for `sheet.<getter>` / `sheet.render` / `sheet.element` / `this.options`.
+  Then exercise that exact branch in a live Foundry. A test that only covers the roll path won't
+  reach the others.
+- **A hook-driven re-render can swallow an input the user is typing into.** The Combat HUD
+  (`module/apps/combat-hud.mjs`) re-renders on a 50 ms debounce whenever `updateActor`,
+  `controlToken`, `targetToken` or `updateCombat` fire. Its HP inputs aren't part of a form, so
+  they only save on their own `change` event. In `regression-combat-hud.spec.js` a render queued
+  by the previous `actor.update` landed between `fill('12')` and `blur()`. That replaced the
+  input, the `change` event never fired, and HP stayed at 20. The test passed on its own and only
+  failed when run inside the longer regression batch. A GM would hit the same thing when a player
+  moves a token or rolls mid-edit. The fix was to skip the refresh while an input inside the app
+  has focus and run it on `focusout`. Any non-form ApplicationV2 that re-renders from world hooks
+  needs the same guard. Treat a timing-dependent e2e failure like this as a real race to fix,
+  not a flake.
