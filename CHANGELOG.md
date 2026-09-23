@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+New entries go under `## [Unreleased]` and stay there until a release is planned, even while
+release candidates (`pre-X.Y.Z-rcN`) are being cut. They move into a versioned `## [X.Y.Z]`
+section only in the PR that prepares the stable release. See
+[.docs/RELEASE.md](.docs/RELEASE.md).
+
 ## [Unreleased]
 
 ## [2.12.0] - 2026-09-23
