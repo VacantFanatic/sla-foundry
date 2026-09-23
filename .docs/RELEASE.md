@@ -40,7 +40,11 @@ land on `main` first just to get a testable build.
 
 1. On the feature/fix PR branch: bump `version` in `package.json` and `system.json` to the target
    semver (e.g. `2.9.0`).
-2. Add a draft `## [2.9.0]` entry to `CHANGELOG.md`.
+2. Leave `CHANGELOG.md` entries under `## [Unreleased]`. Don't create a `## [2.9.0]` heading yet,
+   because entries stay in `[Unreleased]` until the stable release is planned (see "Promoting to a
+   stable release" below). A versioned heading added this early splits later changes between two
+   sections: 2.12.0 ended up with a `## [2.12.0]` entry plus a Blueprint News entry stranded in
+   `[Unreleased]` that also shipped in the release.
 3. Commit and push to the PR branch (`main` stays untouched for now).
 4. Push the first release candidate tag, pointing at that branch's tip:
 
@@ -55,8 +59,8 @@ The **Pre-release** workflow patches `system.json` and `package.json` to `2.9.0-
 https://github.com/VacantFanatic/sla-foundry/releases/download/latest-pre/system.json
 ```
 
-5. Once the candidate checks out, merge the PR to `main` (the version bump and changelog entry
-   ride along with it).
+5. Once the candidate checks out, merge the PR to `main` (the version bump and the
+   `[Unreleased]` changelog entries ride along with it).
 
 ### 2. Fix bugs and cut a new candidate
 
@@ -80,7 +84,11 @@ Repeat until the candidate is stable.
 
 ## Promoting to a stable release
 
-1. Finalise `CHANGELOG.md` — remove the draft marker from `## [2.9.0]` and fill in release notes.
+1. Finalise `CHANGELOG.md`: move everything under `## [Unreleased]` into a new
+   `## [2.9.0] - YYYY-MM-DD` section directly below it, leave `## [Unreleased]` empty, and tidy the
+   release notes (merge duplicate `### Added`/`### Changed`/`### Fixed` headings). `release.yml`
+   extracts the release body from the `## [2.9.0]` section, so it must exist before the tag is
+   pushed.
 2. Update the version badge at the top of `README.md`
    (`![Version](https://img.shields.io/badge/version-X.Y.Z-orange)`) to the new stable version.
    The badge tracks the **latest published stable release**, never an in-progress rc — leave it

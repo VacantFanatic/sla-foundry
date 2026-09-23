@@ -59,7 +59,9 @@ npm run build:css
 ## Opening a pull request
 
 1. Ensure `npm run format:check` and `npm run test:unit` both pass locally.
-2. Update [CHANGELOG.md](CHANGELOG.md) under the current draft `## [Unreleased]` section.
+2. Update [CHANGELOG.md](CHANGELOG.md) under the `## [Unreleased]` section. Entries stay there until
+   a release is planned; don't add a new `## [X.Y.Z]` heading in a feature/fix PR. The release-prep
+   PR moves them (see [.docs/RELEASE.md](.docs/RELEASE.md)).
 3. Open a PR against `main` with a clear title and description explaining **what** changed and **why**.
 4. Link any related issues (`Closes #123`).
 

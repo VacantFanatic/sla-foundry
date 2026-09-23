@@ -611,3 +611,13 @@ blank string` — caught immediately by manually creating the item in a live Fou
   every value being forced to a real choice from creation) needs `blank: true` added alongside
   `choices` — don't assume `initial: ''` alone is enough, and verify any new `choices` field by
   actually creating a document with it in a live world, not just a schema-level unit test.
+- **A pre-release tag's commit doesn't prove what the published rc zip contains.** While preparing
+  the 2.12.0 stable release, `git ls-remote --tags` showed `pre-2.12.0-rc5` pointing at `e00b7b1`,
+  a commit from before the Blueprint News item type (#398) merged, so the item looked untested and
+  a new rc6 seemed necessary. The GitHub pre-release was published about 30 minutes after that
+  commit, though, and its `sla-industries.zip` asset does contain
+  `module/sheets/item/item-blueprint-news-sheet.mjs` and `item-blueprint-news.hbs`. The feature had
+  already been tested on the dev server. The release asset is what testers install from
+  `latest-pre`, so when a release decision depends on whether a change was in an rc, check that
+  rc's zip (`unzip -l sla-industries.zip`) or ask the maintainer. Don't infer it from
+  `git merge-base`/`git show <tag>:...` alone.

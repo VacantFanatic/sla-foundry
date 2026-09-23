@@ -99,7 +99,7 @@ jobs:
                   body: |
                       ${{ steps.changelog.outputs.body }}
 
-                      [Full changelog](https://github.com/VacantFanatic/sla-foundry/blob/master/CHANGELOG.md)
+                      [Full changelog](https://github.com/VacantFanatic/sla-foundry/blob/main/CHANGELOG.md)
 
             - name: Create Latest release
               id: create_latest_release

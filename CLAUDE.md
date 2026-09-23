@@ -26,13 +26,13 @@ Quick reference to every doc in this repo, grouped by purpose. Start with [CONTR
 
 ### Release & CI
 
-| Doc / file                                          | Covers                                                                                |
-| --------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| [.docs/RELEASE.md](.docs/RELEASE.md)                | Two-stage pre-release/stable release process, version numbering                       |
-| [CHANGELOG.md](CHANGELOG.md)                        | Release history — update the `## [Unreleased]` section in every PR                    |
-| `.github/workflows/main.yml`                        | CI: version sync, Prettier, unit tests, dist build+validate (every push/PR to `main`) |
-| `.github/workflows/pre-release.yml` / `release.yml` | Build, package, and publish pre-release/stable GitHub Releases on tag push            |
-| `.github/workflows/foundry_manifest_update.yml`     | Notifies Foundry's package listing API when a release is published                    |
+| Doc / file                                          | Covers                                                                                            |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| [.docs/RELEASE.md](.docs/RELEASE.md)                | Two-stage pre-release/stable release process, version numbering                                   |
+| [CHANGELOG.md](CHANGELOG.md)                        | Release history — add entries under `## [Unreleased]`; they stay there until a release is planned |
+| `.github/workflows/main.yml`                        | CI: version sync, Prettier, unit tests, dist build+validate (every push/PR to `main`)             |
+| `.github/workflows/pre-release.yml` / `release.yml` | Build, package, and publish pre-release/stable GitHub Releases on tag push                        |
+| `.github/workflows/foundry_manifest_update.yml`     | Notifies Foundry's package listing API when a release is published                                |
 
 ### Config reference
 
