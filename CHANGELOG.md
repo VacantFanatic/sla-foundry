@@ -6,21 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Added
-
-- **New item type: Blueprint News (`blueprintNews`)** — models the mission bulletins ("BPNs")
-  operatives use to get assigned and rewarded for jobs. Follows the same non-physical
-  reference-item pattern as `species`/`package` (Details + Description tabs, no Effects tab):
-  Departmental Authorisation, recommended Training Package, a Colour Code dropdown covering all
-  eleven rulebook tiers (Blue through Platinum), Station Analysis/Third Eye News flags, and
-  free-text Credits Reward/SCL Increase fields (ranges like "0.5 upwards" or "[D-NOTICE]" aren't
-  plain numbers). Reference-only for now — rewards aren't auto-applied to any actor. The sheet
-  layout mirrors the printed BPN card: a masthead banner, a main fields column next to a Colour
-  Code side rail, and a footer bar for the flags/reward fields; the side rail's own colour
-  switches to match whichever Colour Code tier is selected (Blue/Red/Jade/etc.), not just the
-  item type's fixed accent. See [.docs/item_setup.md](.docs/item_setup.md) §10.
-
-## [2.12.0] - 2026-09-21
+## [2.12.0] - 2026-09-23
 
 ### Added
 
@@ -35,6 +21,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `luck-dialog.mjs`; tab visibility is decided by the new `shouldRedirectEbbTab`
   (`module/sheets/actor/sheet-ux-pure.mjs`), which generalizes the existing Ebonite-only gate to
   also cover this NPC flag.
+- **New item type: Blueprint News (`blueprintNews`)** — models the mission bulletins ("BPNs")
+  operatives use to get assigned and rewarded for jobs. Follows the same non-physical
+  reference-item pattern as `species`/`package` (Details + Description tabs, no Effects tab):
+  Departmental Authorisation, recommended Training Package, a Colour Code dropdown covering all
+  eleven rulebook tiers (Blue through Platinum), Station Analysis/Third Eye News flags, and
+  free-text Credits Reward/SCL Increase fields (ranges like "0.5 upwards" or "[D-NOTICE]" aren't
+  plain numbers). Reference-only for now — rewards aren't auto-applied to any actor. The sheet
+  layout mirrors the printed BPN card: a masthead banner, a main fields column next to a Colour
+  Code side rail, and a footer bar for the flags/reward fields; the side rail's own colour
+  switches to match whichever Colour Code tier is selected (Blue/Red/Jade/etc.), not just the
+  item type's fixed accent. See [.docs/item_setup.md](.docs/item_setup.md) §10.
 
 ### Changed
 
@@ -88,6 +85,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   used for the core-stat effective-value hint) whenever an Active Effect contributes a nonzero
   bonus to `system.move.closing`/`.rushing`. No numeric delta is shown, just a visual "this is
   modified" signal — matching the recent #373 fix that made these Active Effects actually apply.
+- **Ebb MOS-3 "reuse" outcome now actually applies a modifier, via a pre-roll confirmation
+  dialog (#380):** casting an Ebb Discipline formula now opens a confirmation dialog with a
+  generic **Situational Modifier** input before rolling. The rulebook's MOS-3 outcome ("may use
+  the same Ebb Discipline ability again within 5 minutes, at -3 Formula Rating") is implemented
+  as a **+3 roll modifier** — mathematically equivalent since success requires `roll >=
+targetNumber` — entered by the player when applicable, rather than the system automatically
+  tracking eligibility/the 5-minute window. The same input covers any other one-off situational
+  modifier (e.g. a house-ruled penalty for choking). Also fixes the MOS-3 chat flavor text, which
+  previously said "(-3 FLUX)" instead of describing the actual Formula Rating mechanic.
 
 ### Changed
 
@@ -100,18 +106,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `resource`. New `--sla-success`/`--sla-danger`/`--sla-info` design tokens replace scattered
   hardcoded hex colors, and a dead `.dialog-buttons .dialog-button` CSS rule that matched nothing
   in the actual markup was removed. No field, button, or behavior changed — purely visual.
-
-### Added
-
-- **Ebb MOS-3 "reuse" outcome now actually applies a modifier, via a pre-roll confirmation
-  dialog (#380):** casting an Ebb Discipline formula now opens a confirmation dialog with a
-  generic **Situational Modifier** input before rolling. The rulebook's MOS-3 outcome ("may use
-  the same Ebb Discipline ability again within 5 minutes, at -3 Formula Rating") is implemented
-  as a **+3 roll modifier** — mathematically equivalent since success requires `roll >=
-targetNumber` — entered by the player when applicable, rather than the system automatically
-  tracking eligibility/the 5-minute window. The same input covers any other one-off situational
-  modifier (e.g. a house-ruled penalty for choking). Also fixes the MOS-3 chat flavor text, which
-  previously said "(-3 FLUX)" instead of describing the actual Formula Rating mechanic.
 
 ### Fixed
 

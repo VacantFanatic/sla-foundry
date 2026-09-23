@@ -1,6 +1,6 @@
 # SLA Industries 2nd Edition — Foundry VTT System
 
-![Version](https://img.shields.io/badge/version-2.11.0-orange)
+![Version](https://img.shields.io/badge/version-2.12.0-orange)
 ![Foundry VTT](https://img.shields.io/badge/Foundry%20VTT-v14-informational)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
