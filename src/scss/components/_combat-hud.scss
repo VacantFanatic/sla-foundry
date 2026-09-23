@@ -1,0 +1,231 @@
+/**
+ * GM Combat HUD (module/apps/combat-hud.mjs).
+ *
+ * Reuses the shared dialog shell (`.sla-dialog-window.dialog.flavor-action`) and renders the sheet's own
+ * `wounds.hbs` / `combat-loadout.hbs` partials inside a `.sla-sheet` root, so those keep their sheet styles.
+ * Only the compact overrides a ~420px panel needs live here.
+ */
+
+@import '../utils/variables';
+
+.sla-combat-hud {
+    .window-content {
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .sla-combat-hud__root {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+
+    .sla-combat-hud__header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        background: #111;
+        border-bottom: 2px solid var(--sla-border);
+
+        &.is-active-turn {
+            border-bottom-color: var(--sla-dialog-accent);
+        }
+    }
+
+    .sla-combat-hud__portrait {
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+        object-fit: cover;
+        border: 1px solid var(--sla-border);
+        border-radius: var(--sla-radius);
+    }
+
+    .sla-combat-hud__identity {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .sla-combat-hud__name {
+        font-family: var(--sla-font-header);
+        font-size: 1.1em;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sla-combat-hud__meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        font-size: 0.75em;
+        color: #aaa;
+    }
+
+    .sla-combat-hud__badge {
+        color: #000;
+        background: var(--sla-dialog-accent);
+        padding: 0 4px;
+        border-radius: 2px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .sla-combat-hud__controls {
+        display: flex;
+        gap: 2px;
+    }
+
+    .sla-combat-hud__btn {
+        width: 28px;
+        height: 28px;
+        line-height: 1;
+        padding: 0;
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--sla-text-light);
+
+        &:hover,
+        &:focus-visible {
+            border-color: var(--sla-dialog-accent);
+        }
+
+        &.is-active {
+            color: var(--sla-dialog-accent);
+            border-color: var(--sla-dialog-accent);
+        }
+    }
+
+    .sla-combat-hud__target {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        font-size: 0.85em;
+        background: rgba(208, 94, 26, 0.15);
+        border-bottom: 1px solid var(--sla-border);
+
+        &.is-empty {
+            background: transparent;
+            color: #999;
+        }
+    }
+
+    .sla-combat-hud__target-extra {
+        color: #aaa;
+    }
+
+    .sla-combat-hud__body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 6px;
+    }
+
+    .sla-combat-hud__stat-row {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 4px;
+        padding: 4px;
+    }
+
+    .sla-combat-hud__stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 3px 0;
+        border: 1px solid #333;
+        border-radius: var(--sla-radius);
+        background: #111;
+        text-decoration: none;
+
+        &:hover,
+        &:focus-visible {
+            border-color: var(--sla-dialog-accent);
+        }
+    }
+
+    .sla-combat-hud__stat-label {
+        font-size: 0.65em;
+        letter-spacing: 0.05em;
+        color: #aaa;
+    }
+
+    .sla-combat-hud__stat-value {
+        font-weight: 700;
+    }
+
+    .sla-combat-hud__skills summary {
+        cursor: pointer;
+    }
+
+    .sla-combat-hud__skill-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 220px;
+        overflow-y: auto;
+    }
+
+    .sla-combat-hud__skill a {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 8px;
+        border-bottom: 1px solid #222;
+    }
+
+    .sla-combat-hud__skill-name {
+        flex: 1;
+    }
+
+    .sla-combat-hud__skill-rank {
+        color: #aaa;
+    }
+
+    .sla-combat-hud__empty {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 24px;
+        text-align: center;
+        color: #999;
+
+        i {
+            font-size: 2em;
+        }
+    }
+
+    .sla-combat-hud__footer {
+        padding: 6px;
+        border-top: 1px solid var(--sla-border);
+    }
+
+    .sla-combat-hud__end-turn {
+        width: 100%;
+        background: var(--sla-dialog-accent);
+        color: #000;
+        font-weight: 700;
+        border: none;
+    }
+
+    /* The sheet's loadout grid is sized for a 600px+ sheet; tighten it for the panel. */
+    .sla-sheet .sla-combat-loadout .combat-list .sla-combat-row,
+    .sla-sheet .sla-combat-loadout .combat-list .sla-combat-colhead {
+        grid-template-columns: minmax(0, 1fr) 3.5rem 4.5rem var(--sla-combat-actions-w, 118px);
+        column-gap: 6px;
+        padding: 4px 6px;
+    }
+
+    .sla-sheet .sla-combat-loadout .sla-section-hint {
+        display: none;
+    }
+}

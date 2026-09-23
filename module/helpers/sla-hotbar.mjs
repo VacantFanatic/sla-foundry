@@ -11,17 +11,23 @@ function loadSlaSheetClasses() {
 }
 
 /**
+ * Build an unrendered SLA sheet for `actor` so sheet-coupled roll/action helpers run without opening a window.
+ * Used by hotbar macros and the GM Combat HUD.
  * Dynamic import avoids a circular dependency: actor-sheet → sla-hotbar → actor-npc-sheet → actor-sheet.
  * @param {Actor} actor
  */
-async function createEphemeralSlaSheet(actor) {
+export async function createEphemeralSlaSheet(actor) {
     const [{ SlaActorSheet }, { SlaNPCSheet }, { SlaVehicleSheet }] = await loadSlaSheetClasses();
     const SheetClass = actor.type === 'npc' ? SlaNPCSheet : actor.type === 'vehicle' ? SlaVehicleSheet : SlaActorSheet;
     const sheet = Object.create(SheetClass.prototype);
     // ActorSheetV2 exposes `actor` / `document` as getter-only; assignment throws — use own properties.
     Object.defineProperties(sheet, {
         document: { value: actor, writable: true, configurable: true, enumerable: true },
-        actor: { value: actor, writable: true, configurable: true, enumerable: true }
+        actor: { value: actor, writable: true, configurable: true, enumerable: true },
+        // The core getter reads `this.options`, which an unrendered sheet never initialised.
+        isEditable: { get: () => actor.isOwner, configurable: true, enumerable: true },
+        // Some action branches re-render the sheet after an update; there is nothing to render here.
+        render: { value: () => undefined, writable: true, configurable: true }
     });
     return sheet;
 }
