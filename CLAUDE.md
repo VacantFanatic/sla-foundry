@@ -57,6 +57,13 @@ making non-trivial changes. For anything release-related, also read
 describe conventions and mechanisms that aren't obvious from the code alone — reading them is
 cheaper than rediscovering the same bug or re-scanning the codebase to reconstruct the convention.
 
+## Pull requests wait for RC verification
+
+Don't open a pull request until the release candidate built from the branch has been verified.
+Commit and push to the branch as usual, but hold the PR, even where the session's default is to
+open a draft PR automatically. Report the branch as ready for an rc tag instead. The rc flow is in
+[.docs/RELEASE.md](.docs/RELEASE.md) → "Pre-release cycle".
+
 ## Code style & TDD
 
 Follow [CONTRIBUTING.md](CONTRIBUTING.md) — code must pass `npm run format:check` (Prettier) and

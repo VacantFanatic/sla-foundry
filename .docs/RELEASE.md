@@ -38,6 +38,12 @@ Cut and verify the RC **before** merging to `main`, not after — tag pushes tri
 pre-release workflow regardless of which branch the tagged commit lives on, so there's no need to
 land on `main` first just to get a testable build.
 
+**Don't open the pull request until the RC is verified.** Push the feature/fix branch and cut
+the rc tag from it, but open the PR against `main` only after that candidate has been tested
+and checks out. That applies to agent sessions too: push the branch without opening a PR, even
+where the environment's default is to open one automatically, and report the branch as waiting
+on RC verification.
+
 1. On the feature/fix PR branch: bump `version` in `package.json` and `system.json` to the target
    semver (e.g. `2.9.0`).
 2. Leave `CHANGELOG.md` entries under `## [Unreleased]`. Don't create a `## [2.9.0]` heading yet,
@@ -59,7 +65,7 @@ The **Pre-release** workflow patches `system.json` and `package.json` to `2.9.0-
 https://github.com/VacantFanatic/sla-foundry/releases/download/latest-pre/system.json
 ```
 
-5. Once the candidate checks out, merge the PR to `main` (the version bump and the
+5. Once the candidate checks out, open the PR and merge it to `main` (the version bump and the
    `[Unreleased]` changelog entries ride along with it).
 
 ### 2. Fix bugs and cut a new candidate
@@ -76,7 +82,7 @@ git push origin pre-2.9.0-rc2
 
 `latest-pre` is automatically updated. Testers hit **Update** in Foundry and get the new build showing `2.9.0-rc2`.
 
-3. Once verified, merge the PR to `main`.
+3. Once verified, open the PR (if it isn't open yet) and merge it to `main`.
 
 Repeat until the candidate is stable.
 
