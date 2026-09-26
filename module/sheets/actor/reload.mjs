@@ -15,7 +15,45 @@ export function findLinkedMagazineCandidates(actor, weapon) {
 }
 
 /**
+ * Render the ammo-selection dialog for `weapon`'s multiple magazine candidates and perform the
+ * reload with whichever one the user confirms. Resolves once the dialog closes, one way or
+ * another — this is the same dialog whether it was opened from a rendered sheet or headlessly via
+ * `game.sla.reloadWeapon`, since a Foundry Application renders as its own floating window and
+ * doesn't require a sheet to be open.
  * @param {import('../actor-sheet.mjs').SlaActorSheet} sheet
+ * @param {Item} weapon
+ * @param {Item[]} candidates
+ * @returns {Promise<boolean>} Whether a magazine was picked and consumed (false if cancelled/closed).
+ */
+export async function promptMagazineSelection(sheet, weapon, candidates) {
+    const content = await foundry.applications.handlebars.renderTemplate(
+        'systems/sla-industries/templates/dialogs/reload-dialog.hbs',
+        {
+            weaponName: weapon.name,
+            candidates: candidates
+        }
+    );
+
+    return new Promise((resolve) => {
+        new SlaSimpleContentDialog({
+            title: 'Select Ammunition',
+            contentHtml: content,
+            width: 420,
+            classes: ['sla-dialog', 'sla-sheet'],
+            actionLabel: 'Load Magazine',
+            onConfirm: async (root) => {
+                const magId = root.querySelector('#magazine-select')?.value;
+                const mag = magId ? sheet.actor.items.get(magId) : null;
+                resolve(mag ? await performReload(sheet, weapon, mag) : false);
+            },
+            onClose: () => resolve(false)
+        }).render(true);
+    });
+}
+
+/**
+ * @param {import('../actor-sheet.mjs').SlaActorSheet} sheet
+ * @returns {Promise<boolean|undefined>}
  */
 export async function onReloadWeapon(sheet, event, reloadEl) {
     event.preventDefault();
@@ -35,26 +73,7 @@ export async function onReloadWeapon(sheet, event, reloadEl) {
         return performReload(sheet, weapon, candidates[0]);
     }
 
-    const content = await foundry.applications.handlebars.renderTemplate(
-        'systems/sla-industries/templates/dialogs/reload-dialog.hbs',
-        {
-            weaponName: weaponName,
-            candidates: candidates
-        }
-    );
-
-    await new SlaSimpleContentDialog({
-        title: 'Select Ammunition',
-        contentHtml: content,
-        width: 420,
-        classes: ['sla-dialog', 'sla-sheet'],
-        actionLabel: 'Load Magazine',
-        onConfirm: (root) => {
-            const magId = root.querySelector('#magazine-select')?.value;
-            const mag = magId ? sheet.actor.items.get(magId) : null;
-            if (mag) void performReload(sheet, weapon, mag);
-        }
-    }).render(true);
+    return promptMagazineSelection(sheet, weapon, candidates);
 }
 
 /**

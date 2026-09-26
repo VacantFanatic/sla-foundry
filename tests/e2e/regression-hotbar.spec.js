@@ -212,8 +212,10 @@ test.describe('GM: reloadWeapon (document API)', () => {
         expect(result.ammoType).toBe('standard');
     });
 
-    test('warns and returns false without picking a magazine when more than one matches', async ({ page }) => {
-        const result = await page.evaluate(async () => {
+    test('prompts and reloads with the magazine chosen from the dialog when more than one matches', async ({
+        page
+    }) => {
+        const ids = await page.evaluate(async () => {
             const stamp = Date.now();
             const [actor] = await Actor.createDocuments([{ name: `E2E API Reload Multi ${stamp}`, type: 'character' }]);
             const weaponName = `E2E API Multi Rifle ${stamp}`;
@@ -234,18 +236,88 @@ test.describe('GM: reloadWeapon (document API)', () => {
             ]);
 
             const { reloadWeapon } = await import('/systems/sla-industries/module/helpers/sla-hotbar.mjs');
-            const reloaded = await reloadWeapon(weapon.uuid);
+            // Not awaited here — the promise only resolves once the dialog closes, and this
+            // page.evaluate call needs to return so Playwright can interact with that dialog.
+            window.__reloadPromise = reloadWeapon(weapon.uuid);
 
-            const fresh = game.actors.get(actor.id);
+            return { actorId: actor.id, weaponId: weapon.id, magAId: magA.id, magBId: magB.id };
+        });
+
+        const dialog = page.locator('.sla-dialog-window').last();
+        await expect(dialog).toBeVisible();
+        const select = dialog.locator('select#magazine-select');
+        await expect(select.locator('option')).toHaveCount(2);
+        await select.selectOption(ids.magBId);
+        await dialog.locator('[data-action="confirmDialog"]').click();
+        await expect(dialog).toHaveCount(0);
+
+        const result = await page.evaluate(async ({ actorId, weaponId, magAId, magBId }) => {
+            const reloaded = await window.__reloadPromise;
+            delete window.__reloadPromise;
+            const fresh = game.actors.get(actorId);
             const outcome = {
                 reloaded,
-                ammoType: fresh.items.get(weapon.id).system.ammoType,
-                magAQuantity: fresh.items.get(magA.id)?.system.quantity,
-                magBQuantity: fresh.items.get(magB.id)?.system.quantity
+                ammoType: fresh.items.get(weaponId).system.ammoType,
+                magAQuantity: fresh.items.get(magAId)?.system.quantity,
+                magBConsumed: !fresh.items.has(magBId)
             };
-            await actor.delete();
+            await fresh.delete();
             return outcome;
+        }, ids);
+
+        expect(result.reloaded).toBe(true);
+        expect(result.ammoType).toBe('he');
+        expect(result.magAQuantity).toBe(1);
+        expect(result.magBConsumed).toBe(true);
+    });
+
+    test('prompts and returns false without picking a magazine when the dialog is closed', async ({ page }) => {
+        const ids = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                { name: `E2E API Reload Cancel ${stamp}`, type: 'character' }
+            ]);
+            const weaponName = `E2E API Cancel Rifle ${stamp}`;
+            const [weapon] = await actor.createEmbeddedDocuments('Item', [
+                { name: weaponName, type: 'weapon', system: { ammoType: 'standard' } }
+            ]);
+            const [magA, magB] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E API Cancel Mag AP ${stamp}`,
+                    type: 'magazine',
+                    system: { linkedWeapon: weaponName, quantity: 1, ammoType: 'ap', ammoCapacity: 10 }
+                },
+                {
+                    name: `E2E API Cancel Mag HE ${stamp}`,
+                    type: 'magazine',
+                    system: { linkedWeapon: weaponName, quantity: 1, ammoType: 'he', ammoCapacity: 10 }
+                }
+            ]);
+
+            const { reloadWeapon } = await import('/systems/sla-industries/module/helpers/sla-hotbar.mjs');
+            window.__reloadPromise = reloadWeapon(weapon.uuid);
+
+            return { actorId: actor.id, weaponId: weapon.id, magAId: magA.id, magBId: magB.id };
         });
+
+        const dialog = page.locator('.sla-dialog-window').last();
+        await expect(dialog).toBeVisible();
+        await dialog.locator('.window-header [data-action="close"]').click();
+        await expect(dialog).toHaveCount(0);
+
+        const result = await page.evaluate(async ({ actorId, weaponId, magAId, magBId }) => {
+            const reloaded = await window.__reloadPromise;
+            delete window.__reloadPromise;
+            const fresh = game.actors.get(actorId);
+            const outcome = {
+                reloaded,
+                ammoType: fresh.items.get(weaponId).system.ammoType,
+                magAQuantity: fresh.items.get(magAId)?.system.quantity,
+                magBQuantity: fresh.items.get(magBId)?.system.quantity
+            };
+            await fresh.delete();
+            return outcome;
+        }, ids);
 
         expect(result.reloaded).toBe(false);
         expect(result.ammoType).toBe('standard');

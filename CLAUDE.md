@@ -63,6 +63,13 @@ cheaper than rediscovering the same bug or re-scanning the codebase to reconstru
 Follow [CONTRIBUTING.md](CONTRIBUTING.md) — code must pass `npm run format:check` (Prettier) and
 logic changes follow TDD (`tests/unit/`, `npm run test:unit`). CI enforces both on every PR.
 
+## PR review comments
+
+Always reply to a review comment on a PR you opened or are driving, not just push a fix silently
+— even a one-line "not yet pushed, fixed by \<description\>, landing in the next commit" is enough.
+This applies whether you're implementing the requested change or explaining why you aren't; a
+review thread with no reply reads as ignored even when the fix already shipped.
+
 ## A passing test only proves what it actually exercises
 
 Before calling a fix done, check whether its test would catch the bug if the fix were reverted —

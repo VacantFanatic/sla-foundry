@@ -104,10 +104,10 @@ export async function rollOwnedItem(itemUuid) {
  * Execute the same action as clicking a weapon's Reload button on the SLA actor sheet,
  * without requiring a rendered sheet. Invoked by macros/modules via `game.sla.reloadWeapon(uuid)`.
  *
- * Unlike the sheet's Reload button, this does not prompt when more than one magazine is
- * linked to the weapon — there's no dialog host for a headless caller to answer, and silently
- * picking one could load a different ammo type than intended. In that case it warns and
- * returns false; use the actor sheet's Reload button to choose.
+ * When more than one magazine is linked to the weapon, this prompts with the same ammo-selection
+ * dialog the sheet's Reload button uses — a Foundry Application renders as its own floating
+ * window, so it doesn't need a sheet open. The returned promise resolves once the dialog closes,
+ * whether by a confirmed choice or by cancelling/closing it.
  *
  * @param {string} weaponUuid  Full UUID e.g. Actor.xxx.Item.yyy
  * @returns {Promise<boolean>} Whether a magazine was found and consumed.
@@ -141,20 +141,18 @@ export async function reloadWeapon(weaponUuid) {
         return false;
     }
 
-    const { performReload, findLinkedMagazineCandidates } = await loadReloadModule();
+    const { performReload, findLinkedMagazineCandidates, promptMagazineSelection } = await loadReloadModule();
     const candidates = findLinkedMagazineCandidates(actor, weapon);
     if (candidates.length === 0) {
         ui.notifications.warn(`No magazines found linked to: '${weapon.name}'`);
         return false;
     }
-    if (candidates.length > 1) {
-        ui.notifications.warn(
-            `Multiple magazines are linked to '${weapon.name}'. Use the actor sheet's Reload button to choose one.`
-        );
-        return false;
-    }
 
     const sheet = await createEphemeralSlaSheet(actor);
+    if (candidates.length > 1) {
+        return promptMagazineSelection(sheet, weapon, candidates);
+    }
+
     await performReload(sheet, weapon, candidates[0]);
     return true;
 }

@@ -60,6 +60,8 @@ export class SlaSimpleContentDialog extends HandlebarsApplicationMixin(Applicati
      * @param {boolean} [opts.showCancel]
      * @param {'action'|'confirm'|'danger'|'resource'} [opts.flavor]
      * @param {(form: HTMLFormElement|null) => void|Promise<void>} opts.onConfirm
+     * @param {() => void} [opts.onClose]  Called once when the dialog closes, whether via confirm,
+     *   cancel, the window's close control, or Escape.
      */
     constructor(opts) {
         const {
@@ -70,7 +72,8 @@ export class SlaSimpleContentDialog extends HandlebarsApplicationMixin(Applicati
             actionLabel = game.i18n.localize('Submit'),
             showCancel = false,
             flavor = 'action',
-            onConfirm
+            onConfirm,
+            onClose
         } = opts;
 
         super({
@@ -85,6 +88,8 @@ export class SlaSimpleContentDialog extends HandlebarsApplicationMixin(Applicati
         this._showCancel = showCancel;
         /** @type {(form: HTMLFormElement|null) => void|Promise<void>|undefined} */
         this._onConfirm = onConfirm;
+        /** @type {(() => void)|undefined} */
+        this._onCloseCallback = onClose;
     }
 
     /** @override */
@@ -104,7 +109,9 @@ export class SlaSimpleContentDialog extends HandlebarsApplicationMixin(Applicati
     async _onClose(options) {
         this.#uiAbort?.abort();
         this.#uiAbort = null;
-        return super._onClose(options);
+        const result = await super._onClose(options);
+        this._onCloseCallback?.();
+        return result;
     }
 
     /** @override */

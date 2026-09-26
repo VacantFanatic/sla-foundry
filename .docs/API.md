@@ -167,24 +167,26 @@ a rendered sheet. Magazine matching is name-based (`system.linkedWeapon` stores 
 `.name`), same as the sheet's Reload button — renaming a weapon breaks existing magazine links
 either way.
 
-| Candidates found                      | Result                                                                                                                                                                                                                                         |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Exactly one linked, in-stock magazine | Reloads automatically                                                                                                                                                                                                                          |
-| Zero                                  | Warns, returns `false`                                                                                                                                                                                                                         |
-| More than one                         | **Warns and does nothing, returns `false`** — unlike the sheet, there is no dialog host to let the caller pick an ammo type, and silently choosing one could load different ammo than intended. Use the actor sheet's Reload button to choose. |
+| Candidates found                      | Result                                                                                                                                                                                                                                                                                       |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Exactly one linked, in-stock magazine | Reloads automatically                                                                                                                                                                                                                                                                        |
+| Zero                                  | Warns, returns `false`                                                                                                                                                                                                                                                                       |
+| More than one                         | **Prompts** with the same ammo-selection dialog the sheet's Reload button uses (a Foundry Application window, not tied to any sheet being open). Resolves once the dialog closes: `true` if a magazine was picked and consumed, `false` if the dialog was cancelled/closed without a choice. |
 
 ### Errors
 
 Never throws. Returns `false` (with a `ui.notifications.warn`) for: an invalid/malformed UUID, a
 UUID that doesn't resolve to an item, an item not on an actor, an item you don't own, an item that
-isn't a `weapon`, zero matching magazines, or more than one matching magazine.
+isn't a `weapon`, or zero matching magazines. When more than one magazine matches, the promise
+still resolves `false` if the ammo-selection dialog is dismissed without a choice — this is not an
+error, just a declined prompt.
 
 ### Example
 
 ```js
 const reloaded = await game.sla.reloadWeapon(weapon.uuid);
 if (!reloaded) {
-    // no single unambiguous magazine — nothing happened
+    // no matching magazine, or the ammo-selection dialog was dismissed without a choice
 }
 ```
 
