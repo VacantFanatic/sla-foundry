@@ -89,16 +89,25 @@ Repeat until the candidate is stable.
    release notes (merge duplicate `### Added`/`### Changed`/`### Fixed` headings). `release.yml`
    extracts the release body from the `## [2.9.0]` section, so it must exist before the tag is
    pushed.
-2. Update the version badge at the top of `README.md`
+2. Doc sync review: read back over the `## [X.Y.Z]` entry you just finalized and check whether any
+   of it touched a data model class (`module/data/actor.mjs`, `module/data/item.mjs`), a document
+   class (`module/documents/actor.mjs`, `module/documents/item.mjs`,
+   `module/documents/derived/*.mjs`), or the public `game.sla` API surface. If so, confirm
+   [.docs/DEVELOPER.md](DEVELOPER.md) (and [.docs/API.md](API.md) for API changes) already
+   describes the new/changed behavior — don't assume the PR that made the change updated the docs;
+   check. See [.docs/LESSONS_LEARNED.md](LESSONS_LEARNED.md) for what happens when a doc drifts
+   from the code it describes unnoticed (the `.docs/EBB_SYSTEM.md` "Success Through Experience"
+   entry) — this is the last checkpoint before it ships to every Foundry install.
+3. Update the version badge at the top of `README.md`
    (`![Version](https://img.shields.io/badge/version-X.Y.Z-orange)`) to the new stable version.
    The badge tracks the **latest published stable release**, never an in-progress rc — leave it
    alone during the pre-release cycle above and only bump it once the stable tag is published.
-3. Commit and merge to `main`. (`system.json`'s `download` URL does **not** need manual updating —
+4. Commit and merge to `main`. (`system.json`'s `download` URL does **not** need manual updating —
    the **Release** workflow patches it to the exact tag being released at build time, the same
    way `pre-release.yml` already patches the pre-release channel's manifest. Source `system.json`
    keeps showing the previous release's `download` value between releases; that's expected, same
    as the pre-release `-rcN` suffix never appearing in committed source either.)
-4. Push the stable tag (no `pre-` prefix; `v` prefix optional):
+5. Push the stable tag (no `pre-` prefix; `v` prefix optional):
 
 ```bash
 git tag 2.9.0
@@ -107,12 +116,14 @@ git push origin 2.9.0
 
 The **Release** workflow builds the zip, extracts the `CHANGELOG.md` entry, and creates a **draft** GitHub release for both the version tag and `latest`.
 
-5. Review the draft on GitHub and **publish** it. The **Foundry Website Update** workflow (`foundry_manifest_update.yml`) runs on `release: published` and notifies the Foundry package browser.
+6. Review the draft on GitHub and **publish** it. The **Foundry Website Update** workflow (`foundry_manifest_update.yml`) runs on `release: published` and notifies the Foundry package browser.
 
 ### Stable release checklist
 
 - [ ] `version` bumped in `package.json` and `system.json`
 - [ ] `CHANGELOG.md` entry complete under `## [X.Y.Z]`
+- [ ] Doc sync review done — `.docs/DEVELOPER.md`/`.docs/API.md` checked against any class/API
+      changes in this release
 - [ ] README version badge bumped to the new stable version
 - [ ] All CI checks green on `main`
 - [ ] At least one rc candidate tested against a real Foundry instance
