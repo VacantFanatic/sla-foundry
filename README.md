@@ -1,6 +1,6 @@
 # SLA Industries 2nd Edition — Foundry VTT System
 
-![Version](https://img.shields.io/badge/version-2.12.0-orange)
+![Version](https://img.shields.io/badge/version-2.13.0-orange)
 ![Foundry VTT](https://img.shields.io/badge/Foundry%20VTT-v14-informational)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
@@ -59,10 +59,8 @@ drag-and-drop character creation tools.
       modifiers (e.g. drugs, poison, stance) and a persistent roll modifier. See
       [`.docs/DEVELOPER.md`](.docs/DEVELOPER.md#active-effects-and-stats) for setup details.
 - **Compendiums:** Ships with pre-built packs for Skills, Traits, Species, Disciplines,
-  Quick Start Gear, and Vehicles. Entries provide names and mechanical values only (rank, stat,
-  XP cost, etc.) — description/rules text fields are intentionally left blank, since that content
-  is copyrighted by Nightfall Games and is not reproduced here. You'll need the _SLA Industries
-  2nd Edition_ rulebook to fill in or reference the full text for each entry.
+  Quick Start Gear, and Vehicles. Entries provide names and mechanical values only — see
+  [License & Credits](#license--credits) for why description/rules text is left blank.
 
 ### What stays manual at the table
 
@@ -83,6 +81,12 @@ drag-and-drop character creation tools.
 
 Requires **Foundry VTT v14** (verified against `14.367`).
 
+**Manifest URL:**
+
+```
+https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json
+```
+
 ## Recommended modules (optional)
 
 The system runs without add-ons. These community modules are commonly paired with it:
@@ -95,12 +99,6 @@ The system runs without add-ons. These community modules are commonly paired wit
   fields. Helpful when configuring stat bonus effects; see
   [Active Effects and stats](.docs/DEVELOPER.md#active-effects-and-stats) in the developer guide
   for attribute key conventions.
-
-## Manifest
-
-```
-https://github.com/VacantFanatic/sla-foundry/releases/latest/download/system.json
-```
 
 ## Documentation
 

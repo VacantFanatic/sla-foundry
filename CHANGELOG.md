@@ -11,6 +11,8 @@ section only in the PR that prepares the stable release. See
 
 ## [Unreleased]
 
+## [2.13.0] - 2026-09-26
+
 ### Added
 
 - **`game.sla.reloadWeapon(weaponUuid)` and `game.sla.toggleItemEquipped(itemUuid)` public API**
