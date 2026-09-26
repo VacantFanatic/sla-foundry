@@ -110,6 +110,21 @@ clearly been failing since whenever the layout last changed, just unnoticed beca
 had no CI gate until this session added one. Update the test in the same PR that changes the
 markup it depends on, so drift like this can't accumulate silently again.
 
+## Keep developer docs in sync with class changes
+
+When a change adds, renames, or reshapes a field on a data model class (`module/data/actor.mjs`,
+`module/data/item.mjs`) or changes behavior on a document class (`module/documents/actor.mjs`,
+`module/documents/item.mjs`, `module/documents/derived/*.mjs`), update the matching description in
+[.docs/DEVELOPER.md](.docs/DEVELOPER.md) — and [.docs/API.md](.docs/API.md) if the public
+`game.sla` surface changed — in the **same** change, not a later pass.
+
+This isn't hypothetical: [.docs/LESSONS_LEARNED.md](.docs/LESSONS_LEARNED.md) already has an entry
+for `.docs/EBB_SYSTEM.md` drifting from the actual "Success Through Experience" behavior — the doc
+kept claiming something the code (and the rulebook) had never actually done, and nothing caught it
+because no change to the code re-checked the doc against it. A doc left stale doesn't fail loudly
+like a broken test; it just quietly stops being true until someone builds a fix on top of the wrong
+claim.
+
 ## Lessons learned
 
 Non-obvious lessons discovered during a session — a bug class, a testing pitfall, a footgun in
