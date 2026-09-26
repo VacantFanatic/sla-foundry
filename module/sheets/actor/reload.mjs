@@ -2,6 +2,19 @@ import { SlaSimpleContentDialog } from '../../apps/sla-simple-dialog.mjs';
 import { buildReloadWeaponUpdate } from './reload-pure.mjs';
 
 /**
+ * Embedded `magazine` items on `actor` that can reload `weapon` — linked by name
+ * (SlaMagazineData.linkedWeapon stores the weapon's `.name`, not a UUID) with stock remaining.
+ * @param {Actor} actor
+ * @param {Item} weapon
+ * @returns {Item[]}
+ */
+export function findLinkedMagazineCandidates(actor, weapon) {
+    return actor.items.filter(
+        (i) => i.type === 'magazine' && i.system.linkedWeapon === weapon.name && i.system.quantity > 0
+    );
+}
+
+/**
  * @param {import('../actor-sheet.mjs').SlaActorSheet} sheet
  */
 export async function onReloadWeapon(sheet, event, reloadEl) {
@@ -11,12 +24,11 @@ export async function onReloadWeapon(sheet, event, reloadEl) {
     if (!weapon) return;
     const weaponName = weapon.name;
 
-    const candidates = sheet.actor.items.filter(
-        (i) => i.type === 'magazine' && i.system.linkedWeapon === weaponName && i.system.quantity > 0
-    );
+    const candidates = findLinkedMagazineCandidates(sheet.actor, weapon);
 
     if (candidates.length === 0) {
-        return ui.notifications.warn(`No magazines found linked to: '${weaponName}'`);
+        ui.notifications.warn(`No magazines found linked to: '${weaponName}'`);
+        return false;
     }
 
     if (candidates.length === 1) {
@@ -80,4 +92,6 @@ export async function performReload(sheet, weapon, magazine) {
         speaker: ChatMessage.getSpeaker({ actor: sheet.actor }),
         content: content
     });
+
+    return true;
 }

@@ -81,16 +81,18 @@ export class SlaItem extends Item {
      * Set this item's equipped state and sync its embedded Active Effects onto the actor to
      * match (applied while equipped, removed when unequipped).
      * @param {boolean} equipped
+     * @returns {Promise<boolean>} The new equipped state.
      */
     async setEquipped(equipped) {
         await this.update({ 'system.equipped': equipped });
-        if (!this.actor) return;
-
-        if (equipped) {
-            await this.applyItemEffectsToActor(this.actor);
-        } else {
-            await this._removeEffectsByOrigin(this.actor, this.uuid);
+        if (this.actor) {
+            if (equipped) {
+                await this.applyItemEffectsToActor(this.actor);
+            } else {
+                await this._removeEffectsByOrigin(this.actor, this.uuid);
+            }
         }
+        return equipped;
     }
 
     /**

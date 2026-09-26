@@ -34,7 +34,13 @@ import { SLAChat } from './helpers/chat.mjs';
 import { SLA } from './config.mjs';
 
 import { migrateWorld, DATA_MODEL_VERSION, notifyAmmoTypeReloadNeeded } from './migration.mjs';
-import { rollOwnedItem, addActorItemToHotbar, registerSlaHotbar } from './helpers/sla-hotbar.mjs';
+import {
+    rollOwnedItem,
+    addActorItemToHotbar,
+    registerSlaHotbar,
+    reloadWeapon,
+    toggleItemEquipped
+} from './helpers/sla-hotbar.mjs';
 
 const movementActionState = new Map();
 
@@ -395,6 +401,8 @@ Hooks.once('init', async function () {
         rollOwnedItem,
         addActorItemToHotbar,
         canTokenMoveThisTurn,
+        reloadWeapon,
+        toggleItemEquipped,
         SlaActor,
         SlaItem
     });

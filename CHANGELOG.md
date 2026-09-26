@@ -11,6 +11,19 @@ section only in the PR that prepares the stable release. See
 
 ## [Unreleased]
 
+### Added
+
+- **`game.sla.reloadWeapon(weaponUuid)` and `game.sla.toggleItemEquipped(itemUuid)` public API**
+  (#404) — reload a weapon or flip an item's equip/holster state by UUID, without an actor sheet
+  open, for macros and external module integrations (e.g. Token Action HUD). Both mirror
+  `game.sla.rollOwnedItem`'s validation style (UUID resolution, ownership check). `reloadWeapon`
+  matches the sheet's single-magazine auto-reload behavior but warns and does nothing rather than
+  guessing an ammo type when more than one magazine is linked; returns `Promise<boolean>`
+  indicating whether a reload happened. `toggleItemEquipped` applies to equippable types only
+  (`weapon`, `armor`, `item`) and returns `Promise<boolean|undefined>` — the item's new state, or
+  `undefined` if the toggle couldn't be performed. Full reference for the entire `game.sla` surface
+  now lives in [.docs/API.md](.docs/API.md).
+
 ## [2.12.0] - 2026-09-23
 
 ### Added

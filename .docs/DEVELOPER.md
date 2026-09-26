@@ -188,33 +188,9 @@ Converts `calculateRollResult` output into tactical choices:
 
 Registered on the `game` object during `init`. Available to macros and module integrations.
 
-### `game.sla.rollOwnedItem(itemUuid)`
-
-Executes the same action as clicking the roll icon on an actor sheet for that item. Accepts a full UUID string (e.g. `Actor.xxx.Item.yyy`).
-
-Behavior by item type:
-| Type | Action |
-|---|---|
-| `weapon` | Opens the weapon attack dialog |
-| `explosive` | Opens the explosive throw dialog |
-| `ebbFormula` | Rolls the formula and spends flux |
-| `drug` | Consumes one dose |
-| `skill` | Executes the skill roll flow |
-| Any other | Opens the item sheet |
-
-### `game.sla.addActorItemToHotbar(item)`
-
-Creates or reuses a script macro for the given embedded item and assigns it to the first free hotbar slot.
-
-### `game.sla.canTokenMoveThisTurn(tokenLike)`
-
-Returns `true` if the token is allowed to move this turn (respects the **Enable Combat Movement Lock** setting and per-turn movement state).
-
-### `game.sla.SlaActor` / `game.sla.SlaItem`
-
-The registered Actor and Item document classes (`CONFIG.Actor.documentClass` / `CONFIG.Item.documentClass`). Legacy names `BoilerplateActor` and `BoilerplateItem` remain on `game.boilerplate` and as module export aliases.
-
-Source: `module/helpers/sla-hotbar.mjs`, `module/sla-industries.mjs`
+Full reference — signatures, parameters, return values, error behavior, and examples — lives in
+[.docs/API.md](API.md). Keep that file, not this section, as the single source of truth for the
+public API surface.
 
 ---
 
@@ -709,7 +685,8 @@ Step-by-step file checklists for the most frequent contribution types.
 
 1. Implement the function in the relevant helper module (e.g. `module/helpers/sla-hotbar.mjs`).
 2. Register it on the `game.sla` object during the `init` hook in `module/sla-industries.mjs`.
-3. Document it under **`game.sla` Public API** above, including parameters and behavior.
+3. Document it in [.docs/API.md](API.md), following that file's existing entry template (Added in /
+   Signature / Parameters / Returns / Behavior / Errors / Example / Source).
 4. Add a unit test in `tests/unit/` if the function contains non-trivial logic.
 
 ### Add a new migration step
