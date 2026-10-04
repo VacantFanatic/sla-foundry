@@ -156,4 +156,42 @@ test.describe('GM: onReloadWeapon magazine selection (document API)', () => {
         expect(result.ammoType).toBe('ap');
         expect(result.magazineConsumed).toBe(false);
     });
+    test("reload keeps the weapon's clip size: override clip then default clip", async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([{ name: `E2E Reload Sizes ${stamp}`, type: 'character' }]);
+            const weaponName = `E2E Reload Sizes SMG ${stamp}`;
+            const [weapon] = await actor.createEmbeddedDocuments('Item', [
+                { name: weaponName, type: 'weapon', system: { attackType: 'ranged', maxAmmo: 30, ammo: 0 } }
+            ]);
+            const [extended, standard] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Extended Clip ${stamp}`,
+                    type: 'magazine',
+                    system: { linkedWeapon: weaponName, quantity: 1, ammoCapacity: 50 }
+                },
+                {
+                    name: `E2E Standard Clip ${stamp}`,
+                    type: 'magazine',
+                    system: { linkedWeapon: weaponName, quantity: 1, ammoCapacity: 0 }
+                }
+            ]);
+
+            const { performReload } = await import('/systems/sla-industries/module/sheets/actor/reload.mjs');
+            const read = () => {
+                const sys = game.actors.get(actor.id).items.get(weapon.id).system;
+                return { ammo: sys.ammo, maxAmmo: sys.maxAmmo, loadedCapacity: sys.loadedCapacity };
+            };
+
+            await performReload({ actor }, weapon, extended);
+            const afterExtended = read();
+            await performReload({ actor }, game.actors.get(actor.id).items.get(weapon.id), standard);
+            const afterStandard = read();
+            await actor.delete();
+            return { afterExtended, afterStandard };
+        });
+
+        expect(result.afterExtended).toEqual({ ammo: 50, maxAmmo: 30, loadedCapacity: 50 });
+        expect(result.afterStandard).toEqual({ ammo: 30, maxAmmo: 30, loadedCapacity: 30 });
+    });
 });

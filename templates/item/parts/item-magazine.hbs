@@ -8,7 +8,8 @@
 
         <div class="sla-field sla-field--compact">
             <label>{{localize "SLA.ItemSheet.Magazine.Capacity"}}</label>
-            <input type="number" name="system.ammoCapacity" value="{{system.ammoCapacity}}" placeholder="10" />
+            <input type="number" name="system.ammoCapacity" value="{{system.ammoCapacity}}" min="0" step="1" placeholder="0" />
+            <div class="sla-field__hint">{{localize "SLA.ItemSheet.Magazine.CapacityHint"}}</div>
         </div>
 
         <div class="sla-field sla-field--compact">

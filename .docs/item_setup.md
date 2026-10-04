@@ -37,34 +37,35 @@ Weapons need to know which skill they use for attack rolls.
 
 ## 2. Weapons & Ammunition
 
-The system handles ammo tracking by linking specific Magazine items to Weapon items.
+The system handles ammo tracking by linking specific Clip items (item type `magazine`) to Weapon items.
 
 ### A. Setting up a Weapon
 
 1. Create a **Weapon** item (e.g., _FEN 603_).
 2. Set the **Stats**: Damage, Rate of Fire (ROF), and Recoil.
-3. **Important:** Link the Required Skill (see section 1C above).
+3. For a **Ranged** weapon, set **Clip Size** (the book's "Clip" stat, e.g. `30`) and, optionally, how many rounds are currently **Loaded**.
+4. **Important:** Link the Required Skill (see section 1C above).
 
-### B. Setting up a Magazine
+### B. Setting up a Clip
 
-1. Create a **Magazine** item (e.g., _FEN 603 Mag_).
-2. Set the **Capacity** (e.g., `30` rounds).
+1. Create a **Clip** item (e.g., _FEN 603 Clip_). Set its **Price** to the book's Clip Cost.
+2. Leave **Clip Size (override)** at `0` to use the weapon's Clip Size. Set it only for a clip that holds a different number of rounds (e.g., an extended `50`-round clip).
 3. **Link to Weapon:**
 
 - Look for the **"Linked Weapon"** drop zone.
 - Drag your _FEN 603_ Weapon item onto this box.
-- The Magazine now knows it belongs to the _FEN 603_.
+- The Clip now knows it belongs to the _FEN 603_.
 
 ### C. Reloading in Combat
 
-1. Give an Actor both the **Weapon** and several **Magazines**.
+1. Give an Actor both the **Weapon** and several **Clips**.
 2. On the Actor Sheet **Combat Tab**, click the **Reload** (Cycle) icon next to the gun.
-3. The system will search the inventory for any Magazine linked to that gun.
+3. The system will search the inventory for any Clip linked to that gun.
 
 - If one type is found, it reloads instantly.
-- If multiple types are found (e.g., _Standard Mag_ vs _Hollow Point_), a dialog asks you which one to load.
+- If multiple types are found (e.g., _Standard Clip_ vs _Hollow Point_), a dialog asks you which one to load.
 
-4. The Magazine is consumed (Quantity -1) and the Weapon's ammo count is refilled.
+4. The Clip is consumed (Quantity -1) and the Weapon's ammo count is refilled to the clip's size (its override, else the weapon's Clip Size). The weapon's own Clip Size is never overwritten; the size of the clip just loaded is tracked separately (`loadedCapacity`), so loading a standard clip after an extended one returns to the book size.
 
 ---
 
@@ -143,19 +144,19 @@ Toxicants appear under the **Bio & Traits → Infections** section on operative 
 
 The Actor Sheet automatically sorts items into the following categories based on their **Item Type**. You do not need to do anything manually; just create the item with the correct type.
 
-| Type         | Tab                       | Notes                               |
-| ------------ | ------------------------- | ----------------------------------- |
-| `weapon`     | Combat / Inventory        | Attack rolls, ammo tracking         |
-| `armor`      | Combat / Inventory        | PV and Resistance                   |
-| `explosive`  | Combat / Inventory        | Throw automation, quantity tracking |
-| `magazine`   | Inventory                 | Links to a weapon; reloading        |
-| `drug`       | Inventory                 | Consume action; Active Effects      |
-| `item`       | Inventory                 | Generic gear                        |
-| `toxicant`   | Bio & Traits → Infections | Infection test action               |
-| `skill`      | Skills tab                | Sorted by stat                      |
-| `trait`      | Bio & Traits              | Reference                           |
-| `discipline` | Ebb tab (Ebonites only)   | Nested with formulas                |
-| `ebbFormula` | Ebb tab (Ebonites only)   | Rolls, flux, wounds                 |
+| Type         | Tab                       | Notes                                           |
+| ------------ | ------------------------- | ----------------------------------------------- |
+| `weapon`     | Combat / Inventory        | Attack rolls, ammo tracking                     |
+| `armor`      | Combat / Inventory        | PV and Resistance                               |
+| `explosive`  | Combat / Inventory        | Throw automation, quantity tracking             |
+| `magazine`   | Inventory                 | Shown as **Clip**; links to a weapon; reloading |
+| `drug`       | Inventory                 | Consume action; Active Effects                  |
+| `item`       | Inventory                 | Generic gear                                    |
+| `toxicant`   | Bio & Traits → Infections | Infection test action                           |
+| `skill`      | Skills tab                | Sorted by stat                                  |
+| `trait`      | Bio & Traits              | Reference                                       |
+| `discipline` | Ebb tab (Ebonites only)   | Nested with formulas                            |
+| `ebbFormula` | Ebb tab (Ebonites only)   | Rolls, flux, wounds                             |
 
 `species`, `package`, and `blueprintNews` are non-physical reference items (no weight/price/
 quantity) and are not sorted into any inventory tab — manage them from the Items directory or a
@@ -163,10 +164,10 @@ compendium.
 
 ### Stackable Items
 
-Dragging **gear**, **explosives**, **magazines**, or **drugs** onto an actor sheet **merges** into an existing stack when the system considers it the same item:
+Dragging **gear**, **explosives**, **clips**, or **drugs** onto an actor sheet **merges** into an existing stack when the system considers it the same item:
 
 - Items with a compendium source ID match by that ID.
-- Other items match by type + name (case-insensitive), and magazines also require matching `ammoType` and `ammoCapacity`.
+- Other items match by type + name (case-insensitive), and clips also require matching `ammoType` and `ammoCapacity`.
 - Items with embedded Active Effects are **never** merged automatically.
 
 ### Active Effects — which item types apply them, and when

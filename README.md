@@ -50,7 +50,7 @@ drag-and-drop character creation tools.
 - **Inventory Management:**
     - **Drugs:** Dedicated "Consume" button in the inventory that reduces quantity and posts an
       effect card to chat.
-    - **Reloading:** Context-aware reload button that checks your inventory for matching magazines.
+    - **Reloading:** Context-aware reload button that checks your inventory for matching clips.
 - **The Ebb:**
     - Support for **Flux** tracking.
     - Discipline and Formula rolls calculate Success Die + Skill Dice automatically.

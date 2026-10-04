@@ -39,7 +39,8 @@ export class SlaMagazineData extends foundry.abstract.TypeDataModel {
             price: new fields.NumberField({ initial: 10, min: 0 }),
             quantity: new fields.NumberField({ initial: 1, min: 0, integer: true }),
             ammoType: new fields.StringField({ initial: 'standard' }),
-            ammoCapacity: new fields.NumberField({ initial: 30, integer: true }),
+            // Optional override for odd-size clips; 0 = use the linked weapon's clip size (maxAmmo)
+            ammoCapacity: new fields.NumberField({ initial: 0, min: 0, integer: true }),
             linkedWeapon: new fields.StringField(),
             description: new fields.HTMLField()
         };
@@ -107,6 +108,8 @@ export class SlaWeaponData extends foundry.abstract.TypeDataModel {
             range: new fields.StringField({ initial: '10m' }),
             maxAmmo: new fields.NumberField({ initial: 10, integer: true }),
             ammo: new fields.NumberField({ initial: 10, integer: true }),
+            // Size of the clip currently loaded (set by Reload); 0 = use maxAmmo, the weapon's own clip size
+            loadedCapacity: new fields.NumberField({ initial: 0, min: 0, integer: true }),
             skill: new fields.StringField(),
             weight: new fields.NumberField({ initial: 1, min: 0 }),
             price: new fields.NumberField({ initial: 100, min: 0 }),

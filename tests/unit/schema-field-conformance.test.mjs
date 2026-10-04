@@ -38,6 +38,15 @@ describe('SlaWeaponData schema — Reload/ammo-modifier field contract', () => {
         assert.match(body, /ammoType:\s*new fields\.StringField/);
     });
 
+    test('declares loadedCapacity (written by reload-pure.mjs, read by resolveClipCapacity)', () => {
+        assert.match(body, /loadedCapacity:\s*new fields\.NumberField/);
+    });
+
+    test('declares maxAmmo and ammo (bound by the ranged-weapon Clip Size / Loaded form fields)', () => {
+        assert.match(body, /maxAmmo:\s*new fields\.NumberField/);
+        assert.match(body, /\bammo:\s*new fields\.NumberField/);
+    });
+
     test('does not redeclare the undeclared fields from the original magazineId bug', () => {
         assert.doesNotMatch(body, /\bmagazineId\s*:/);
         assert.doesNotMatch(body, /\battackDice\s*:/);
