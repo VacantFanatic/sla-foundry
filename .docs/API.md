@@ -158,7 +158,7 @@ if (game.sla.canTokenMoveThisTurn(token)) {
 
 ### Returns
 
-`Promise<boolean>` — `true` if a magazine was found and consumed, `false` otherwise.
+`Promise<boolean>` — `true` if a clip was found and consumed, `false` otherwise.
 
 ### Behavior
 

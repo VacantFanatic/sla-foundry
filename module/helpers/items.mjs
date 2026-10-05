@@ -2,6 +2,8 @@
  * Helper functions for preparing item data for actor sheets.
  */
 
+import { resolveClipCapacity } from '../sheets/actor/reload-pure.mjs';
+
 const NON_RELOADABLE_SKILLS = new Set(['melee', 'unarmed']);
 
 /**
@@ -102,6 +104,7 @@ function classifyItems(items, rollData, buckets) {
                 const skillKey = (item.system.skill || '').toLowerCase();
                 item.isReloadable = !NON_RELOADABLE_SKILLS.has(skillKey);
                 item.resolvedDamage = resolveDamage(item.system.damage, item.system.minDamage, rollData);
+                item.clipCapacity = resolveClipCapacity(item.system);
                 buckets.combatAttackItems.push(item);
                 break;
             }

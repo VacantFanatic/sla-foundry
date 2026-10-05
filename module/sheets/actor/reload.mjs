@@ -1,5 +1,5 @@
 import { SlaSimpleContentDialog } from '../../apps/sla-simple-dialog.mjs';
-import { buildReloadWeaponUpdate } from './reload-pure.mjs';
+import { buildReloadWeaponUpdate, resolveReloadCapacity } from './reload-pure.mjs';
 
 /**
  * Embedded `magazine` items on `actor` that can reload `weapon` — linked by name
@@ -40,7 +40,7 @@ export async function promptMagazineSelection(sheet, weapon, candidates) {
             contentHtml: content,
             width: 420,
             classes: ['sla-dialog', 'sla-sheet'],
-            actionLabel: 'Load Magazine',
+            actionLabel: 'Load Clip',
             onConfirm: async (root) => {
                 const magId = root.querySelector('#magazine-select')?.value;
                 const mag = magId ? sheet.actor.items.get(magId) : null;
@@ -65,7 +65,7 @@ export async function onReloadWeapon(sheet, event, reloadEl) {
     const candidates = findLinkedMagazineCandidates(sheet.actor, weapon);
 
     if (candidates.length === 0) {
-        ui.notifications.warn(`No magazines found linked to: '${weaponName}'`);
+        ui.notifications.warn(`No clips found linked to: '${weaponName}'`);
         return false;
     }
 
@@ -80,9 +80,9 @@ export async function onReloadWeapon(sheet, event, reloadEl) {
  * @param {import('../actor-sheet.mjs').SlaActorSheet} sheet
  */
 export async function performReload(sheet, weapon, magazine) {
-    const capacity = magazine.system.ammoCapacity || 10;
+    const capacity = resolveReloadCapacity(magazine.system, weapon.system);
 
-    await weapon.update(buildReloadWeaponUpdate(magazine.system));
+    await weapon.update(buildReloadWeaponUpdate(magazine.system, weapon.system));
 
     const newQty = (magazine.system.quantity || 1) - 1;
     const magazineDepleted = newQty <= 0;

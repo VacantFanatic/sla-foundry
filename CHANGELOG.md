@@ -11,6 +11,24 @@ section only in the PR that prepares the stable release. See
 
 ## [Unreleased]
 
+## [2.14.0] - 2026-10-05
+
+### Added
+
+- **Clip Size and Loaded fields on the ranged weapon sheet** (#408) — a ranged weapon's clip size
+  (`system.maxAmmo`, the book's "Clip" stat) and loaded rounds (`system.ammo`) were in the schema
+  but not editable in the UI. Weapons also gain `system.loadedCapacity` (size of the clip last
+  loaded; 0 = use the weapon's clip size), shown as the max in the combat tab ammo counter.
+
+### Changed
+
+- **"Magazine" is now "Clip"** (#408), matching the core book — item type name, sheet labels,
+  reload dialog, chat card and notifications (EN and FR). The internal type key `magazine` is
+  unchanged, so no existing items need migrating.
+- **Reload no longer overwrites a weapon's clip size.** It now sets the loaded rounds and
+  `loadedCapacity` from the clip's size, and a clip's **Clip Size (override)** defaults to 0, meaning
+  "use the weapon's clip size". Existing clips keep their stored capacity as an override.
+
 ## [2.13.0] - 2026-09-26
 
 ### Added

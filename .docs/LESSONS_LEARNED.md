@@ -611,6 +611,15 @@ blank string` — caught immediately by manually creating the item in a live Fou
   every value being forced to a real choice from creation) needs `blank: true` added alongside
   `choices` — don't assume `initial: ''` alone is enough, and verify any new `choices` field by
   actually creating a document with it in a live world, not just a schema-level unit test.
+- **Reload used to overwrite the weapon's own clip size with a hardcoded fallback** (#408).
+  `buildReloadWeaponUpdate` wrote the clip item's `ammoCapacity || 10` into the weapon's
+  `system.maxAmmo`, so any clip size a GM configured on the weapon was lost on the first reload, and
+  the field was invisible in the UI so nobody noticed. The rulebook lists Clip in the weapon's own
+  stat block; when a stat belongs to one document, don't let a related document silently overwrite
+  it. Keep the configured value and track the transient one (`loadedCapacity`) separately. Also:
+  `cloud-foundry.sh prepare` defaults to `/home/ubuntu/foundry-data`, but the running container
+  mounts `/root/foundry-data` here, so set `FOUNDRY_DATA_DIR` or the rebuilt system never reaches
+  Foundry and e2e tests run against stale code.
 - **A pre-release tag's commit doesn't prove what the published rc zip contains.** While preparing
   the 2.12.0 stable release, `git ls-remote --tags` showed `pre-2.12.0-rc5` pointing at `e00b7b1`,
   a commit from before the Blueprint News item type (#398) merged, so the item looked untested and

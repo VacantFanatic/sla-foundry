@@ -109,6 +109,23 @@ test.describe('SLA item sheet UI — regression', () => {
         await expect(sheet.locator('nav.sheet-tabs a[data-tab="effects"]')).toHaveCount(0);
     });
 
+    test('ranged weapon sheet — Clip Size and Loaded fields persist; melee hides them', async ({ page }) => {
+        const itemId = await createWorldItem(page, 'weapon', { attackType: 'ranged', maxAmmo: 10, ammo: 10 });
+        const sheet = await openItemSheet(page, itemId);
+
+        const clipSize = sheet.locator('input[name="system.maxAmmo"]');
+        await expect(clipSize).toBeVisible();
+        await expect(clipSize).toHaveValue('10');
+        await expect(sheet.locator('input[name="system.ammo"]')).toBeVisible();
+
+        await clipSize.fill('30');
+        await clipSize.blur();
+        await expect.poll(() => page.evaluate((id) => game.items.get(id)?.system.maxAmmo, itemId)).toBe(30);
+
+        await sheet.locator('select[name="system.attackType"]').selectOption('melee');
+        await expect(sheet.locator('input[name="system.maxAmmo"]')).toHaveCount(0);
+    });
+
     test('magazine sheet — weapon drop hint', async ({ page }) => {
         const itemId = await createWorldItem(page, 'magazine', {
             capacity: 30,

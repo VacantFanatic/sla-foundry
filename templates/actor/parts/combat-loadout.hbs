@@ -23,9 +23,9 @@
                 </div>
                 <div class="sla-combat-stat-extra">
                     {{#if (eq item.system.attackType "ranged")}}
-                    {{#if item.system.maxAmmo}}
+                    {{#if item.clipCapacity}}
                     <span class="sla-stat-readout sla-combat-ammo {{#if (eq item.system.ammo 0)}}is-empty{{/if}}">
-                        [{{item.system.ammo}}/{{item.system.maxAmmo}}]
+                        [{{item.system.ammo}}/{{item.clipCapacity}}]
                     </span>
                     {{/if}}
                     {{/if}}

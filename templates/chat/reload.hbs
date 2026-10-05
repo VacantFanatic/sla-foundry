@@ -2,12 +2,12 @@
     <div class="reload-header">RELOAD: {{weaponName}}</div>
     <div class="reload-content">{{actorName}} reloads their weapon.</div>
     <div class="reload-details">
-        <strong>Magazine:</strong> {{magazineName}}<br>
+        <strong>Clip:</strong> {{magazineName}}<br>
         <strong>Ammo Loaded:</strong> {{ammoLoaded}}<br>
         {{#if magazineDepleted}}
-        <span style="color: #ff5555;"><strong>Magazine Depleted</strong></span>
+        <span style="color: #ff5555;"><strong>Clip Depleted</strong></span>
         {{else}}
-        <strong>Magazines Remaining:</strong> {{magazinesRemaining}}
+        <strong>Clips Remaining:</strong> {{magazinesRemaining}}
         {{/if}}
     </div>
 </div>

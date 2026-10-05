@@ -1,6 +1,6 @@
 # SLA Industries 2nd Edition — Foundry VTT System
 
-![Version](https://img.shields.io/badge/version-2.13.0-orange)
+![Version](https://img.shields.io/badge/version-2.14.0-orange)
 ![Foundry VTT](https://img.shields.io/badge/Foundry%20VTT-v14-informational)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
@@ -50,7 +50,7 @@ drag-and-drop character creation tools.
 - **Inventory Management:**
     - **Drugs:** Dedicated "Consume" button in the inventory that reduces quantity and posts an
       effect card to chat.
-    - **Reloading:** Context-aware reload button that checks your inventory for matching magazines.
+    - **Reloading:** Context-aware reload button that checks your inventory for matching clips.
 - **The Ebb:**
     - Support for **Flux** tracking.
     - Discipline and Formula rolls calculate Success Die + Skill Dice automatically.

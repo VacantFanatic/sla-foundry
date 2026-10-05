@@ -105,10 +105,10 @@ All schema definitions live in `module/data/actor.mjs` and `module/data/item.mjs
 
 | Type          | Data class          | Key fields                                                                               |
 | ------------- | ------------------- | ---------------------------------------------------------------------------------------- |
-| `weapon`      | `SlaWeaponData`     | damage, firingModes, attackType, skill, powersuitAttack                                  |
+| `weapon`      | `SlaWeaponData`     | damage, firingModes, attackType, skill, powersuitAttack, maxAmmo, ammo, loadedCapacity   |
 | `armor`       | `SlaArmorData`      | pv, resistance, powered, powersuit, dexCap, initBonus, mods, isShield, pvMelee, pvRanged |
 | `explosive`   | `SlaExplosiveData`  | damage, blastRadiusInner, blastRadiusOuter, skill                                        |
-| `magazine`    | `SlaMagazineData`   | ammoType, ammoCapacity, linkedWeapon                                                     |
+| `magazine`    | `SlaMagazineData`   | ammoType, ammoCapacity (override, 0 = weapon's maxAmmo), linkedWeapon                    |
 | `skill`       | `SlaSkillData`      | rank, stat                                                                               |
 | `trait`       | `SlaTraitData`      | rank, type                                                                               |
 | `ebbFormula`  | `SlaEbbFormulaData` | cost, formulaRating, ebbEffect, ebbTarget, removeWounds, ebbHealWoundMode                |
@@ -509,6 +509,8 @@ Source: `module/config.mjs` (`SLA.ammoTypes`, `SLA.ammoModifiers`)
 `AD` (Armour Damage) reduces the target's armor resistance on hit; the ammo AD modifier is added on top of the weapon/powersuit AD in both `executeCombatLoadoutDamageRoll` (`weapon-gates.mjs`) and `processWeaponRoll` (`weapon-rolls.mjs`), floored at 0. The AP −2 PV modifier is resolved via `getAmmoPvModifierForWeapon` and threaded through the damage-roll chat card (`pvMod`) into `computeArmorMitigation` in `helpers/chat/damage.mjs`, which applies it (via the pure `applyPvModifierToArmor` helper, floored at 0) to the target's armor PV before resistance-based mitigation — i.e. during damage resolution, not pre-roll.
 
 `costMultiplier` is reference data only: the magazine item sheet shows it as a read-only hint next to the Ammo Type dropdown so whoever prices a magazine of that ammo type can apply it; it does not automatically modify `system.price`.
+
+**Clip size lives on the weapon.** The book lists Clip (and Clip Cost) in a weapon's own stat block, so `SlaWeaponData.maxAmmo` is the weapon's clip size (editable on the ranged-weapon form), `ammo` is the rounds loaded, and `loadedCapacity` is the size of the clip last loaded (0 = use `maxAmmo`). The item type `magazine` is displayed as **Clip**; only the label changed, the type key did not. A clip's `ammoCapacity` is an optional override (0 = use the weapon's `maxAmmo`). `resolveReloadCapacity` / `resolveClipCapacity` (`sheets/actor/reload-pure.mjs`) do the fallback; reload never writes `maxAmmo`.
 
 **Ammo type is snapshotted onto the weapon at reload, not looked up live.** Magazines carry an `ammoType` field that matches these keys (default `'standard'`). Reloading (`performReload` in `sheets/actor/reload.mjs`, via the pure `buildReloadWeaponUpdate` in `sheets/actor/reload-pure.mjs`) copies the magazine's `ammoType` onto the weapon's own `system.ammoType` field, defaulting to `'standard'` if the magazine has none. `resolveLoadedAmmoType` (`weapon-gates-pure.mjs`) and every ammo getter built on it read this weapon-side field directly — there is no live "which magazine is loaded" reference (an earlier `magazineId`-based design was never wired up: `SlaWeaponData`'s schema never declared that field, so nothing could persist it, and it was replaced entirely). Snapshotting also sidesteps the fact that magazines are deleted the moment their stack depletes (`reload.mjs`), which would make a live reference to the "current" magazine unreliable right after the reload that used it. A weapon that's never been reloaded has `ammoType` at its schema default (empty string, falsy) → no ammo modifier, same as before.
 

@@ -69,6 +69,18 @@
     </div>
 
     {{#if (eq system.attackType "ranged")}}
+    <div class="cannon-catalogue__grid cannon-catalogue__clip">
+        <div class="sla-field sla-field--compact">
+            <label for="weapon-clip-size">{{localize "SLA.ItemSheet.Weapon.ClipSize"}}</label>
+            <input id="weapon-clip-size" type="number" name="system.maxAmmo" value="{{system.maxAmmo}}" min="0" step="1" />
+            <div class="sla-field__hint">{{localize "SLA.ItemSheet.Weapon.ClipSizeHint"}}</div>
+        </div>
+        <div class="sla-field sla-field--compact">
+            <label for="weapon-ammo-loaded">{{localize "SLA.ItemSheet.Weapon.Loaded"}}</label>
+            <input id="weapon-ammo-loaded" type="number" name="system.ammo" value="{{system.ammo}}" min="0" step="1" />
+        </div>
+    </div>
+
     <section class="sla-section cannon-catalogue__firing-modes">
         <div class="sla-section__header">
             <span class="sla-section__title">{{localize "SLA.ItemSheet.Weapon.FiringModes"}}</span>
