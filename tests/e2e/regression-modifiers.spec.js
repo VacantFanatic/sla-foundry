@@ -28,7 +28,7 @@ test.describe('GM: applyRangedModifiers (document API)', () => {
                     name: `E2E Ranged Blocked ${stamp}`,
                     type: 'weapon',
                     system: {
-                        ammo: 0,
+                        ammo: 2,
                         firingModes: {
                             single: { label: 'Single', active: true, rounds: 1, recoil: 0 },
                             burst: { label: 'Burst', active: true, rounds: 3, recoil: 1 }
@@ -67,12 +67,53 @@ test.describe('GM: applyRangedModifiers (document API)', () => {
         expect(result.mods.damage).toBe(0);
     });
 
-    test('applies the -2 low-ammo penalty when firing the lowest mode with insufficient ammo', async ({ page }) => {
+    test('applies the -2 low-ammo penalty when firing the lowest mode on a partial clip', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();
             const [weapon] = await Item.createDocuments([
                 {
-                    name: `E2E Ranged LowAmmo ${stamp}`,
+                    name: `E2E Ranged PartialAmmo ${stamp}`,
+                    type: 'weapon',
+                    system: {
+                        ammo: 1,
+                        firingModes: { single: { label: 'Single', active: true, rounds: 2, recoil: 0 } }
+                    }
+                }
+            ]);
+
+            const original = game.settings.get('sla-industries', 'enableLowAmmoValidation');
+            await game.settings.set('sla-industries', 'enableLowAmmoValidation', true);
+
+            const form = document.createElement('form');
+            const select = document.createElement('select');
+            select.id = 'fire-mode';
+            select.innerHTML = '<option value="single" data-rounds="2" data-recoil="0">Single</option>';
+            form.appendChild(select);
+            select.value = 'single';
+
+            const mods = { damage: 0, successDie: 0, allDice: 0, rank: 0, autoSkillSuccesses: 0 };
+            const notes = [];
+            const flags = {};
+
+            const { applyRangedModifiers } = await import('/systems/sla-industries/module/helpers/modifiers.mjs');
+            const proceeded = await applyRangedModifiers(weapon, form, mods, notes, flags);
+
+            await game.settings.set('sla-industries', 'enableLowAmmoValidation', original);
+            await weapon.delete();
+            return { proceeded, mods, notes };
+        });
+
+        expect(result.proceeded).toBe(true);
+        expect(result.mods.damage).toBe(-2);
+        expect(result.notes).toContain('Low Ammo (-2 DMG).');
+    });
+
+    test('blocks firing with an empty clip (0 rounds)', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [weapon] = await Item.createDocuments([
+                {
+                    name: `E2E Ranged EmptyAmmo ${stamp}`,
                     type: 'weapon',
                     system: {
                         ammo: 0,
@@ -103,9 +144,50 @@ test.describe('GM: applyRangedModifiers (document API)', () => {
             return { proceeded, mods, notes };
         });
 
-        expect(result.proceeded).toBe(true);
-        expect(result.mods.damage).toBe(-2);
-        expect(result.notes).toContain('Low Ammo (-2 DMG).');
+        expect(result.proceeded).toBe(false);
+        expect(result.mods.damage).toBe(0);
+        expect(result.notes).toEqual([]);
+    });
+
+    test('blocks firing with an empty clip even when Low Ammo Validation is off', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [weapon] = await Item.createDocuments([
+                {
+                    name: `E2E Ranged EmptyAmmo ${stamp}`,
+                    type: 'weapon',
+                    system: {
+                        ammo: 0,
+                        firingModes: { single: { label: 'Single', active: true, rounds: 1, recoil: 0 } }
+                    }
+                }
+            ]);
+
+            const original = game.settings.get('sla-industries', 'enableLowAmmoValidation');
+            await game.settings.set('sla-industries', 'enableLowAmmoValidation', false);
+
+            const form = document.createElement('form');
+            const select = document.createElement('select');
+            select.id = 'fire-mode';
+            select.innerHTML = '<option value="single" data-rounds="1" data-recoil="0">Single</option>';
+            form.appendChild(select);
+            select.value = 'single';
+
+            const mods = { damage: 0, successDie: 0, allDice: 0, rank: 0, autoSkillSuccesses: 0 };
+            const notes = [];
+            const flags = {};
+
+            const { applyRangedModifiers } = await import('/systems/sla-industries/module/helpers/modifiers.mjs');
+            const proceeded = await applyRangedModifiers(weapon, form, mods, notes, flags);
+
+            await game.settings.set('sla-industries', 'enableLowAmmoValidation', original);
+            await weapon.delete();
+            return { proceeded, mods, notes };
+        });
+
+        expect(result.proceeded).toBe(false);
+        expect(result.mods.damage).toBe(0);
+        expect(result.notes).toEqual([]);
     });
 
     test('burst mode applies its damage/recoil bonuses and consumes real ammo', async ({ page }) => {

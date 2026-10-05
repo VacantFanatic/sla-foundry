@@ -148,4 +148,67 @@ test.describe('GM: processWeaponRoll (document API)', () => {
 
         expect(result).toBe(0);
     });
+
+    test('refuses a ranged attack and posts nothing when the clip is empty', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const originalSetting = game.settings.get('sla-industries', 'enableTargetRequiredFeatures');
+            await game.settings.set('sla-industries', 'enableTargetRequiredFeatures', false);
+
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                { name: `E2E Weapon Roll Empty ${stamp}`, type: 'character' }
+            ]);
+            const [weapon] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Empty Pistol ${stamp}`,
+                    type: 'weapon',
+                    system: {
+                        attackType: 'ranged',
+                        skill: 'pistol',
+                        damage: '1d10',
+                        equipped: true,
+                        ammo: 0,
+                        firingModes: { single: { label: 'Single', active: true, rounds: 1, recoil: 0 } }
+                    }
+                }
+            ]);
+
+            const form = document.createElement('form');
+            form.innerHTML = `
+                <select id="fire-mode"><option value="single" data-rounds="1" data-recoil="0">Single</option></select>
+                <input name="modifier" value="0">
+                <input name="aim_sd" value="0">
+                <input name="aim_auto" value="0">
+            `;
+
+            const { canProceedWithWeaponAttack, resolveRangedAttackContext } =
+                await import('/systems/sla-industries/module/sheets/actor/weapon-gates.mjs');
+            const { resolveCombatSkillRank, generateSheetTooltip, resolveSheetDamageDisplay, buildSlaRollFlags } =
+                await import('/systems/sla-industries/module/sheets/actor/sheet-helpers.mjs');
+            const { applyMeleeModifiers, applyRangedModifiers } =
+                await import('/systems/sla-industries/module/helpers/modifiers.mjs');
+
+            const sheet = { actor };
+            sheet._canProceedWithWeaponAttack = (item, opts) => canProceedWithWeaponAttack(sheet, item, opts);
+            sheet._resolveCombatSkillRank = (skillInput) => resolveCombatSkillRank(actor, skillInput);
+            sheet._resolveRangedAttackContext = (item, isMelee) => resolveRangedAttackContext(sheet, item, isMelee);
+            sheet._applyMeleeModifiers = (form, strValue, mods) => applyMeleeModifiers(form, strValue, mods);
+            sheet._applyRangedModifiers = (item, form, mods, notes, flags, options) =>
+                applyRangedModifiers(item, form, mods, notes, flags, options);
+            sheet._generateTooltip = (roll, mod, sdMod) => generateSheetTooltip(roll, mod, sdMod);
+            sheet._resolveDamageDisplay = (formula) => resolveSheetDamageDisplay(formula, actor);
+            sheet._buildSlaRollFlags = (params) => buildSlaRollFlags(params);
+
+            const before = game.messages.size;
+            const { processWeaponRoll } = await import('/systems/sla-industries/module/sheets/actor/weapon-rolls.mjs');
+            await processWeaponRoll(sheet, weapon, form, false);
+            const after = game.messages.size;
+
+            await actor.delete();
+            await game.settings.set('sla-industries', 'enableTargetRequiredFeatures', originalSetting);
+            return after - before;
+        });
+
+        expect(result).toBe(0);
+    });
 });

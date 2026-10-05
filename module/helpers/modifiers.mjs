@@ -1,3 +1,5 @@
+import { isMagazineEmpty } from '../sheets/actor/weapon-gates-pure.mjs';
+
 /**
  * Helper functions for calculating attack modifiers (melee and ranged).
  */
@@ -63,7 +65,13 @@ export async function applyRangedModifiers(item, form, mods, notes, flags, optio
     // Read 'ammo' directly as a number
     const currentAmmo = Number(item.system.ammo) || 0;
 
-    // 1. VALIDATE AMMO RULES
+    // 0. EMPTY MAGAZINE: always blocks the attack, independent of world settings
+    if (isMagazineEmpty(item)) {
+        ui.notifications.error(`${item.name} is out of ammo. Reload before firing.`);
+        return false;
+    }
+
+    // 1. VALIDATE AMMO RULES (partial clips only: 0 < ammo < rounds needed)
     if (game.settings.get('sla-industries', 'enableLowAmmoValidation')) {
         const activeModes = Object.values(item.system.firingModes || {}).filter((m) => m.active);
         const minDeviceRounds = activeModes.reduce((min, m) => Math.min(min, m.rounds), 999);

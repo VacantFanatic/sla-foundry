@@ -14,6 +14,17 @@ export function requiresWeaponEquippedForAttack(actor) {
 }
 
 /**
+ * A ranged weapon with no rounds loaded can never fire, regardless of world settings.
+ * (The Low Ammo Validation setting only governs partial clips: 0 < ammo < rounds needed.)
+ *
+ * @param {{ system?: { ammo?: number } }} item
+ * @returns {boolean}
+ */
+export function isMagazineEmpty(item) {
+    return !((Number(item?.system?.ammo) || 0) > 0);
+}
+
+/**
  * Resolves the ammo type key snapshotted onto the weapon at its last reload
  * (see reload-pure.mjs::buildReloadWeaponUpdate). Returns null for a weapon
  * that has never been reloaded (melee weapons, or a fresh ranged weapon).

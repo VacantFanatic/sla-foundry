@@ -68,9 +68,11 @@ When enabled, the system reduces weapon ammo automatically on each ranged attack
 When enabled:
 
 - Prevents firing high-ammo-cost firing modes when current ammo is insufficient.
-- Applies a **−2 Damage** penalty when firing the lowest available mode on an empty or near-empty clip.
+- Applies a **−2 Damage** penalty when firing the lowest available mode on a near-empty clip (some rounds left, but fewer than the mode needs).
 
 Disable to remove these restrictions (ammo tracking must still be on for the penalty to apply).
+
+A clip with **0 rounds** always blocks a ranged attack, regardless of this setting — reload first.
 
 ---
 
