@@ -11,6 +11,8 @@ section only in the PR that prepares the stable release. See
 
 ## [Unreleased]
 
+## [2.14.0] - 2026-10-05
+
 ### Added
 
 - **Clip Size and Loaded fields on the ranged weapon sheet** (#408) — a ranged weapon's clip size
