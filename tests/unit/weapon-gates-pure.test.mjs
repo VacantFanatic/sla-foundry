@@ -6,6 +6,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+    isMagazineEmpty,
     requiresWeaponEquippedForAttack,
     getAmmoDamageModifierForWeapon,
     getAmmoAdModifierForWeapon,
@@ -195,5 +196,26 @@ describe('resolveWeaponAdForDamageRoll', () => {
             resolveWeaponAdForDamageRoll(actor, { system: { ad: 0, powersuitAttack: true, adFromStrMinus: 2 } }),
             4 // 6 − 2
         );
+    });
+});
+
+describe('isMagazineEmpty', () => {
+    test('0 rounds is empty', () => {
+        assert.equal(isMagazineEmpty({ system: { ammo: 0 } }), true);
+    });
+
+    test('negative rounds is empty', () => {
+        assert.equal(isMagazineEmpty({ system: { ammo: -1 } }), true);
+    });
+
+    test('missing or non-numeric ammo is empty', () => {
+        assert.equal(isMagazineEmpty({ system: {} }), true);
+        assert.equal(isMagazineEmpty({ system: { ammo: NaN } }), true);
+        assert.equal(isMagazineEmpty(undefined), true);
+    });
+
+    test('any positive rounds is not empty', () => {
+        assert.equal(isMagazineEmpty({ system: { ammo: 1 } }), false);
+        assert.equal(isMagazineEmpty({ system: { ammo: 10 } }), false);
     });
 });

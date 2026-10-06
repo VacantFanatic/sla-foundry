@@ -11,6 +11,14 @@ section only in the PR that prepares the stable release. See
 
 ## [Unreleased]
 
+## [2.14.1] - 2026-10-06
+
+### Fixed
+
+- **Ranged weapons can no longer attack with an empty clip** (#410) — a weapon with 0 rounds loaded
+  used to roll with a "Low Ammo (-2 DMG)" penalty (or with no check at all when Low Ammo Validation
+  was off). It now refuses to fire until reloaded; the -2 DMG penalty applies only to partial clips.
+
 ## [2.14.0] - 2026-10-05
 
 ### Added

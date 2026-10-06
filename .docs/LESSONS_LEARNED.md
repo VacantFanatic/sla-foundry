@@ -630,3 +630,10 @@ blank string` — caught immediately by manually creating the item in a live Fou
   `latest-pre`, so when a release decision depends on whether a change was in an rc, check that
   rc's zip (`unzip -l sla-industries.zip`) or ask the maintainer. Don't infer it from
   `git merge-base`/`git show <tag>:...` alone.
+- **A "validation" setting was the only guard against firing an empty weapon, and an e2e test
+  enshrined the bug** (#410). `applyRangedModifiers` (`module/helpers/modifiers.mjs`) only checked
+  ammo inside `enableLowAmmoValidation`, and its "lowest mode" rule let `ammo === 0` through with a
+  -2 DMG penalty; `regression-modifiers.spec.js` asserted exactly that, so the suite was green on
+  the bug. Hard invariants (an empty weapon can't fire) belong outside optional world settings;
+  settings should only tune softer rules. When a test's expected value looks surprising, check it
+  against the rulebook/issue rather than treating it as spec.
