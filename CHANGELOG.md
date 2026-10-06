@@ -11,6 +11,8 @@ section only in the PR that prepares the stable release. See
 
 ## [Unreleased]
 
+## [2.14.1] - 2026-10-06
+
 ### Fixed
 
 - **Ranged weapons can no longer attack with an empty clip** (#410) — a weapon with 0 rounds loaded
