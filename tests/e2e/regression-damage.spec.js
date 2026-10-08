@@ -199,14 +199,17 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
         const result = await page.evaluate(async () => {
             const stamp = Date.now();
             const [actor] = await Actor.createDocuments([{ name: `E2E IgnorePV ${stamp}`, type: 'character' }]);
-            const [armor, shield] = await actor.createEmbeddedDocuments('Item', [
+            const armorName = `E2E Body Armor ${stamp}`;
+            const shieldName = `E2E Shield ${stamp}`;
+            // Foundry doesn't guarantee created docs come back in input order -- look up by name.
+            const created = await actor.createEmbeddedDocuments('Item', [
                 {
-                    name: `E2E Body Armor ${stamp}`,
+                    name: armorName,
                     type: 'armor',
                     system: { pv: 6, equipped: true, isShield: false, resistance: { value: 10, max: 10 } }
                 },
                 {
-                    name: `E2E Shield ${stamp}`,
+                    name: shieldName,
                     type: 'armor',
                     system: {
                         isShield: true,
@@ -217,6 +220,8 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
                     }
                 }
             ]);
+            const armor = created.find((d) => d.name === armorName);
+            const shield = created.find((d) => d.name === shieldName);
 
             const { computeArmorMitigation } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
             // Shield Craft succeeded AND ignorePV is true -- ignorePV must still win: no armor,
@@ -279,14 +284,17 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
             const [actor] = await Actor.createDocuments([
                 { name: `E2E Shield Independent ${stamp}`, type: 'character' }
             ]);
-            const [armor, shield] = await actor.createEmbeddedDocuments('Item', [
+            const armorName = `E2E Body Armor ${stamp}`;
+            const shieldName = `E2E Breacher Shield ${stamp}`;
+            // Foundry doesn't guarantee created docs come back in input order -- look up by name.
+            const created = await actor.createEmbeddedDocuments('Item', [
                 {
-                    name: `E2E Body Armor ${stamp}`,
+                    name: armorName,
                     type: 'armor',
                     system: { pv: 4, equipped: true, isShield: false, resistance: { value: 10, max: 10 } }
                 },
                 {
-                    name: `E2E Breacher Shield ${stamp}`,
+                    name: shieldName,
                     type: 'armor',
                     system: {
                         isShield: true,
@@ -297,6 +305,8 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
                     }
                 }
             ]);
+            const armor = created.find((d) => d.name === armorName);
+            const shield = created.find((d) => d.name === shieldName);
 
             const { computeArmorMitigation } = await import('/systems/sla-industries/module/helpers/chat/damage.mjs');
             const mitigation = await computeArmorMitigation(actor, 5, 0, 'melee', true);
@@ -597,10 +607,13 @@ test.describe('GM: damage/HP/wound/armor mutation pipeline (document API)', () =
                 await scene.activate();
                 createdScene = true;
             }
-            const [targetTokenDoc, selectedTokenDoc] = await scene.createEmbeddedDocuments('Token', [
+            // Foundry doesn't guarantee created docs come back in input order -- look up by actor.
+            const createdTokens = await scene.createEmbeddedDocuments('Token', [
                 { ...recordedTarget.prototypeToken.toObject(), actorId: recordedTarget.id, x: 100, y: 100 },
                 { ...selectedVictim.prototypeToken.toObject(), actorId: selectedVictim.id, x: 300, y: 300 }
             ]);
+            const targetTokenDoc = createdTokens.find((d) => d.actorId === recordedTarget.id);
+            const selectedTokenDoc = createdTokens.find((d) => d.actorId === selectedVictim.id);
 
             const deadline = Date.now() + 10_000;
             let selectedPlaceable = null;

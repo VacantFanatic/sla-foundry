@@ -222,18 +222,23 @@ test.describe('GM: reloadWeapon (document API)', () => {
             const [weapon] = await actor.createEmbeddedDocuments('Item', [
                 { name: weaponName, type: 'weapon', system: { ammoType: 'standard' } }
             ]);
-            const [magA, magB] = await actor.createEmbeddedDocuments('Item', [
+            const magAName = `E2E API Multi Mag AP ${stamp}`;
+            const magBName = `E2E API Multi Mag HE ${stamp}`;
+            // Foundry doesn't guarantee created docs come back in input order -- look up by name.
+            const mags = await actor.createEmbeddedDocuments('Item', [
                 {
-                    name: `E2E API Multi Mag AP ${stamp}`,
+                    name: magAName,
                     type: 'magazine',
                     system: { linkedWeapon: weaponName, quantity: 1, ammoType: 'ap', ammoCapacity: 10 }
                 },
                 {
-                    name: `E2E API Multi Mag HE ${stamp}`,
+                    name: magBName,
                     type: 'magazine',
                     system: { linkedWeapon: weaponName, quantity: 1, ammoType: 'he', ammoCapacity: 10 }
                 }
             ]);
+            const magA = mags.find((d) => d.name === magAName);
+            const magB = mags.find((d) => d.name === magBName);
 
             const { reloadWeapon } = await import('/systems/sla-industries/module/helpers/sla-hotbar.mjs');
             // Not awaited here — the promise only resolves once the dialog closes, and this
@@ -281,18 +286,23 @@ test.describe('GM: reloadWeapon (document API)', () => {
             const [weapon] = await actor.createEmbeddedDocuments('Item', [
                 { name: weaponName, type: 'weapon', system: { ammoType: 'standard' } }
             ]);
-            const [magA, magB] = await actor.createEmbeddedDocuments('Item', [
+            const magAName = `E2E API Cancel Mag AP ${stamp}`;
+            const magBName = `E2E API Cancel Mag HE ${stamp}`;
+            // Foundry doesn't guarantee created docs come back in input order -- look up by name.
+            const mags = await actor.createEmbeddedDocuments('Item', [
                 {
-                    name: `E2E API Cancel Mag AP ${stamp}`,
+                    name: magAName,
                     type: 'magazine',
                     system: { linkedWeapon: weaponName, quantity: 1, ammoType: 'ap', ammoCapacity: 10 }
                 },
                 {
-                    name: `E2E API Cancel Mag HE ${stamp}`,
+                    name: magBName,
                     type: 'magazine',
                     system: { linkedWeapon: weaponName, quantity: 1, ammoType: 'he', ammoCapacity: 10 }
                 }
             ]);
+            const magA = mags.find((d) => d.name === magAName);
+            const magB = mags.find((d) => d.name === magBName);
 
             const { reloadWeapon } = await import('/systems/sla-industries/module/helpers/sla-hotbar.mjs');
             window.__reloadPromise = reloadWeapon(weapon.uuid);

@@ -637,3 +637,10 @@ blank string` — caught immediately by manually creating the item in a live Fou
   the bug. Hard invariants (an empty weapon can't fire) belong outside optional world settings;
   settings should only tune softer rules. When a test's expected value looks surprising, check it
   against the rulebook/issue rather than treating it as spec.
+- **`createEmbeddedDocuments` does not return documents in input order.** Intermittent e2e
+  failures in `regression-damage.spec.js` ("bypasses body armor and shield entirely when ignorePV
+  is true", "routes all AD to an active shield") came from `const [armor, shield] = await
+actor.createEmbeddedDocuments('Item', [...])`: a probe creating the pair 40 times saw the two
+  swapped in 5 runs, even with all of the system's item hooks disabled. Positional destructuring
+  is only safe for a single-document call. For 2+ documents, keep the created array and look each
+  one up by its unique name (or `actorId` for tokens), e.g. `created.find((d) => d.name === name)`.

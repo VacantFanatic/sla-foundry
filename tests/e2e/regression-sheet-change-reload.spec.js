@@ -164,18 +164,23 @@ test.describe('GM: onReloadWeapon magazine selection (document API)', () => {
             const [weapon] = await actor.createEmbeddedDocuments('Item', [
                 { name: weaponName, type: 'weapon', system: { attackType: 'ranged', maxAmmo: 30, ammo: 0 } }
             ]);
-            const [extended, standard] = await actor.createEmbeddedDocuments('Item', [
+            const extendedName = `E2E Extended Clip ${stamp}`;
+            const standardName = `E2E Standard Clip ${stamp}`;
+            // Foundry doesn't guarantee created docs come back in input order -- look up by name.
+            const mags = await actor.createEmbeddedDocuments('Item', [
                 {
-                    name: `E2E Extended Clip ${stamp}`,
+                    name: extendedName,
                     type: 'magazine',
                     system: { linkedWeapon: weaponName, quantity: 1, ammoCapacity: 50 }
                 },
                 {
-                    name: `E2E Standard Clip ${stamp}`,
+                    name: standardName,
                     type: 'magazine',
                     system: { linkedWeapon: weaponName, quantity: 1, ammoCapacity: 0 }
                 }
             ]);
+            const extended = mags.find((d) => d.name === extendedName);
+            const standard = mags.find((d) => d.name === standardName);
 
             const { performReload } = await import('/systems/sla-industries/module/sheets/actor/reload.mjs');
             const read = () => {
