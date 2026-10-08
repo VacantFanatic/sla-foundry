@@ -709,3 +709,18 @@ actor.createEmbeddedDocuments('Item', [...])`: a probe creating the pair 40 time
   did not fail the duration test: an effect authored on an item has no `start` for Foundry to reuse, so
   the "copy would expire instantly" story I had written was unverified. The line stays as a safeguard,
   with a comment that says only what was checked.
+- **Core treats an infinite remaining time as "reached", so a rounds effect with no round length ends at the
+  first clock tick.** I planned for a round-based effect used outside combat with `CONFIG.time.roundTime = 0`
+  to "never expire", reading `_prepareCombatBasedDuration` (no combat and no seconds gives `remaining: Infinity`).
+  The live test showed the opposite: `ActiveEffectRegistry#refresh` computes
+  `durationReached = remaining <= 0 || !Number.isFinite(remaining)`, so the effect expires on the next
+  `updateWorldTime`. Reading one half of a core flow and assuming the other half is how this gets missed; run
+  the case. The setting hint, `WORLD_SETTINGS.md` and the e2e test now state the real behaviour.
+- **A prepared `ActiveEffect#duration` is not the stored duration.** Outside combat with a round length set,
+  core reframes a rounds effect as time-based, so the live `effect.duration.units` reads `seconds` while
+  `effect.toObject().duration.units` is still `rounds`; `duration.value` reads `Infinity` for a non-temporary
+  effect where the stored value is `null`. Assert on `toObject()` for what was written and on the live
+  object for how it behaves.
+- **A scene-control tool is keyed by id and rendered as `button[data-action="tool"][data-tool=<name>]`.**
+  `getSceneControlButtons` receives an object (`controls.tokens.tools`), not an array; a `button: true` tool
+  resolves on click without becoming the active tool, and `visible: game.user.isGM` hides it from players.

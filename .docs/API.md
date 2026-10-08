@@ -25,6 +25,8 @@ if (game.sla?.reloadWeapon) {
 | [`canTokenMoveThisTurn(tokenLike)`](#gaslacantokenmovethisturntokenlike) | Function | 2.4.3¹   | Check the per-turn movement lock                                     |
 | [`reloadWeapon(weaponUuid)`](#gaslareloadweaponweaponuuid)               | Function | 2.13.0   | Reload a weapon the same way its sheet control would                 |
 | [`toggleItemEquipped(itemUuid)`](#gaslatoggleitemequippeditemuuid)       | Function | 2.13.0   | Toggle an item's equipped state the same way its sheet control would |
+| [`advanceTime(seconds)`](#gaslaadvancetimeseconds)                       | Function | 2.15.0   | GM only: advance or rewind the world clock                           |
+| [`openGameClock()`](#gaslaopengameclock)                                 | Function | 2.15.0   | GM only: open the game-clock window                                  |
 | [`SlaActor` / `SlaItem`](#gaslaslaactor--gaslaslaitem)                   | Class    | 2.0.0    | Registered `Actor`/`Item` document classes                           |
 
 ¹ Version of the Combat Movement Lock feature per `CHANGELOG.md`; this repo's shallow clone history
@@ -231,6 +233,71 @@ const nowEquipped = await game.sla.toggleItemEquipped(gear.uuid);
 ```
 
 **Source:** `module/helpers/sla-hotbar.mjs`, `module/documents/item.mjs`
+
+---
+
+## `game.sla.advanceTime(seconds)`
+
+**Added in:** 2.15.0
+
+**Signature:** `advanceTime(seconds: number): Promise<number | null>`
+
+### Parameters
+
+| Name      | Type     | Required | Description                                                   |
+| --------- | -------- | -------- | ------------------------------------------------------------- |
+| `seconds` | `number` | Yes      | Seconds to advance the world clock by; negative to rewind it. |
+
+### Returns
+
+`Promise<number | null>` — the new world time in seconds, or `null` if nothing was changed.
+
+### Behavior
+
+Moves Foundry's world clock (`game.time.worldTime`) the same way the game-clock window's buttons do. Timed
+Active Effects and the clock window react to the new time: an effect whose duration has passed is marked
+expired and stops counting, and rewinding un-expires effects that are still on the actor. A drug whose copied
+effects have all expired switches itself off and drops them; rewinding cannot bring those removed copies back.
+
+### Errors
+
+Never throws. Returns `null` (with a `ui.notifications.warn`) for a non-GM user, or for an amount that is `0`,
+not a number, or not finite.
+
+### Example
+
+```js
+await game.sla.advanceTime(2 * 3600); // two hours pass
+await game.sla.advanceTime(-600); // take ten minutes back
+```
+
+**Source:** `module/apps/game-clock.mjs`
+
+---
+
+## `game.sla.openGameClock()`
+
+**Added in:** 2.15.0
+
+**Signature:** `openGameClock(): SlaGameClock | null`
+
+### Behavior
+
+GM only. Opens the game-clock window (the same one the hourglass button in the scene controls opens), or brings
+the open one to the front. It shows the current world time and the combat round length, with buttons to advance
+or rewind by 10 minutes, 1 hour, 8 hours or 1 day, and updates whenever the world time changes from any source.
+
+### Errors
+
+Returns `null` (with a `ui.notifications.warn`) for a non-GM user.
+
+### Example
+
+```js
+game.sla.openGameClock();
+```
+
+**Source:** `module/apps/game-clock.mjs`
 
 ---
 

@@ -12,7 +12,20 @@ All settings are under **Game Settings → System Settings** and are scoped to *
 
 When enabled, the active combatant can move **once per turn**. A second movement attempt is blocked with a warning. Undoing movement (Ctrl+Z) clears the lock so the combatant can move again. Disable this setting to allow multiple movement updates per turn (e.g. for fast narrative play or vehicles).
 
-**How it works:** The system tracks movement state in memory per `combatId:combatantId`. State resets at the start of each new turn via the `combatTurn` hook.
+**How it works:** The system tracks movement state in memory per `combatId:combatantId`. State resets at the start of each new turn via the `updateCombat` hook.
+
+---
+
+### Seconds per Combat Round
+
+**Key:** `secondsPerRound` | **Default:** 6
+
+How much game time one combat round lasts (a placeholder default, not a rule: set it to what your table uses). It is mirrored into Foundry's `CONFIG.time.roundTime`, which does two things:
+
+- Each new combat round advances the **game clock** by this many seconds, so a long fight can run out a "2 hours" effect.
+- An effect with a duration in **rounds** (a drug set to `3 rounds`) counts down on the clock when its owner is not in a running combat, instead of only inside one.
+
+Set it to `0` to keep combat and the clock separate. Outside combat a rounds-based effect then has no way to convert rounds to time, so it ends the next time the game clock moves. Existing worlds start advancing the clock by this setting's value after upgrading; set it to `0` to opt out. See also [item_setup.md](item_setup.md) for how item durations are written.
 
 ---
 

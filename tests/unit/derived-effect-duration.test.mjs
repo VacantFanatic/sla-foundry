@@ -7,41 +7,89 @@
  */
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseDurationSeconds, buildCopiedEffectDuration } from '../../module/documents/derived/effect-duration.mjs';
+import {
+    parseItemDuration,
+    buildCopiedEffectDuration,
+    allEffectsExpired
+} from '../../module/documents/derived/effect-duration.mjs';
 import { computeActiveEffectFieldValue, isEffectActive } from '../../module/documents/derived/active-effects.mjs';
 
-describe('parseDurationSeconds', () => {
-    test('parses a number plus hour / minute / day / second units', () => {
-        assert.equal(parseDurationSeconds('2 hours'), 7200);
-        assert.equal(parseDurationSeconds('1 hour'), 3600);
-        assert.equal(parseDurationSeconds('30 minutes'), 1800);
-        assert.equal(parseDurationSeconds('10 min'), 600);
-        assert.equal(parseDurationSeconds('3 Days'), 259200);
-        assert.equal(parseDurationSeconds('45 seconds'), 45);
+describe('parseItemDuration', () => {
+    test('parses a number plus hour / minute / day / second units into game-time seconds', () => {
+        const secs = (text) => parseItemDuration(text);
+        assert.deepEqual(secs('2 hours'), { value: 7200, units: 'seconds' });
+        assert.deepEqual(secs('1 hour'), { value: 3600, units: 'seconds' });
+        assert.deepEqual(secs('30 minutes'), { value: 1800, units: 'seconds' });
+        assert.deepEqual(secs('10 min'), { value: 600, units: 'seconds' });
+        assert.deepEqual(secs('3 Days'), { value: 259200, units: 'seconds' });
+        assert.deepEqual(secs('45 seconds'), { value: 45, units: 'seconds' });
+    });
+
+    test('parses rounds and turns into combat-time units', () => {
+        assert.deepEqual(parseItemDuration('3 rounds'), { value: 3, units: 'rounds' });
+        assert.deepEqual(parseItemDuration('1 Round'), { value: 1, units: 'rounds' });
+        assert.deepEqual(parseItemDuration('2 turns'), { value: 2, units: 'turns' });
+        assert.deepEqual(parseItemDuration('1 turn'), { value: 1, units: 'turns' });
+        assert.deepEqual(parseItemDuration('10 rounds'), { value: 10, units: 'rounds' });
+    });
+
+    test('maps scene / encounter / end-of-combat wording to the combatEnd expiry', () => {
+        for (const text of ['Scene', 'scene', 'Encounter', 'End of combat', 'Until end of combat', '1 scene']) {
+            assert.deepEqual(parseItemDuration(text), { expiry: 'combatEnd' }, text);
+        }
+    });
+
+    test('a number-and-unit wins over scene wording in the same text', () => {
+        assert.deepEqual(parseItemDuration('2 rounds or end of combat'), { value: 2, units: 'rounds' });
     });
 
     test('returns null when there is no fixed length to resolve', () => {
-        for (const text of ['', undefined, null, 'Scene', 'Permanent', 'until dawn', '5', 'rounds 4']) {
-            assert.equal(parseDurationSeconds(text), null, String(text));
+        for (const text of ['', undefined, null, 'Permanent', 'until dawn', 'a while', '5', '12']) {
+            assert.equal(parseItemDuration(text), null, String(text));
         }
     });
 
     test('refuses dice expressions instead of resolving only the leading digit', () => {
-        assert.equal(parseDurationSeconds('1d6 hours'), null);
-        assert.equal(parseDurationSeconds('2D10 minutes'), null);
-        assert.equal(parseDurationSeconds('2 d 6 minutes'), null);
+        assert.equal(parseItemDuration('1d6 hours'), null);
+        assert.equal(parseItemDuration('2D10 minutes'), null);
+        assert.equal(parseItemDuration('2 d 6 minutes'), null);
+        assert.equal(parseItemDuration('1d6 rounds'), null);
     });
 });
 
 describe('buildCopiedEffectDuration', () => {
-    test('a resolved item duration becomes a v14 real-time duration, never the legacy seconds key', () => {
-        const d = buildCopiedEffectDuration({ value: null, units: 'seconds', expiry: null, expired: false }, 7200);
+    const blank = { value: null, units: 'seconds', expiry: null, expired: false };
+
+    test('a game-time item duration becomes a v14 real-time duration, never the legacy seconds key', () => {
+        const d = buildCopiedEffectDuration(blank, { value: 7200, units: 'seconds' });
         assert.deepEqual(d, { value: 7200, units: 'seconds', expiry: null, expired: false });
         assert.equal('seconds' in d, false);
     });
 
-    test('the item duration overrides a different unit on the source effect', () => {
-        const d = buildCopiedEffectDuration({ value: 3, units: 'rounds', expiry: 'turnEnd', expired: false }, 60);
+    test('a rounds or turns item duration sets combat units', () => {
+        assert.deepEqual(buildCopiedEffectDuration(blank, { value: 3, units: 'rounds' }), {
+            value: 3,
+            units: 'rounds',
+            expiry: null,
+            expired: false
+        });
+        assert.equal(buildCopiedEffectDuration(blank, { value: 2, units: 'turns' }).units, 'turns');
+    });
+
+    test('an end-of-combat item duration sets the expiry and leaves value/units alone', () => {
+        assert.deepEqual(buildCopiedEffectDuration(blank, { expiry: 'combatEnd' }), {
+            value: null,
+            units: 'seconds',
+            expiry: 'combatEnd',
+            expired: false
+        });
+    });
+
+    test('the item duration overrides a different unit on the source effect but keeps its expiry', () => {
+        const d = buildCopiedEffectDuration(
+            { value: 3, units: 'rounds', expiry: 'turnEnd', expired: false },
+            { value: 60, units: 'seconds' }
+        );
         assert.deepEqual(d, { value: 60, units: 'seconds', expiry: 'turnEnd', expired: false });
     });
 
@@ -55,7 +103,7 @@ describe('buildCopiedEffectDuration', () => {
     test('a copy never starts out expired, and the source object is not mutated', () => {
         const source = { value: 60, units: 'seconds', expired: true };
         assert.equal(buildCopiedEffectDuration(source, null).expired, false);
-        assert.equal(buildCopiedEffectDuration(source, 120).expired, false);
+        assert.equal(buildCopiedEffectDuration(source, { value: 120, units: 'seconds' }).expired, false);
         assert.equal(source.expired, true);
         assert.equal(source.value, 60);
     });
@@ -79,5 +127,31 @@ describe('isEffectActive / expiry in derived stat math', () => {
         assert.equal(computeActiveEffectFieldValue([live], ['system.stats.str.bonus'], 3), 5);
         assert.equal(computeActiveEffectFieldValue([live, expired, disabled], ['system.stats.str.bonus'], 3), 5);
         assert.equal(computeActiveEffectFieldValue([expired], ['system.stats.str.bonus'], 3), 3);
+    });
+});
+
+describe('allEffectsExpired', () => {
+    const expired = { duration: { expired: true } };
+    const live = { duration: { expired: false } };
+
+    test('true only when every effect has expired', () => {
+        assert.equal(allEffectsExpired([expired, expired]), true);
+        assert.equal(allEffectsExpired([expired, live]), false);
+        assert.equal(allEffectsExpired([live]), false);
+    });
+
+    test('an effect with no timer (permanent) keeps the group from being fully expired', () => {
+        assert.equal(allEffectsExpired([expired, {}]), false);
+        assert.equal(allEffectsExpired([expired, { duration: {} }]), false);
+    });
+
+    test('empty or missing lists are not "all expired"', () => {
+        assert.equal(allEffectsExpired([]), false);
+        assert.equal(allEffectsExpired(null), false);
+        assert.equal(allEffectsExpired(undefined), false);
+    });
+
+    test('accepts any iterable, such as a Foundry Collection', () => {
+        assert.equal(allEffectsExpired(new Set([expired])), true);
     });
 });

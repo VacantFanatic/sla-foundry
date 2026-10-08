@@ -14,39 +14,64 @@ const SECONDS_PER_UNIT = [
     [/sec/, 1]
 ];
 
+/** Words that mean "until the combat/scene is over" when no number-and-unit is given. */
+const COMBAT_END_WORDS = /\b(scene|encounter|combat|battle)\b/;
+
 /**
- * Parses an item's free-text duration (e.g. "2 hours", "30 minutes", "1 day") into seconds.
- * Returns `null` when it can't be resolved to one fixed length, including dice expressions such as
- * "1d6 hours" (resolving only the leading digit would silently give the wrong length) and units
- * like "Scene" or "Permanent": those copy with no duration, i.e. until removed.
- * @param {unknown} str
- * @returns {number | null}
+ * Turns an item's free-text duration into a v14 duration fragment, or `null` for "no time limit".
+ *
+ * - `2 hours`, `30 minutes`, `1 day`, `45 seconds` -> `{ value: <seconds>, units: 'seconds' }` (game time,
+ *   driven by the world clock)
+ * - `3 rounds`, `2 turns` -> `{ value: 3, units: 'rounds' }` / `{ value: 2, units: 'turns' }` (combat time)
+ * - `Scene`, `Encounter`, `End of combat` -> `{ expiry: 'combatEnd' }`
+ * - anything else, including dice such as `1d6 hours` (resolving only the leading digit would silently give
+ *   the wrong length), `Permanent`, or empty text -> `null`
+ * @param {unknown} text
+ * @returns {{ value: number, units: 'seconds' | 'rounds' | 'turns' } | { expiry: 'combatEnd' } | null}
  */
-export function parseDurationSeconds(str) {
-    if (!str) return null;
-    const s = String(str).toLowerCase();
+export function parseItemDuration(text) {
+    if (!text) return null;
+    const s = String(text).toLowerCase();
     if (/\d\s*d\s*\d/.test(s)) return null;
+
     const n = parseInt(s.match(/\d+/)?.[0] ?? '', 10);
-    if (Number.isNaN(n)) return null;
-    for (const [unit, seconds] of SECONDS_PER_UNIT) {
-        if (unit.test(s)) return n * seconds;
+    if (!Number.isNaN(n)) {
+        if (/\bturns?\b/.test(s)) return { value: n, units: 'turns' };
+        if (/\brounds?\b/.test(s)) return { value: n, units: 'rounds' };
+        for (const [unit, seconds] of SECONDS_PER_UNIT) {
+            if (unit.test(s)) return { value: n * seconds, units: 'seconds' };
+        }
     }
+    if (COMBAT_END_WORDS.test(s)) return { expiry: 'combatEnd' };
     return null;
 }
 
 /**
- * The `duration` to put on a copy of an item's effect. A resolved item duration wins and becomes a
- * real-time duration in seconds; otherwise the source effect's own duration (set on its Duration tab)
- * is kept. Either way `expired` is cleared so a copy never starts out expired.
+ * The `duration` to put on a copy of an item's effect. A parsed item duration wins over the effect's own
+ * `value`/`units`; otherwise the source effect's own duration (set on its Duration tab) is kept. A source
+ * `expiry` is kept unless the item text names one. Either way `expired` is cleared so a copy never starts
+ * out expired.
  * @param {{ value?: unknown, units?: unknown, expiry?: unknown, expired?: unknown } | null | undefined} sourceDuration
- * @param {number | null | undefined} seconds
+ * @param {ReturnType<typeof parseItemDuration> | undefined} parsed
  * @returns {object}
  */
-export function buildCopiedEffectDuration(sourceDuration, seconds) {
+export function buildCopiedEffectDuration(sourceDuration, parsed) {
     const duration = { ...(sourceDuration ?? {}), expired: false };
-    if (Number.isFinite(seconds)) {
-        duration.value = seconds;
-        duration.units = 'seconds';
+    if (parsed && 'units' in parsed) {
+        duration.value = parsed.value;
+        duration.units = parsed.units;
     }
+    if (parsed && 'expiry' in parsed) duration.expiry = parsed.expiry;
     return duration;
+}
+
+/**
+ * Whether every one of these effects has expired. An empty list is not "all expired": there is nothing to
+ * switch off. Used to decide when a drug whose copied effects were all timed can be switched off.
+ * @param {Iterable<{ duration?: { expired?: unknown } }> | null | undefined} effects
+ * @returns {boolean}
+ */
+export function allEffectsExpired(effects) {
+    const list = Array.from(effects ?? []);
+    return list.length > 0 && list.every((e) => e?.duration?.expired === true);
 }

@@ -30,6 +30,9 @@ import { SLATokenRuler } from './canvas/sla-ruler.mjs';
 
 // Import helpers.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
+import { DEFAULT_SECONDS_PER_ROUND, normalizeRoundSeconds } from './helpers/game-clock-pure.mjs';
+import { advanceTime, openGameClock } from './apps/game-clock.mjs';
+import { switchOffDrugWhenExpired } from './documents/actor/effect-expiry.mjs';
 import { SLAChat } from './helpers/chat.mjs';
 import { SLA } from './config.mjs';
 
@@ -141,6 +144,14 @@ function isUndoMovement(options) {
 /* -------------------------------------------- */
 /* Init Hook                                   */
 /* -------------------------------------------- */
+/**
+ * Mirror the `secondsPerRound` world setting into Foundry's own round length, which is what makes a combat round
+ * advance the world clock and lets round-based effect durations convert to time.
+ */
+function applyRoundTime() {
+    CONFIG.time.roundTime = normalizeRoundSeconds(game.settings.get('sla-industries', 'secondsPerRound'));
+}
+
 Hooks.once('init', async function () {
     console.log('SLA INDUSTRIES | Initializing System...');
 
@@ -285,6 +296,16 @@ Hooks.once('init', async function () {
         default: true
     });
 
+    game.settings.register('sla-industries', 'secondsPerRound', {
+        name: 'Seconds per Combat Round',
+        hint: 'How much game time one combat round lasts. Each new combat round advances the game clock by this many seconds, and an effect that lasts a number of rounds counts down on the clock when its owner is not in a running combat. Set to 0 to keep combat and the game clock separate: outside combat, a rounds-based effect then ends the next time the game clock moves.',
+        scope: 'world',
+        config: true,
+        type: Number,
+        default: DEFAULT_SECONDS_PER_ROUND,
+        onChange: () => applyRoundTime()
+    });
+
     game.settings.register('sla-industries', 'packagesCompendiumId', {
         name: 'Training Packages Compendium',
         hint: 'The ID of the compendium pack opened when clicking the Training Package field on actor sheets. System-owned packs are replaced on every update, so create a world-level compendium (Compendium tab → Create Compendium, type Item) containing your package items and paste its ID here — for example "world.packages". World compendiums are stored in your world folder and are never overwritten by system updates.',
@@ -403,8 +424,25 @@ Hooks.once('init', async function () {
         canTokenMoveThisTurn,
         reloadWeapon,
         toggleItemEquipped,
+        advanceTime,
+        openGameClock,
         SlaActor,
         SlaItem
+    });
+
+    // GM-only button in the left scene controls that opens the game clock.
+    Hooks.on('getSceneControlButtons', (controls) => {
+        const tools = controls.tokens?.tools;
+        if (!tools) return;
+        tools.slaGameClock = {
+            name: 'slaGameClock',
+            order: Object.keys(tools).length + 1,
+            title: 'SLA.GameClock.Title',
+            icon: 'fa-solid fa-hourglass-half',
+            button: true,
+            visible: game.user.isGM,
+            onChange: () => openGameClock()
+        };
     });
 
     return preloadHandlebarsTemplates();
@@ -455,6 +493,10 @@ Hooks.once('ready', async function () {
     Hooks.on('renderChatMessageHTML', SLAChat.onRenderChatMessage);
 
     registerSlaHotbar();
+
+    applyRoundTime();
+
+    Hooks.on('updateActiveEffect', switchOffDrugWhenExpired);
 
     Hooks.on('updateCombat', (combat, changed) => {
         if (!combat?.started) return;

@@ -3,7 +3,7 @@
 Status: **stages 1–4 done** (pure table + golden test; every call site routed through
 `SlaItem#syncEffects`; actor hooks observe `equipped`/`active` writes; per-effect `applyOn` selector on
 the item Effects tab). Written after comparing this system's Active Effects with the Wrath & Glory Foundry system (see issue #412 for the larger, deferred ideas:
-Target/Area/Aura transfer, scripts, round/turn durations).
+Target/Area/Aura transfer and scripts; round/turn durations have since been built, see below).
 
 ## Problem
 
@@ -174,3 +174,10 @@ adds a control to maintain.
 Pure unit tests for the table, e2e through the real sheets (not hand-built DOM), updates to
 `DEVELOPER.md` ("Active Effects and stats" and the descendant-hook notes), `item_setup.md` (the
 type/trigger table), `CHANGELOG.md`, and a `LESSONS_LEARNED.md` entry.
+
+## Durations (follow-up)
+
+The Duration text on a drug, the game clock, the `secondsPerRound` world setting and the drug switch-off are
+documented in [item_setup.md](item_setup.md) and [DEVELOPER.md](DEVELOPER.md) ("Active Effects and stats").
+They sit beside this design rather than in it: durations are a property of the copied effect, while this document
+decides when a copy is made or removed.

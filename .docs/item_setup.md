@@ -120,7 +120,17 @@ Drug stat modifiers and damage reduction **must be configured as embedded Active
 Fields on the drug item sheet:
 
 - **Addiction Rating / Addiction Dose:** Reference text; addiction tests are resolved manually at the table.
-- **Duration:** how long the drug's effects last, in **game time**. Write a number and a unit — `2 hours`, `30 minutes`, `1 day`, `45 seconds` — and each effect copied onto the actor when the drug is used gets that length, starts at the world clock's current time, and stops applying once the world clock passes it (the effect stays on the actor greyed out until removed or the drug is used again). Anything it cannot turn into one fixed length (`Scene`, `Permanent`, a dice roll such as `1d6 hours`) copies with no time limit, so the effect lasts until the drug is switched off. The world clock does not run by itself: it only moves when a GM advances it (`game.time.advance(seconds)` in a macro, a calendar module, or combat if `CONFIG.time.roundTime` is set). An effect can also carry its own length on its Duration tab; that is kept when the drug has no Duration text.
+- **Duration:** how long the drug's effects last. When the drug is used, each effect copied onto the actor gets this length, counted from that moment. Write it in one of these forms:
+
+    | Write                                                        | Meaning                                                                                |
+    | ------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+    | `2 hours`, `30 minutes`, `1 day`, `45 seconds`               | **Game time.** Runs out when the game clock passes that much time (see below).         |
+    | `3 rounds`, `2 turns`                                        | **Combat time.** Counts combat rounds or turns while the actor is in a running combat. |
+    | `Scene`, `Encounter`, `End of combat`                        | Ends when the combat ends (or, outside combat, the next time the game clock moves).    |
+    | anything else (`Permanent`, a dice roll such as `1d6 hours`) | No time limit. The effect lasts until the drug is switched off.                        |
+
+    When the time is up the effect stops applying and shows as expired. Once **all** of a drug's effects have expired the drug switches itself off and the expired effects are removed, so the sheet matches reality. A drug with no Duration text still keeps any length you set on an effect's own Duration tab, which is also how to give two effects of one drug different lengths. Game time only moves when the GM moves it: use the hourglass **Game Clock** button in the scene controls (or `game.sla.advanceTime(seconds)` in a macro), or let combat do it with the **Seconds per Combat Round** world setting. Rewinding the clock un-expires effects that are still on the actor but cannot bring back effects the drug already dropped.
+
 - **Detox Effects:** Reference text for treatment information.
 
 ---

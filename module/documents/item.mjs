@@ -1,7 +1,7 @@
 import { createSLARoll } from '../helpers/dice.mjs';
 import { effectsToApply, effectsToRemove } from './derived/effect-triggers.mjs';
 import { createKeyedQueue } from '../helpers/keyed-queue.mjs';
-import { buildCopiedEffectDuration, parseDurationSeconds } from './derived/effect-duration.mjs';
+import { buildCopiedEffectDuration, parseItemDuration } from './derived/effect-duration.mjs';
 import {
     getSlaEncounterScopeId,
     isToxicantImmuneThisEncounter,
@@ -37,7 +37,7 @@ export class SlaItem extends Item {
      * already been deleted from the actor.
      * @param {Actor} actor
      * @param {'equip'|'unequip'|'activate'|'deactivate'|'grant'|'manual'|'delete'} event
-     * @param {{ durationSeconds?: number|null }} [opts] Overrides the duration parsed from `system.duration`.
+     * @param {{ duration?: ReturnType<typeof parseItemDuration> }} [opts] Overrides the duration parsed from `system.duration`; `null` means no override (the effect keeps its own).
      */
     syncEffects(actor, event, opts = {}) {
         if (!actor) return Promise.resolve();
@@ -67,14 +67,13 @@ export class SlaItem extends Item {
         const toCopy = effectsToApply(this.effects, this.type, event);
         if (!toCopy.length) return;
 
-        const durationSeconds =
-            opts.durationSeconds !== undefined ? opts.durationSeconds : parseDurationSeconds(this.system.duration);
+        const itemDuration = opts.duration !== undefined ? opts.duration : parseItemDuration(this.system.duration);
         const payloads = toCopy.map((src) => {
             const data = foundry.utils.duplicate(src.toObject());
             delete data._id;
             data.origin = origin;
             data.transfer = false;
-            data.duration = buildCopiedEffectDuration(data.duration, durationSeconds);
+            data.duration = buildCopiedEffectDuration(data.duration, itemDuration);
             // Foundry stamps "now" as the start of an actor-owned effect, but only for start keys the data
             // leaves undefined. An effect authored on an item normally has no start; drop one if it carries
             // one (say, an effect dragged over from an actor) so the copy always starts when it is copied.
@@ -178,7 +177,7 @@ export class SlaItem extends Item {
         if (success) {
             await setToxicantImmunityThisEncounter(actor, itemUuid);
         } else {
-            await this.syncEffects(actor, 'manual', { durationSeconds: null });
+            await this.syncEffects(actor, 'manual', { duration: null });
             ui.notifications.warn(`${actor.name} is infected: ${this.name}`);
         }
     }

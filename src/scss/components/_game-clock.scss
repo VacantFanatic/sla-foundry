@@ -1,0 +1,39 @@
+/**
+ * GM game clock window (module/apps/game-clock.mjs). Uses the shared dialog shell
+ * (`.sla-dialog-window.dialog`, see _dialog.scss); only the layout inside is defined here.
+ */
+
+.sla-game-clock {
+    .sla-game-clock-root {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .sla-game-clock-time {
+        font-size: 1.125rem;
+        font-weight: 700;
+        text-align: center;
+        color: var(--sla-dialog-accent);
+    }
+
+    .sla-game-clock-hint {
+        margin: 0;
+        text-align: center;
+        font-size: 0.8125rem;
+        color: var(--sla-text-muted, #999);
+    }
+
+    .sla-game-clock-group h4 {
+        margin: 0 0 6px;
+        font-size: 0.8125rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .sla-game-clock-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+}

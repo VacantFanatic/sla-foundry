@@ -53,6 +53,26 @@ test.describe('SLA regression — authenticated', () => {
         expect(ok).toBe(true);
     });
 
+    test('secondsPerRound world setting drives CONFIG.time.roundTime, live', async ({ page }) => {
+        const out = await page.evaluate(async () => {
+            const original = game.settings.get('sla-industries', 'secondsPerRound');
+            try {
+                const initial = { setting: original, roundTime: CONFIG.time.roundTime };
+                await game.settings.set('sla-industries', 'secondsPerRound', 12);
+                const afterSet = CONFIG.time.roundTime;
+                await game.settings.set('sla-industries', 'secondsPerRound', 0);
+                const afterZero = CONFIG.time.roundTime;
+                return { initial, afterSet, afterZero };
+            } finally {
+                await game.settings.set('sla-industries', 'secondsPerRound', original);
+            }
+        });
+        expect(typeof out.initial.setting).toBe('number');
+        expect(out.initial.roundTime).toBe(out.initial.setting);
+        expect(out.afterSet).toBe(12);
+        expect(out.afterZero).toBe(0);
+    });
+
     test('blast region visibility world setting is registered', async ({ page }) => {
         const mode = await page.evaluate(() => game.settings.get('sla-industries', 'blastRegionVisibility'));
         expect(['observer', 'always']).toContain(mode);
