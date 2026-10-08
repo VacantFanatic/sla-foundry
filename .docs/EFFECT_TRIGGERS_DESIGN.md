@@ -1,7 +1,7 @@
 # Design spike: per-effect `applyOn` and centralized effect triggers
 
-Status: **proposal, nothing implemented.** Written after comparing this system's Active Effects
-with the Wrath & Glory Foundry system (see issue #412 for the larger, deferred ideas:
+Status: **proposal; stage 1 done** (pure table + golden test, not yet called by any runtime
+code). Written after comparing this system's Active Effects with the Wrath & Glory Foundry system (see issue #412 for the larger, deferred ideas:
 Target/Area/Aura transfer, scripts, round/turn durations).
 
 ## Problem
@@ -98,9 +98,10 @@ had to do (`EFFECT_CLEANUP_ON_DELETE_TYPES` in `module/documents/actor.mjs`).
 
 Each stage ships on its own and leaves behaviour unchanged unless stated.
 
-1. **Pure table + golden test.** Add `effect-triggers.mjs` and a unit test asserting the exact
-   type → trigger → apply/remove behaviour in the first table. No runtime change. This is the
-   regression net for everything after.
+1. **Pure table + golden test (done).** `module/documents/derived/effect-triggers.mjs` holds the
+   type → event → apply/remove table, and `tests/unit/derived-effect-triggers.test.mjs` asserts the
+   exact behaviour in the first table, written from the call sites rather than from the module. No
+   runtime change. This is the regression net for everything after.
 2. **Route existing call sites through `syncEffects`.** Still no new behaviour; delete the
    duplicated apply/remove code. e2e: the existing #363/#369/weapon/armor/delete specs must stay
    green unchanged.
