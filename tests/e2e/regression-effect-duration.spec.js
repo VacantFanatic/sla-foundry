@@ -54,7 +54,7 @@ test.describe('GM: game clock and effect durations', () => {
 
             const win = page.locator('#sla-game-clock');
             await expect(win).toBeVisible();
-            const readTime = () => win.locator('.sla-game-clock-time').innerText();
+            const readTime = () => win.locator('[data-clock="time"]').innerText();
             const before = await readTime();
 
             await win.locator('button[data-preset="hour1"][data-seconds="3600"]').click();

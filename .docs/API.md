@@ -26,6 +26,7 @@ if (game.sla?.reloadWeapon) {
 | [`reloadWeapon(weaponUuid)`](#gaslareloadweaponweaponuuid)               | Function | 2.13.0   | Reload a weapon the same way its sheet control would                 |
 | [`toggleItemEquipped(itemUuid)`](#gaslatoggleitemequippeditemuuid)       | Function | 2.13.0   | Toggle an item's equipped state the same way its sheet control would |
 | [`advanceTime(seconds)`](#gaslaadvancetimeseconds)                       | Function | 2.15.0   | GM only: advance or rewind the world clock                           |
+| [`setDate(fields)`](#gaslasetdatefields)                                 | Function | 2.15.0   | GM only: set the world clock to an exact date and time               |
 | [`openGameClock()`](#gaslaopengameclock)                                 | Function | 2.15.0   | GM only: open the game-clock window                                  |
 | [`SlaActor` / `SlaItem`](#gaslaslaactor--gaslaslaitem)                   | Class    | 2.0.0    | Registered `Actor`/`Item` document classes                           |
 
@@ -272,6 +273,51 @@ await game.sla.advanceTime(-600); // take ten minutes back
 ```
 
 **Source:** `module/apps/game-clock.mjs`
+
+---
+
+## `game.sla.setDate(fields)`
+
+**Added in:** 2.15.0
+
+**Signature:** `setDate(fields: { year: number, month: number, day: number, hour?: number, minute?: number }): Promise<number | null>`
+
+### Parameters
+
+| Name     | Type     | Required | Description                                          |
+| -------- | -------- | -------- | ---------------------------------------------------- |
+| `year`   | `number` | Yes      | Whole-number year, `0` or later.                     |
+| `month`  | `number` | Yes      | **1-based** month (1 = first month of the calendar). |
+| `day`    | `number` | Yes      | **1-based** day of the month.                        |
+| `hour`   | `number` | No       | `0`-`23`. Defaults to `0`.                           |
+| `minute` | `number` | No       | `0`-`59`. Defaults to `0`.                           |
+
+### Returns
+
+`Promise<number | null>` — the new world time in seconds, or `null` if nothing was changed.
+
+### Behavior
+
+Sets the world clock to exactly that date and time on the world calendar, the same action as the Set date button
+in the game-clock window. The date is the one the calendar _displays_: Foundry's world calendar shows 29 February
+in years 7, 11, ... 2199, 2203 (one year before what its own `isLeapYear` reports), and the day limit follows the
+display. Timed Active Effects react as for any clock change: moving forward expires effects whose time has passed,
+moving back brings still-present expired effects back. A drug that has already switched itself off and dropped its
+effects cannot be restored.
+
+### Errors
+
+Never throws. Returns `null` (with a `ui.notifications.warn`) for a non-GM user, a missing or out-of-range field, a
+day the month does not have in that year (for example 29 February in a year the calendar displays as a common year),
+or a date the calendar never shows.
+
+### Example
+
+```js
+await game.sla.setDate({ year: 2204, month: 3, day: 12, hour: 14, minute: 30 });
+```
+
+**Source:** `module/apps/game-clock.mjs`, `module/helpers/game-clock-pure.mjs`
 
 ---
 

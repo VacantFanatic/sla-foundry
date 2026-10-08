@@ -1,39 +1,108 @@
 /**
- * GM game clock window (module/apps/game-clock.mjs). Uses the shared dialog shell
- * (`.sla-dialog-window.dialog`, see _dialog.scss); only the layout inside is defined here.
+ * GM game clock window (module/apps/game-clock.mjs). It uses the shared dialog shell and parts
+ * (`.sla-dialog-window.dialog`, `.sla-panel.sla-dialog-panel`, `.sla-header-bar-small`, `.sla-dialog-btn`; see
+ * _dialog.scss); only the layout the shared classes cannot express is defined here.
  */
 
 .sla-game-clock {
     .sla-game-clock-root {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 8px;
     }
 
-    .sla-game-clock-time {
-        font-size: 1.125rem;
+    .sla-clock-now {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        padding: 10px 8px;
+    }
+
+    .sla-clock-date {
+        font-size: 1rem;
+        letter-spacing: 0.04em;
+        color: var(--sla-text-light);
+    }
+
+    .sla-clock-time {
+        font-family: var(--sla-font-mono);
+        font-size: 1.75rem;
         font-weight: 700;
-        text-align: center;
+        line-height: 1.15;
         color: var(--sla-dialog-accent);
     }
 
-    .sla-game-clock-hint {
-        margin: 0;
+    .sla-clock-round {
+        margin: 4px 0 0;
         text-align: center;
+    }
+
+    .sla-clock-row {
+        display: grid;
+        grid-template-columns: 76px 1fr;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .sla-clock-row-label {
         font-size: 0.8125rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
         color: var(--sla-text-muted, #999);
     }
 
-    .sla-game-clock-group h4 {
-        margin: 0 0 6px;
-        font-size: 0.8125rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+    .sla-clock-presets {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+
+        .sla-dialog-btn {
+            padding-inline: 4px;
+            white-space: nowrap;
+        }
     }
 
-    .sla-game-clock-buttons {
+    .sla-clock-fields {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr) minmax(0, 1fr);
+        align-items: end;
+        gap: 8px;
+    }
+
+    .sla-clock-field {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+
+        span {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--sla-text-muted, #999);
+        }
+
+        input,
+        select {
+            width: 100%;
+            min-width: 0;
+        }
+    }
+
+    .sla-clock-error {
+        margin: 0;
+        padding: 4px 8px;
+        border: 1px solid var(--sla-danger);
+        border-radius: var(--sla-radius);
+        background: var(--sla-danger-bg);
+        color: var(--sla-danger);
+        font-size: 0.8125rem;
+
+        &[hidden] {
+            display: none;
+        }
     }
 }

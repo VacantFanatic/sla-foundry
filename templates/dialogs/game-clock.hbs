@@ -1,22 +1,70 @@
 <div class="sla-game-clock-root" role="group" aria-label="{{localize 'SLA.GameClock.Title'}}">
-    <div class="sla-game-clock-time" aria-live="polite">{{time}}</div>
-    <p class="sla-game-clock-hint">{{roundLabel}}</p>
-
-    <div class="sla-game-clock-group">
-        <h4>{{localize 'SLA.GameClock.AdvanceHeading'}}</h4>
-        <div class="sla-game-clock-buttons">
-            {{#each advance}}
-            <button type="button" class="sla-dialog-btn sla-dialog-btn--primary" data-action="shiftTime" data-seconds="{{seconds}}" data-preset="{{id}}">{{label}}</button>
-            {{/each}}
+    <div class="sla-panel sla-dialog-panel">
+        <div class="sla-header-bar-small">{{localize 'SLA.GameClock.NowHeading'}}</div>
+        <div class="sla-dialog-panel-body sla-clock-now">
+            <div class="sla-clock-date" data-clock="date" aria-live="polite">{{date}}</div>
+            <div class="sla-clock-time" data-clock="time">{{time}}</div>
+            <p class="sla-dialog-hint sla-clock-round">{{roundLabel}}</p>
         </div>
     </div>
 
-    <div class="sla-game-clock-group">
-        <h4>{{localize 'SLA.GameClock.RewindHeading'}}</h4>
-        <div class="sla-game-clock-buttons">
-            {{#each rewind}}
-            <button type="button" class="sla-dialog-btn sla-dialog-btn--neutral" data-action="shiftTime" data-seconds="{{seconds}}" data-preset="{{id}}">{{label}}</button>
-            {{/each}}
+    <div class="sla-panel sla-dialog-panel">
+        <div class="sla-header-bar-small">{{localize 'SLA.GameClock.MoveHeading'}}</div>
+        <div class="sla-dialog-panel-body sla-dialog-field-stack">
+            <div class="sla-clock-row">
+                <span class="sla-clock-row-label">{{localize 'SLA.GameClock.AdvanceHeading'}}</span>
+                <div class="sla-clock-presets">
+                    {{#each advance}}
+                    <button type="button" class="sla-dialog-btn sla-dialog-btn--outline" data-action="shiftTime" data-seconds="{{seconds}}" data-preset="{{id}}">{{label}}</button>
+                    {{/each}}
+                </div>
+            </div>
+            <div class="sla-clock-row">
+                <span class="sla-clock-row-label">{{localize 'SLA.GameClock.RewindHeading'}}</span>
+                <div class="sla-clock-presets">
+                    {{#each rewind}}
+                    <button type="button" class="sla-dialog-btn sla-dialog-btn--neutral" data-action="shiftTime" data-seconds="{{seconds}}" data-preset="{{id}}">{{label}}</button>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sla-panel sla-dialog-panel">
+        <div class="sla-header-bar-small">{{localize 'SLA.GameClock.SetHeading'}}</div>
+        <div class="sla-dialog-panel-body sla-dialog-field-stack">
+            <div class="sla-clock-fields">
+                <label class="sla-clock-field sla-clock-field--day">
+                    <span>{{localize 'SLA.GameClock.Day'}}</span>
+                    <input type="number" name="day" value="{{fields.day}}" min="1" max="{{maxDay}}" step="1" inputmode="numeric">
+                </label>
+                <label class="sla-clock-field sla-clock-field--month">
+                    <span>{{localize 'SLA.GameClock.Month'}}</span>
+                    <select name="month">
+                        {{#each months}}
+                        <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                        {{/each}}
+                    </select>
+                </label>
+                <label class="sla-clock-field sla-clock-field--year">
+                    <span>{{localize 'SLA.GameClock.Year'}}</span>
+                    <input type="number" name="year" value="{{fields.year}}" min="0" step="1" inputmode="numeric">
+                </label>
+                <label class="sla-clock-field sla-clock-field--hour">
+                    <span>{{localize 'SLA.GameClock.Hour'}}</span>
+                    <input type="number" name="hour" value="{{fields.hour}}" min="0" max="{{maxHour}}" step="1" inputmode="numeric">
+                </label>
+                <label class="sla-clock-field sla-clock-field--minute">
+                    <span>{{localize 'SLA.GameClock.Minute'}}</span>
+                    <input type="number" name="minute" value="{{fields.minute}}" min="0" max="{{maxMinute}}" step="1" inputmode="numeric">
+                </label>
+                <div class="sla-clock-field sla-clock-field--apply">
+                    <button type="button" class="sla-dialog-btn sla-dialog-btn--primary sla-dialog-btn--block" data-action="setDate">
+                        <i class="fas fa-check"></i> {{localize 'SLA.GameClock.Apply'}}
+                    </button>
+                </div>
+            </div>
+            <p class="sla-clock-error" role="alert" hidden></p>
         </div>
     </div>
 </div>

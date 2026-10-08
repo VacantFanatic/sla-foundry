@@ -31,8 +31,12 @@ import { SLATokenRuler } from './canvas/sla-ruler.mjs';
 // Import helpers.
 import { preloadHandlebarsTemplates } from './helpers/templates.mjs';
 import { DEFAULT_SECONDS_PER_ROUND, normalizeRoundSeconds } from './helpers/game-clock-pure.mjs';
-import { advanceTime, openGameClock } from './apps/game-clock.mjs';
-import { switchOffDrugWhenExpired } from './documents/actor/effect-expiry.mjs';
+import { advanceTime, openGameClock, setDate } from './apps/game-clock.mjs';
+import {
+    expireOverdueEffects,
+    recheckEffectOwner,
+    switchOffDrugWhenExpired
+} from './documents/actor/effect-expiry.mjs';
 import { SLAChat } from './helpers/chat.mjs';
 import { SLA } from './config.mjs';
 
@@ -425,6 +429,7 @@ Hooks.once('init', async function () {
         reloadWeapon,
         toggleItemEquipped,
         advanceTime,
+        setDate,
         openGameClock,
         SlaActor,
         SlaItem
@@ -497,6 +502,10 @@ Hooks.once('ready', async function () {
     applyRoundTime();
 
     Hooks.on('updateActiveEffect', switchOffDrugWhenExpired);
+    Hooks.on('updateActiveEffect', recheckEffectOwner);
+    Hooks.on('createActiveEffect', (effect) => recheckEffectOwner(effect));
+    Hooks.on('updateWorldTime', () => expireOverdueEffects());
+    expireOverdueEffects();
 
     Hooks.on('updateCombat', (combat, changed) => {
         if (!combat?.started) return;

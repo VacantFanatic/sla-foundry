@@ -73,6 +73,7 @@ export class SlaItem extends Item {
             delete data._id;
             data.origin = origin;
             data.transfer = false;
+            foundry.utils.setProperty(data, 'flags.sla-industries.sourceName', this.name);
             data.duration = buildCopiedEffectDuration(data.duration, itemDuration);
             // Foundry stamps "now" as the start of an actor-owned effect, but only for start keys the data
             // leaves undefined. An effect authored on an item normally has no start; drop one if it carries

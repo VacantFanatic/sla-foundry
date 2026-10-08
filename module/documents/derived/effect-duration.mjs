@@ -46,10 +46,63 @@ export function parseItemDuration(text) {
     return null;
 }
 
+/** Duration units that run on the world clock (the rest are combat-based: rounds, turns). */
+export const TIME_DURATION_UNITS = Object.freeze(['seconds', 'minutes', 'hours', 'days', 'months', 'years']);
+
+/**
+ * Whether a duration runs on the world clock.
+ * @param {{ units?: unknown } | null | undefined} duration
+ * @returns {boolean}
+ */
+export function isTimeBasedDuration(duration) {
+    return TIME_DURATION_UNITS.includes(duration?.units);
+}
+
+/**
+ * The expiry event that actually gates a duration. Foundry's schema fills `duration.expiry` with
+ * `"turnStart"` whenever an effect is created with a numeric duration, and core then only expires the effect
+ * when its owner's next turn starts (a clock change satisfies the event only outside combat), so in combat a
+ * "1 hour" effect survives eight hours passing. For a time-based duration that default is not a choice anyone
+ * made, so it counts as no event; any other expiry (turnEnd, roundStart, combatEnd, ...) is kept.
+ * @param {{ units?: unknown, expiry?: unknown } | null | undefined} duration
+ * @returns {string | null}
+ */
+export function effectiveExpiry(duration) {
+    const expiry = duration?.expiry || null;
+    if (expiry === 'turnStart' && isTimeBasedDuration(duration)) return null;
+    return expiry;
+}
+
+/**
+ * Whether a timed effect has run out and nothing else is holding it: it is time-based, has a finite length,
+ * the remaining time (computed from the world clock) is zero or less, and its expiry event is unset or only
+ * the schema default. Rounds/turns durations and effects waiting on an explicit event are left to core.
+ * Works on a live ActiveEffect or a plain object with the same fields.
+ * @param {{ duration?: { units?: unknown, expiry?: unknown, remaining?: unknown, value?: unknown } | null } | null | undefined} effect
+ * @returns {boolean}
+ */
+export function isTimeDurationOverdue(effect) {
+    const duration = effect?.duration;
+    if (!duration || !isTimeBasedDuration(duration)) return false;
+    if (effectiveExpiry(duration) !== null) return false;
+    return Number.isFinite(duration.remaining) && duration.remaining <= 0;
+}
+
+/**
+ * The effects whose expiry should be recorded now: overdue (see {@link isTimeDurationOverdue}) and not
+ * already marked expired.
+ * @param {Iterable<{ duration?: { expired?: unknown } }> | null | undefined} effects
+ * @returns {object[]}
+ */
+export function selectOverdueEffects(effects) {
+    return Array.from(effects ?? []).filter((e) => e?.duration?.expired !== true && isTimeDurationOverdue(e));
+}
+
 /**
  * The `duration` to put on a copy of an item's effect. A parsed item duration wins over the effect's own
  * `value`/`units`; otherwise the source effect's own duration (set on its Duration tab) is kept. A source
- * `expiry` is kept unless the item text names one. Either way `expired` is cleared so a copy never starts
+ * `expiry` is kept unless the item text names one, except that the schema-default `turnStart` on a time-based
+ * duration is dropped (see {@link effectiveExpiry}). Either way `expired` is cleared so a copy never starts
  * out expired.
  * @param {{ value?: unknown, units?: unknown, expiry?: unknown, expired?: unknown } | null | undefined} sourceDuration
  * @param {ReturnType<typeof parseItemDuration> | undefined} parsed
@@ -62,7 +115,29 @@ export function buildCopiedEffectDuration(sourceDuration, parsed) {
         duration.units = parsed.units;
     }
     if (parsed && 'expiry' in parsed) duration.expiry = parsed.expiry;
+    // The schema's default turnStart is not a choice for a clock-based duration; see effectiveExpiry.
+    if ('expiry' in duration && effectiveExpiry(duration) === null) duration.expiry = null;
     return duration;
+}
+
+/**
+ * The effects recorded as expired whose time has not actually run out any more, because the clock was moved back.
+ * Reads the stored flag (`_source`), since the prepared `duration.expired` is already recomputed from the clock.
+ * Only clock-based durations; rounds and turns follow combat, which core handles.
+ * @param {Iterable<{ _source?: { duration?: { expired?: unknown } }, duration?: { units?: unknown, remaining?: unknown, expired?: unknown } }> | null | undefined} effects
+ * @returns {object[]}
+ */
+export function selectRevivedEffects(effects) {
+    return Array.from(effects ?? []).filter((e) => {
+        const stored = e?._source?.duration?.expired ?? e?.duration?.expired;
+        const duration = e?.duration;
+        return (
+            stored === true &&
+            isTimeBasedDuration(duration) &&
+            Number.isFinite(duration.remaining) &&
+            duration.remaining > 0
+        );
+    });
 }
 
 /**

@@ -10,7 +10,12 @@ import assert from 'node:assert/strict';
 import {
     parseItemDuration,
     buildCopiedEffectDuration,
-    allEffectsExpired
+    allEffectsExpired,
+    effectiveExpiry,
+    isTimeBasedDuration,
+    isTimeDurationOverdue,
+    selectOverdueEffects,
+    selectRevivedEffects
 } from '../../module/documents/derived/effect-duration.mjs';
 import { computeActiveEffectFieldValue, isEffectActive } from '../../module/documents/derived/active-effects.mjs';
 
@@ -153,5 +158,130 @@ describe('allEffectsExpired', () => {
 
     test('accepts any iterable, such as a Foundry Collection', () => {
         assert.equal(allEffectsExpired(new Set([expired])), true);
+    });
+});
+
+describe('isTimeBasedDuration / effectiveExpiry', () => {
+    test('seconds through years run on the clock; rounds and turns do not', () => {
+        for (const units of ['seconds', 'minutes', 'hours', 'days', 'months', 'years']) {
+            assert.equal(isTimeBasedDuration({ units }), true, units);
+        }
+        for (const units of ['rounds', 'turns', undefined, 'fortnights']) {
+            assert.equal(isTimeBasedDuration({ units }), false, String(units));
+        }
+        assert.equal(isTimeBasedDuration(null), false);
+    });
+
+    test('the schema-default turnStart means no event for a time-based duration only', () => {
+        assert.equal(effectiveExpiry({ units: 'hours', expiry: 'turnStart' }), null);
+        assert.equal(effectiveExpiry({ units: 'rounds', expiry: 'turnStart' }), 'turnStart');
+        assert.equal(effectiveExpiry({ units: 'hours', expiry: 'turnEnd' }), 'turnEnd');
+        assert.equal(effectiveExpiry({ units: 'hours', expiry: 'combatEnd' }), 'combatEnd');
+        assert.equal(effectiveExpiry({ units: 'hours', expiry: '' }), null);
+        assert.equal(effectiveExpiry({ units: 'hours', expiry: null }), null);
+        assert.equal(effectiveExpiry(undefined), null);
+    });
+});
+
+describe('isTimeDurationOverdue / selectOverdueEffects', () => {
+    const base = { units: 'hours', value: 1, expired: false, expiry: null };
+    const overdue = { duration: { ...base, remaining: -7 } };
+
+    test('a clock-based effect past its length is overdue, including with the default turnStart', () => {
+        assert.equal(isTimeDurationOverdue(overdue), true);
+        assert.equal(isTimeDurationOverdue({ duration: { ...base, remaining: 0 } }), true);
+        assert.equal(isTimeDurationOverdue({ duration: { ...base, expiry: 'turnStart', remaining: -7 } }), true);
+    });
+
+    test('time still left, an infinite or missing remaining, or no duration is never overdue', () => {
+        assert.equal(isTimeDurationOverdue({ duration: { ...base, remaining: 1 } }), false);
+        assert.equal(isTimeDurationOverdue({ duration: { ...base, remaining: Infinity } }), false);
+        assert.equal(isTimeDurationOverdue({ duration: { ...base, remaining: null } }), false);
+        assert.equal(isTimeDurationOverdue({ duration: { ...base, remaining: NaN } }), false);
+        assert.equal(isTimeDurationOverdue({}), false);
+        assert.equal(isTimeDurationOverdue(undefined), false);
+    });
+
+    test('combat-based durations and effects waiting on an explicit event are left to core', () => {
+        assert.equal(isTimeDurationOverdue({ duration: { units: 'rounds', value: 3, remaining: -2 } }), false);
+        assert.equal(isTimeDurationOverdue({ duration: { ...base, expiry: 'turnEnd', remaining: -7 } }), false);
+        assert.equal(isTimeDurationOverdue({ duration: { ...base, expiry: 'combatEnd', remaining: -7 } }), false);
+    });
+
+    test('selectOverdueEffects skips effects already marked expired and keeps only overdue ones', () => {
+        const alreadyExpired = { duration: { ...base, expired: true, remaining: -7 } };
+        const live = { duration: { ...base, remaining: 5 } };
+        assert.deepEqual(selectOverdueEffects([overdue, alreadyExpired, live]), [overdue]);
+        assert.deepEqual(selectOverdueEffects(null), []);
+        assert.deepEqual(selectOverdueEffects(new Set([overdue])), [overdue]);
+    });
+
+    test('isEffectActive treats an overdue effect as inactive even before expiry is recorded', () => {
+        assert.equal(isEffectActive(overdue), false);
+        assert.equal(isEffectActive({ duration: { ...base, remaining: 5 } }), true);
+        assert.equal(isEffectActive({ duration: { units: 'rounds', remaining: -1 } }), true);
+    });
+
+    test('an overdue effect no longer adds its bonus to the stat math', () => {
+        const change = { key: 'system.stats.str.bonus', type: 'add', value: 2 };
+        const effect = { changes: [change], duration: { ...base, remaining: -7 } };
+        assert.equal(computeActiveEffectFieldValue([effect], ['system.stats.str.bonus'], 3), 3);
+    });
+});
+
+describe('buildCopiedEffectDuration default expiry', () => {
+    test('a copied clock-based duration drops the schema-default turnStart', () => {
+        const d = buildCopiedEffectDuration({ value: 1, units: 'hours', expiry: 'turnStart', expired: false }, null);
+        assert.equal(d.expiry, null);
+        const text = buildCopiedEffectDuration(
+            { value: null, units: 'seconds', expiry: 'turnStart' },
+            { value: 60, units: 'seconds' }
+        );
+        assert.equal(text.expiry, null);
+    });
+
+    test('rounds keep turnStart, and explicit other events are kept', () => {
+        assert.equal(
+            buildCopiedEffectDuration({ value: 3, units: 'rounds', expiry: 'turnStart' }, null).expiry,
+            'turnStart'
+        );
+        assert.equal(
+            buildCopiedEffectDuration({ value: 1, units: 'hours', expiry: 'turnEnd' }, null).expiry,
+            'turnEnd'
+        );
+        assert.equal(
+            buildCopiedEffectDuration({ value: 1, units: 'hours', expiry: 'combatEnd' }, null).expiry,
+            'combatEnd'
+        );
+    });
+
+    test('a copy with no expiry key does not gain one', () => {
+        assert.equal('expiry' in buildCopiedEffectDuration({ value: 60, units: 'seconds' }, null), false);
+    });
+});
+
+describe('selectRevivedEffects', () => {
+    const timed = (stored, remaining, units = 'hours') => ({
+        _source: { duration: { expired: stored } },
+        duration: { units, remaining, expired: false }
+    });
+
+    test('an effect recorded as expired with time left again is revived', () => {
+        const back = timed(true, 1800);
+        assert.deepEqual(selectRevivedEffects([back]), [back]);
+    });
+
+    test('still overdue, never expired, or not clock-based is left alone', () => {
+        assert.deepEqual(
+            selectRevivedEffects([timed(true, -5), timed(true, 0), timed(false, 1800), timed(true, 1800, 'rounds')]),
+            []
+        );
+        assert.deepEqual(selectRevivedEffects([timed(true, Infinity), timed(true, null), timed(true, NaN)]), []);
+    });
+
+    test('reads the stored flag, falling back to the prepared one for plain objects', () => {
+        const plain = { duration: { units: 'hours', remaining: 60, expired: true } };
+        assert.deepEqual(selectRevivedEffects([plain]), [plain]);
+        assert.deepEqual(selectRevivedEffects(null), []);
     });
 });

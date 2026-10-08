@@ -2,6 +2,8 @@
  * Pure active effect helpers for actor derived data (no document runtime).
  */
 
+import { isTimeDurationOverdue } from './effect-duration.mjs';
+
 /**
  * Active effect change rows (Foundry 14 may store under effect.system.changes).
  * @param {object} effect
@@ -15,14 +17,16 @@ export function effectChangeRows(effect) {
 }
 
 /**
- * Whether an effect currently applies: not disabled, and not suppressed. Foundry's own
- * `ActiveEffect#isSuppressed` is true once a timed effect has expired, so this mirrors core's
- * `ActiveEffect#active`. Plain objects (test fixtures) without `isSuppressed` count as unsuppressed.
- * @param {{ disabled?: boolean, isSuppressed?: boolean } | null | undefined} effect
+ * Whether an effect currently applies: not disabled, not suppressed, and not a clock-based effect whose time has
+ * already run out. Foundry's own `ActiveEffect#isSuppressed` is true once a timed effect has been recorded as
+ * expired, so this mirrors core's `ActiveEffect#active`. The overdue check covers the gap before core records
+ * the expiry (it only does so when it next processes an event), so a derived-data pass in between cannot keep
+ * adding the bonus. Plain objects (test fixtures) without `isSuppressed` or `duration` count as live.
+ * @param {{ disabled?: boolean, isSuppressed?: boolean, duration?: object } | null | undefined} effect
  * @returns {boolean}
  */
 export function isEffectActive(effect) {
-    return !!effect && !effect.disabled && !effect.isSuppressed;
+    return !!effect && !effect.disabled && !effect.isSuppressed && !isTimeDurationOverdue(effect);
 }
 
 /**

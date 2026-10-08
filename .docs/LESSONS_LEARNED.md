@@ -724,3 +724,28 @@ actor.createEmbeddedDocuments('Item', [...])`: a probe creating the pair 40 time
 - **A scene-control tool is keyed by id and rendered as `button[data-action="tool"][data-tool=<name>]`.**
   `getSceneControlButtons` receives an object (`controls.tokens.tools`), not an array; a `button: true` tool
   resolves on click without becoming the active tool, and `visible: game.user.isGM` hides it from players.
+- **Foundry fills `duration.expiry` with `turnStart` for any effect created with a numeric duration, and
+  core then only expires it at its owner's next turn start in combat.** The user's "1 hour" drug stayed
+  active after the clock moved 8 hours because of it (probe: expiry `turnStart` stayed unexpired after +8h,
+  expired after `combat.nextTurn()`; the same effect with the duration typed in afterwards, expiry `null`,
+  expired on the first clock change). The schema default is `initial: d => typeof d?.duration?.value ===
+"number" ? "turnStart" : null`, so how an effect was created decides its behaviour. For clock-based
+  durations the system treats the default as "no event" (`effectiveExpiry`), normalises it away on copy, and
+  runs its own expiry pass. When a symptom depends on how a document was created, probe both creation paths.
+- **Foundry's world calendar is inconsistent with itself, so build date controls on what it displays.**
+  `timeToComponents` shows 29 February in years 7, 11, ... 2203 while `isLeapYear` and `componentsToTime`
+  assume 8, 12, ... 2204, so `timeToComponents(componentsToTime(date))` can land a day off, and a naive form
+  would offer 29 February in the wrong years. Probe a range of years against the live calendar before
+  trusting any date arithmetic, and verify with a round trip through the real UI. Also, month names in the
+  calendar config are localization keys, and `componentsToTime` takes a zero-based day-of-year, not a month and day.
+- **A live "is it overdue" check can hide a missing persistence step in a test.** The first version of the
+  "duration typed in after the time passed" test passed even with the recheck hooks disabled, because the
+  derived math zeroes an overdue bonus by itself and the test only read the STR total. Assert on the stored
+  flag (`toObject().duration.expired`) that the feature is responsible for, and run the mutation check:
+  it only means something once reverting the code makes the test fail.
+- **A mutation that does not apply proves nothing; check it landed.** Two of my mutation runs "passed"
+  because a `sed` pattern no longer matched the Prettier-formatted source. Print a count or the changed line
+  after each mutation (and `diff` the restored file) before reading the test result.
+- **`.sla-effect-meta` had no style at all**, so the remaining-time text inherited a dark colour on the dark
+  row and read as blank in the user's screenshot. When a screenshot shows "nothing there", check whether the
+  element exists and is merely unstyled before debugging data.
