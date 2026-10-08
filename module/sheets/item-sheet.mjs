@@ -6,6 +6,12 @@ import { enrichItemDescription } from '../helpers/item-sheet.mjs';
 import { bindTabKeyboardNav } from '../helpers/tab-keyboard-nav.mjs';
 import { effectChangeRows, summarizeActiveEffectChange } from '../documents/derived/active-effects.mjs';
 import {
+    APPLY_ON_FLAG_KEY,
+    APPLY_ON_FLAG_SCOPE,
+    APPLY_ON_VALUES,
+    buildApplyOnSelect
+} from '../documents/derived/effect-triggers.mjs';
+import {
     handleWeaponDrop,
     handleWeaponSkillDrop,
     handleDisciplineDrop,
@@ -247,13 +253,42 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
                 name: e.name,
                 img: e.img,
                 disabled: e.disabled,
-                changes: effectChangeRows(e).map(summarizeActiveEffectChange)
+                changes: effectChangeRows(e).map(summarizeActiveEffectChange),
+                applyOn: this.#prepareApplyOnSelect(e)
             }));
         }
 
         context.enrichedDescription = await enrichItemDescription(item);
 
         return this._prepareTypeContext(context);
+    }
+
+    /**
+     * Options for an effect row's "applies" selector, or `null` when this item type has a single
+     * trigger and so nothing to choose.
+     * @param {ActiveEffect} effect
+     * @returns {{ options: Array<{ value: string, label: string, selected: boolean }> } | null}
+     */
+    #prepareApplyOnSelect(effect) {
+        const select = buildApplyOnSelect(effect, this.item.type);
+        if (!select) return null;
+        const kindLabel = (kind) => game.i18n.localize(`SLA.ItemSheet.Effects.ApplyOn.Kind.${kind}`);
+        return {
+            options: [
+                {
+                    value: '',
+                    label: game.i18n.format('SLA.ItemSheet.Effects.ApplyOn.Default', {
+                        kind: kindLabel(select.defaultValue)
+                    }),
+                    selected: select.current === ''
+                },
+                ...select.values.map((value) => ({
+                    value,
+                    label: kindLabel(value),
+                    selected: select.current === value
+                }))
+            ]
+        };
     }
 
     /**
@@ -500,6 +535,20 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     };
 
     /** @param {Event} event */
+    #onItemEffectApplyOnChange = async (event) => {
+        const el = event.target;
+        if (!(el instanceof HTMLSelectElement) || !el.classList.contains('sla-item-effect-apply-on')) return;
+        if (!this.isEditable) return;
+        const effect = el.dataset.effectId ? this.item.effects.get(el.dataset.effectId) : null;
+        if (!effect) return;
+        // '' is the "Default" option: drop the flag so the effect follows its item type again.
+        if (!el.value) await effect.unsetFlag(APPLY_ON_FLAG_SCOPE, APPLY_ON_FLAG_KEY);
+        else if (APPLY_ON_VALUES.includes(el.value))
+            await effect.setFlag(APPLY_ON_FLAG_SCOPE, APPLY_ON_FLAG_KEY, el.value);
+        this.render(false);
+    };
+
+    /** @param {Event} event */
     #onItemEffectSearchInput = (event) => {
         const el = event.currentTarget;
         if (!(el instanceof HTMLInputElement)) return;
@@ -528,6 +577,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         }
 
         root.addEventListener('click', this.#onItemEffectUiClick, { signal });
+        root.addEventListener('change', this.#onItemEffectApplyOnChange, { signal });
         this.#syncTabAccessibility(root);
 
         const itemFxSearch = root.querySelector('.sla-item-effect-search');

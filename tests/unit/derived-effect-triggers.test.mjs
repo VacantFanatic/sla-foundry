@@ -18,7 +18,9 @@ import {
     effectsToApply,
     effectsToRemove,
     eventsForItemCreate,
-    eventsForItemUpdate
+    eventsForItemUpdate,
+    APPLY_ON_CHOICES,
+    buildApplyOnSelect
 } from '../../module/documents/derived/effect-triggers.mjs';
 
 const EVENTS = Object.keys(EFFECT_EVENTS);
@@ -149,5 +151,74 @@ describe('eventsForItemUpdate', () => {
         assert.deepEqual(eventsForItemUpdate({ name: 'x', system: { quantity: 2 } }), []);
         assert.deepEqual(eventsForItemUpdate({ system: { equipped: 'yes' } }), []);
         assert.deepEqual(eventsForItemUpdate(undefined), []);
+    });
+});
+
+describe('APPLY_ON_CHOICES', () => {
+    test('every type offers its own default first, and only valid kinds', () => {
+        for (const [type, choices] of Object.entries(APPLY_ON_CHOICES)) {
+            assert.equal(choices[0], DEFAULT_APPLY_ON[type], `${type} default is first`);
+            for (const kind of choices) assert.ok(APPLY_ON_VALUES.includes(kind), `${type} ${kind}`);
+        }
+        assert.deepEqual(Object.keys(APPLY_ON_CHOICES).sort(), Object.keys(DEFAULT_APPLY_ON).sort());
+    });
+
+    test('only offers kinds with a real trigger for the type', () => {
+        // `equipped` needs the equip toggle; `active` needs the drug toggle; `manual` needs code that applies it.
+        for (const type of Object.keys(APPLY_ON_CHOICES)) {
+            const kinds = APPLY_ON_CHOICES[type];
+            assert.equal(kinds.includes('equipped'), ['item', 'weapon', 'armor'].includes(type), `${type} equipped`);
+            assert.equal(kinds.includes('active'), type === 'drug', `${type} active`);
+            assert.equal(kinds.includes('manual'), ['toxicant', 'ebbFormula'].includes(type), `${type} manual`);
+            assert.equal(kinds.includes('owned'), type !== 'toxicant', `${type} owned`);
+        }
+    });
+
+    test('every offered kind actually changes behaviour for that type (no inert choices)', () => {
+        for (const [type, kinds] of Object.entries(APPLY_ON_CHOICES)) {
+            for (const kind of kinds) {
+                const effect = { flags: { 'sla-industries': { applyOn: kind } } };
+                const events = Object.keys(EFFECT_EVENTS).filter(
+                    (e) => effectsToApply([effect], type, e).length || effectsToRemove([effect], type, e).length
+                );
+                assert.ok(events.length > 0, `${type}/${kind} reacts to at least one event`);
+            }
+        }
+    });
+});
+
+describe('buildApplyOnSelect', () => {
+    const plain = { flags: {} };
+
+    test('is null for a single-trigger type, so no pointless control is drawn', () => {
+        assert.equal(buildApplyOnSelect(plain, 'trait'), null);
+        assert.equal(buildApplyOnSelect(plain, 'toxicant'), null);
+        assert.equal(buildApplyOnSelect(plain, 'explosive'), null);
+        assert.equal(buildApplyOnSelect(plain, 'nonsense'), null);
+    });
+
+    test('offers the type choices with the default marked and no explicit value set', () => {
+        assert.deepEqual(buildApplyOnSelect(plain, 'weapon'), {
+            defaultValue: 'equipped',
+            current: '',
+            values: ['equipped', 'owned']
+        });
+        assert.deepEqual(buildApplyOnSelect(undefined, 'ebbFormula'), {
+            defaultValue: 'manual',
+            current: '',
+            values: ['manual', 'owned']
+        });
+    });
+
+    test('reports the stored kind, and keeps a stored kind that is no longer offered visible', () => {
+        const owned = { flags: { 'sla-industries': { applyOn: 'owned' } } };
+        assert.equal(buildApplyOnSelect(owned, 'armor').current, 'owned');
+        const odd = { flags: { 'sla-industries': { applyOn: 'active' } } };
+        assert.deepEqual(buildApplyOnSelect(odd, 'weapon').values, ['equipped', 'owned', 'active']);
+    });
+
+    test('ignores an invalid stored value', () => {
+        const bad = { flags: { 'sla-industries': { applyOn: 'whenever' } } };
+        assert.equal(buildApplyOnSelect(bad, 'drug').current, '');
     });
 });

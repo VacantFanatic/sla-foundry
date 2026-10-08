@@ -1,7 +1,8 @@
 # Design spike: per-effect `applyOn` and centralized effect triggers
 
-Status: **proposal; stages 1–3 done** (pure table + golden test; every call site routed through
-`SlaItem#syncEffects`; actor hooks observe `equipped`/`active` writes). Written after comparing this system's Active Effects with the Wrath & Glory Foundry system (see issue #412 for the larger, deferred ideas:
+Status: **stages 1–4 done** (pure table + golden test; every call site routed through
+`SlaItem#syncEffects`; actor hooks observe `equipped`/`active` writes; per-effect `applyOn` selector on
+the item Effects tab). Written after comparing this system's Active Effects with the Wrath & Glory Foundry system (see issue #412 for the larger, deferred ideas:
 Target/Area/Aura transfer, scripts, round/turn durations).
 
 ## Problem
@@ -121,27 +122,52 @@ Each stage ships on its own and leaves behaviour unchanged unless stated.
    `equipped: true`" gap. Real-document e2e (`regression-sheet-click.spec.js`, "stage 3"): created
    already equipped, a plain `item.update`, and five rapid flips ending in exactly one copy. Each
    fails when its piece (update hook, create-time equip, queue) is removed.
-4. **Per-effect `applyOn` + row selector.** The only user-visible feature. Needs a real-template
-   e2e that picks a value in the Effects tab and observes the actor (see CLAUDE.md on #363 → #369).
+4. **Per-effect `applyOn` + row selector (done).** Each row on the item sheet's Effects tab gets a
+   "when this effect applies" dropdown for item types with more than one real trigger. It stores
+   `flags['sla-industries'].applyOn` on the embedded effect (`setFlag`); "Default (…)" unsets it so the
+   effect follows its item type again. The offered values come from `APPLY_ON_CHOICES` in
+   `effect-triggers.mjs`, which lists only triggers that exist for the type, so the control never
+   offers something inert (DESIGN_PRINCIPLES #7):
+
+    | Type                      | Offered (default first) | Why                                                   |
+    | ------------------------- | ----------------------- | ----------------------------------------------------- |
+    | `item`, `weapon`, `armor` | equipped, owned         | Equip toggle exists only for these                    |
+    | `drug`                    | active, owned           | `system.active` and its toggle exist only on drugs    |
+    | `ebbFormula`              | manual, owned           | The Ebb apply button is the only manual trigger       |
+    | `trait`                   | _(no selector)_         | Only `owned` is possible, so there is nothing to pick |
+    | `toxicant`                | _(no selector)_         | `owned` is excluded: it would skip the infection test |
+
+    `manual` is deliberately not offered on weapons or armor: nothing in the system applies a manual
+    effect for them, so a "weapon with an on-hit effect" is not buildable with this flag alone (that
+    needs the roll-time work in #412). A stored kind that is no longer offered for a type stays visible
+    in the dropdown instead of being hidden. Copies already on an actor keep the flag they were copied
+    with, so a change applies the next time the trigger fires, not retroactively. Real-sheet e2e
+    (`regression-item-sheets.spec.js`): the selector appears only for multi-trigger types, picking a
+    value stores the flag and Default clears it, and a gear item with a while-equipped effect plus an
+    effect switched to `owned` through the real dropdown delivers +1 on grant, +3 when equipped, +1 when
+    unequipped and nothing after delete. That test fails when the table ignores the flag.
+
 5. **Optional, later:** a declarative condition field alongside `applyOn` (part of #412).
 
 ## Honest assessment
 
-The valuable part is stages 1–3: one trigger table, one sync method, and observing state at actor
-hooks. They remove the bug class that has now bitten four times. The per-effect flag (stage 4) is
-the least valuable part today, because every existing type has exactly one trigger, so it only
-pays off for mixed items (for example a weapon with a while-equipped bonus plus a manual
-"on hit" effect). If no GM has asked for that, stop after stage 3.
+The valuable part was stages 1–3: one trigger table, one sync method, and observing state at actor
+hooks. They remove the bug class that bit four times. Stage 4 is the least valuable part today:
+the only mixed-trigger items it enables are an `owned` effect next to an `equipped` one on
+gear/weapons/armor, an `owned` effect on a drug alongside its `active` one, and an `owned` passive on
+an Ebb formula. If no GM wants those, the selector is harmless (hidden where it cannot matter) but
+adds a control to maintain.
 
-## Open questions for the maintainer
+## Open questions (answered by the stage 4 implementation, revisit if wrong)
 
-1. Is there a concrete item that needs two different triggers? That decides whether stage 4 is
-   worth building at all.
-2. Should `owned` be available on gear/weapons (always-on, no equip needed), or stay trait-only?
-3. Is `flags.sla-industries.applyOn` acceptable, or do you want to wait and pay for a custom
-   `ActiveEffect` DataModel once conditions land?
-4. Toxicant effects currently have no removal path at all. Should `manual` effects get a
-   "remove" button on the actor's Effects tab, or is the existing delete control enough?
+1. _Is there a concrete item that needs two different triggers?_ Unconfirmed. Stage 4 was built
+   because it was asked for; the cases above are the ones it enables.
+2. _Should `owned` be available on gear/weapons?_ Yes: it works for every type with an Effects tab
+   except toxicants.
+3. _Flag or a custom `ActiveEffect` DataModel?_ A flag, with no migration (absent means the type
+   default). Revisit when conditions (#412) add more per-effect fields.
+4. _Remove button for `manual` effects?_ Still open. Toxicant and Ebb copies are only removed by
+   re-applying or by deleting the effect on the actor.
 
 ## Test and doc obligations when this is built
 

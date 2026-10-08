@@ -6,17 +6,17 @@ Quick reference to every doc in this repo, grouped by purpose. Start with [CONTR
 
 ### Contributing
 
-| Doc                                                                | Covers                                                                                                         |
-| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| [CONTRIBUTING.md](CONTRIBUTING.md)                                 | Workflow, branching, TDD, code style, opening a PR                                                             |
-| [.docs/DEVELOPER.md](.docs/DEVELOPER.md)                           | Architecture, project structure, data models, migration system, public API, common-task recipes                |
-| [.docs/API.md](.docs/API.md)                                       | Full `game.sla` public API reference — signatures, params, returns, examples                                   |
-| [.docs/DESIGN_PRINCIPLES.md](.docs/DESIGN_PRINCIPLES.md)           | Design principles for architecture, UI/UX, API, and process decisions — the tiebreaker for real tradeoffs      |
-| [.docs/LESSONS_LEARNED.md](.docs/LESSONS_LEARNED.md)               | Non-obvious bugs/footguns found in past sessions — read before non-trivial changes                             |
-| [.docs/EFFECT_TRIGGERS_DESIGN.md](.docs/EFFECT_TRIGGERS_DESIGN.md) | Design spike (proposal only): central effect-trigger table, `applyOn` flag, staged plan for item→actor effects |
-| [.docs/CLOUD_ENVIRONMENT.md](.docs/CLOUD_ENVIRONMENT.md)           | Foundry setup for a Claude Code on the web / Claude Code Remote session                                        |
-| [.docs/AGENTS.md](.docs/AGENTS.md)                                 | Cursor Cloud agent setup — Foundry secrets, Docker, E2E                                                        |
-| [SECURITY.md](SECURITY.md)                                         | Private vulnerability reporting process                                                                        |
+| Doc                                                                | Covers                                                                                                            |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| [CONTRIBUTING.md](CONTRIBUTING.md)                                 | Workflow, branching, TDD, code style, opening a PR                                                                |
+| [.docs/DEVELOPER.md](.docs/DEVELOPER.md)                           | Architecture, project structure, data models, migration system, public API, common-task recipes                   |
+| [.docs/API.md](.docs/API.md)                                       | Full `game.sla` public API reference — signatures, params, returns, examples                                      |
+| [.docs/DESIGN_PRINCIPLES.md](.docs/DESIGN_PRINCIPLES.md)           | Design principles for architecture, UI/UX, API, and process decisions — the tiebreaker for real tradeoffs         |
+| [.docs/LESSONS_LEARNED.md](.docs/LESSONS_LEARNED.md)               | Non-obvious bugs/footguns found in past sessions — read before non-trivial changes                                |
+| [.docs/EFFECT_TRIGGERS_DESIGN.md](.docs/EFFECT_TRIGGERS_DESIGN.md) | Central effect-trigger table, `syncEffects`, actor hooks and the per-effect `applyOn` flag for item→actor effects |
+| [.docs/CLOUD_ENVIRONMENT.md](.docs/CLOUD_ENVIRONMENT.md)           | Foundry setup for a Claude Code on the web / Claude Code Remote session                                           |
+| [.docs/AGENTS.md](.docs/AGENTS.md)                                 | Cursor Cloud agent setup — Foundry secrets, Docker, E2E                                                           |
+| [SECURITY.md](SECURITY.md)                                         | Private vulnerability reporting process                                                                           |
 
 ### Gameplay systems (for GMs and contributors)
 

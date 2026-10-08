@@ -25,6 +25,15 @@
                 </ul>
                 {{/if}}
             </div>
+            {{#if eff.applyOn}}
+            <div class="item-detail flex1 sla-effect-apply-on">
+                <select class="sla-item-effect-apply-on" data-effect-id="{{eff.id}}" title="{{localize "SLA.ItemSheet.Effects.ApplyOn.Hint"}}" aria-label="{{localize "SLA.ItemSheet.Effects.ApplyOn.Label"}}" {{#unless ../editable}}disabled{{/unless}}>
+                    {{#each eff.applyOn.options}}
+                    <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                    {{/each}}
+                </select>
+            </div>
+            {{/if}}
             {{#if ../editable}}
             <div class="item-controls flex0">
                 <button type="button" class="sla-item-effect-edit" data-effect-id="{{eff.id}}" title="{{localize "SLA.ItemSheet.Effects.Edit"}}"><i class="fas fa-edit"></i></button>

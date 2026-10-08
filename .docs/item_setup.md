@@ -206,6 +206,8 @@ table — only attach an Active Effect to a trait whose rule is a flat, always-o
 
 Supported keys are `system.stats.<stat>.bonus`, `system.rollModifier.bonus`, `system.hp.bonus`, and (characters only) `system.move.closing` / `system.move.rushing`; see "Active Effects and stats" in [DEVELOPER.md](DEVELOPER.md). Effects are copied onto the actor when the item is equipped, activated or granted, and removed when it is unequipped, deactivated or deleted.
 
+**Choosing when an effect applies.** On gear, weapons, armor, drugs and Ebb formulas, each row of the Effects tab has a "when this effect applies" dropdown, so one item can carry effects with different triggers (for example a bonus **While equipped** next to one that is always **While owned**). "Default" follows the item type: gear/weapon/armor while equipped, drugs while active, Ebb formulas when applied from the chat card. Traits and toxicants have a single trigger, so they show no dropdown. A change affects the next time the trigger fires; effects already copied onto an actor are not rewritten.
+
 ---
 
 ## 7. Armor & Powersuits

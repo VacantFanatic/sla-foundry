@@ -120,3 +120,44 @@ export function eventsForItemUpdate(changes) {
     if (typeof active === 'boolean') events.push(active ? 'activate' : 'deactivate');
     return events;
 }
+
+/**
+ * The `applyOn` kinds that have a real trigger for each item type, default first. A selector must
+ * only offer these: `equipped` needs the equip toggle (item/weapon/armor only), `active` needs the
+ * drug Active toggle, `manual` needs code that applies it (the infection test, the Ebb apply button),
+ * while `owned` works for any type because the actor's create/delete hooks fire for every item.
+ * Toxicants are `manual` only on purpose: applying one on ownership would skip its infection test.
+ */
+export const APPLY_ON_CHOICES = Object.freeze({
+    item: Object.freeze(['equipped', 'owned']),
+    weapon: Object.freeze(['equipped', 'owned']),
+    armor: Object.freeze(['equipped', 'owned']),
+    trait: Object.freeze(['owned']),
+    drug: Object.freeze(['active', 'owned']),
+    toxicant: Object.freeze(['manual']),
+    ebbFormula: Object.freeze(['manual', 'owned'])
+});
+
+/** The flag an effect stores its explicit trigger kind under: `flags['sla-industries'].applyOn`. */
+export const APPLY_ON_FLAG_SCOPE = 'sla-industries';
+export const APPLY_ON_FLAG_KEY = 'applyOn';
+
+/**
+ * What the item sheet's per-effect trigger selector should show, or `null` when the type has only
+ * one trigger (nothing for the GM to choose, so no control).
+ * @param {{ flags?: Record<string, any> } | null | undefined} effect
+ * @param {string} itemType
+ * @returns {{ defaultValue: string, current: string, values: string[] } | null}
+ *   `current` is the stored kind ('' when the effect uses the type default); `values` lists every
+ *   kind to offer besides "default", with a stored kind appended when it is no longer offered for
+ *   this type so the control never hides what is actually set.
+ */
+export function buildApplyOnSelect(effect, itemType) {
+    const choices = Object.hasOwn(APPLY_ON_CHOICES, itemType) ? APPLY_ON_CHOICES[itemType] : [];
+    if (choices.length < 2) return null;
+    const stored = effect?.flags?.[APPLY_ON_FLAG_SCOPE]?.[APPLY_ON_FLAG_KEY];
+    const current = typeof stored === 'string' && APPLY_ON_VALUES.includes(stored) ? stored : '';
+    const values = [...choices];
+    if (current && !values.includes(current)) values.push(current);
+    return { defaultValue: DEFAULT_APPLY_ON[itemType], current, values };
+}

@@ -85,6 +85,12 @@ form.application.sla-industries.item .sla-item-effect-row {
         color: var(--sla-text-muted, #aaa);
     }
 
+    .sla-effect-apply-on select {
+        width: 100%;
+        min-width: 0;
+        font-size: 0.75rem;
+    }
+
     .item-controls {
         display: flex;
         gap: 4px;
