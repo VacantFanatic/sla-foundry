@@ -1,10 +1,14 @@
 import { createSLARoll } from '../helpers/dice.mjs';
 import { effectsToApply, effectsToRemove } from './derived/effect-triggers.mjs';
+import { createKeyedQueue } from '../helpers/keyed-queue.mjs';
 import {
     getSlaEncounterScopeId,
     isToxicantImmuneThisEncounter,
     setToxicantImmunityThisEncounter
 } from '../helpers/toxicant-scope.mjs';
+
+/** Serializes each item's effect syncs (delete stale copies, then create) so overlapping triggers can't double-create. */
+const effectSyncQueue = createKeyedQueue();
 
 /**
  * Extend the basic Item with some very simple modifications.
@@ -50,8 +54,23 @@ export class SlaItem extends Item {
      * @param {'equip'|'unequip'|'activate'|'deactivate'|'grant'|'manual'|'delete'} event
      * @param {{ durationSeconds?: number|null }} [opts] Overrides the duration parsed from `system.duration`.
      */
-    async syncEffects(actor, event, opts = {}) {
-        if (!actor) return;
+    syncEffects(actor, event, opts = {}) {
+        if (!actor) return Promise.resolve();
+        return effectSyncQueue.run(this.uuid, () => this._syncEffectsNow(actor, event, opts));
+    }
+
+    /**
+     * Resolves once every effect sync queued for this item so far has finished (never rejects).
+     * The actor's create/update hooks start syncs without awaiting them, so a caller that needs the
+     * effects in place (a setter, a drop handler) awaits this after the write that triggered them.
+     * @returns {Promise<void>}
+     */
+    effectsSettled() {
+        return effectSyncQueue.settled(this.uuid);
+    }
+
+    /** @private The unqueued body of {@link SlaItem#syncEffects}. */
+    async _syncEffectsNow(actor, event, opts) {
         const origin = this.uuid;
         const copies = actor.effects.filter((e) => e.origin === origin);
         const staleIds = [
@@ -86,7 +105,8 @@ export class SlaItem extends Item {
      */
     async setEquipped(equipped) {
         await this.update({ 'system.equipped': equipped });
-        await this.syncEffects(this.actor, equipped ? 'equip' : 'unequip');
+        // The actor's update hook syncs effects for this change (and for any other writer); wait for it.
+        await this.effectsSettled();
         return equipped;
     }
 
@@ -99,7 +119,8 @@ export class SlaItem extends Item {
 
         if (!this.actor) return;
 
-        await this.syncEffects(this.actor, newState ? 'activate' : 'deactivate');
+        // The actor's update hook syncs effects for this change; wait for it before notifying.
+        await this.effectsSettled();
         if (newState) {
             if (this.effects?.size > 0) {
                 ui.notifications.info(`${this.name} applied.`);

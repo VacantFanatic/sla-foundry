@@ -1,7 +1,7 @@
 # Design spike: per-effect `applyOn` and centralized effect triggers
 
-Status: **proposal; stages 1–2 done** (pure table + golden test; every call site routed through
-`SlaItem#syncEffects`). Written after comparing this system's Active Effects with the Wrath & Glory Foundry system (see issue #412 for the larger, deferred ideas:
+Status: **proposal; stages 1–3 done** (pure table + golden test; every call site routed through
+`SlaItem#syncEffects`; actor hooks observe `equipped`/`active` writes). Written after comparing this system's Active Effects with the Wrath & Glory Foundry system (see issue #412 for the larger, deferred ideas:
 Target/Area/Aura transfer, scripts, round/turn durations).
 
 ## Problem
@@ -110,11 +110,17 @@ Each stage ships on its own and leaves behaviour unchanged unless stated.
    `EFFECT_CLEANUP_ON_DELETE_TYPES` set. The existing #363/#369/weapon/armor/delete, operators,
    drug-dose, NPC-drop and trait specs are the check. Not covered by any e2e: the failed-infection
    (toxicant) path, which needs a stubbed roll.
-3. **Centralize on actor hooks.** Adds `_onUpdateDescendantDocuments`; fixes the latent
-   "created with `equipped: true`" gap. New e2e: create an item with `system.equipped: true` and an
-   effect via `createEmbeddedDocuments` and assert the effect lands; flip `system.active` through a
-   plain `item.update` and assert the same. Watch for rapid double toggles, since apply is
-   remove-then-create.
+3. **Centralize on actor hooks (done).** `SlaActor#_onUpdateDescendantDocuments` (new) syncs on any
+   `system.equipped` / `system.active` change, and `_onCreateDescendantDocuments` now also fires
+   `equip` / `activate` for an item created already equipped or active
+   (`eventsForItemUpdate` / `eventsForItemCreate` in `effect-triggers.mjs`). So `setEquipped`,
+   `toggleActive` and the NPC auto-equip drop no longer sync themselves: they write the field and
+   `await item.effectsSettled()`, because the hooks start the sync without awaiting it. Syncs for one
+   item run through a per-item queue (`helpers/keyed-queue.mjs`), since apply is delete-then-create and
+   overlapping runs from rapid toggles would double-create. This closes the latent "created with
+   `equipped: true`" gap. Real-document e2e (`regression-sheet-click.spec.js`, "stage 3"): created
+   already equipped, a plain `item.update`, and five rapid flips ending in exactly one copy. Each
+   fails when its piece (update hook, create-time equip, queue) is removed.
 4. **Per-effect `applyOn` + row selector.** The only user-visible feature. Needs a real-template
    e2e that picks a value in the Effects tab and observes the actor (see CLAUDE.md on #363 → #369).
 5. **Optional, later:** a declarative condition field alongside `applyOn` (part of #412).

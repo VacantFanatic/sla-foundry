@@ -16,7 +16,9 @@ import {
     EFFECT_EVENTS,
     resolveApplyOn,
     effectsToApply,
-    effectsToRemove
+    effectsToRemove,
+    eventsForItemCreate,
+    eventsForItemUpdate
 } from '../../module/documents/derived/effect-triggers.mjs';
 
 const EVENTS = Object.keys(EFFECT_EVENTS);
@@ -120,5 +122,32 @@ describe('robustness', () => {
     test('accepts any iterable, such as a Foundry Collection of effects', () => {
         const collection = new Map([['a', plainEffect]]).values();
         assert.deepEqual(effectsToApply(collection, 'item', 'equip'), [plainEffect]);
+    });
+});
+
+describe('eventsForItemCreate', () => {
+    test('always grants, and also equips/activates an item created already in that state', () => {
+        assert.deepEqual(eventsForItemCreate({}), ['grant']);
+        assert.deepEqual(eventsForItemCreate(undefined), ['grant']);
+        assert.deepEqual(eventsForItemCreate({ equipped: false, active: false }), ['grant']);
+        assert.deepEqual(eventsForItemCreate({ equipped: true }), ['grant', 'equip']);
+        assert.deepEqual(eventsForItemCreate({ active: true }), ['grant', 'activate']);
+        assert.deepEqual(eventsForItemCreate({ equipped: true, active: true }), ['grant', 'equip', 'activate']);
+    });
+});
+
+describe('eventsForItemUpdate', () => {
+    test('maps equipped/active changes to events in both change shapes', () => {
+        assert.deepEqual(eventsForItemUpdate({ system: { equipped: true } }), ['equip']);
+        assert.deepEqual(eventsForItemUpdate({ system: { equipped: false } }), ['unequip']);
+        assert.deepEqual(eventsForItemUpdate({ 'system.equipped': true }), ['equip']);
+        assert.deepEqual(eventsForItemUpdate({ system: { active: true } }), ['activate']);
+        assert.deepEqual(eventsForItemUpdate({ 'system.active': false }), ['deactivate']);
+    });
+
+    test('ignores unrelated changes and non-boolean values', () => {
+        assert.deepEqual(eventsForItemUpdate({ name: 'x', system: { quantity: 2 } }), []);
+        assert.deepEqual(eventsForItemUpdate({ system: { equipped: 'yes' } }), []);
+        assert.deepEqual(eventsForItemUpdate(undefined), []);
     });
 });

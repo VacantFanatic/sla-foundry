@@ -15,6 +15,7 @@ import { clampHpValue } from '../sheets/actor/sheet-ux-pure.mjs';
 import { countWounds, deriveLogicConditions } from './derived/wounds.mjs';
 import { resolveDerivedHpMax } from './derived/hp.mjs';
 import { computeArmorModifierEffects } from './derived/armor-modifiers.mjs';
+import { eventsForItemCreate, eventsForItemUpdate } from './derived/effect-triggers.mjs';
 import { computeInitiativeBonus, computeMovement } from './derived/movement.mjs';
 import { handleSpeciesAdd, handleSpeciesRemove } from './actor/species-lifecycle.mjs';
 import { syncBleedingToWounds, handleWoundEffects, handleWoundThresholds } from './actor/wound-lifecycle.mjs';
@@ -436,9 +437,25 @@ export class SlaActor extends Actor {
             if (doc.type === 'species') {
                 handleSpeciesAdd(this, doc);
             } else {
-                doc.syncEffects(this, 'grant');
+                for (const event of eventsForItemCreate(doc.system)) doc.syncEffects(this, event);
             }
         }
+    }
+
+    /**
+     * Any change to an item's `system.equipped` / `system.active` syncs its Active Effects, no
+     * matter who wrote it (sheet, hotbar, macro, import). Only the updating user's client runs it.
+     * @override
+     */
+    _onUpdateDescendantDocuments(parent, collection, documents, changes, options, userId) {
+        super._onUpdateDescendantDocuments(parent, collection, documents, changes, options, userId);
+
+        if (collection !== 'items') return;
+        if (game.user.id !== userId) return;
+
+        documents.forEach((doc, i) => {
+            for (const event of eventsForItemUpdate(changes[i])) doc.syncEffects(this, event);
+        });
     }
 
     /** @override */

@@ -285,6 +285,122 @@ test.describe('GM: handleSheetClick dispatch (document API)', () => {
         expect(result.drug).toEqual({ before: 1, after: 1 });
     });
 
+    test('stage 3: an item created already equipped gets its effect, with no setter involved', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Created Equipped ${stamp}`,
+                    type: 'character',
+                    system: { stats: { str: { value: 3, bonus: 0 } } }
+                }
+            ]);
+            // A macro / import shape: embedded effect + equipped:true in the create data, no setEquipped.
+            const [weapon] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Pre-equipped ${stamp}`,
+                    type: 'weapon',
+                    system: { equipped: true },
+                    effects: [
+                        {
+                            name: 'E2E Pre-equipped Boost',
+                            disabled: false,
+                            changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 2 }]
+                        }
+                    ]
+                }
+            ]);
+            const uuid = weapon.uuid;
+            // Do NOT await effectsSettled: a macro wouldn't. Poll for the effect instead.
+            const deadline = Date.now() + 8000;
+            while (Date.now() < deadline && !game.actors.get(actor.id).effects.some((e) => e.origin === uuid)) {
+                await new Promise((r) => setTimeout(r, 100));
+            }
+            const copies = game.actors.get(actor.id).effects.filter((e) => e.origin === uuid).length;
+            const strTotal = game.actors.get(actor.id).system.stats.str.total;
+            await actor.delete();
+            return { copies, strTotal };
+        });
+        expect(result).toEqual({ copies: 1, strTotal: 5 });
+    });
+
+    test('stage 3: a plain item.update of system.equipped / system.active syncs effects', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([{ name: `E2E Plain Update ${stamp}`, type: 'character' }]);
+            const waitFor = async (predicate) => {
+                const deadline = Date.now() + 8000;
+                while (Date.now() < deadline && !predicate()) await new Promise((r) => setTimeout(r, 100));
+                return predicate();
+            };
+            const out = {};
+            const cases = [
+                ['armor', 'equipped'],
+                ['drug', 'active']
+            ];
+            for (const [type, field] of cases) {
+                const [item] = await actor.createEmbeddedDocuments('Item', [
+                    {
+                        name: `E2E ${type} ${stamp}`,
+                        type,
+                        effects: [
+                            {
+                                name: `E2E ${type} effect`,
+                                disabled: false,
+                                changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 1 }]
+                            }
+                        ]
+                    }
+                ]);
+                const uuid = item.uuid;
+                const copies = () => game.actors.get(actor.id).effects.filter((e) => e.origin === uuid).length;
+                await item.update({ [`system.${field}`]: true });
+                const appeared = await waitFor(() => copies() === 1);
+                await item.update({ [`system.${field}`]: false });
+                const vanished = await waitFor(() => copies() === 0);
+                out[type] = { appeared, vanished };
+            }
+            await actor.delete();
+            return out;
+        });
+        expect(result.armor).toEqual({ appeared: true, vanished: true });
+        expect(result.drug).toEqual({ appeared: true, vanished: true });
+    });
+
+    test('stage 3: rapid equip toggling never leaves duplicate or missing copies', async ({ page }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Rapid Toggle ${stamp}`,
+                    type: 'character',
+                    system: { stats: { str: { value: 3, bonus: 0 } } }
+                }
+            ]);
+            const [item] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Rapid ${stamp}`,
+                    type: 'item',
+                    effects: [
+                        {
+                            name: 'E2E Rapid Boost',
+                            disabled: false,
+                            changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 2 }]
+                        }
+                    ]
+                }
+            ]);
+            // Five flips, awaiting only the write (as a fast double-click would), never the sync.
+            for (const value of [true, false, true, false, true]) await item.update({ 'system.equipped': value });
+            await item.effectsSettled();
+            const copies = game.actors.get(actor.id).effects.filter((e) => e.origin === item.uuid).length;
+            const strTotal = game.actors.get(actor.id).system.stats.str.total;
+            await actor.delete();
+            return { copies, strTotal };
+        });
+        expect(result).toEqual({ copies: 1, strTotal: 5 });
+    });
+
     test('creates, toggles-disabled, and deletes an Active Effect', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();

@@ -666,3 +666,23 @@ actor.createEmbeddedDocuments('Item', [...])`: a probe creating the pair 40 time
   when widening a cleanup to more types, check whether any type is deleted as part of its own
   success path. The e2e test fails with the cleanup reverted to traits only, which is how to
   confirm it exercises the fix.
+- **Hooks that start async work don't make `await document.update()` wait for it, so a setter that
+  used to sync inline needs an explicit "settled" handle.** Moving the effect sync from
+  `SlaItem#setEquipped` into `SlaActor#_onUpdateDescendantDocuments` (so every writer of
+  `system.equipped` gets it) meant `await item.update(...)` resolved with the sync merely _queued_.
+  Callers that read the result straight away (the NPC auto-equip drop, the #363 handler tests) would
+  race. The fix is `item.effectsSettled()`, which awaits the per-item queue; the hook has already
+  enqueued by the time `update()` resolves because Foundry runs `_on*` document hooks before it
+  resolves the call. Two related traps: a sync that is "delete stale, then create" is not idempotent
+  under overlap, so rapid toggles need a per-key queue (`helpers/keyed-queue.mjs`), and an e2e test
+  for a hook-driven effect must not `await` the sync it is trying to prove happens on its own, or it
+  tests the setter rather than the hook. Prove each piece by removing it from the installed copy
+  under `/root/foundry-data/Data/systems/sla-industries` and watching the matching test fail.
+- **`createEmbeddedDocuments` does not reliably return documents in input order, so destructuring
+  its result by position makes a flaky test.** Two different `regression-damage.spec.js` armor
+  tests failed intermittently during stage 3 of the effect-trigger work (`armorRes` read the
+  shield's 12 where the body armor's 10 was expected, and a body armor read 0). A probe that created
+  an armor + shield pair 40 times and compared `created[0]`/`created[1]` against the input order saw
+  swaps in 5 of 40 runs, and still did so with the new actor hooks disabled, so it is Foundry
+  behaviour and not the change under test. Look the created documents up by name (or by a marker
+  field) instead of by index in any test that builds more than one item in a single call.

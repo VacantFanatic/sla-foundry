@@ -18,6 +18,7 @@ section only in the PR that prepares the stable release. See
 
 ### Fixed
 
+- **Items created already equipped (or active) now get their Active Effects** — a macro, import or compendium drop that created an item with `system.equipped: true` previously skipped the effect copy, and so did a plain `item.update` of `system.equipped` / `system.active`. The actor now syncs effects on any such change, and rapid equip toggling can no longer leave duplicate effect copies.
 - **Deleting an equipped weapon, armor or Gear item now removes its Active Effects from the actor** — previously the copied effect stayed on the actor with no item left to unequip. Drugs are unaffected: a consumed dose's effect still outlasts the item.
 
 ### Changed

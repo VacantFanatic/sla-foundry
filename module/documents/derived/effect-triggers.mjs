@@ -90,3 +90,33 @@ export function effectsToApply(effects, itemType, event) {
 export function effectsToRemove(effects, itemType, event) {
     return matchingEffects(effects, itemType, event, 'removes');
 }
+
+/**
+ * Events fired when an item is created on an actor: always `grant`, plus `equip`/`activate` when
+ * it is created already equipped or active (a macro, import, or NPC drop that skips the setters).
+ * @param {{ equipped?: unknown, active?: unknown } | null | undefined} system The new item's `system` data.
+ * @returns {string[]}
+ */
+export function eventsForItemCreate(system) {
+    const events = ['grant'];
+    if (system?.equipped === true) events.push('equip');
+    if (system?.active === true) events.push('activate');
+    return events;
+}
+
+/**
+ * Events fired by an item update: `equip`/`unequip` when `system.equipped` changed and
+ * `activate`/`deactivate` when `system.active` changed. Reads the expanded form
+ * (`{ system: { equipped } }`) and the flat dotted key, since hooks can receive either.
+ * @param {object | null | undefined} changes The update's changed data.
+ * @returns {string[]}
+ */
+export function eventsForItemUpdate(changes) {
+    const read = (field) => changes?.system?.[field] ?? changes?.[`system.${field}`];
+    const events = [];
+    const equipped = read('equipped');
+    if (typeof equipped === 'boolean') events.push(equipped ? 'equip' : 'unequip');
+    const active = read('active');
+    if (typeof active === 'boolean') events.push(active ? 'activate' : 'deactivate');
+    return events;
+}
