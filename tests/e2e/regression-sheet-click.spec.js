@@ -196,6 +196,95 @@ test.describe('GM: handleSheetClick dispatch (document API)', () => {
         }, actorId);
     });
 
+    for (const type of ['weapon', 'armor']) {
+        test(`the real Inventory tab equip toggle applies and removes a ${type}'s Active Effect`, async ({ page }) => {
+            const actorId = await createTestActor(page, { stats: { str: { value: 3, bonus: 0 } } }, 'character');
+            const itemId = await page.evaluate(
+                async ({ id, type }) => {
+                    const actor = game.actors.get(id);
+                    const [item] = await actor.createEmbeddedDocuments('Item', [
+                        { name: `E2E ${type} Toggle ${Date.now()}`, type, system: { equipped: false } }
+                    ]);
+                    await item.createEmbeddedDocuments('ActiveEffect', [
+                        {
+                            name: 'E2E Str Boost',
+                            disabled: false,
+                            changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 2 }]
+                        }
+                    ]);
+                    return item.id;
+                },
+                { id: actorId, type }
+            );
+
+            const sheet = await openActorSheet(page, actorId);
+            await dismissFoundryNotifications(page);
+            await clickActorSheetTab(sheet, 'inventory');
+
+            const toggle = sheet.locator(`tr.item[data-item-id="${itemId}"] .item-toggle`);
+            await expect(toggle).toBeVisible();
+
+            const uuid = `Actor.${actorId}.Item.${itemId}`;
+            await toggle.evaluate((el) => el.click());
+            await page.waitForFunction(
+                ({ id, uuid }) => game.actors.get(id).effects.some((e) => e.origin === uuid),
+                { id: actorId, uuid },
+                { timeout: 10_000 }
+            );
+            expect(await page.evaluate((id) => game.actors.get(id).system.stats.str.total, actorId)).toBe(5);
+
+            await toggle.evaluate((el) => el.click());
+            await page.waitForFunction(
+                ({ id, uuid }) => !game.actors.get(id).effects.some((e) => e.origin === uuid),
+                { id: actorId, uuid },
+                { timeout: 10_000 }
+            );
+            expect(await page.evaluate((id) => game.actors.get(id).system.stats.str.total, actorId)).toBe(3);
+
+            await closeApplicationWindows(page);
+            await page.evaluate(async (id) => {
+                await game.actors.get(id)?.delete();
+            }, actorId);
+        });
+    }
+
+    test('deleting an equipped weapon/armor/gear removes its copied effect; deleting a drug keeps it', async ({
+        page
+    }) => {
+        test.setTimeout(90_000);
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([{ name: `E2E Delete Effects ${stamp}`, type: 'character' }]);
+            const out = {};
+            for (const type of ['weapon', 'armor', 'item', 'drug']) {
+                const [item] = await actor.createEmbeddedDocuments('Item', [{ name: `E2E ${type} ${stamp}`, type }]);
+                await item.createEmbeddedDocuments('ActiveEffect', [
+                    {
+                        name: `E2E ${type} effect`,
+                        disabled: false,
+                        changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 1 }]
+                    }
+                ]);
+                await item.applyItemEffectsToActor(actor);
+                const uuid = item.uuid;
+                const before = game.actors.get(actor.id).effects.filter((e) => e.origin === uuid).length;
+                await item.delete();
+                // Delete cleanup runs in a non-awaited descendant hook; give it a moment.
+                await new Promise((r) => setTimeout(r, 500));
+                const after = game.actors.get(actor.id).effects.filter((e) => e.origin === uuid).length;
+                out[type] = { before, after };
+            }
+            await actor.delete();
+            return out;
+        });
+
+        for (const type of ['weapon', 'armor', 'item']) {
+            expect(result[type]).toEqual({ before: 1, after: 0 });
+        }
+        // Drugs are consumed right after their effect is applied, so the effect must outlive the item.
+        expect(result.drug).toEqual({ before: 1, after: 1 });
+    });
+
     test('creates, toggles-disabled, and deletes an Active Effect', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();

@@ -23,15 +23,15 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     /**
      * Tab contract (#243 Phase 1; effects-tab scope revised for #363):
      * - `useTwoTabs: true` types render a Details + Description sheet only — no Effects tab. This
-     *   is every type nothing ever transfers an embedded Active Effect from: Skill and Discipline
-     *   (never did), plus Weapon/Armor/Explosive/Magazine/Species/Package (an Effects tab existed
-     *   on their sheet, but no code path ever applied what a GM put there to the actor, so it did
-     *   nothing).
+     *   is every type nothing ever transfers an embedded Active Effect from: Skill, Discipline,
+     *   Explosive, Magazine, Species, Package and Blueprint News (an Effects tab once existed on
+     *   several of these, but no code path ever applied what a GM put there to the actor, so it
+     *   did nothing — #363).
      * - All other types render the full Details + Description + Effects layout, and each one has a
      *   real mechanism that applies its embedded effects to the actor: Drug (toggle active), Toxicant
      *   (failed infection test), Ebb Formula (post-roll chat button), Trait (grant/revoke — see
-     *   `SlaActor._onCreateDescendantDocuments`/`_onDeleteDescendantDocuments`), and Item/Gear (equip
-     *   toggle — see `SlaItem#setEquipped`).
+     *   `SlaActor._onCreateDescendantDocuments`/`_onDeleteDescendantDocuments`), and Item/Gear,
+     *   Weapon and Armor (equip toggle — see `SlaItem#setEquipped`).
      * - `useCataloguePart: true` types have a Details tab that uses the catalogue partial
      *   (physical inventory items).
      * No inherited default here on purpose — every concrete subclass must set both explicitly.

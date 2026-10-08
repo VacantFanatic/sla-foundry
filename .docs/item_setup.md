@@ -176,19 +176,22 @@ Only some item types have an **Effects** tab, and only for those types does putt
 row there actually do anything — every one of them has a real, specific trigger that copies the
 item's embedded effects onto the actor:
 
-| Type                                                                              | Effects tab? | Applies to the actor...                                       |
-| --------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------- |
-| `item`                                                                            | Yes          | While **Equipped** (toggle on the sheet)                      |
-| `trait`                                                                           | Yes          | While the actor **owns** the trait (grant/revoke — see below) |
-| `drug`                                                                            | Yes          | While **Active** (Consume/toggle)                             |
-| `toxicant`                                                                        | Yes          | On a **failed** infection test (§5)                           |
-| `ebbFormula`                                                                      | Yes          | Via the post-roll chat button (§3C)                           |
-| `weapon`, `armor`, `explosive`, `magazine`, `species`, `package`, `blueprintNews` | No           | —                                                             |
+| Type                                                           | Effects tab? | Applies to the actor...                                       |
+| -------------------------------------------------------------- | ------------ | ------------------------------------------------------------- |
+| `item`, `weapon`, `armor`                                      | Yes          | While **Equipped** (toggle on the sheet)                      |
+| `trait`                                                        | Yes          | While the actor **owns** the trait (grant/revoke — see below) |
+| `drug`                                                         | Yes          | While **Active** (Consume/toggle)                             |
+| `toxicant`                                                     | Yes          | On a **failed** infection test (§5)                           |
+| `ebbFormula`                                                   | Yes          | Via the post-roll chat button (§3C)                           |
+| `explosive`, `magazine`, `species`, `package`, `blueprintNews` | No           | —                                                             |
 
-The second group has no Effects tab at all — nothing in the system ever reads an embedded effect
+The last row has no Effects tab at all — nothing in the system ever reads an embedded effect
 on those types, so the tab was removed rather than leaving a control on the sheet that silently
-does nothing (issue #363). Powered armor's stat bonuses are still fully supported — see §7B/C,
-which use dedicated Mods/DEX Cap/Init Bonus fields instead of Active Effects.
+does nothing (issue #363). Weapons and armor got their tab back once the equip toggle was wired
+to copy effects onto the actor: the effect is applied while the item is **Equipped**, removed when
+it is unequipped, and also removed if the item is deleted from the actor. Powered armor's own
+values still come from the dedicated Mods/DEX Cap/Init Bonus fields — see §7B/C — and an Active
+Effect on the same armor stacks on top of them rather than replacing them.
 
 **Gear (`item`) and Traits (`trait`)** are the two types most likely to need a plain stat bonus
 (a bought perk, a piece of flavor gear like a gang-colors bonus, a character-creation trait like

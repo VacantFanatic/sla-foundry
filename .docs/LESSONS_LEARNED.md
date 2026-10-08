@@ -655,3 +655,14 @@ actor.createEmbeddedDocuments('Item', [...])`: a probe creating the pair 40 time
   A test that fails on the stale build and passes after syncing is also a cheap proof that it
   exercises the new code. Running `npx playwright test` directly also needs the temporary
   `executablePath` patch in `.docs/CLOUD_ENVIRONMENT.md`; revert it before committing.
+- **An effect that is copied onto another document needs a cleanup path for every way its source
+  goes away, not just the toggle.** Adding the Weapon/Armor Effects tab (they already had the equip
+  toggle and `setEquipped` sync) exposed that `SlaActor._onDeleteDescendantDocuments` only removed
+  copied effects for traits, so deleting an equipped weapon, armor or Gear item left its Active
+  Effect on the actor permanently. The cleanup is now keyed on `EFFECT_CLEANUP_ON_DELETE_TYPES`
+  (`module/documents/actor.mjs`), which deliberately excludes drugs because using the last dose
+  deletes the item right after applying an effect that has to outlive it. When a feature copies
+  state from item to actor, list its lifecycle ends (unequip, delete, consume) and test each; and
+  when widening a cleanup to more types, check whether any type is deleted as part of its own
+  success path. The e2e test fails with the cleanup reverted to traits only, which is how to
+  confirm it exercises the fix.

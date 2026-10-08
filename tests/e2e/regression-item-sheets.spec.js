@@ -94,7 +94,7 @@ test.describe('SLA item sheet UI — regression', () => {
         await expect(sheet.locator('input[name="system.recoil"]')).toHaveCount(0);
     });
 
-    test('weapon sheet — skill drop hint, no effects tab', async ({ page }) => {
+    test('weapon sheet — skill drop hint, effects tab', async ({ page }) => {
         const itemId = await createWorldItem(page, 'weapon', {
             attackType: 'ranged',
             skill: '',
@@ -104,9 +104,10 @@ test.describe('SLA item sheet UI — regression', () => {
 
         await expect(sheet.locator('.sla-drop.skill-link-box')).toBeVisible();
         await expect(sheet.locator('.sla-drop__hint')).toHaveText('Drop Skill Item Here');
-        // Issue #363: nothing ever applied a weapon's embedded effects to the actor, so the tab
-        // is removed rather than leaving a control on the sheet that silently does nothing.
-        await expect(sheet.locator('nav.sheet-tabs a[data-tab="effects"]')).toHaveCount(0);
+        // Weapons are equip-gated: SlaItem#setEquipped copies their embedded effects onto the actor.
+        await clickItemSheetTab(sheet, 'effects');
+        await sheet.locator('.sla-item-effect-create').click();
+        await expect(sheet.locator('.sla-item-effect-row')).toHaveCount(1);
     });
 
     test('ranged weapon sheet — Clip Size and Loaded fields persist; melee hides them', async ({ page }) => {
@@ -176,11 +177,22 @@ test.describe('SLA item sheet UI — regression', () => {
             .toEqual({ isShield: true, pvMelee: 2, pvRanged: 2 });
     });
 
-    test('armor sheet — no effects tab', async ({ page }) => {
+    test('armor sheet — effects tab', async ({ page }) => {
         const itemId = await createWorldItem(page, 'armor', { pv: 6, isShield: false });
         const sheet = await openItemSheet(page, itemId);
 
-        await expect(sheet.locator('nav.sheet-tabs a[data-tab="effects"]')).toHaveCount(0);
+        await clickItemSheetTab(sheet, 'effects');
+        await sheet.locator('.sla-item-effect-create').click();
+        await expect(sheet.locator('.sla-item-effect-row')).toHaveCount(1);
+    });
+
+    test('explosive and magazine sheets — still no effects tab (no equip trigger)', async ({ page }) => {
+        for (const type of ['explosive', 'magazine']) {
+            const itemId = await createWorldItem(page, type, {});
+            const sheet = await openItemSheet(page, itemId);
+            await expect(sheet.locator('nav.sheet-tabs a[data-tab="effects"]')).toHaveCount(0);
+            await closeApplicationWindows(page);
+        }
     });
 
     test('skill sheet — field manual stamp, two tabs only', async ({ page }) => {

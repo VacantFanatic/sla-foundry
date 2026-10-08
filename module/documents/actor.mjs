@@ -23,6 +23,14 @@ import { syncBleedingToWounds, handleWoundEffects, handleWoundThresholds } from 
  * Extend the basic Actor document.
  * @extends {Actor}
  */
+/**
+ * Item types whose copied Active Effects live exactly as long as the item stays on the actor
+ * (trait grant/revoke, or equip-gated gear). Deleting one of these must remove its effects.
+ * Deliberately excludes drugs: using the last dose deletes the item right after applying its
+ * effect, and that effect has to outlive it.
+ */
+const EFFECT_CLEANUP_ON_DELETE_TYPES = new Set(['trait', 'item', 'weapon', 'armor']);
+
 export class SlaActor extends Actor {
     /**
      * Active effect change rows (Foundry 14 may store under effect.system.changes).
@@ -452,7 +460,7 @@ export class SlaActor extends Actor {
         for (const doc of documents) {
             if (doc.type === 'species') {
                 handleSpeciesRemove(this, doc);
-            } else if (doc.type === 'trait') {
+            } else if (EFFECT_CLEANUP_ON_DELETE_TYPES.has(doc.type)) {
                 doc._removeEffectsByOrigin(this, doc.uuid);
             }
         }

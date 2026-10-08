@@ -13,7 +13,12 @@ section only in the PR that prepares the stable release. See
 
 ### Added
 
+- **Weapons and armor have an Effects tab again** — an Active Effect on a weapon or armor is copied onto the actor while the item is equipped (the same equip toggle Gear uses) and removed when it is unequipped. Explosives and magazines still have no tab.
 - **Item Effects tab shows each effect's changes and disabled state** — every row now lists its change rows (e.g. `system.stats.str.bonus +2`) and a dimmed "Disabled" badge for disabled effects, so you no longer have to open each effect to see what it does.
+
+### Fixed
+
+- **Deleting an equipped weapon, armor or Gear item now removes its Active Effects from the actor** — previously the copied effect stayed on the actor with no item left to unequip. Drugs are unaffected: a consumed dose's effect still outlasts the item.
 
 ### Changed
 
