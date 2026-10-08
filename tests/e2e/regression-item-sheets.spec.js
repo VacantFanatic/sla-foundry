@@ -240,6 +240,37 @@ test.describe('SLA item sheet UI — regression', () => {
         await expect(sheet.getByText('No active effects.')).toHaveCount(0);
     });
 
+    test('effects tab — rows show change summary and disabled state', async ({ page }) => {
+        const itemId = await createWorldItem(page, 'item', {});
+        await page.evaluate(async (id) => {
+            const item = game.items.get(id);
+            await item.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'E2E Live Bonus',
+                    img: 'icons/svg/aura.svg',
+                    changes: [{ key: 'system.stats.str.bonus', type: 'add', value: '2' }]
+                },
+                {
+                    name: 'E2E Off Bonus',
+                    img: 'icons/svg/aura.svg',
+                    disabled: true,
+                    changes: [{ key: 'system.rollModifier.bonus', type: 'override', value: '1' }]
+                }
+            ]);
+        }, itemId);
+        const sheet = await openItemSheet(page, itemId);
+        await clickItemSheetTab(sheet, 'effects');
+
+        const live = sheet.locator('.sla-item-effect-row', { hasText: 'E2E Live Bonus' });
+        await expect(live.locator('.sla-effect-change')).toHaveText('system.stats.str.bonus +2');
+        await expect(live.locator('.sla-effect-disabled-badge')).toHaveCount(0);
+
+        const off = sheet.locator('.sla-item-effect-row', { hasText: 'E2E Off Bonus' });
+        await expect(off.locator('.sla-effect-change')).toHaveText('system.rollModifier.bonus =1');
+        await expect(off.locator('.sla-effect-disabled-badge')).toBeVisible();
+        await expect(off.locator('h4')).toHaveClass(/is-disabled/);
+    });
+
     test('tab rail exposes accessibility attributes', async ({ page }) => {
         const itemId = await createWorldItem(page, 'weapon', {});
         const sheet = await openItemSheet(page, itemId);

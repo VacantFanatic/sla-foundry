@@ -291,6 +291,7 @@
     "SLA.ItemSheet.Effects.Edit": "Edit effect",
     "SLA.ItemSheet.Effects.Delete": "Delete effect",
     "SLA.ItemSheet.Effects.Empty": "No active effects.",
+    "SLA.ItemSheet.Effects.Disabled": "Disabled",
     "SLA.ItemSheet.Discipline.Stamp": "Ebb Discipline",
     "SLA.ItemSheet.EbbFormula.Stamp": "Ebb Formula",
     "SLA.ItemSheet.EbbFormula.FormulaData": "Formula Data",

@@ -11,6 +11,10 @@ section only in the PR that prepares the stable release. See
 
 ## [Unreleased]
 
+### Added
+
+- **Item Effects tab shows each effect's changes and disabled state** — every row now lists its change rows (e.g. `system.stats.str.bonus +2`) and a dimmed "Disabled" badge for disabled effects, so you no longer have to open each effect to see what it does.
+
 ### Changed
 
 - **Active Effects docs and item-sheet hint corrected** — the item Effects tab hint no longer claims native "transferable" behaviour (effects are copied onto the actor on equip/activate/grant), `DEVELOPER.md` no longer says "Add rows" only, and a supported-keys table was added to `DEVELOPER.md` and `item_setup.md`.

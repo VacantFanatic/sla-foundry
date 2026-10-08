@@ -134,7 +134,7 @@ Both fields support all 6 of Foundry v14's native Active Effect change types —
 | `system.hp.bonus`                                                       | Flat addition to HP Max                       | `SlaActor.prepareDerivedData`        |
 | `system.move.closing` / `system.move.rushing` (characters only)         | Movement values                               | `SlaActor.prepareDerivedData` (#373) |
 
-Other keys are not honoured. Item effects reach the actor by being **copied** on explicit triggers (`SlaItem.applyItemEffectsToActor`: equip, drug activation, trait grant, Ebb apply button); Foundry's native `effect.transfer` flag is deliberately inert.
+Other keys are not honoured. Item effects reach the actor by being **copied** on explicit triggers (`SlaItem.applyItemEffectsToActor`: equip, drug activation, trait grant, Ebb apply button); Foundry's native `effect.transfer` flag is deliberately inert. The item sheet's Effects tab lists each effect with a one-line summary of its change rows (`summarizeActiveEffectChange` in `active-effects.mjs`) and a Disabled badge; it does not show `origin`, since on the item's own sheet that is always the item itself.
 
 Skill/stat/Ebb rolls (which have no dialog) fold `rollModifier.total` straight into their modifier math via `computeSkillRollModifier`/`calculateEbbModifier` (`roll-math.mjs`), and call out its contribution as an explicit `Roll Modifier (±N)` chat-card note when nonzero; the weapon/explosive attack dialog (`attack-dialog.hbs`) instead prefills its "Generic Modifier" field from it, since that field otherwise defaults to `0` and is read fresh from the DOM per roll with no link to actor data.
 

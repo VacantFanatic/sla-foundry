@@ -94,6 +94,27 @@ export function applyActiveEffectChange(currentValue, changeType, value) {
     }
 }
 
+const CHANGE_TYPE_OPERATORS = {
+    add: '+',
+    subtract: '-',
+    multiply: '×',
+    downgrade: '≤',
+    upgrade: '≥',
+    override: '=',
+    custom: '?'
+};
+
+/**
+ * One-line, human-readable summary of a change row for sheet display (e.g. `system.stats.str.bonus +2`,
+ * `system.rollModifier.bonus = 1`). Unrecognized change types fall back to `?`.
+ * @param {{ key?: unknown, type?: unknown, mode?: number, value?: unknown }} change
+ * @returns {string}
+ */
+export function summarizeActiveEffectChange(change) {
+    const op = CHANGE_TYPE_OPERATORS[resolveActiveEffectChangeType(change)] ?? '?';
+    return `${change?.key ?? ''} ${op}${change?.value ?? ''}`.trim();
+}
+
 /**
  * Computes a derived numeric field by applying every enabled effect's change rows matching one
  * of `keys` to `baseValue`, in ascending priority order. Changes from ALL effects are pooled and

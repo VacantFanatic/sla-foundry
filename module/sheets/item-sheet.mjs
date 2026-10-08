@@ -4,6 +4,7 @@
  */
 import { enrichItemDescription } from '../helpers/item-sheet.mjs';
 import { bindTabKeyboardNav } from '../helpers/tab-keyboard-nav.mjs';
+import { effectChangeRows, summarizeActiveEffectChange } from '../documents/derived/active-effects.mjs';
 import {
     handleWeaponDrop,
     handleWeaponSkillDrop,
@@ -244,7 +245,9 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
             context.itemEffects = Array.from(item.effects).map((e) => ({
                 id: e.id,
                 name: e.name,
-                img: e.img
+                img: e.img,
+                disabled: e.disabled,
+                changes: effectChangeRows(e).map(summarizeActiveEffectChange)
             }));
         }
 

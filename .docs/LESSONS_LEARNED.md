@@ -644,3 +644,14 @@ actor.createEmbeddedDocuments('Item', [...])`: a probe creating the pair 40 time
   swapped in 5 runs, even with all of the system's item hooks disabled. Positional destructuring
   is only safe for a single-document call. For 2+ documents, keep the created array and look each
   one up by its unique name (or `actorId` for tokens), e.g. `created.find((d) => d.name === name)`.
+
+- **`npm run build` does not refresh the system Foundry is serving, so a new e2e test can fail for
+  the wrong reason.** Adding the item Effects tab change summary, the first e2e run failed 2 of 16
+  item-sheet tests, including an assertion from the previous PR. The cause was
+  `/root/foundry-data/Data/systems/sla-industries` still holding the old build; only
+  `cloud-foundry.sh prepare`/`start` copies `dist/` there. Before trusting an e2e result in a cloud
+  session, `diff -rq dist /root/foundry-data/Data/systems/sla-industries` (the `packs/` extras are
+  expected) and `cp -a dist/. /root/foundry-data/Data/systems/sla-industries/` after any rebuild.
+  A test that fails on the stale build and passes after syncing is also a cheap proof that it
+  exercises the new code. Running `npx playwright test` directly also needs the temporary
+  `executablePath` patch in `.docs/CLOUD_ENVIRONMENT.md`; revert it before committing.

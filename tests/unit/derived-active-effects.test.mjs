@@ -16,7 +16,8 @@ import {
     applyActiveEffectChange,
     computeActiveEffectFieldValue,
     computeActiveEffectStatBonus,
-    computeActiveEffectKeyValue
+    computeActiveEffectKeyValue,
+    summarizeActiveEffectChange
 } from '../../module/documents/derived/active-effects.mjs';
 
 describe('effectChangeRows', () => {
@@ -350,5 +351,26 @@ describe('computeActiveEffectKeyValue', () => {
             const effects = [{ disabled: false, changes: [{ key: 'system.move.closing', type: 'add', value: 0 }] }];
             assert.equal(computeActiveEffectKeyValue(effects, 'system.move.closing', 0) !== 0, false);
         });
+    });
+});
+
+describe('summarizeActiveEffectChange', () => {
+    test('renders each v14 change type with its operator', () => {
+        const key = 'system.stats.str.bonus';
+        assert.equal(summarizeActiveEffectChange({ key, type: 'add', value: 2 }), `${key} +2`);
+        assert.equal(summarizeActiveEffectChange({ key, type: 'subtract', value: 1 }), `${key} -1`);
+        assert.equal(summarizeActiveEffectChange({ key, type: 'multiply', value: 2 }), `${key} ×2`);
+        assert.equal(summarizeActiveEffectChange({ key, type: 'downgrade', value: 3 }), `${key} ≤3`);
+        assert.equal(summarizeActiveEffectChange({ key, type: 'upgrade', value: 3 }), `${key} ≥3`);
+        assert.equal(summarizeActiveEffectChange({ key, type: 'override', value: 4 }), `${key} =4`);
+    });
+
+    test('falls back to the legacy numeric mode', () => {
+        assert.equal(summarizeActiveEffectChange({ key: 'system.hp.bonus', mode: 2, value: 5 }), 'system.hp.bonus +5');
+    });
+
+    test('unknown type renders ? and a missing row does not throw', () => {
+        assert.equal(summarizeActiveEffectChange({ key: 'k', type: 'weird', value: 1 }), 'k ?1');
+        assert.equal(summarizeActiveEffectChange(undefined), '?');
     });
 });
