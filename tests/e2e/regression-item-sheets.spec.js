@@ -209,7 +209,7 @@ test.describe('SLA item sheet UI — regression', () => {
 
         await expect(sheet.getByText('Inventory Slip')).toBeVisible();
         await clickItemSheetTab(sheet, 'effects');
-        await expect(sheet.getByText('Transferable effects apply')).toBeVisible();
+        await expect(sheet.getByText('These effects are copied onto the owning actor')).toBeVisible();
     });
 
     test('drop zones toggle is-drag-over during dragenter', async ({ page }) => {

@@ -125,6 +125,17 @@ Core stats (`str`, `dex`, `know`, `conc`, `cha`, `cool`) each have a `value` (sh
 
 Both fields support all 6 of Foundry v14's native Active Effect change types — Add, Subtract, Multiply, Downgrade, Upgrade, Override (Custom is a documented no-op: this system registers no custom handler, matching Foundry's own default). This is a real, unmodified Foundry Active Effect Config dropdown — the system does not customize it — so a GM can pick any of the 6. `module/documents/derived/active-effects.mjs`'s `computeActiveEffectFieldValue` pools every enabled effect's matching change rows across all effects, sorts them by ascending `priority` (Foundry's own per-type default when a row has none explicitly set), and applies each in turn against the field's stored base value — mirroring Foundry's own `Actor#applyActiveEffects` sequential-apply semantics rather than a simple sum. Note: Multiply against a base of `0` (the common starting value for both fields) always yields `0`, same as real Foundry apply would produce — this is expected, not a bug.
 
+**Supported keys.** Foundry applies any `system.*` key natively, but the system recomputes derived fields in `prepareDerivedData`, so only these keys are re-resolved from `this.effects` and actually take effect:
+
+| Key                                                                     | Result                                        | Resolved in                          |
+| ----------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------ |
+| `system.stats.<str\|dex\|know\|conc\|cha\|cool>.bonus` (`.value` alias) | Stat total                                    | `computeActiveEffectStatBonus`       |
+| `system.rollModifier.bonus`                                             | `system.rollModifier.total` (every roll type) | `SlaActor.prepareDerivedData`        |
+| `system.hp.bonus`                                                       | Flat addition to HP Max                       | `SlaActor.prepareDerivedData`        |
+| `system.move.closing` / `system.move.rushing` (characters only)         | Movement values                               | `SlaActor.prepareDerivedData` (#373) |
+
+Other keys are not honoured. Item effects reach the actor by being **copied** on explicit triggers (`SlaItem.applyItemEffectsToActor`: equip, drug activation, trait grant, Ebb apply button); Foundry's native `effect.transfer` flag is deliberately inert.
+
 Skill/stat/Ebb rolls (which have no dialog) fold `rollModifier.total` straight into their modifier math via `computeSkillRollModifier`/`calculateEbbModifier` (`roll-math.mjs`), and call out its contribution as an explicit `Roll Modifier (±N)` chat-card note when nonzero; the weapon/explosive attack dialog (`attack-dialog.hbs`) instead prefills its "Generic Modifier" field from it, since that field otherwise defaults to `0` and is read fresh from the DOM per roll with no link to actor data.
 
 ---
@@ -133,7 +144,7 @@ Skill/stat/Ebb rolls (which have no dialog) fold `rollModifier.total` straight i
 
 `module/documents/actor.mjs` handles all derived calculations, including:
 
-- Core stat totals (base `_source` value + stored bonus + live Active Effect `Add` rows).
+- Core stat totals (base `_source` value + stored bonus + live Active Effect rows (all six change types)).
 - HP max from species base + STR total.
 - Critical condition (HP < half max HP).
 - Wound-based condition cascades (bleeding, stunned, immobile, dead).

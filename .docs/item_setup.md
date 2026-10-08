@@ -201,6 +201,8 @@ the actor. Traits with a conditional or GM-adjudicated effect (a phobia only tri
 stimulus, an illness only causing a penalty during a flare-up) are still resolved manually at the
 table — only attach an Active Effect to a trait whose rule is a flat, always-on modifier.
 
+Supported keys are `system.stats.<stat>.bonus`, `system.rollModifier.bonus`, `system.hp.bonus`, and (characters only) `system.move.closing` / `system.move.rushing`; see "Active Effects and stats" in [DEVELOPER.md](DEVELOPER.md). Effects are copied onto the actor when the item is equipped, activated or granted, and removed when it is unequipped, deactivated or deleted.
+
 ---
 
 ## 7. Armor & Powersuits

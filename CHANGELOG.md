@@ -11,6 +11,10 @@ section only in the PR that prepares the stable release. See
 
 ## [Unreleased]
 
+### Changed
+
+- **Active Effects docs and item-sheet hint corrected** — the item Effects tab hint no longer claims native "transferable" behaviour (effects are copied onto the actor on equip/activate/grant), `DEVELOPER.md` no longer says "Add rows" only, and a supported-keys table was added to `DEVELOPER.md` and `item_setup.md`.
+
 ## [2.14.1] - 2026-10-06
 
 ### Fixed
