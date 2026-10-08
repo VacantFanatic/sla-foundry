@@ -1,6 +1,7 @@
 import { createSLARoll } from '../helpers/dice.mjs';
 import { effectsToApply, effectsToRemove } from './derived/effect-triggers.mjs';
 import { createKeyedQueue } from '../helpers/keyed-queue.mjs';
+import { buildCopiedEffectDuration, parseDurationSeconds } from './derived/effect-duration.mjs';
 import {
     getSlaEncounterScopeId,
     isToxicantImmuneThisEncounter,
@@ -24,22 +25,6 @@ export class SlaItem extends Item {
         const rollData = this.actor.getRollData();
         rollData.item = foundry.utils.deepClone(this.system);
         return rollData;
-    }
-
-    /**
-     * Parse duration string into seconds for ActiveEffect.duration.
-     * @param {string} str
-     * @returns {number|null}
-     */
-    _getDurationSeconds(str) {
-        if (!str) return null;
-        const s = String(str).toLowerCase();
-        const n = parseInt(s.match(/\d+/)?.[0] ?? '', 10);
-        if (Number.isNaN(n)) return null;
-        if (s.includes('hour')) return n * 3600;
-        if (s.includes('min')) return n * 60;
-        if (s.includes('day')) return n * 86400;
-        return null;
     }
 
     /**
@@ -83,15 +68,17 @@ export class SlaItem extends Item {
         if (!toCopy.length) return;
 
         const durationSeconds =
-            opts.durationSeconds !== undefined ? opts.durationSeconds : this._getDurationSeconds(this.system.duration);
+            opts.durationSeconds !== undefined ? opts.durationSeconds : parseDurationSeconds(this.system.duration);
         const payloads = toCopy.map((src) => {
             const data = foundry.utils.duplicate(src.toObject());
             delete data._id;
             data.origin = origin;
             data.transfer = false;
-            if (durationSeconds != null && Number.isFinite(durationSeconds)) {
-                data.duration = foundry.utils.mergeObject(data.duration ?? {}, { seconds: durationSeconds });
-            }
+            data.duration = buildCopiedEffectDuration(data.duration, durationSeconds);
+            // Foundry stamps "now" as the start of an actor-owned effect, but only for start keys the data
+            // leaves undefined. An effect authored on an item normally has no start; drop one if it carries
+            // one (say, an effect dragged over from an actor) so the copy always starts when it is copied.
+            delete data.start;
             return data;
         });
         await actor.createEmbeddedDocuments('ActiveEffect', payloads);

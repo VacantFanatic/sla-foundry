@@ -269,8 +269,15 @@ test.describe('GM: handleSheetClick dispatch (document API)', () => {
                 const uuid = item.uuid;
                 const before = game.actors.get(actor.id).effects.filter((e) => e.origin === uuid).length;
                 await item.delete();
-                // Delete cleanup runs in a non-awaited descendant hook; give it a moment.
-                await new Promise((r) => setTimeout(r, 500));
+                // The cleanup runs in an un-awaited actor hook, so poll instead of sleeping a fixed time.
+                // A drug must keep its copy, so there is nothing to wait for: give a removal a fair window
+                // to (wrongly) happen before reading.
+                const deadline = Date.now() + (type === 'drug' ? 1500 : 10000);
+                while (Date.now() < deadline) {
+                    const left = game.actors.get(actor.id).effects.filter((e) => e.origin === uuid).length;
+                    if (type !== 'drug' && left === 0) break;
+                    await new Promise((r) => setTimeout(r, 100));
+                }
                 const after = game.actors.get(actor.id).effects.filter((e) => e.origin === uuid).length;
                 out[type] = { before, after };
             }
@@ -399,6 +406,141 @@ test.describe('GM: handleSheetClick dispatch (document API)', () => {
             return { copies, strTotal };
         });
         expect(result).toEqual({ copies: 1, strTotal: 5 });
+    });
+
+    test('duration: a drug\'s "2 hours" becomes a real timed effect that starts now, expires, and stops counting', async ({
+        page
+    }) => {
+        test.setTimeout(90_000);
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([
+                { name: `E2E Duration ${stamp}`, type: 'character', system: { stats: { str: { value: 3, bonus: 0 } } } }
+            ]);
+            const waitFor = async (predicate) => {
+                const deadline = Date.now() + 8000;
+                while (Date.now() < deadline && !predicate()) await new Promise((r) => setTimeout(r, 100));
+                return predicate();
+            };
+            const read = () => {
+                const a = game.actors.get(actor.id);
+                const e = a.effects.contents[0];
+                return e
+                    ? {
+                          isTemporary: e.isTemporary,
+                          value: e.duration.value,
+                          units: e.duration.units,
+                          startTime: e.start?.time,
+                          expired: e.duration.expired,
+                          active: e.active,
+                          strTotal: a.system.stats.str.total
+                      }
+                    : { none: true, strTotal: a.system.stats.str.total };
+            };
+            const [created] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Timed Stim ${stamp}`,
+                    type: 'drug',
+                    system: { duration: '2 hours', quantity: 1 },
+                    effects: [
+                        {
+                            name: 'E2E Timed Boost',
+                            disabled: false,
+                            changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 2 }]
+                        }
+                    ]
+                }
+            ]);
+            const drug = actor.items.get(created.id);
+            const out = {};
+            const advanced = { total: 0 };
+            try {
+                // Fast-forward first so "start = now" is distinguishable from the old start of time 0.
+                await game.time.advance(5000);
+                advanced.total += 5000;
+                out.worldTime = game.time.worldTime;
+                await drug.toggleActive();
+                out.afterUse = read();
+
+                await game.time.advance(7300);
+                advanced.total += 7300;
+                await waitFor(() => game.actors.get(actor.id).effects.contents[0]?.duration.expired === true);
+                await waitFor(() => game.actors.get(actor.id).system.stats.str.total === 3);
+                out.afterExpiry = read();
+
+                // Using it again replaces the expired copy with a fresh, live one.
+                await drug.toggleActive();
+                await drug.toggleActive();
+                await waitFor(() => game.actors.get(actor.id).effects.contents.length === 1);
+                out.afterReuse = read();
+                out.copies = game.actors.get(actor.id).effects.contents.length;
+            } finally {
+                await game.time.advance(-advanced.total);
+                await actor.delete();
+            }
+            return out;
+        });
+
+        expect(result.afterUse).toMatchObject({
+            isTemporary: true,
+            value: 7200,
+            units: 'seconds',
+            expired: false,
+            active: true,
+            strTotal: 5
+        });
+        expect(result.afterUse.startTime).toBe(result.worldTime);
+        expect(result.afterExpiry).toMatchObject({ expired: true, active: false, strTotal: 3 });
+        expect(result.afterReuse).toMatchObject({ isTemporary: true, expired: false, active: true, strTotal: 5 });
+        expect(result.copies).toBe(1);
+    });
+
+    test('duration: an effect keeps its own Duration-tab setting when the item has none, and a dice duration stays permanent', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([{ name: `E2E Own Duration ${stamp}`, type: 'character' }]);
+            const effect = (name, duration) => ({
+                name,
+                disabled: false,
+                ...(duration ? { duration } : {}),
+                changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 1 }]
+            });
+            const [gear] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Own ${stamp}`,
+                    type: 'item',
+                    effects: [effect('Own 90s', { value: 90, units: 'seconds' })]
+                }
+            ]);
+            const [dice] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Dice ${stamp}`,
+                    type: 'drug',
+                    system: { duration: '1d6 hours' },
+                    effects: [effect('Dice duration')]
+                }
+            ]);
+            await actor.items.get(gear.id).setEquipped(true);
+            await actor.items.get(dice.id).toggleActive();
+            const byOrigin = (item) =>
+                game.actors.get(actor.id).effects.find((e) => e.origin === actor.items.get(item.id).uuid);
+            const own = byOrigin(gear);
+            const unresolved = byOrigin(dice);
+            const out = {
+                own: {
+                    isTemporary: own.isTemporary,
+                    value: own.toObject().duration.value,
+                    units: own.toObject().duration.units
+                },
+                dice: { isTemporary: unresolved.isTemporary, value: unresolved.toObject().duration.value }
+            };
+            await actor.delete();
+            return out;
+        });
+        expect(result.own).toEqual({ isTemporary: true, value: 90, units: 'seconds' });
+        expect(result.dice).toEqual({ isTemporary: false, value: null });
     });
 
     test('creates, toggles-disabled, and deletes an Active Effect', async ({ page }) => {

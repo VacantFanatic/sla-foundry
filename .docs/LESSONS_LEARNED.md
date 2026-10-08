@@ -686,3 +686,26 @@ actor.createEmbeddedDocuments('Item', [...])`: a probe creating the pair 40 time
   swaps in 5 of 40 runs, and still did so with the new actor hooks disabled, so it is Foundry
   behaviour and not the change under test. Look the created documents up by name (or by a marker
   field) instead of by index in any test that builds more than one item in a single call.
+- **Merging an unknown key into a DataModel's data is silently discarded, so a "set the duration" feature
+  can ship dead for a whole Foundry version.** `SlaItem#_getDurationSeconds` fed
+  `foundry.utils.mergeObject(data.duration, { seconds })`, but Foundry v14's `ActiveEffectDuration`
+  schema is `value` / `units` / `expiry` / `expired`, so a drug's "2 hours" never reached the copied
+  effect and nothing in the suite noticed. A live probe (use a drug, read `effect.toObject().duration`
+  and `effect.isTemporary`) showed `value: null`. Check the persisted data against the current schema
+  (`effect.schema.fields.duration.fields`) after any upgrade of the Foundry compatibility line, and
+  assert on the stored result, not on the call.
+- **Hand-rolled effect math must honour `ActiveEffect#isSuppressed`, not just `disabled`.**
+  `computeActiveEffectFieldValue` mirrored `Actor#applyActiveEffects` but only skipped `disabled`
+  effects, while core also skips suppressed ones (an expired timed effect has `duration.expired`, so
+  `isSuppressed` and not `active`). With world time advanced past an effect's length, the effect showed
+  as expired on the sheet while its +2 STR still counted. `isEffectActive` now mirrors core's `active`.
+  Same rule as the #359 entry: when copying a core algorithm, copy its eligibility test too.
+- **World time is not a real-time clock.** Foundry's `game.time.worldTime` only changes when something
+  calls `game.time.advance` (a GM macro, a calendar module, or combat when `CONFIG.time.roundTime` /
+  `turnTime` is nonzero; both default to 0). Any feature built on real-time durations needs a decided
+  source for that clock, or its effects never expire in play. An e2e test for expiry has to advance the
+  clock itself, and restore it in a `finally`.
+- **A mutation check can show your own explanation was wrong.** Reverting the `delete data.start` line
+  did not fail the duration test: an effect authored on an item has no `start` for Foundry to reuse, so
+  the "copy would expire instantly" story I had written was unverified. The line stays as a safeguard,
+  with a comment that says only what was checked.

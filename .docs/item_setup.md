@@ -120,7 +120,7 @@ Drug stat modifiers and damage reduction **must be configured as embedded Active
 Fields on the drug item sheet:
 
 - **Addiction Rating / Addiction Dose:** Reference text; addiction tests are resolved manually at the table.
-- **Duration:** Reference text for how long the drug lasts.
+- **Duration:** how long the drug's effects last, in **game time**. Write a number and a unit — `2 hours`, `30 minutes`, `1 day`, `45 seconds` — and each effect copied onto the actor when the drug is used gets that length, starts at the world clock's current time, and stops applying once the world clock passes it (the effect stays on the actor greyed out until removed or the drug is used again). Anything it cannot turn into one fixed length (`Scene`, `Permanent`, a dice roll such as `1d6 hours`) copies with no time limit, so the effect lasts until the drug is switched off. The world clock does not run by itself: it only moves when a GM advances it (`game.time.advance(seconds)` in a macro, a calendar module, or combat if `CONFIG.time.roundTime` is set). An effect can also carry its own length on its Duration tab; that is kept when the drug has no Duration text.
 - **Detox Effects:** Reference text for treatment information.
 
 ---

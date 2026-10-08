@@ -15,6 +15,17 @@ export function effectChangeRows(effect) {
 }
 
 /**
+ * Whether an effect currently applies: not disabled, and not suppressed. Foundry's own
+ * `ActiveEffect#isSuppressed` is true once a timed effect has expired, so this mirrors core's
+ * `ActiveEffect#active`. Plain objects (test fixtures) without `isSuppressed` count as unsuppressed.
+ * @param {{ disabled?: boolean, isSuppressed?: boolean } | null | undefined} effect
+ * @returns {boolean}
+ */
+export function isEffectActive(effect) {
+    return !!effect && !effect.disabled && !effect.isSuppressed;
+}
+
+/**
  * The 7 canonical Foundry v14 change-type strings a real `change.type` can hold, and each
  * type's own default application priority.
  *
@@ -116,7 +127,7 @@ export function summarizeActiveEffectChange(change) {
 }
 
 /**
- * Computes a derived numeric field by applying every enabled effect's change rows matching one
+ * Computes a derived numeric field by applying every active (enabled, unexpired) effect's change rows matching one
  * of `keys` to `baseValue`, in ascending priority order. Changes from ALL effects are pooled and
  * sorted together first, exactly like Foundry's own `Actor#applyActiveEffects` — not applied
  * per-effect. A row with no explicit `priority` falls back to its type's own default priority
@@ -130,7 +141,7 @@ export function summarizeActiveEffectChange(change) {
 export function computeActiveEffectFieldValue(effects, keys, baseValue) {
     const rows = [];
     for (const effect of effects ?? []) {
-        if (effect.disabled) continue;
+        if (!isEffectActive(effect)) continue;
         for (const ch of effectChangeRows(effect)) {
             if (!keys.includes(ch.key)) continue;
             const changeType = resolveActiveEffectChangeType(ch);

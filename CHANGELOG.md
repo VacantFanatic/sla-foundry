@@ -19,6 +19,7 @@ section only in the PR that prepares the stable release. See
 
 ### Fixed
 
+- **Drug durations now actually apply, and expired effects stop counting** — a drug's Duration (e.g. "2 hours") was silently dropped when its effects were copied onto the actor, because the copy wrote a `duration.seconds` field that Foundry v14 no longer has, so every drug effect lasted until the drug was switched off. The copy now gets a real time-limited duration that starts when the drug is used. Separately, an effect that had expired (or was otherwise suppressed) still added its bonus to stats, rolls, HP and movement; the derived math now skips it, as disabled effects already were. A dice Duration such as "1d6 hours" is no longer misread as 1 hour. Note the world clock only moves when a GM advances it.
 - **Items created already equipped (or active) now get their Active Effects** — a macro, import or compendium drop that created an item with `system.equipped: true` previously skipped the effect copy, and so did a plain `item.update` of `system.equipped` / `system.active`. The actor now syncs effects on any such change, and rapid equip toggling can no longer leave duplicate effect copies.
 - **Deleting an equipped weapon, armor or Gear item now removes its Active Effects from the actor** — previously the copied effect stayed on the actor with no item left to unequip. Drugs are unaffected: a consumed dose's effect still outlasts the item.
 
