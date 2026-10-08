@@ -90,7 +90,7 @@ async function createEquippedItem(sheet, itemData) {
     foundry.utils.setProperty(itemData, 'system.equipped', true);
     const created = await sheet.actor.createEmbeddedDocuments('Item', [itemData]);
     const [item] = created;
-    if (item) await item.applyItemEffectsToActor(sheet.actor);
+    if (item) await item.syncEffects(sheet.actor, 'equip');
     return created;
 }
 

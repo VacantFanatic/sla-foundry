@@ -168,7 +168,7 @@ test.describe('GM: handleSheetClick dispatch (document API)', () => {
         const row = sheet.locator(`tr.item[data-item-id="${gearId}"]`);
         const toggle = row.locator('.item-toggle');
         // The bug: this template gate previously excluded type "item" (Gear) entirely, so the
-        // equip control never rendered and setEquipped()/applyItemEffectsToActor() was
+        // equip control never rendered and setEquipped()/syncEffects() was
         // unreachable from the real UI, even though the click handler itself worked.
         await expect(toggle).toBeVisible();
 
@@ -265,7 +265,7 @@ test.describe('GM: handleSheetClick dispatch (document API)', () => {
                         changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 1 }]
                     }
                 ]);
-                await item.applyItemEffectsToActor(actor);
+                await item.syncEffects(actor, type === 'drug' ? 'activate' : 'equip');
                 const uuid = item.uuid;
                 const before = game.actors.get(actor.id).effects.filter((e) => e.origin === uuid).length;
                 await item.delete();

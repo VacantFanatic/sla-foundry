@@ -22,6 +22,7 @@ section only in the PR that prepares the stable release. See
 
 ### Changed
 
+- **Item→actor Active Effect copying now goes through one method, `SlaItem#syncEffects(actor, event)`** — replaces `applyItemEffectsToActor` and `_removeEffectsByOrigin` (internal, undocumented; macros that called `applyItemEffectsToActor(actor)` should use `syncEffects(actor, 'equip' | 'activate' | 'grant' | 'manual')` for the item's type). No behaviour change.
 - **Active Effects docs and item-sheet hint corrected** — the item Effects tab hint no longer claims native "transferable" behaviour (effects are copied onto the actor on equip/activate/grant), `DEVELOPER.md` no longer says "Add rows" only, and a supported-keys table was added to `DEVELOPER.md` and `item_setup.md`.
 
 ## [2.14.1] - 2026-10-06

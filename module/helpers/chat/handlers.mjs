@@ -312,7 +312,7 @@ export async function onApplyEbbEffects(ev) {
         }
         if (!victim) return;
 
-        await item.applyItemEffectsToActor(victim);
+        await item.syncEffects(victim, 'manual');
         ui.notifications.info(`SLA | Applied ${item.name} effects to ${victim.name}.`);
     } catch (err) {
         console.error('SLA | Error in onApplyEbbEffects:', err);

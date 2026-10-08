@@ -1,7 +1,7 @@
 # Design spike: per-effect `applyOn` and centralized effect triggers
 
-Status: **proposal; stage 1 done** (pure table + golden test, not yet called by any runtime
-code). Written after comparing this system's Active Effects with the Wrath & Glory Foundry system (see issue #412 for the larger, deferred ideas:
+Status: **proposal; stages 1–2 done** (pure table + golden test; every call site routed through
+`SlaItem#syncEffects`). Written after comparing this system's Active Effects with the Wrath & Glory Foundry system (see issue #412 for the larger, deferred ideas:
 Target/Area/Aura transfer, scripts, round/turn durations).
 
 ## Problem
@@ -61,7 +61,7 @@ Type defaults reproduce today's behaviour exactly: `item`/`weapon`/`armor` → `
 Drugs are the one type where delete must _not_ remove the effect: using the last dose deletes
 the item right after applying it. Encode that in the table above (`active` and `manual` are never
 removed by delete) rather than as a type exclusion list, which is what the Weapon/Armor change
-had to do (`EFFECT_CLEANUP_ON_DELETE_TYPES` in `module/documents/actor.mjs`).
+had to do (an `EFFECT_CLEANUP_ON_DELETE_TYPES` set in `module/documents/actor.mjs`, since replaced by the table's `delete` event).
 
 ### Where the logic lives
 
@@ -102,9 +102,14 @@ Each stage ships on its own and leaves behaviour unchanged unless stated.
    type → event → apply/remove table, and `tests/unit/derived-effect-triggers.test.mjs` asserts the
    exact behaviour in the first table, written from the call sites rather than from the module. No
    runtime change. This is the regression net for everything after.
-2. **Route existing call sites through `syncEffects`.** Still no new behaviour; delete the
-   duplicated apply/remove code. e2e: the existing #363/#369/weapon/armor/delete specs must stay
-   green unchanged.
+2. **Route existing call sites through `syncEffects` (done).** `applyItemEffectsToActor` and
+   `_removeEffectsByOrigin` are gone; `setEquipped`, `toggleActive`, `rollInfectionTest`, the Ebb
+   apply button, the drug-dose handler, the NPC auto-equip drop and the actor's
+   create/delete descendant hooks all call `syncEffects(actor, event)`. No new behaviour. The
+   hooks now call it for every non-species item and let the table decide, which replaces the
+   `EFFECT_CLEANUP_ON_DELETE_TYPES` set. The existing #363/#369/weapon/armor/delete, operators,
+   drug-dose, NPC-drop and trait specs are the check. Not covered by any e2e: the failed-infection
+   (toxicant) path, which needs a stubbed roll.
 3. **Centralize on actor hooks.** Adds `_onUpdateDescendantDocuments`; fixes the latent
    "created with `equipped: true`" gap. New e2e: create an item with `system.equipped: true` and an
    effect via `createEmbeddedDocuments` and assert the effect lands; flip `system.active` through a

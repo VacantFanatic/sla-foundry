@@ -24,7 +24,7 @@ export async function useDrugItem(sheet, item) {
         speaker: ChatMessage.getSpeaker({ actor: sheet.actor }),
         content: content
     });
-    await item.applyItemEffectsToActor(sheet.actor);
+    await item.syncEffects(sheet.actor, 'activate');
 
     if (newQty <= 0) {
         await item.delete();
