@@ -300,7 +300,10 @@ E2E tests require:
 
 `test:e2e:regression`, `test:e2e:operators`, and `test:e2e:visual` all run as separate steps in
 `.github/workflows/main.yml`'s `e2e` job (gated on Foundry download credentials being configured —
-see that job's own comments). `test:e2e:operators` stays a separate step because it's GM-only and
+see that job's own comments). The job is a 2-shard matrix: each shard boots its own Foundry and runs
+`test:e2e:regression -- --shard=N/2` (Playwright splits by test file); `test:e2e:operators` runs only on
+shard 1 and `test:e2e:visual` only on shard 2, so each runs exactly once. Raise `shard`/`shard_total` in
+the matrix to add shards — the longest single spec file (about 15 minutes) bounds the benefit. `test:e2e:operators` stays a separate step because it's GM-only and
 silently skips for a non-GM user, which is easy to miss if folded into a larger bundle.
 `test:e2e:visual` stays separate and keeps its own `continue-on-error: true` because it needs
 committed screenshot baselines and is prone to environment-specific pixel drift — see below.

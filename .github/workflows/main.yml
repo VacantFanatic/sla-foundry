@@ -98,11 +98,24 @@ jobs:
     # FOUNDRY_RELEASE_URL (or FOUNDRY_USERNAME + FOUNDRY_ACCOUNT_PASSWORD),
     # FOUNDRY_LICENSE_KEY, FOUNDRY_USER and FOUNDRY_PASSWORD under repo Settings → Secrets
     # to enable it; without them this job no-ops.
+    #
+    # Sharded: each matrix job boots its own Foundry (own container, own world data, so the
+    # one-login-per-user and shared-world-state constraints of a single instance don't apply)
+    # and runs a Playwright --shard slice of the regression suite. Shards split by test file
+    # (fullyParallel is off). The single-file operator and visual suites are pinned to one shard
+    # each so they run exactly once. All shards use the same FOUNDRY_LICENSE_KEY at the same time —
+    # watch the first runs for license errors (see .docs/LESSONS_LEARNED.md).
     e2e:
+        name: e2e (shard ${{ matrix.shard }}/${{ matrix.shard_total }})
         needs: build
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         runs-on: ubuntu-latest
         continue-on-error: true
+        strategy:
+            fail-fast: false
+            matrix:
+                shard: [1, 2]
+                shard_total: [2]
         env:
             FOUNDRY_DATA_DIR: ${{ github.workspace }}/.foundry-data
             FOUNDRY_USER: ${{ secrets.FOUNDRY_USER }}
@@ -155,15 +168,15 @@ jobs:
               if: steps.creds.outputs.present == 'true'
               run: bash scripts/cloud-foundry.sh start
 
-            - name: Run E2E regression suite
+            - name: Run E2E regression suite (shard ${{ matrix.shard }}/${{ matrix.shard_total }})
               if: steps.creds.outputs.present == 'true'
-              run: npm run test:e2e:regression
+              run: npm run test:e2e:regression -- --shard=${{ matrix.shard }}/${{ matrix.shard_total }}
 
             - name: Run E2E operator suite (GM-only)
-              if: steps.creds.outputs.present == 'true'
+              if: steps.creds.outputs.present == 'true' && matrix.shard == 1
               run: npm run test:e2e:operators
 
             - name: Run E2E visual regression suite (best-effort, needs committed baselines)
-              if: steps.creds.outputs.present == 'true'
+              if: steps.creds.outputs.present == 'true' && matrix.shard == 2
               continue-on-error: true
               run: npm run test:e2e:visual

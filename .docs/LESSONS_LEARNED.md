@@ -772,3 +772,17 @@ the EmbeddedCollection collection` and the GM saw a red toast. The stack ended i
   120s budget but its poll on `game.settings.get` still gave up after 5s on a loaded runner, leaving the old
   value (`Expected: false / Received: true`). When polling for something that round-trips through the server,
   pass an explicit `timeout`.
+- **Two Foundry instances can run on one license key at the same time (tested locally); contention, not
+  licensing, is the limit.** To check that CI sharding was viable, a second `felddy/foundryvtt:14` container
+  (fresh data dir, same `FOUNDRY_LICENSE_KEY`, same `--hostname foundry-server`) was started alongside the
+  first. It signed its own license ("License signature successfully created"), both stayed active, and two
+  Playwright runs executed against them at once with no license errors. The same specs failed (5 of 44) only
+  while both ran together on a 4-core box and passed alone on the same instance, so give each shard its own
+  runner rather than co-locating them. This was a same-machine test: the first sharded CI runs are still the
+  real confirmation, so watch them for license errors. Also, `start-foundry.sh` and `cloud-foundry.sh` hardcode
+  the container name `foundry` (`docker rm -f foundry`), so a second local instance has to be started by hand.
+- **Run `cloud-foundry.sh` with `FOUNDRY_DATA_DIR` set to the directory the session hook used.** Its default is
+  `/home/ubuntu/foundry-data`; in a Claude Code on the web session the hook uses `/root/foundry-data`. Running
+  `bootstrap` with the default created a second, empty data dir, removed the running container's
+  `options.json.lock` (`ENOENT ... options.json.lock` in the container log) and left Foundry stuck at
+  `foundry:starting`. `docker restart foundry` with the right dir recovered it.
