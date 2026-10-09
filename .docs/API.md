@@ -260,6 +260,9 @@ Active Effects and the clock window react to the new time: an effect whose durat
 expired and stops counting, and rewinding un-expires effects that are still on the actor. A drug whose copied
 effects have all expired switches itself off and drops them; rewinding cannot bring those removed copies back.
 
+The macro call never prompts. The clock window's own buttons (and its Set date form) additionally ask whether to end a
+running combat when they move the clock forward an hour or more; `advanceTime` and `setDate` called directly do not.
+
 ### Errors
 
 Never throws. Returns `null` (with a `ui.notifications.warn`) for a non-GM user, or for an amount that is `0`,

@@ -11,6 +11,10 @@ section only in the PR that prepares the stable release. See
 
 ## [Unreleased]
 
+## [2.15.0] - 2026-10-09
+
+## [2.15.0] - 2026-10-09
+
 ### Added
 
 - **The Game Clock asks whether to end a running combat** when you move the clock forward an hour or more from its window (a preset button or Set date). Keep combat leaves it alone; End combat ends it. Smaller steps, rewinds and the `game.sla.advanceTime` / `setDate` macros never ask.
@@ -26,7 +30,6 @@ section only in the PR that prepares the stable release. See
 - **"id … does not exist in the EmbeddedCollection" error when advancing the clock.** When a drug's last dose was used and its timed effects ran out, the system deleted the leftover effect copies at the same moment Foundry was recording their expiry, so the server rejected Foundry's write and showed a red error. Expiry is now recorded first and the copies are removed a moment later; the expiry passes also run one at a time per actor.
 - **An hours-long effect used in combat never expired when its Expiry Event read Turn End** (or Round Start/End). For a game-clock duration those turn and round events are now ignored, so the effect expires as soon as the clock passes its length; only Combat Start/End is still waited for.
 - **Drug chat card showed "Duration: Unknown"** when the length was set on the effect's Duration tab rather than in the item's Duration text. The card now falls back to the effect's duration (e.g. `3 rounds`), and the drug sheet's Duration field shows it as its placeholder while the text is blank.
-
 - **Timed effects now expire when the game clock passes them, even in combat** — an effect created with a duration gets Foundry's default "Turn Start" expiry, so during a combat a drug set to 1 hour stayed active after the clock moved 8 hours, until its owner's next turn. The system now records expiry itself for clock-based durations (explicitly chosen expiry events such as Turn End are still respected), and also when a duration is typed in after the time has already passed. Moving the clock back brings an expired effect that is still on the actor back to life.
 - **Expired effects are now visible, and used-up drugs clean up** — on the actor Effects tab an expired effect is dimmed with an **Expired** badge and an hourglass instead of a green "on" toggle, its remaining-time line is readable (it was dark text on a dark row), and a permanent effect no longer shows "None". An effect copied from a drug that has been used up shows the drug's name instead of "Unknown" and is removed once it expires.
 - **Drug durations now actually apply, and expired effects stop counting** — a drug's Duration (e.g. "2 hours") was silently dropped when its effects were copied onto the actor, because the copy wrote a `duration.seconds` field that Foundry v14 no longer has, so every drug effect lasted until the drug was switched off. The copy now gets a real time-limited duration that starts when the drug is used. Separately, an effect that had expired (or was otherwise suppressed) still added its bonus to stats, rolls, HP and movement; the derived math now skips it, as disabled effects already were. A dice Duration such as "1d6 hours" is no longer misread as 1 hour. Note the world clock only moves when a GM advances it.
@@ -1368,7 +1371,8 @@ quantity` (armor and weapon item sheets), and `system.typeNote` (generic item sh
 - Damage application targeting both selected token and target.
 - Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.10.0...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.15.0...HEAD
+[2.15.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.15.0
 [2.10.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.10.0
 [2.9.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.4
 [2.9.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.2
