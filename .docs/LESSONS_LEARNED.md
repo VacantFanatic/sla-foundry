@@ -786,3 +786,10 @@ the EmbeddedCollection collection` and the GM saw a red toast. The stack ended i
   `bootstrap` with the default created a second, empty data dir, removed the running container's
   `options.json.lock` (`ENOENT ... options.json.lock` in the container log) and left Foundry stuck at
   `foundry:starting`. `docker restart foundry` with the right dir recovered it.
+- **Audit that every spec file is reachable from a CI script, not just the ones you touched.** The three
+  timed-effect and clock specs (`regression-effect-duration`, `regression-effect-expiry`,
+  `regression-game-clock`, 19 tests) were added with features but never put in `test:e2e:regression`, so they
+  never ran in CI; a script found them by diffing `tests/e2e/*.spec.js` against the files named in the three
+  `test:e2e:*` scripts. All 19 passed the first time they were run (about 11 minutes, the two set-date tests
+  take 2 to 2.5 minutes each), so nothing had rotted yet. When adding a spec, add it to a script in the same
+  change.

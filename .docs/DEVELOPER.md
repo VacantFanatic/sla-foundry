@@ -285,6 +285,7 @@ npm run test:e2e              # full suite
 npm run test:e2e:regression   # CI-gated suite: sheets/dialogs, damage/wound/armor pipeline, roll
                                # orchestrators (skill/stat/weapon/explosive/ebb), hotbar macros,
                                # inventory/item actions, migrations, modifiers, weapon gates,
+                               # game clock / set date, timed effect durations and expiry,
                                # accessibility, and the Foundry join smoke check
 npm run test:e2e:operators    # Operative CRUD, weapon items, roll integration (GM-only)
 npm run test:e2e:visual       # screenshot diffing for the three actor sheet types (needs committed baselines)
