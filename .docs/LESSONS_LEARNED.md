@@ -760,3 +760,36 @@ the EmbeddedCollection collection` and the GM saw a red toast. The stack ended i
   event, write the state core would write first and delete a moment later (`CORE_REFRESH_SETTLE_MS`); serialize our
   own passes per owner (`createKeyedQueue`) and re-check ids against the live collection before each write. Capture the
   console `error` stack in the e2e test (`page.on('console')`) to see which layer throws before guessing.
+- **A `.last()` sheet locator goes stale; click by a unique id in one in-page step.** In CI the armor
+  equip-toggle test passed `toBeVisible()` and then `toggle.evaluate(...)` waited out the whole 30s test
+  timeout, because `sheet = page.locator('form.application.sla-industries.actor').last()` re-resolves on every
+  use and a re-rendered sheet (or a previous test's sheet still closing) changed what it pointed at. Item ids
+  are unique in the document, so `clickEquipToggle()` in `regression-sheet-click.spec.js` queries the row
+  directly and clicks inside `waitForFunction`. `closeApplicationWindows()` now awaits each `app.close()` for
+  the same reason. Rule: after a visibility assertion, do not assume the locator still resolves later; for
+  re-render-prone sheets, resolve and act in one in-page step.
+- **`expect.poll` defaults to a 5s timeout regardless of the test timeout.** The Configure Settings test had a
+  120s budget but its poll on `game.settings.get` still gave up after 5s on a loaded runner, leaving the old
+  value (`Expected: false / Received: true`). When polling for something that round-trips through the server,
+  pass an explicit `timeout`.
+- **Two Foundry instances can run on one license key at the same time (tested locally); contention, not
+  licensing, is the limit.** To check that CI sharding was viable, a second `felddy/foundryvtt:14` container
+  (fresh data dir, same `FOUNDRY_LICENSE_KEY`, same `--hostname foundry-server`) was started alongside the
+  first. It signed its own license ("License signature successfully created"), both stayed active, and two
+  Playwright runs executed against them at once with no license errors. The same specs failed (5 of 44) only
+  while both ran together on a 4-core box and passed alone on the same instance, so give each shard its own
+  runner rather than co-locating them. This was a same-machine test: the first sharded CI runs are still the
+  real confirmation, so watch them for license errors. Also, `start-foundry.sh` and `cloud-foundry.sh` hardcode
+  the container name `foundry` (`docker rm -f foundry`), so a second local instance has to be started by hand.
+- **Run `cloud-foundry.sh` with `FOUNDRY_DATA_DIR` set to the directory the session hook used.** Its default is
+  `/home/ubuntu/foundry-data`; in a Claude Code on the web session the hook uses `/root/foundry-data`. Running
+  `bootstrap` with the default created a second, empty data dir, removed the running container's
+  `options.json.lock` (`ENOENT ... options.json.lock` in the container log) and left Foundry stuck at
+  `foundry:starting`. `docker restart foundry` with the right dir recovered it.
+- **Audit that every spec file is reachable from a CI script, not just the ones you touched.** The three
+  timed-effect and clock specs (`regression-effect-duration`, `regression-effect-expiry`,
+  `regression-game-clock`, 19 tests) were added with features but never put in `test:e2e:regression`, so they
+  never ran in CI; a script found them by diffing `tests/e2e/*.spec.js` against the files named in the three
+  `test:e2e:*` scripts. All 19 passed the first time they were run (about 11 minutes, the two set-date tests
+  take 2 to 2.5 minutes each), so nothing had rotted yet. When adding a spec, add it to a script in the same
+  change.
