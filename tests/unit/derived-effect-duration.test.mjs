@@ -94,10 +94,10 @@ describe('buildCopiedEffectDuration', () => {
 
     test('the item duration overrides a different unit on the source effect but keeps its expiry', () => {
         const d = buildCopiedEffectDuration(
-            { value: 3, units: 'rounds', expiry: 'turnEnd', expired: false },
+            { value: 3, units: 'rounds', expiry: 'combatEnd', expired: false },
             { value: 60, units: 'seconds' }
         );
-        assert.deepEqual(d, { value: 60, units: 'seconds', expiry: 'turnEnd', expired: false });
+        assert.deepEqual(d, { value: 60, units: 'seconds', expiry: 'combatEnd', expired: false });
     });
 
     test('with no item duration, the effect keeps its own Duration-tab settings', () => {
@@ -174,10 +174,14 @@ describe('isTimeBasedDuration / effectiveExpiry', () => {
         assert.equal(isTimeBasedDuration(null), false);
     });
 
-    test('the schema-default turnStart means no event for a time-based duration only', () => {
+    test('turn and round events mean no event for a time-based duration only', () => {
         assert.equal(effectiveExpiry({ units: 'hours', expiry: 'turnStart' }), null);
         assert.equal(effectiveExpiry({ units: 'rounds', expiry: 'turnStart' }), 'turnStart');
-        assert.equal(effectiveExpiry({ units: 'hours', expiry: 'turnEnd' }), 'turnEnd');
+        for (const expiry of ['turnEnd', 'roundStart', 'roundEnd']) {
+            assert.equal(effectiveExpiry({ units: 'hours', expiry }), null, expiry);
+            assert.equal(effectiveExpiry({ units: 'rounds', expiry }), expiry, `rounds ${expiry}`);
+        }
+        assert.equal(effectiveExpiry({ units: 'hours', expiry: 'combatStart' }), 'combatStart');
         assert.equal(effectiveExpiry({ units: 'hours', expiry: 'combatEnd' }), 'combatEnd');
         assert.equal(effectiveExpiry({ units: 'hours', expiry: '' }), null);
         assert.equal(effectiveExpiry({ units: 'hours', expiry: null }), null);
@@ -204,9 +208,9 @@ describe('isTimeDurationOverdue / selectOverdueEffects', () => {
         assert.equal(isTimeDurationOverdue(undefined), false);
     });
 
-    test('combat-based durations and effects waiting on an explicit event are left to core', () => {
+    test('combat-based durations and effects waiting on combat start/end are left to core', () => {
         assert.equal(isTimeDurationOverdue({ duration: { units: 'rounds', value: 3, remaining: -2 } }), false);
-        assert.equal(isTimeDurationOverdue({ duration: { ...base, expiry: 'turnEnd', remaining: -7 } }), false);
+        assert.equal(isTimeDurationOverdue({ duration: { ...base, expiry: 'turnEnd', remaining: -7 } }), true);
         assert.equal(isTimeDurationOverdue({ duration: { ...base, expiry: 'combatEnd', remaining: -7 } }), false);
     });
 
@@ -247,10 +251,7 @@ describe('buildCopiedEffectDuration default expiry', () => {
             buildCopiedEffectDuration({ value: 3, units: 'rounds', expiry: 'turnStart' }, null).expiry,
             'turnStart'
         );
-        assert.equal(
-            buildCopiedEffectDuration({ value: 1, units: 'hours', expiry: 'turnEnd' }, null).expiry,
-            'turnEnd'
-        );
+        assert.equal(buildCopiedEffectDuration({ value: 1, units: 'hours', expiry: 'turnEnd' }, null).expiry, null);
         assert.equal(
             buildCopiedEffectDuration({ value: 1, units: 'hours', expiry: 'combatEnd' }, null).expiry,
             'combatEnd'

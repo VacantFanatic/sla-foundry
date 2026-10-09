@@ -18,9 +18,9 @@ When enabled, the active combatant can move **once per turn**. A second movement
 
 ### Seconds per Combat Round
 
-**Key:** `secondsPerRound` | **Default:** 6
+**Key:** `secondsPerRound` | **Default:** 5
 
-How much game time one combat round lasts (a placeholder default, not a rule: set it to what your table uses). It is mirrored into Foundry's `CONFIG.time.roundTime`, which does two things:
+How much game time one combat round lasts (5 seconds in SLA Industries; change it if your table differs). It is mirrored into Foundry's `CONFIG.time.roundTime`, which does two things:
 
 - Each new combat round advances the **game clock** by this many seconds, so a long fight can run out a "2 hours" effect.
 - An effect with a duration in **rounds** (a drug set to `3 rounds`) counts down on the clock when its owner is not in a running combat, instead of only inside one.

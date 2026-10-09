@@ -58,18 +58,22 @@ export function isTimeBasedDuration(duration) {
     return TIME_DURATION_UNITS.includes(duration?.units);
 }
 
+/** Expiry events that only mark a point in combat's rhythm; they mean nothing for a game-clock duration. */
+const COMBAT_TEMPO_EXPIRY = Object.freeze(['turnStart', 'turnEnd', 'roundStart', 'roundEnd']);
+
 /**
  * The expiry event that actually gates a duration. Foundry's schema fills `duration.expiry` with
- * `"turnStart"` whenever an effect is created with a numeric duration, and core then only expires the effect
- * when its owner's next turn starts (a clock change satisfies the event only outside combat), so in combat a
- * "1 hour" effect survives eight hours passing. For a time-based duration that default is not a choice anyone
- * made, so it counts as no event; any other expiry (turnEnd, roundStart, combatEnd, ...) is kept.
+ * `"turnStart"` whenever an effect is created with a numeric duration (and the Duration tab's Expiry select
+ * shows "Turn End" for an unset one), and core then only expires the effect when its owner's next turn
+ * boundary arrives (a clock change satisfies the event only outside combat), so in combat a "2 hours" effect
+ * survives seventeen hours passing. For a time-based duration the turn and round events are not a choice
+ * anyone made, so they count as no event; `combatStart` / `combatEnd` are kept.
  * @param {{ units?: unknown, expiry?: unknown } | null | undefined} duration
  * @returns {string | null}
  */
 export function effectiveExpiry(duration) {
     const expiry = duration?.expiry || null;
-    if (expiry === 'turnStart' && isTimeBasedDuration(duration)) return null;
+    if (COMBAT_TEMPO_EXPIRY.includes(expiry) && isTimeBasedDuration(duration)) return null;
     return expiry;
 }
 

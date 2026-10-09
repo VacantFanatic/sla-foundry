@@ -5,6 +5,7 @@ import {
     formatClockParts,
     monthLength,
     parseAdvanceSeconds,
+    shouldOfferEndCombat,
     worldTimeFromFields
 } from '../helpers/game-clock-pure.mjs';
 
@@ -15,6 +16,29 @@ const gmOnly = () => {
     ui.notifications.warn(game.i18n.localize('SLA.GameClock.GmOnly'));
     return true;
 };
+
+/**
+ * After a big forward move from the clock window, ask whether the running combat(s) should end: a jump of an hour
+ * or more usually means the fight is over. The `game.sla.advanceTime` / `setDate` macro API never asks.
+ * @param {number} before World time before the move.
+ * @param {number} after World time after the move.
+ * @returns {Promise<boolean>} Whether combats were ended.
+ */
+export async function offerToEndCombat(before, after) {
+    const running = game.combats.filter((c) => c.started);
+    if (!shouldOfferEndCombat(after - before, running.length)) return false;
+    const end = await foundry.applications.api.DialogV2.confirm({
+        window: { icon: 'fa-solid fa-xmark', title: game.i18n.localize('SLA.GameClock.EndCombatTitle') },
+        content: `<p>${game.i18n.localize('SLA.GameClock.EndCombatPrompt')}</p>`,
+        yes: { label: game.i18n.localize('SLA.GameClock.EndCombat') },
+        no: { label: game.i18n.localize('SLA.GameClock.KeepCombat') },
+        rejectClose: false,
+        modal: true
+    });
+    if (!end) return false;
+    await Promise.all(running.map((c) => c.delete()));
+    return true;
+}
 
 /**
  * Advance (positive) or rewind (negative) the world clock by a number of seconds. GM only.
@@ -115,7 +139,9 @@ export class SlaGameClock extends HandlebarsApplicationMixin(ApplicationV2) {
      * @param {HTMLElement} target
      */
     static async shiftTime(event, target) {
-        await advanceTime(Number(target.dataset.seconds));
+        const before = game.time.worldTime;
+        const after = await advanceTime(Number(target.dataset.seconds));
+        if (after !== null) await offerToEndCombat(before, after);
     }
 
     /**
@@ -242,6 +268,7 @@ export class SlaGameClock extends HandlebarsApplicationMixin(ApplicationV2) {
             const raw = this.element.querySelector(`[name="${name}"]`)?.value;
             return raw === undefined || raw.trim() === '' ? NaN : Number(raw);
         };
+        const before = game.time.worldTime;
         const result = await applyDate({
             year: read('year'),
             month: read('month'),
@@ -253,6 +280,7 @@ export class SlaGameClock extends HandlebarsApplicationMixin(ApplicationV2) {
         if (result.ok) {
             this.#dirty = false;
             this.#fillForm(fieldsFromTime(game.time.calendar, result.seconds));
+            await offerToEndCombat(before, result.seconds);
         }
     }
 }

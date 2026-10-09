@@ -192,6 +192,32 @@ test.describe('GM: effect expiry', () => {
         }
     });
 
+    test('an hours duration with a Turn End expiry still expires on the clock in combat', async ({ page }) => {
+        await setup(page);
+        try {
+            const out = await page.evaluate(async () => {
+                const actor = game.actors.get(window.__actorId);
+                await actor.createEmbeddedDocuments('ActiveEffect', [
+                    {
+                        name: 'E2E Hours TurnEnd',
+                        disabled: false,
+                        duration: { value: 2, units: 'hours', expiry: 'turnEnd' },
+                        changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 2 }]
+                    }
+                ]);
+                const before = window.__str();
+                await game.sla.advanceTime(17 * 3600);
+                const expired = await window.__wait(
+                    () => game.actors.get(actor.id).effects.contents[0]?.toObject().duration.expired === true
+                );
+                return { before, expired, after: window.__str() };
+            });
+            expect(out).toEqual({ before: 5, expired: true, after: 3 });
+        } finally {
+            await page.evaluate(() => window.__cleanup());
+        }
+    });
+
     test('an explicit expiry event and a rounds duration are left to Foundry, not expired by the clock', async ({
         page
     }) => {
@@ -201,9 +227,9 @@ test.describe('GM: effect expiry', () => {
                 const actor = game.actors.get(window.__actorId);
                 await actor.createEmbeddedDocuments('ActiveEffect', [
                     {
-                        name: 'E2E TurnEnd',
+                        name: 'E2E CombatEnd',
                         disabled: false,
-                        duration: { value: 1, units: 'hours', expiry: 'turnEnd' },
+                        duration: { value: 1, units: 'hours', expiry: 'combatEnd' },
                         changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 1 }]
                     },
                     {
@@ -222,7 +248,7 @@ test.describe('GM: effect expiry', () => {
                 return { before, after: window.__str(), expired };
             });
             expect(out.before).toBe(5);
-            expect(out.expired['E2E TurnEnd']).toBe(false);
+            expect(out.expired['E2E CombatEnd']).toBe(false);
             expect(out.expired['E2E Rounds']).toBe(false);
             expect(out.after).toBe(5);
         } finally {

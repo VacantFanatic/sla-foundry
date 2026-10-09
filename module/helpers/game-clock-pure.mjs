@@ -3,7 +3,7 @@
  */
 
 /** Seconds per combat round used when the world setting holds something unusable. */
-export const DEFAULT_SECONDS_PER_ROUND = 6;
+export const DEFAULT_SECONDS_PER_ROUND = 5;
 
 /**
  * Turns the `secondsPerRound` world setting into a value safe to hand to `CONFIG.time.roundTime`:
@@ -25,6 +25,20 @@ export const CLOCK_PRESETS = Object.freeze([
     Object.freeze({ id: 'hours8', seconds: 28800 }),
     Object.freeze({ id: 'day1', seconds: 86400 })
 ]);
+
+/** A forward clock move of at least this many seconds, while a combat is running, offers to end that combat. */
+export const END_COMBAT_PROMPT_SECONDS = 3600;
+
+/**
+ * Whether a clock move from the window should ask the GM to end the running combat: the clock went forward by
+ * at least {@link END_COMBAT_PROMPT_SECONDS} while at least one combat is in progress. Rewinding never asks.
+ * @param {number} deltaSeconds New world time minus old world time.
+ * @param {number} runningCombats How many started combats exist.
+ * @returns {boolean}
+ */
+export function shouldOfferEndCombat(deltaSeconds, runningCombats) {
+    return Number.isFinite(deltaSeconds) && deltaSeconds >= END_COMBAT_PROMPT_SECONDS && Number(runningCombats) > 0;
+}
 
 /**
  * The preset rows for one direction of the clock: positive seconds to advance, negative to rewind.

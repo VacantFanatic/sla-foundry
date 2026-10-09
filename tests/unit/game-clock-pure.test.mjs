@@ -6,6 +6,8 @@ import assert from 'node:assert/strict';
 import {
     CLOCK_PRESETS,
     DEFAULT_SECONDS_PER_ROUND,
+    END_COMBAT_PROMPT_SECONDS,
+    shouldOfferEndCombat,
     buildClockPresetRows,
     dayOfYear,
     displayedLeapYear,
@@ -263,5 +265,18 @@ describe('formatClockParts', () => {
 
     test('works without a localize function and at the start of time', () => {
         assert.deepEqual(formatClockParts(cal, 0), { date: '1 January 0', time: '00:00:00' });
+    });
+});
+
+describe('shouldOfferEndCombat', () => {
+    test('asks only for a forward move of an hour or more while a combat is running', () => {
+        assert.equal(END_COMBAT_PROMPT_SECONDS, 3600);
+        assert.equal(shouldOfferEndCombat(3600, 1), true);
+        assert.equal(shouldOfferEndCombat(17 * 3600, 2), true);
+        assert.equal(shouldOfferEndCombat(3599, 1), false);
+        assert.equal(shouldOfferEndCombat(600, 1), false);
+        assert.equal(shouldOfferEndCombat(-86400, 1), false);
+        assert.equal(shouldOfferEndCombat(86400, 0), false);
+        assert.equal(shouldOfferEndCombat(NaN, 1), false);
     });
 });

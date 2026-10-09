@@ -56,6 +56,51 @@ test.describe('GM: game clock, set date and time', () => {
             return { year: c.year, month: c.month + 1, day: c.dayOfMonth + 1, hour: c.hour, minute: c.minute };
         });
 
+    test('a big forward jump with a combat running asks to end it; a small one or a rewind does not', async ({
+        page
+    }) => {
+        await page.evaluate(async () => {
+            const combat = await Combat.create({});
+            window.__combatId = combat.id;
+            const [actor] = await Actor.createDocuments([
+                { name: `E2E Clock Combat ${Date.now()}`, type: 'character' }
+            ]);
+            window.__actorId = actor.id;
+            await combat.createEmbeddedDocuments('Combatant', [{ actorId: actor.id }]);
+            await combat.startCombat();
+        });
+        const exists = () => page.evaluate(() => Boolean(game.combats.get(window.__combatId)));
+        try {
+            const win = await openClock(page);
+            const dialog = page.locator('dialog.application, .application.dialog').filter({ hasText: 'End combat?' });
+
+            // Small step and rewind: no prompt, combat stays.
+            await win.locator('button[data-action="shiftTime"][data-seconds="600"]').click();
+            await win.locator('button[data-action="shiftTime"][data-seconds="-3600"]').click();
+            await page.waitForTimeout(500);
+            await expect(dialog).toHaveCount(0);
+            expect(await exists()).toBe(true);
+
+            // +8 hours, Keep combat.
+            await win.locator('button[data-action="shiftTime"][data-seconds="28800"]').click();
+            await expect(dialog).toBeVisible();
+            await dialog.getByRole('button', { name: 'Keep combat' }).click();
+            await expect(dialog).toHaveCount(0);
+            expect(await exists()).toBe(true);
+
+            // +1 day, End combat.
+            await win.locator('button[data-action="shiftTime"][data-seconds="86400"]').click();
+            await expect(dialog).toBeVisible();
+            await dialog.getByRole('button', { name: 'End combat' }).click();
+            await expect.poll(exists).toBe(false);
+        } finally {
+            await page.evaluate(async () => {
+                await game.combats.get(window.__combatId)?.delete();
+                await game.actors.get(window.__actorId)?.delete();
+            });
+        }
+    });
+
     test('typing a date and pressing Set date makes the calendar display exactly that date, leap days included', async ({
         page
     }) => {
