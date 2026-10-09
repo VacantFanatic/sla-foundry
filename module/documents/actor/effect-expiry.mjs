@@ -1,3 +1,4 @@
+import { createKeyedQueue } from '../../helpers/keyed-queue.mjs';
 import { allEffectsExpired, selectOverdueEffects, selectRevivedEffects } from '../derived/effect-duration.mjs';
 
 /**
@@ -77,36 +78,69 @@ export async function expireOverdueEffects(onlyActor) {
     if (!game.user?.isActiveGM) return;
     const actors = onlyActor ? [onlyActor] : [...trackedActors()];
     for (const actor of actors) {
-        const effects = Array.from(actor.effects);
-        for (const effect of effects) {
-            if (effect.isTemporary) effect.updateDuration?.();
-        }
-        const overdue = new Set(selectOverdueEffects(effects));
-        const orphanIds = [];
-        const expireIds = [];
-        for (const effect of effects) {
-            const expired = effect.duration?.expired === true || overdue.has(effect);
-            if (!expired) continue;
-            if (isOrphanedItemCopy(effect)) orphanIds.push(effect.id);
-            else if (overdue.has(effect)) expireIds.push(effect.id);
-        }
-        // The clock went back: an effect recorded as expired whose time has not run out is live again.
-        const reviveIds = selectRevivedEffects(effects)
-            .filter((effect) => !orphanIds.includes(effect.id))
-            .map((effect) => effect.id);
-        if (reviveIds.length) {
-            await actor.updateEmbeddedDocuments(
-                'ActiveEffect',
-                reviveIds.map((_id) => ({ _id, 'duration.expired': false }))
-            );
-        }
-        if (orphanIds.length) await actor.deleteEmbeddedDocuments('ActiveEffect', orphanIds);
-        if (expireIds.length) {
-            await actor.updateEmbeddedDocuments(
-                'ActiveEffect',
-                expireIds.map((_id) => ({ _id, 'duration.expired': true }))
-            );
-        }
+        await sweepQueue.run(actor.uuid, () => sweepActor(actor)).catch((err) => console.error(err));
+    }
+}
+
+/**
+ * How long to wait before deleting orphaned copies. Core records expiry for the same clock change with its own
+ * writes, which are already in flight; deleting first makes the server reject them ("id ... does not exist").
+ */
+const CORE_REFRESH_SETTLE_MS = 400;
+
+/** One sweep at a time per actor: a clock change, an edit and a drug switch-off can all trigger one at once. */
+const sweepQueue = createKeyedQueue();
+
+/**
+ * The ids that still exist on the actor. Each write below can delete effects (a drug switching off removes its
+ * copies), so ids gathered before an `await` may be gone by the time they are used.
+ * @param {Actor} actor
+ * @param {string[]} ids
+ * @returns {string[]}
+ */
+function stillOnActor(actor, ids) {
+    return ids.filter((id) => actor.effects.has(id));
+}
+
+/** @param {Actor} actor */
+async function sweepActor(actor) {
+    const effects = Array.from(actor.effects);
+    for (const effect of effects) {
+        if (effect.isTemporary) effect.updateDuration?.();
+    }
+    const overdue = new Set(selectOverdueEffects(effects));
+    const orphanIds = [];
+    const expireIds = [];
+    for (const effect of effects) {
+        const expired = effect.duration?.expired === true || overdue.has(effect);
+        if (!expired) continue;
+        if (isOrphanedItemCopy(effect)) orphanIds.push(effect.id);
+        // An orphan is recorded as expired first, like any other copy, so the clock change's own write to it
+        // (core records expiry on the same event) has landed before the delete below.
+        if (overdue.has(effect)) expireIds.push(effect.id);
+    }
+    // The clock went back: an effect recorded as expired whose time has not run out is live again.
+    const reviveIds = selectRevivedEffects(effects)
+        .filter((effect) => !orphanIds.includes(effect.id))
+        .map((effect) => effect.id);
+    const revive = stillOnActor(actor, reviveIds);
+    if (revive.length) {
+        await actor.updateEmbeddedDocuments(
+            'ActiveEffect',
+            revive.map((_id) => ({ _id, 'duration.expired': false }))
+        );
+    }
+    const expire = stillOnActor(actor, expireIds);
+    if (expire.length) {
+        await actor.updateEmbeddedDocuments(
+            'ActiveEffect',
+            expire.map((_id) => ({ _id, 'duration.expired': true }))
+        );
+    }
+    if (orphanIds.length) {
+        await new Promise((resolve) => setTimeout(resolve, CORE_REFRESH_SETTLE_MS));
+        const orphans = stillOnActor(actor, orphanIds);
+        if (orphans.length) await actor.deleteEmbeddedDocuments('ActiveEffect', orphans);
     }
 }
 

@@ -749,3 +749,14 @@ actor.createEmbeddedDocuments('Item', [...])`: a probe creating the pair 40 time
 - **`.sla-effect-meta` had no style at all**, so the remaining-time text inherited a dark colour on the dark
   row and read as blank in the user's screenshot. When a screenshot shows "nothing there", check whether the
   element exists and is merely unstyled before debugging data.
+- **Deleting an effect in the same tick as a clock change races Foundry's own expiry writes.** Advancing the clock
+  made core mark the affected effects expired with its own updates; our expiry pass deleted the orphaned copies of a
+  used-up drug at the same moment, so the server rejected core's updates with `undefined id [...] does not exist in
+the EmbeddedCollection collection` and the GM saw a red toast. The stack ended in `ServerDatabaseBackend._updateDocuments`
+  (a server-side rejection of an update for a vanished id), not in any of our code, which is why guarding our own
+  writes with `actor.effects.has(id)` alone did not help. A "drug with several timed effects" test passed on the
+  broken code; only the used-up-drug case (`regression-effect-expiry.spec.js`, "a used-up drug with several timed
+  effects") reproduced it. Rule: when the system deletes documents that core is also updating in response to the same
+  event, write the state core would write first and delete a moment later (`CORE_REFRESH_SETTLE_MS`); serialize our
+  own passes per owner (`createKeyedQueue`) and re-check ids against the live collection before each write. Capture the
+  console `error` stack in the e2e test (`page.on('console')`) to see which layer throws before guessing.

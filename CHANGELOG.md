@@ -23,6 +23,7 @@ section only in the PR that prepares the stable release. See
 
 ### Fixed
 
+- **"id … does not exist in the EmbeddedCollection" error when advancing the clock.** When a drug's last dose was used and its timed effects ran out, the system deleted the leftover effect copies at the same moment Foundry was recording their expiry, so the server rejected Foundry's write and showed a red error. Expiry is now recorded first and the copies are removed a moment later; the expiry passes also run one at a time per actor.
 - **An hours-long effect used in combat never expired when its Expiry Event read Turn End** (or Round Start/End). For a game-clock duration those turn and round events are now ignored, so the effect expires as soon as the clock passes its length; only Combat Start/End is still waited for.
 - **Drug chat card showed "Duration: Unknown"** when the length was set on the effect's Duration tab rather than in the item's Duration text. The card now falls back to the effect's duration (e.g. `3 rounds`), and the drug sheet's Duration field shows it as its placeholder while the text is blank.
 

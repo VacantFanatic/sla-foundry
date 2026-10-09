@@ -218,6 +218,118 @@ test.describe('GM: effect expiry', () => {
         }
     });
 
+    test('a drug with several timed effects switches off on a clock jump without a "does not exist" error', async ({
+        page
+    }) => {
+        const logs = [];
+        page.on('console', (m) => m.type() === 'error' && logs.push(m.text().slice(0, 600)));
+        await setup(page);
+        try {
+            const out = await page.evaluate(async () => {
+                const actor = game.actors.get(window.__actorId);
+                const toasts = [];
+                const original = ui.notifications.error.bind(ui.notifications);
+                ui.notifications.error = (...args) => {
+                    toasts.push(String(args[0]));
+                    return original(...args);
+                };
+                try {
+                    const [created] = await actor.createEmbeddedDocuments('Item', [
+                        {
+                            name: 'E2E Multi Stim',
+                            type: 'drug',
+                            system: { quantity: 3 },
+                            effects: [1, 2, 3].map((n) => ({
+                                name: `E2E Multi ${n}`,
+                                disabled: false,
+                                duration: { value: n, units: 'hours', expiry: 'turnEnd' },
+                                changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 1 }]
+                            }))
+                        }
+                    ]);
+                    const drug = actor.items.get(created.id);
+                    await drug.toggleActive();
+                    const copies = () => game.actors.get(actor.id).effects.size;
+                    const used = { copies: copies(), str: window.__str() };
+                    await game.sla.advanceTime(17 * 3600);
+                    const switchedOff = await window.__wait(() => drug.system.active === false, 10000);
+                    await window.__wait(() => copies() === 0, 10000);
+                    await new Promise((r) => setTimeout(r, 1500));
+                    return { used, switchedOff, copies: copies(), str: window.__str(), toasts };
+                } finally {
+                    ui.notifications.error = original;
+                }
+            });
+            expect(out).toEqual({
+                used: { copies: 3, str: 6 },
+                switchedOff: true,
+                copies: 0,
+                str: 3,
+                toasts: []
+            });
+            expect(logs).toEqual([]);
+        } finally {
+            await page.evaluate(() => window.__cleanup());
+        }
+    });
+
+    test('a used-up drug with several timed effects has its copies removed on a clock jump without a "does not exist" error', async ({
+        page
+    }) => {
+        const logs = [];
+        page.on('console', (m) => m.type() === 'error' && logs.push(m.text().slice(0, 600)));
+        await setup(page);
+        try {
+            const out = await page.evaluate(async () => {
+                const actor = game.actors.get(window.__actorId);
+                const toasts = [];
+                const original = ui.notifications.error.bind(ui.notifications);
+                ui.notifications.error = (...args) => {
+                    toasts.push(String(args[0]));
+                    return original(...args);
+                };
+                try {
+                    const [created] = await actor.createEmbeddedDocuments('Item', [
+                        {
+                            name: 'E2E Multi Stim',
+                            type: 'drug',
+                            system: { quantity: 1 },
+                            effects: [1, 2, 3].map((n) => ({
+                                name: `E2E Multi ${n}`,
+                                disabled: false,
+                                duration: { value: n, units: 'hours', expiry: 'turnEnd' },
+                                changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 1 }]
+                            }))
+                        }
+                    ]);
+                    const { useDrugItem } =
+                        await import('/systems/sla-industries/module/sheets/actor/item-actions.mjs');
+                    await useDrugItem({ actor }, actor.items.get(created.id));
+                    await window.__wait(() => game.actors.get(actor.id).effects.size === 3);
+                    const copies = () => game.actors.get(actor.id).effects.size;
+                    const used = { copies: copies(), str: window.__str() };
+                    await game.sla.advanceTime(17 * 3600);
+                    const switchedOff = true;
+                    await window.__wait(() => copies() === 0, 10000);
+                    await new Promise((r) => setTimeout(r, 1500));
+                    return { used, switchedOff, copies: copies(), str: window.__str(), toasts };
+                } finally {
+                    ui.notifications.error = original;
+                }
+            });
+            expect(out).toEqual({
+                used: { copies: 3, str: 6 },
+                switchedOff: true,
+                copies: 0,
+                str: 3,
+                toasts: []
+            });
+            expect(logs).toEqual([]);
+        } finally {
+            await page.evaluate(() => window.__cleanup());
+        }
+    });
+
     test('an explicit expiry event and a rounds duration are left to Foundry, not expired by the clock', async ({
         page
     }) => {
