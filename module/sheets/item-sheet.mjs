@@ -2,6 +2,7 @@
  * SLA item sheet (Application V2).
  * @extends {HandlebarsApplicationMixin(ItemSheetV2)}
  */
+import { describeDrugDuration } from '../documents/derived/effect-duration.mjs';
 import { enrichItemDescription } from '../helpers/item-sheet.mjs';
 import { bindTabKeyboardNav } from '../helpers/tab-keyboard-nav.mjs';
 import { effectChangeRows, summarizeActiveEffectChange } from '../documents/derived/active-effects.mjs';
@@ -257,6 +258,13 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
                 applyOn: this.#prepareApplyOnSelect(e)
             }));
         }
+
+        // A drug with no duration text still has one if an effect carries it; show that in the field.
+        const effectDuration = describeDrugDuration('', item.effects);
+        context.durationPlaceholder =
+            effectDuration === 'Unknown'
+                ? game.i18n.localize('SLA.ItemSheet.Drug.DurationPlaceholder')
+                : effectDuration;
 
         context.enrichedDescription = await enrichItemDescription(item);
 

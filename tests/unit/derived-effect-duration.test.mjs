@@ -15,7 +15,9 @@ import {
     isTimeBasedDuration,
     isTimeDurationOverdue,
     selectOverdueEffects,
-    selectRevivedEffects
+    selectRevivedEffects,
+    formatEffectDuration,
+    describeDrugDuration
 } from '../../module/documents/derived/effect-duration.mjs';
 import { computeActiveEffectFieldValue, isEffectActive } from '../../module/documents/derived/active-effects.mjs';
 
@@ -283,5 +285,35 @@ describe('selectRevivedEffects', () => {
         const plain = { duration: { units: 'hours', remaining: 60, expired: true } };
         assert.deepEqual(selectRevivedEffects([plain]), [plain]);
         assert.deepEqual(selectRevivedEffects(null), []);
+    });
+});
+
+describe('formatEffectDuration / describeDrugDuration', () => {
+    test('formats rounds, turns and clock durations readably', () => {
+        assert.equal(formatEffectDuration({ value: 3, units: 'rounds' }), '3 rounds');
+        assert.equal(formatEffectDuration({ value: 1, units: 'turns' }), '1 turn');
+        assert.equal(formatEffectDuration({ value: 7200, units: 'seconds' }), '2 hours');
+        assert.equal(formatEffectDuration({ value: 90, units: 'seconds' }), '90 seconds');
+        assert.equal(formatEffectDuration({ value: 1, units: 'hours' }), '1 hour');
+    });
+
+    test('has no label for an effect without a finite length', () => {
+        assert.equal(formatEffectDuration({ value: null, units: 'rounds' }), null);
+        assert.equal(formatEffectDuration({ value: 0, units: 'rounds' }), null);
+        assert.equal(formatEffectDuration({ value: 3, units: 'bogus' }), null);
+        assert.equal(formatEffectDuration(undefined), null);
+    });
+
+    test('the drug card prefers the item text, then the effect Duration tab, then Unknown', () => {
+        const effects = [{ duration: { value: null } }, { duration: { value: 3, units: 'rounds' } }];
+        assert.equal(describeDrugDuration('2 hours', effects), '2 hours');
+        assert.equal(describeDrugDuration('  ', effects), '3 rounds');
+        const prepared = {
+            duration: { value: 18, units: 'seconds' },
+            _source: { duration: { value: 3, units: 'rounds' } }
+        };
+        assert.equal(describeDrugDuration('', [prepared]), '3 rounds');
+        assert.equal(describeDrugDuration('', []), 'Unknown');
+        assert.equal(describeDrugDuration(undefined, undefined), 'Unknown');
     });
 });

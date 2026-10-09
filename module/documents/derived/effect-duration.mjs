@@ -150,3 +150,59 @@ export function allEffectsExpired(effects) {
     const list = Array.from(effects ?? []);
     return list.length > 0 && list.every((e) => e?.duration?.expired === true);
 }
+
+const DURATION_UNIT_LABELS = {
+    seconds: ['second', 'seconds'],
+    minutes: ['minute', 'minutes'],
+    hours: ['hour', 'hours'],
+    days: ['day', 'days'],
+    months: ['month', 'months'],
+    years: ['year', 'years'],
+    rounds: ['round', 'rounds'],
+    turns: ['turn', 'turns']
+};
+
+/**
+ * Readable length of a stored effect duration, e.g. `3 rounds`, `2 hours` (7200 seconds collapses to the
+ * largest whole unit up to days). `null` when the effect has no finite length of its own.
+ * @param {{ value?: unknown, units?: unknown } | null | undefined} duration
+ * @returns {string | null}
+ */
+export function formatEffectDuration(duration) {
+    let value = Number(duration?.value);
+    let units = duration?.units;
+    if (!Number.isFinite(value) || value <= 0 || !Object.hasOwn(DURATION_UNIT_LABELS, units)) return null;
+    if (units === 'seconds') {
+        for (const [unit, size] of [
+            ['days', 86400],
+            ['hours', 3600],
+            ['minutes', 60]
+        ]) {
+            if (value % size === 0) {
+                value /= size;
+                units = unit;
+                break;
+            }
+        }
+    }
+    const [singular, plural] = DURATION_UNIT_LABELS[units];
+    return `${value} ${value === 1 ? singular : plural}`;
+}
+
+/**
+ * What a drug's chat card should say for its duration: the item's own text when present, otherwise the length
+ * set on the Duration tab of its first effect that has one, otherwise `Unknown`. Reads the stored duration
+ * (`_source`): the prepared one converts rounds to seconds once `CONFIG.time.roundTime` is set.
+ * @param {unknown} itemText The drug's `system.duration` text.
+ * @param {Iterable<{ duration?: { value?: unknown, units?: unknown } }> | null | undefined} effects
+ * @returns {string}
+ */
+export function describeDrugDuration(itemText, effects) {
+    const text = String(itemText ?? '').trim();
+    if (text) return text;
+    for (const effect of effects ?? []) {
+        const label = formatEffectDuration(effect?._source?.duration ?? effect?.duration);
+        if (label) return label;
+    }
+    return 'Unknown';
+}
