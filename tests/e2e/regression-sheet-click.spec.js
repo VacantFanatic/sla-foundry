@@ -27,6 +27,32 @@ const needsAuth = () => {
     test.skip(!process.env.FOUNDRY_USER, 'Set FOUNDRY_USER (and FOUNDRY_URL / FOUNDRY_PASSWORD if needed)');
 };
 
+/**
+ * Click an Inventory-tab equip toggle by item id in one synchronous in-page step.
+ *
+ * Deliberately does not go through a `sheet.locator(...)` chain rooted at `.last()`: that
+ * re-resolves on every use, so if the sheet re-renders (or a still-closing sheet from the
+ * previous test shifts which form is `.last()`) between the visibility assertion and the click,
+ * the handle goes stale and `evaluate()` waits out the whole test timeout. The item id is unique
+ * in the document, so query it directly and click as soon as it is present.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} itemId
+ */
+const clickEquipToggle = async (page, itemId) => {
+    await page.waitForFunction(
+        (id) => {
+            const el = document.querySelector(
+                `form.application.sla-industries.actor tr.item[data-item-id="${id}"] .item-toggle`
+            );
+            if (!el) return false;
+            el.click();
+            return true;
+        },
+        itemId,
+        { timeout: 15_000 }
+    );
+};
+
 test.describe('GM: handleSheetClick dispatch (document API)', () => {
     test.beforeEach(async ({ page }) => {
         needsAuth();
@@ -172,7 +198,7 @@ test.describe('GM: handleSheetClick dispatch (document API)', () => {
         // unreachable from the real UI, even though the click handler itself worked.
         await expect(toggle).toBeVisible();
 
-        await toggle.evaluate((el) => el.click());
+        await clickEquipToggle(page, gearId);
         await page.waitForFunction(
             ({ id, uuid }) => game.actors.get(id).effects.some((e) => e.origin === uuid),
             { id: actorId, uuid: `Actor.${actorId}.Item.${gearId}` },
@@ -181,7 +207,7 @@ test.describe('GM: handleSheetClick dispatch (document API)', () => {
         const strTotalEquipped = await page.evaluate((id) => game.actors.get(id).system.stats.str.total, actorId);
         expect(strTotalEquipped).toBe(6);
 
-        await toggle.evaluate((el) => el.click());
+        await clickEquipToggle(page, gearId);
         await page.waitForFunction(
             ({ id, uuid }) => !game.actors.get(id).effects.some((e) => e.origin === uuid),
             { id: actorId, uuid: `Actor.${actorId}.Item.${gearId}` },
@@ -221,11 +247,10 @@ test.describe('GM: handleSheetClick dispatch (document API)', () => {
             await dismissFoundryNotifications(page);
             await clickActorSheetTab(sheet, 'inventory');
 
-            const toggle = sheet.locator(`tr.item[data-item-id="${itemId}"] .item-toggle`);
-            await expect(toggle).toBeVisible();
+            await expect(sheet.locator(`tr.item[data-item-id="${itemId}"] .item-toggle`)).toBeVisible();
 
             const uuid = `Actor.${actorId}.Item.${itemId}`;
-            await toggle.evaluate((el) => el.click());
+            await clickEquipToggle(page, itemId);
             await page.waitForFunction(
                 ({ id, uuid }) => game.actors.get(id).effects.some((e) => e.origin === uuid),
                 { id: actorId, uuid },
@@ -233,7 +258,7 @@ test.describe('GM: handleSheetClick dispatch (document API)', () => {
             );
             expect(await page.evaluate((id) => game.actors.get(id).system.stats.str.total, actorId)).toBe(5);
 
-            await toggle.evaluate((el) => el.click());
+            await clickEquipToggle(page, itemId);
             await page.waitForFunction(
                 ({ id, uuid }) => !game.actors.get(id).effects.some((e) => e.origin === uuid),
                 { id: actorId, uuid },

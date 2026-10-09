@@ -200,11 +200,12 @@ async function deleteTestActors(page) {
  * @param {import('@playwright/test').Page} page
  */
 async function closeApplicationWindows(page) {
+    // Await the closes: a sheet left mid-close-animation can still be in the DOM when the next
+    // test opens its own, which shifts `.last()`-based sheet locators.
     await page
-        .evaluate(() => {
-            for (const app of globalThis.foundry?.applications?.instances?.values?.() ?? []) {
-                app.close?.();
-            }
+        .evaluate(async () => {
+            const apps = [...(globalThis.foundry?.applications?.instances?.values?.() ?? [])];
+            await Promise.all(apps.map((app) => Promise.resolve(app.close?.()).catch(() => {})));
         })
         .catch(() => {});
     await page.keyboard.press('Escape').catch(() => {});

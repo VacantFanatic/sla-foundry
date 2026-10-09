@@ -760,3 +760,15 @@ the EmbeddedCollection collection` and the GM saw a red toast. The stack ended i
   event, write the state core would write first and delete a moment later (`CORE_REFRESH_SETTLE_MS`); serialize our
   own passes per owner (`createKeyedQueue`) and re-check ids against the live collection before each write. Capture the
   console `error` stack in the e2e test (`page.on('console')`) to see which layer throws before guessing.
+- **A `.last()` sheet locator goes stale; click by a unique id in one in-page step.** In CI the armor
+  equip-toggle test passed `toBeVisible()` and then `toggle.evaluate(...)` waited out the whole 30s test
+  timeout, because `sheet = page.locator('form.application.sla-industries.actor').last()` re-resolves on every
+  use and a re-rendered sheet (or a previous test's sheet still closing) changed what it pointed at. Item ids
+  are unique in the document, so `clickEquipToggle()` in `regression-sheet-click.spec.js` queries the row
+  directly and clicks inside `waitForFunction`. `closeApplicationWindows()` now awaits each `app.close()` for
+  the same reason. Rule: after a visibility assertion, do not assume the locator still resolves later; for
+  re-render-prone sheets, resolve and act in one in-page step.
+- **`expect.poll` defaults to a 5s timeout regardless of the test timeout.** The Configure Settings test had a
+  120s budget but its poll on `game.settings.get` still gave up after 5s on a loaded runner, leaving the old
+  value (`Expected: false / Received: true`). When polling for something that round-trips through the server,
+  pass an explicit `timeout`.

@@ -159,8 +159,12 @@ test.describe('SLA regression — authenticated', () => {
             await expect(checkbox).toBeChecked({ checked: !original });
             await page.getByRole('button', { name: /save changes/i }).click();
 
+            // Settings persist via a world-setting socket round trip; the default 5s expect timeout
+            // is too tight on a loaded CI runner (observed flake: value still `original` after 5s).
             await expect
-                .poll(async () => page.evaluate((k) => game.settings.get('sla-industries', k), key))
+                .poll(async () => page.evaluate((k) => game.settings.get('sla-industries', k), key), {
+                    timeout: 20_000
+                })
                 .toBe(!original);
         } finally {
             await page.evaluate(({ k, v }) => game.settings.set('sla-industries', k, v), { k: key, v: original });
