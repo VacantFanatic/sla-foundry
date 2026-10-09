@@ -372,6 +372,35 @@
     opacity: 0.45;
 }
 
+.sla-sheet .sla-effect-row .sla-effect-meta {
+    display: block;
+    margin-top: 1px;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    color: var(--sla-text-muted, #aaa);
+}
+
+.sla-sheet .sla-effect-row .is-expired .sla-effect-name {
+    opacity: 0.45;
+}
+
+.sla-sheet .sla-effect-expired-badge {
+    margin-left: 6px;
+    padding: 1px 6px;
+    border: 1px solid var(--sla-warning, #d9a441);
+    border-radius: var(--sla-radius);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sla-warning, #d9a441);
+    opacity: 1;
+}
+
+.sla-sheet .sla-effect-expired-icon {
+    color: var(--sla-warning, #d9a441);
+}
+
 .sla-sheet .sla-effect-on {
     color: #39ff14;
 }

@@ -34,6 +34,8 @@ import { renderEbbCastDialog } from './actor/ebb-rolls.mjs';
 import { processExplosiveRoll, renderExplosiveDialog } from './actor/explosive-rolls.mjs';
 import { processWeaponRoll, renderAttackDialog } from './actor/weapon-rolls.mjs';
 import { computeActiveEffectKeyValue } from '../documents/derived/active-effects.mjs';
+import { isTimeDurationOverdue } from '../documents/derived/effect-duration.mjs';
+import { SOURCE_NAME_FLAG, isOrphanedItemCopy } from '../documents/actor/effect-expiry.mjs';
 
 const { HandlebarsApplicationMixin } = foundry.applications.api;
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -473,23 +475,29 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
     }
 
     /**
-     * @returns {Array<{ id: string, name: string, img: string, disabled: boolean, sourceName: string, durationLabel: string }>}
+     * @returns {Array<{ id: string, name: string, img: string, disabled: boolean, expired: boolean, sourceName: string, durationLabel: string }>}
      */
     _prepareEffectsList() {
         return Array.from(this.actor.effects).map((e) => {
             let durationLabel = '';
             try {
                 const d = e.updateDuration?.() ?? e.duration;
-                durationLabel = d?.label || '';
+                // "None" for a permanent effect is noise; only timed effects get a remaining-time line.
+                durationLabel = e.isTemporary ? d?.label || '' : '';
             } catch {
                 durationLabel = '';
             }
+            // Foundry records expiry only when it processes an event, so also trust the live remaining time.
+            const expired = e.duration?.expired === true || isTimeDurationOverdue(e);
+            // A used-up drug is deleted right after its effects are copied; the copy remembers its name.
+            const stampedSource = isOrphanedItemCopy(e) ? e.getFlag('sla-industries', SOURCE_NAME_FLAG) : null;
             return {
                 id: e.id,
                 name: e.name,
                 img: e.img,
                 disabled: e.disabled,
-                sourceName: e.sourceName,
+                expired,
+                sourceName: stampedSource || e.sourceName,
                 durationLabel
             };
         });

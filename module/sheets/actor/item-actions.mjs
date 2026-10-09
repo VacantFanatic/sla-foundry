@@ -1,3 +1,5 @@
+import { describeDrugDuration } from '../../documents/derived/effect-duration.mjs';
+
 /**
  * @param {import('../actor-sheet.mjs').SlaActorSheet} sheet
  * @param {Item} item
@@ -13,7 +15,7 @@ export async function useDrugItem(sheet, item) {
     const templateData = {
         itemName: item.name.toUpperCase(),
         actorName: sheet.actor.name,
-        duration: item.system.duration || 'Unknown',
+        duration: describeDrugDuration(item.system.duration, item.effects),
         remaining: newQty
     };
     const content = await foundry.applications.handlebars.renderTemplate(
@@ -24,7 +26,7 @@ export async function useDrugItem(sheet, item) {
         speaker: ChatMessage.getSpeaker({ actor: sheet.actor }),
         content: content
     });
-    await item.applyItemEffectsToActor(sheet.actor);
+    await item.syncEffects(sheet.actor, 'activate');
 
     if (newQty <= 0) {
         await item.delete();

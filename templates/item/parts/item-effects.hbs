@@ -18,8 +18,22 @@
                 <img src="{{eff.img}}" width="28" height="28" alt="" />
             </div>
             <div class="item-name flex2">
-                <h4>{{eff.name}}</h4>
+                <h4 class="{{#if eff.disabled}}is-disabled{{/if}}">{{eff.name}}{{#if eff.disabled}} <span class="sla-effect-disabled-badge">{{localize "SLA.ItemSheet.Effects.Disabled"}}</span>{{/if}}</h4>
+                {{#if eff.changes.length}}
+                <ul class="sla-effect-changes">
+                    {{#each eff.changes}}<li class="sla-effect-change">{{this}}</li>{{/each}}
+                </ul>
+                {{/if}}
             </div>
+            {{#if eff.applyOn}}
+            <div class="item-detail flex1 sla-effect-apply-on">
+                <select class="sla-item-effect-apply-on" data-effect-id="{{eff.id}}" title="{{localize "SLA.ItemSheet.Effects.ApplyOn.Hint"}}" aria-label="{{localize "SLA.ItemSheet.Effects.ApplyOn.Label"}}" {{#unless ../editable}}disabled{{/unless}}>
+                    {{#each eff.applyOn.options}}
+                    <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                    {{/each}}
+                </select>
+            </div>
+            {{/if}}
             {{#if ../editable}}
             <div class="item-controls flex0">
                 <button type="button" class="sla-item-effect-edit" data-effect-id="{{eff.id}}" title="{{localize "SLA.ItemSheet.Effects.Edit"}}"><i class="fas fa-edit"></i></button>

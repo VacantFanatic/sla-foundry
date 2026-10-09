@@ -5,7 +5,7 @@ import { SlaItemSheet } from '../item-sheet.mjs';
  * @extends {SlaItemSheet}
  */
 export class SlaArmorItemSheet extends SlaItemSheet {
-    static useTwoTabs = true;
+    static useTwoTabs = false;
     static useCataloguePart = true;
 
     /** @override */

@@ -258,7 +258,7 @@ test.describe('GM: Ebb formula active effects (document API)', () => {
         test.skip(!gm, 'Requires GM — use a Gamemaster account for FOUNDRY_USER');
     });
 
-    test('applyItemEffectsToActor copies embedded ActiveEffects from Ebb formula to target actor', async ({ page }) => {
+    test('syncEffects(manual) copies embedded ActiveEffects from Ebb formula to target actor', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();
             const [caster] = await Actor.createDocuments([{ name: `E2E Ebb Caster ${stamp}`, type: 'character' }]);
@@ -293,7 +293,7 @@ test.describe('GM: Ebb formula active effects (document API)', () => {
                 }
             ]);
             const originUuid = formula.uuid;
-            await formula.applyItemEffectsToActor(target);
+            await formula.syncEffects(target, 'manual');
             const onTarget = target.effects.filter((e) => e.origin === originUuid);
             const transferFlags = onTarget.map((e) => e.transfer);
             const payload = {
@@ -312,9 +312,7 @@ test.describe('GM: Ebb formula active effects (document API)', () => {
         expect(result.transferFalse).toBe(true);
     });
 
-    test('applyItemEffectsToActor replaces prior effects from same formula origin on repeat apply', async ({
-        page
-    }) => {
+    test('syncEffects(manual) replaces prior effects from same formula origin on repeat apply', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();
             const [caster] = await Actor.createDocuments([{ name: `E2E Ebb Caster2 ${stamp}`, type: 'character' }]);
@@ -347,8 +345,8 @@ test.describe('GM: Ebb formula active effects (document API)', () => {
                 }
             ]);
             const originUuid = formula.uuid;
-            await formula.applyItemEffectsToActor(target);
-            await formula.applyItemEffectsToActor(target);
+            await formula.syncEffects(target, 'manual');
+            await formula.syncEffects(target, 'manual');
             const onTarget = target.effects.filter((e) => e.origin === originUuid);
             await caster.delete();
             await target.delete();

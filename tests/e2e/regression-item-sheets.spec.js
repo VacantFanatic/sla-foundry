@@ -94,7 +94,7 @@ test.describe('SLA item sheet UI — regression', () => {
         await expect(sheet.locator('input[name="system.recoil"]')).toHaveCount(0);
     });
 
-    test('weapon sheet — skill drop hint, no effects tab', async ({ page }) => {
+    test('weapon sheet — skill drop hint, effects tab', async ({ page }) => {
         const itemId = await createWorldItem(page, 'weapon', {
             attackType: 'ranged',
             skill: '',
@@ -104,9 +104,10 @@ test.describe('SLA item sheet UI — regression', () => {
 
         await expect(sheet.locator('.sla-drop.skill-link-box')).toBeVisible();
         await expect(sheet.locator('.sla-drop__hint')).toHaveText('Drop Skill Item Here');
-        // Issue #363: nothing ever applied a weapon's embedded effects to the actor, so the tab
-        // is removed rather than leaving a control on the sheet that silently does nothing.
-        await expect(sheet.locator('nav.sheet-tabs a[data-tab="effects"]')).toHaveCount(0);
+        // Weapons are equip-gated: SlaItem#setEquipped copies their embedded effects onto the actor.
+        await clickItemSheetTab(sheet, 'effects');
+        await sheet.locator('.sla-item-effect-create').click();
+        await expect(sheet.locator('.sla-item-effect-row')).toHaveCount(1);
     });
 
     test('ranged weapon sheet — Clip Size and Loaded fields persist; melee hides them', async ({ page }) => {
@@ -176,11 +177,22 @@ test.describe('SLA item sheet UI — regression', () => {
             .toEqual({ isShield: true, pvMelee: 2, pvRanged: 2 });
     });
 
-    test('armor sheet — no effects tab', async ({ page }) => {
+    test('armor sheet — effects tab', async ({ page }) => {
         const itemId = await createWorldItem(page, 'armor', { pv: 6, isShield: false });
         const sheet = await openItemSheet(page, itemId);
 
-        await expect(sheet.locator('nav.sheet-tabs a[data-tab="effects"]')).toHaveCount(0);
+        await clickItemSheetTab(sheet, 'effects');
+        await sheet.locator('.sla-item-effect-create').click();
+        await expect(sheet.locator('.sla-item-effect-row')).toHaveCount(1);
+    });
+
+    test('explosive and magazine sheets — still no effects tab (no equip trigger)', async ({ page }) => {
+        for (const type of ['explosive', 'magazine']) {
+            const itemId = await createWorldItem(page, type, {});
+            const sheet = await openItemSheet(page, itemId);
+            await expect(sheet.locator('nav.sheet-tabs a[data-tab="effects"]')).toHaveCount(0);
+            await closeApplicationWindows(page);
+        }
     });
 
     test('skill sheet — field manual stamp, two tabs only', async ({ page }) => {
@@ -209,7 +221,7 @@ test.describe('SLA item sheet UI — regression', () => {
 
         await expect(sheet.getByText('Inventory Slip')).toBeVisible();
         await clickItemSheetTab(sheet, 'effects');
-        await expect(sheet.getByText('Transferable effects apply')).toBeVisible();
+        await expect(sheet.getByText('These effects are copied onto the owning actor')).toBeVisible();
     });
 
     test('drop zones toggle is-drag-over during dragenter', async ({ page }) => {
@@ -238,6 +250,165 @@ test.describe('SLA item sheet UI — regression', () => {
 
         await expect(sheet.locator('.sla-item-effect-row')).toHaveCount(1);
         await expect(sheet.getByText('No active effects.')).toHaveCount(0);
+    });
+
+    test('effects tab — rows show change summary and disabled state', async ({ page }) => {
+        const itemId = await createWorldItem(page, 'item', {});
+        await page.evaluate(async (id) => {
+            const item = game.items.get(id);
+            await item.createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'E2E Live Bonus',
+                    img: 'icons/svg/aura.svg',
+                    changes: [{ key: 'system.stats.str.bonus', type: 'add', value: '2' }]
+                },
+                {
+                    name: 'E2E Off Bonus',
+                    img: 'icons/svg/aura.svg',
+                    disabled: true,
+                    changes: [{ key: 'system.rollModifier.bonus', type: 'override', value: '1' }]
+                }
+            ]);
+        }, itemId);
+        const sheet = await openItemSheet(page, itemId);
+        await clickItemSheetTab(sheet, 'effects');
+
+        const live = sheet.locator('.sla-item-effect-row', { hasText: 'E2E Live Bonus' });
+        await expect(live.locator('.sla-effect-change')).toHaveText('system.stats.str.bonus +2');
+        await expect(live.locator('.sla-effect-disabled-badge')).toHaveCount(0);
+
+        const off = sheet.locator('.sla-item-effect-row', { hasText: 'E2E Off Bonus' });
+        await expect(off.locator('.sla-effect-change')).toHaveText('system.rollModifier.bonus =1');
+        await expect(off.locator('.sla-effect-disabled-badge')).toBeVisible();
+        await expect(off.locator('h4')).toHaveClass(/is-disabled/);
+    });
+
+    test('effects tab — "when this effect applies" selector shows only for multi-trigger types', async ({ page }) => {
+        test.setTimeout(240_000);
+        for (const [type, expectSelect] of [
+            ['weapon', true],
+            ['armor', true],
+            ['item', true],
+            ['drug', true],
+            ['ebbFormula', true],
+            ['trait', false],
+            ['toxicant', false]
+        ]) {
+            const itemId = await createWorldItem(page, type, {});
+            await page.evaluate(async (id) => {
+                await game.items
+                    .get(id)
+                    .createEmbeddedDocuments('ActiveEffect', [{ name: 'E2E Row', disabled: false }]);
+            }, itemId);
+            const sheet = await openItemSheet(page, itemId);
+            await clickItemSheetTab(sheet, 'effects');
+            await expect(sheet.locator('.sla-item-effect-row')).toHaveCount(1);
+            await expect(sheet.locator('.sla-item-effect-apply-on'), `${type} selector`).toHaveCount(
+                expectSelect ? 1 : 0
+            );
+            await closeApplicationWindows(page);
+        }
+    });
+
+    test('effects tab — picking a trigger stores the flag, and Default clears it', async ({ page }) => {
+        const itemId = await createWorldItem(page, 'weapon', {});
+        await page.evaluate(async (id) => {
+            await game.items.get(id).createEmbeddedDocuments('ActiveEffect', [{ name: 'E2E Flag', disabled: false }]);
+        }, itemId);
+        const sheet = await openItemSheet(page, itemId);
+        await clickItemSheetTab(sheet, 'effects');
+
+        const select = sheet.locator('.sla-item-effect-apply-on');
+        await expect(select.locator('option:checked')).toHaveText('Default (While equipped)');
+        await expect(select.locator('option')).toHaveText([
+            'Default (While equipped)',
+            'While equipped',
+            'While owned'
+        ]);
+
+        const readFlag = () =>
+            page.evaluate(
+                (id) => game.items.get(id).effects.contents[0].getFlag('sla-industries', 'applyOn') ?? null,
+                itemId
+            );
+
+        await select.selectOption('owned');
+        await expect.poll(readFlag).toBe('owned');
+        await expect(sheet.locator('.sla-item-effect-apply-on option:checked')).toHaveText('While owned');
+
+        await sheet.locator('.sla-item-effect-apply-on').selectOption('');
+        await expect.poll(readFlag).toBe(null);
+    });
+
+    test('effects tab — a trigger chosen in the real selector drives what reaches the actor', async ({ page }) => {
+        const itemId = await createWorldItem(page, 'item', {});
+        await page.evaluate(async (id) => {
+            await game.items.get(id).createEmbeddedDocuments('ActiveEffect', [
+                {
+                    name: 'E2E While Equipped',
+                    disabled: false,
+                    changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 2 }]
+                },
+                {
+                    name: 'E2E Always On',
+                    disabled: false,
+                    changes: [{ key: 'system.stats.str.bonus', type: 'add', value: 1 }]
+                }
+            ]);
+        }, itemId);
+
+        // The real Effects-tab selector, not a direct flag write.
+        const sheet = await openItemSheet(page, itemId);
+        await clickItemSheetTab(sheet, 'effects');
+        await sheet
+            .locator('.sla-item-effect-row', { hasText: 'E2E Always On' })
+            .locator('.sla-item-effect-apply-on')
+            .selectOption('owned');
+        await expect
+            .poll(() =>
+                page.evaluate(
+                    (id) =>
+                        game.items
+                            .get(id)
+                            .effects.find((e) => e.name === 'E2E Always On')
+                            .getFlag('sla-industries', 'applyOn'),
+                    itemId
+                )
+            )
+            .toBe('owned');
+        await closeApplicationWindows(page);
+
+        const result = await page.evaluate(async (id) => {
+            const [actor] = await Actor.createDocuments([
+                {
+                    name: `E2E Mixed Triggers ${Date.now()}`,
+                    type: 'character',
+                    system: { stats: { str: { value: 3, bonus: 0 } } }
+                }
+            ]);
+            const waitFor = async (predicate) => {
+                const deadline = Date.now() + 8000;
+                while (Date.now() < deadline && !predicate()) await new Promise((r) => setTimeout(r, 100));
+                return predicate();
+            };
+            const str = () => game.actors.get(actor.id).system.stats.str.total;
+            const [created] = await actor.createEmbeddedDocuments('Item', [game.items.get(id).toObject()]);
+            const item = actor.items.get(created.id);
+            const out = {};
+
+            // Granted: only the "owned" effect arrives.
+            out.afterGrant = (await waitFor(() => str() === 4)) ? str() : `stuck at ${str()}`;
+            await item.setEquipped(true);
+            out.afterEquip = str();
+            await item.setEquipped(false);
+            out.afterUnequip = str();
+            await item.delete();
+            out.afterDelete = (await waitFor(() => str() === 3)) ? str() : `stuck at ${str()}`;
+            await actor.delete();
+            return out;
+        }, itemId);
+
+        expect(result).toEqual({ afterGrant: 4, afterEquip: 6, afterUnequip: 4, afterDelete: 3 });
     });
 
     test('tab rail exposes accessibility attributes', async ({ page }) => {

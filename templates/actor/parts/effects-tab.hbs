@@ -20,14 +20,14 @@
                 <img src="{{eff.img}}" width="28" height="28" alt="" />
             </div>
             <div class="item-name flex2">
-                <h4 class="{{#if eff.disabled}}is-disabled{{/if}}">{{eff.name}}</h4>
+                <h4 class="{{#if eff.disabled}}is-disabled{{/if}}{{#if eff.expired}} is-expired{{/if}}"><span class="sla-effect-name">{{eff.name}}</span>{{#if eff.expired}} <span class="sla-effect-expired-badge">{{localize 'SLA.ActorSheet.EffectExpired'}}</span>{{/if}}</h4>
                 {{#if eff.durationLabel}}<div class="sla-effect-meta">{{eff.durationLabel}}</div>{{/if}}
             </div>
             <div class="item-detail flex1 sla-effect-source">{{eff.sourceName}}</div>
             {{#if ../owner}}
             <div class="item-controls flex0">
-                <button type="button" class="sla-effect-toggle" data-effect-id="{{eff.id}}" title="{{localize 'SLA.ActorSheet.ToggleEffect'}}" aria-label="{{localize 'SLA.ActorSheet.ToggleEffect'}}">
-                    {{#if eff.disabled}}<i class="fas fa-toggle-off" aria-hidden="true"></i>{{else}}<i class="fas fa-toggle-on sla-effect-on" aria-hidden="true"></i>{{/if}}
+                <button type="button" class="sla-effect-toggle{{#if eff.expired}} is-expired{{/if}}" data-effect-id="{{eff.id}}" title="{{#if eff.expired}}{{localize 'SLA.ActorSheet.EffectExpired'}}{{else}}{{localize 'SLA.ActorSheet.ToggleEffect'}}{{/if}}" aria-label="{{#if eff.expired}}{{localize 'SLA.ActorSheet.EffectExpired'}}{{else}}{{localize 'SLA.ActorSheet.ToggleEffect'}}{{/if}}">
+                    {{#if eff.expired}}<i class="fas fa-hourglass-end sla-effect-expired-icon" aria-hidden="true"></i>{{else if eff.disabled}}<i class="fas fa-toggle-off" aria-hidden="true"></i>{{else}}<i class="fas fa-toggle-on sla-effect-on" aria-hidden="true"></i>{{/if}}
                 </button>
                 <button type="button" class="sla-effect-edit" data-effect-id="{{eff.id}}" title="{{localize 'SLA.ActorSheet.EditEffect'}}" aria-label="{{localize 'SLA.ActorSheet.EditEffect'}}"><i class="fas fa-edit" aria-hidden="true"></i></button>
                 <button type="button" class="sla-effect-delete" data-effect-id="{{eff.id}}" title="{{localize 'SLA.ActorSheet.DeleteEffect'}}" aria-label="{{localize 'SLA.ActorSheet.DeleteEffect'}}"><i class="fas fa-trash" aria-hidden="true"></i></button>

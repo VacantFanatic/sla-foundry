@@ -120,7 +120,17 @@ Drug stat modifiers and damage reduction **must be configured as embedded Active
 Fields on the drug item sheet:
 
 - **Addiction Rating / Addiction Dose:** Reference text; addiction tests are resolved manually at the table.
-- **Duration:** Reference text for how long the drug lasts.
+- **Duration:** how long the drug's effects last. When the drug is used, each effect copied onto the actor gets this length, counted from that moment. Write it in one of these forms:
+
+    | Write                                                        | Meaning                                                                                |
+    | ------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+    | `2 hours`, `30 minutes`, `1 day`, `45 seconds`               | **Game time.** Runs out when the game clock passes that much time (see below).         |
+    | `3 rounds`, `2 turns`                                        | **Combat time.** Counts combat rounds or turns while the actor is in a running combat. |
+    | `Scene`, `Encounter`, `End of combat`                        | Ends when the combat ends (or, outside combat, the next time the game clock moves).    |
+    | anything else (`Permanent`, a dice roll such as `1d6 hours`) | No time limit. The effect lasts until the drug is switched off.                        |
+
+    When the time is up the effect stops applying and shows on the actor's Effects tab as **Expired** (dimmed, with a badge and an hourglass in place of the on-toggle). This happens as soon as the game clock passes it, even in the middle of a combat, whatever its Expiry Event is left on: the turn and round events (Turn Start/End, Round Start/End) are ignored for a clock-based duration, and only Combat Start or Combat End is still waited for. If the drug item has been used up (its last dose consumed), the expired effect is removed on its own. Once **all** of a drug's effects have expired the drug switches itself off and the expired effects are removed, so the sheet matches reality. A drug with no Duration text still keeps any length you set on an effect's own Duration tab, which is also how to give two effects of one drug different lengths. Game time only moves when the GM moves it: use the hourglass **Game Clock** button in the scene controls (or `game.sla.advanceTime(seconds)` in a macro), or let combat do it with the **Seconds per Combat Round** world setting. Rewinding the clock brings expired effects that are still on the actor back to life, but cannot bring back effects a drug has already dropped. To jump straight to a date (for example the start of a campaign), use the **Set date and time** panel in the Game Clock window or `game.sla.setDate({ year, month, day, hour, minute })`; the clock window also shows the current date and time.
+
 - **Detox Effects:** Reference text for treatment information.
 
 ---
@@ -176,19 +186,22 @@ Only some item types have an **Effects** tab, and only for those types does putt
 row there actually do anything — every one of them has a real, specific trigger that copies the
 item's embedded effects onto the actor:
 
-| Type                                                                              | Effects tab? | Applies to the actor...                                       |
-| --------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------- |
-| `item`                                                                            | Yes          | While **Equipped** (toggle on the sheet)                      |
-| `trait`                                                                           | Yes          | While the actor **owns** the trait (grant/revoke — see below) |
-| `drug`                                                                            | Yes          | While **Active** (Consume/toggle)                             |
-| `toxicant`                                                                        | Yes          | On a **failed** infection test (§5)                           |
-| `ebbFormula`                                                                      | Yes          | Via the post-roll chat button (§3C)                           |
-| `weapon`, `armor`, `explosive`, `magazine`, `species`, `package`, `blueprintNews` | No           | —                                                             |
+| Type                                                           | Effects tab? | Applies to the actor...                                       |
+| -------------------------------------------------------------- | ------------ | ------------------------------------------------------------- |
+| `item`, `weapon`, `armor`                                      | Yes          | While **Equipped** (toggle on the sheet)                      |
+| `trait`                                                        | Yes          | While the actor **owns** the trait (grant/revoke — see below) |
+| `drug`                                                         | Yes          | While **Active** (Consume/toggle)                             |
+| `toxicant`                                                     | Yes          | On a **failed** infection test (§5)                           |
+| `ebbFormula`                                                   | Yes          | Via the post-roll chat button (§3C)                           |
+| `explosive`, `magazine`, `species`, `package`, `blueprintNews` | No           | —                                                             |
 
-The second group has no Effects tab at all — nothing in the system ever reads an embedded effect
+The last row has no Effects tab at all — nothing in the system ever reads an embedded effect
 on those types, so the tab was removed rather than leaving a control on the sheet that silently
-does nothing (issue #363). Powered armor's stat bonuses are still fully supported — see §7B/C,
-which use dedicated Mods/DEX Cap/Init Bonus fields instead of Active Effects.
+does nothing (issue #363). Weapons and armor got their tab back once the equip toggle was wired
+to copy effects onto the actor: the effect is applied while the item is **Equipped**, removed when
+it is unequipped, and also removed if the item is deleted from the actor. Powered armor's own
+values still come from the dedicated Mods/DEX Cap/Init Bonus fields — see §7B/C — and an Active
+Effect on the same armor stacks on top of them rather than replacing them.
 
 **Gear (`item`) and Traits (`trait`)** are the two types most likely to need a plain stat bonus
 (a bought perk, a piece of flavor gear like a gang-colors bonus, a character-creation trait like
@@ -200,6 +213,10 @@ owns that trait item — granted the moment it's added to the actor (drag-drop, 
 the actor. Traits with a conditional or GM-adjudicated effect (a phobia only triggering near its
 stimulus, an illness only causing a penalty during a flare-up) are still resolved manually at the
 table — only attach an Active Effect to a trait whose rule is a flat, always-on modifier.
+
+Supported keys are `system.stats.<stat>.bonus`, `system.rollModifier.bonus`, `system.hp.bonus`, and (characters only) `system.move.closing` / `system.move.rushing`; see "Active Effects and stats" in [DEVELOPER.md](DEVELOPER.md). Effects are copied onto the actor when the item is equipped, activated or granted, and removed when it is unequipped, deactivated or deleted.
+
+**Choosing when an effect applies.** On gear, weapons, armor, drugs and Ebb formulas, each row of the Effects tab has a "when this effect applies" dropdown, so one item can carry effects with different triggers (for example a bonus **While equipped** next to one that is always **While owned**). "Default" follows the item type: gear/weapon/armor while equipped, drugs while active, Ebb formulas when applied from the chat card. Traits and toxicants have a single trigger, so they show no dropdown. A change affects the next time the trigger fires; effects already copied onto an actor are not rewritten.
 
 ---
 

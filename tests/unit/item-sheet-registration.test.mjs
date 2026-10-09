@@ -24,7 +24,7 @@ const EXPECTED = {
     weapon: {
         file: 'item-weapon-sheet.mjs',
         className: 'SlaWeaponItemSheet',
-        useTwoTabs: true,
+        useTwoTabs: false,
         useCataloguePart: true
     },
     explosive: {
@@ -33,7 +33,7 @@ const EXPECTED = {
         useTwoTabs: true,
         useCataloguePart: true
     },
-    armor: { file: 'item-armor-sheet.mjs', className: 'SlaArmorItemSheet', useTwoTabs: true, useCataloguePart: true },
+    armor: { file: 'item-armor-sheet.mjs', className: 'SlaArmorItemSheet', useTwoTabs: false, useCataloguePart: true },
     ebbFormula: {
         file: 'item-ebb-formula-sheet.mjs',
         className: 'SlaEbbFormulaItemSheet',

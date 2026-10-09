@@ -40,6 +40,45 @@ test.describe('GM: useDrugItem (document API)', () => {
         expect(result.quantity).toBe(2);
     });
 
+    test('the drug chat card reports the length set on the effect Duration tab when the item has no text', async ({
+        page
+    }) => {
+        const result = await page.evaluate(async () => {
+            const stamp = Date.now();
+            const [actor] = await Actor.createDocuments([{ name: `E2E Drug Card ${stamp}`, type: 'character' }]);
+            const [drug] = await actor.createEmbeddedDocuments('Item', [
+                {
+                    name: `E2E Card Stim ${stamp}`,
+                    type: 'drug',
+                    system: { quantity: 2, duration: '' },
+                    effects: [{ name: 'Boost', duration: { value: 3, units: 'rounds' }, changes: [] }]
+                }
+            ]);
+            const { useDrugItem } = await import('/systems/sla-industries/module/sheets/actor/item-actions.mjs');
+            await useDrugItem({ actor }, drug);
+            const card = game.messages.contents.filter((m) => m.content.includes(`E2E CARD STIM ${stamp}`)).pop();
+            const text = card?.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ') ?? '';
+            await card?.delete();
+            await drug.sheet.render(true);
+            const field = await new Promise((resolve) => {
+                const started = Date.now();
+                const poll = () => {
+                    const el = drug.sheet.element?.querySelector('input[name="system.duration"]');
+                    if (el || Date.now() - started > 8000) resolve(el?.placeholder ?? null);
+                    else setTimeout(poll, 100);
+                };
+                poll();
+            });
+            await drug.sheet.close();
+            await actor.delete();
+            return { text, field };
+        });
+
+        expect(result.field).toBe('3 rounds');
+        expect(result.text).toContain('Duration: 3 rounds');
+        expect(result.text).not.toContain('Unknown');
+    });
+
     test('deletes the item on the last dose', async ({ page }) => {
         const result = await page.evaluate(async () => {
             const stamp = Date.now();

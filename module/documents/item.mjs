@@ -1,9 +1,15 @@
 import { createSLARoll } from '../helpers/dice.mjs';
+import { effectsToApply, effectsToRemove } from './derived/effect-triggers.mjs';
+import { createKeyedQueue } from '../helpers/keyed-queue.mjs';
+import { buildCopiedEffectDuration, parseItemDuration } from './derived/effect-duration.mjs';
 import {
     getSlaEncounterScopeId,
     isToxicantImmuneThisEncounter,
     setToxicantImmunityThisEncounter
 } from '../helpers/toxicant-scope.mjs';
+
+/** Serializes each item's effect syncs (delete stale copies, then create) so overlapping triggers can't double-create. */
+const effectSyncQueue = createKeyedQueue();
 
 /**
  * Extend the basic Item with some very simple modifications.
@@ -22,59 +28,60 @@ export class SlaItem extends Item {
     }
 
     /**
-     * Parse duration string into seconds for ActiveEffect.duration.
-     * @param {string} str
-     * @returns {number|null}
+     * The single place an item's embedded Active Effects are copied onto, or removed from, an
+     * actor. Which effects an event touches comes from the pure table in
+     * `derived/effect-triggers.mjs` (see .docs/EFFECT_TRIGGERS_DESIGN.md): an apply event first
+     * replaces this item's earlier copies of the same kind, then copies the matching embedded
+     * effects with `origin` set to this item and `transfer` off; a removal event deletes the copies
+     * whose kind it removes. Copies are found by `origin`, so this also works for an item that has
+     * already been deleted from the actor.
+     * @param {Actor} actor
+     * @param {'equip'|'unequip'|'activate'|'deactivate'|'grant'|'manual'|'delete'} event
+     * @param {{ duration?: ReturnType<typeof parseItemDuration> }} [opts] Overrides the duration parsed from `system.duration`; `null` means no override (the effect keeps its own).
      */
-    _getDurationSeconds(str) {
-        if (!str) return null;
-        const s = String(str).toLowerCase();
-        const n = parseInt(s.match(/\d+/)?.[0] ?? '', 10);
-        if (Number.isNaN(n)) return null;
-        if (s.includes('hour')) return n * 3600;
-        if (s.includes('min')) return n * 60;
-        if (s.includes('day')) return n * 86400;
-        return null;
+    syncEffects(actor, event, opts = {}) {
+        if (!actor) return Promise.resolve();
+        return effectSyncQueue.run(this.uuid, () => this._syncEffectsNow(actor, event, opts));
     }
 
     /**
-     * Remove actor effects originating from this item.
-     * @param {Actor} actor
-     * @param {string} originUuid
+     * Resolves once every effect sync queued for this item so far has finished (never rejects).
+     * The actor's create/update hooks start syncs without awaiting them, so a caller that needs the
+     * effects in place (a setter, a drop handler) awaits this after the write that triggered them.
+     * @returns {Promise<void>}
      */
-    async _removeEffectsByOrigin(actor, originUuid) {
-        const ids = actor.effects.filter((e) => e.origin === originUuid).map((e) => e.id);
-        if (ids.length) await actor.deleteEmbeddedDocuments('ActiveEffect', ids);
+    effectsSettled() {
+        return effectSyncQueue.settled(this.uuid);
     }
 
-    /**
-     * Apply this item's embedded Active Effects to the actor.
-     * Replaces any existing effects with the same origin.
-     * @param {Actor} actor
-     * @param {{ durationSeconds?: number|null }} [opts]
-     */
-    async applyItemEffectsToActor(actor, opts = {}) {
-        if (!actor) return;
+    /** @private The unqueued body of {@link SlaItem#syncEffects}. */
+    async _syncEffectsNow(actor, event, opts) {
         const origin = this.uuid;
-        await this._removeEffectsByOrigin(actor, origin);
+        const copies = actor.effects.filter((e) => e.origin === origin);
+        const staleIds = [
+            ...effectsToApply(copies, this.type, event),
+            ...effectsToRemove(copies, this.type, event)
+        ].map((e) => e.id);
+        if (staleIds.length) await actor.deleteEmbeddedDocuments('ActiveEffect', staleIds);
 
-        const durationSeconds =
-            opts.durationSeconds !== undefined ? opts.durationSeconds : this._getDurationSeconds(this.system.duration);
+        const toCopy = effectsToApply(this.effects, this.type, event);
+        if (!toCopy.length) return;
 
-        if (this.effects?.size > 0) {
-            const payloads = [];
-            for (const src of this.effects) {
-                const data = foundry.utils.duplicate(src.toObject());
-                delete data._id;
-                data.origin = origin;
-                data.transfer = false;
-                if (durationSeconds != null && Number.isFinite(durationSeconds)) {
-                    data.duration = foundry.utils.mergeObject(data.duration ?? {}, { seconds: durationSeconds });
-                }
-                payloads.push(data);
-            }
-            if (payloads.length) await actor.createEmbeddedDocuments('ActiveEffect', payloads);
-        }
+        const itemDuration = opts.duration !== undefined ? opts.duration : parseItemDuration(this.system.duration);
+        const payloads = toCopy.map((src) => {
+            const data = foundry.utils.duplicate(src.toObject());
+            delete data._id;
+            data.origin = origin;
+            data.transfer = false;
+            foundry.utils.setProperty(data, 'flags.sla-industries.sourceName', this.name);
+            data.duration = buildCopiedEffectDuration(data.duration, itemDuration);
+            // Foundry stamps "now" as the start of an actor-owned effect, but only for start keys the data
+            // leaves undefined. An effect authored on an item normally has no start; drop one if it carries
+            // one (say, an effect dragged over from an actor) so the copy always starts when it is copied.
+            delete data.start;
+            return data;
+        });
+        await actor.createEmbeddedDocuments('ActiveEffect', payloads);
     }
 
     /**
@@ -85,13 +92,8 @@ export class SlaItem extends Item {
      */
     async setEquipped(equipped) {
         await this.update({ 'system.equipped': equipped });
-        if (this.actor) {
-            if (equipped) {
-                await this.applyItemEffectsToActor(this.actor);
-            } else {
-                await this._removeEffectsByOrigin(this.actor, this.uuid);
-            }
-        }
+        // The actor's update hook syncs effects for this change (and for any other writer); wait for it.
+        await this.effectsSettled();
         return equipped;
     }
 
@@ -104,13 +106,13 @@ export class SlaItem extends Item {
 
         if (!this.actor) return;
 
+        // The actor's update hook syncs effects for this change; wait for it before notifying.
+        await this.effectsSettled();
         if (newState) {
-            await this.applyItemEffectsToActor(this.actor);
             if (this.effects?.size > 0) {
                 ui.notifications.info(`${this.name} applied.`);
             }
         } else {
-            await this._removeEffectsByOrigin(this.actor, this.uuid);
             ui.notifications.info(`${this.name} removed.`);
         }
     }
@@ -176,7 +178,7 @@ export class SlaItem extends Item {
         if (success) {
             await setToxicantImmunityThisEncounter(actor, itemUuid);
         } else {
-            await this.applyItemEffectsToActor(actor, { durationSeconds: null });
+            await this.syncEffects(actor, 'manual', { duration: null });
             ui.notifications.warn(`${actor.name} is infected: ${this.name}`);
         }
     }

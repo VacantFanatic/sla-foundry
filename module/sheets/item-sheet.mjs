@@ -2,8 +2,16 @@
  * SLA item sheet (Application V2).
  * @extends {HandlebarsApplicationMixin(ItemSheetV2)}
  */
+import { describeDrugDuration } from '../documents/derived/effect-duration.mjs';
 import { enrichItemDescription } from '../helpers/item-sheet.mjs';
 import { bindTabKeyboardNav } from '../helpers/tab-keyboard-nav.mjs';
+import { effectChangeRows, summarizeActiveEffectChange } from '../documents/derived/active-effects.mjs';
+import {
+    APPLY_ON_FLAG_KEY,
+    APPLY_ON_FLAG_SCOPE,
+    APPLY_ON_VALUES,
+    buildApplyOnSelect
+} from '../documents/derived/effect-triggers.mjs';
 import {
     handleWeaponDrop,
     handleWeaponSkillDrop,
@@ -22,15 +30,15 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     /**
      * Tab contract (#243 Phase 1; effects-tab scope revised for #363):
      * - `useTwoTabs: true` types render a Details + Description sheet only — no Effects tab. This
-     *   is every type nothing ever transfers an embedded Active Effect from: Skill and Discipline
-     *   (never did), plus Weapon/Armor/Explosive/Magazine/Species/Package (an Effects tab existed
-     *   on their sheet, but no code path ever applied what a GM put there to the actor, so it did
-     *   nothing).
+     *   is every type nothing ever transfers an embedded Active Effect from: Skill, Discipline,
+     *   Explosive, Magazine, Species, Package and Blueprint News (an Effects tab once existed on
+     *   several of these, but no code path ever applied what a GM put there to the actor, so it
+     *   did nothing — #363).
      * - All other types render the full Details + Description + Effects layout, and each one has a
      *   real mechanism that applies its embedded effects to the actor: Drug (toggle active), Toxicant
      *   (failed infection test), Ebb Formula (post-roll chat button), Trait (grant/revoke — see
-     *   `SlaActor._onCreateDescendantDocuments`/`_onDeleteDescendantDocuments`), and Item/Gear (equip
-     *   toggle — see `SlaItem#setEquipped`).
+     *   `SlaActor._onCreateDescendantDocuments`/`_onDeleteDescendantDocuments`), and Item/Gear,
+     *   Weapon and Armor (equip toggle — see `SlaItem#setEquipped`).
      * - `useCataloguePart: true` types have a Details tab that uses the catalogue partial
      *   (physical inventory items).
      * No inherited default here on purpose — every concrete subclass must set both explicitly.
@@ -244,13 +252,51 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
             context.itemEffects = Array.from(item.effects).map((e) => ({
                 id: e.id,
                 name: e.name,
-                img: e.img
+                img: e.img,
+                disabled: e.disabled,
+                changes: effectChangeRows(e).map(summarizeActiveEffectChange),
+                applyOn: this.#prepareApplyOnSelect(e)
             }));
         }
+
+        // A drug with no duration text still has one if an effect carries it; show that in the field.
+        const effectDuration = describeDrugDuration('', item.effects);
+        context.durationPlaceholder =
+            effectDuration === 'Unknown'
+                ? game.i18n.localize('SLA.ItemSheet.Drug.DurationPlaceholder')
+                : effectDuration;
 
         context.enrichedDescription = await enrichItemDescription(item);
 
         return this._prepareTypeContext(context);
+    }
+
+    /**
+     * Options for an effect row's "applies" selector, or `null` when this item type has a single
+     * trigger and so nothing to choose.
+     * @param {ActiveEffect} effect
+     * @returns {{ options: Array<{ value: string, label: string, selected: boolean }> } | null}
+     */
+    #prepareApplyOnSelect(effect) {
+        const select = buildApplyOnSelect(effect, this.item.type);
+        if (!select) return null;
+        const kindLabel = (kind) => game.i18n.localize(`SLA.ItemSheet.Effects.ApplyOn.Kind.${kind}`);
+        return {
+            options: [
+                {
+                    value: '',
+                    label: game.i18n.format('SLA.ItemSheet.Effects.ApplyOn.Default', {
+                        kind: kindLabel(select.defaultValue)
+                    }),
+                    selected: select.current === ''
+                },
+                ...select.values.map((value) => ({
+                    value,
+                    label: kindLabel(value),
+                    selected: select.current === value
+                }))
+            ]
+        };
     }
 
     /**
@@ -497,6 +543,20 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
     };
 
     /** @param {Event} event */
+    #onItemEffectApplyOnChange = async (event) => {
+        const el = event.target;
+        if (!(el instanceof HTMLSelectElement) || !el.classList.contains('sla-item-effect-apply-on')) return;
+        if (!this.isEditable) return;
+        const effect = el.dataset.effectId ? this.item.effects.get(el.dataset.effectId) : null;
+        if (!effect) return;
+        // '' is the "Default" option: drop the flag so the effect follows its item type again.
+        if (!el.value) await effect.unsetFlag(APPLY_ON_FLAG_SCOPE, APPLY_ON_FLAG_KEY);
+        else if (APPLY_ON_VALUES.includes(el.value))
+            await effect.setFlag(APPLY_ON_FLAG_SCOPE, APPLY_ON_FLAG_KEY, el.value);
+        this.render(false);
+    };
+
+    /** @param {Event} event */
     #onItemEffectSearchInput = (event) => {
         const el = event.currentTarget;
         if (!(el instanceof HTMLInputElement)) return;
@@ -525,6 +585,7 @@ export class SlaItemSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
         }
 
         root.addEventListener('click', this.#onItemEffectUiClick, { signal });
+        root.addEventListener('change', this.#onItemEffectApplyOnChange, { signal });
         this.#syncTabAccessibility(root);
 
         const itemFxSearch = root.querySelector('.sla-item-effect-search');

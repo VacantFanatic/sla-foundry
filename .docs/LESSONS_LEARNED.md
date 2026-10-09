@@ -644,3 +644,119 @@ actor.createEmbeddedDocuments('Item', [...])`: a probe creating the pair 40 time
   swapped in 5 runs, even with all of the system's item hooks disabled. Positional destructuring
   is only safe for a single-document call. For 2+ documents, keep the created array and look each
   one up by its unique name (or `actorId` for tokens), e.g. `created.find((d) => d.name === name)`.
+
+- **`npm run build` does not refresh the system Foundry is serving, so a new e2e test can fail for
+  the wrong reason.** Adding the item Effects tab change summary, the first e2e run failed 2 of 16
+  item-sheet tests, including an assertion from the previous PR. The cause was
+  `/root/foundry-data/Data/systems/sla-industries` still holding the old build; only
+  `cloud-foundry.sh prepare`/`start` copies `dist/` there. Before trusting an e2e result in a cloud
+  session, `diff -rq dist /root/foundry-data/Data/systems/sla-industries` (the `packs/` extras are
+  expected) and `cp -a dist/. /root/foundry-data/Data/systems/sla-industries/` after any rebuild.
+  A test that fails on the stale build and passes after syncing is also a cheap proof that it
+  exercises the new code. Running `npx playwright test` directly also needs the temporary
+  `executablePath` patch in `.docs/CLOUD_ENVIRONMENT.md`; revert it before committing.
+- **An effect that is copied onto another document needs a cleanup path for every way its source
+  goes away, not just the toggle.** Adding the Weapon/Armor Effects tab (they already had the equip
+  toggle and `setEquipped` sync) exposed that `SlaActor._onDeleteDescendantDocuments` only removed
+  copied effects for traits, so deleting an equipped weapon, armor or Gear item left its Active
+  Effect on the actor permanently. The cleanup was first keyed on an `EFFECT_CLEANUP_ON_DELETE_TYPES` set in
+  `module/documents/actor.mjs` (since replaced by the `delete` event in `derived/effect-triggers.mjs`), which deliberately excludes drugs because using the last dose
+  deletes the item right after applying an effect that has to outlive it. When a feature copies
+  state from item to actor, list its lifecycle ends (unequip, delete, consume) and test each; and
+  when widening a cleanup to more types, check whether any type is deleted as part of its own
+  success path. The e2e test fails with the cleanup reverted to traits only, which is how to
+  confirm it exercises the fix.
+- **Hooks that start async work don't make `await document.update()` wait for it, so a setter that
+  used to sync inline needs an explicit "settled" handle.** Moving the effect sync from
+  `SlaItem#setEquipped` into `SlaActor#_onUpdateDescendantDocuments` (so every writer of
+  `system.equipped` gets it) meant `await item.update(...)` resolved with the sync merely _queued_.
+  Callers that read the result straight away (the NPC auto-equip drop, the #363 handler tests) would
+  race. The fix is `item.effectsSettled()`, which awaits the per-item queue; the hook has already
+  enqueued by the time `update()` resolves because Foundry runs `_on*` document hooks before it
+  resolves the call. Two related traps: a sync that is "delete stale, then create" is not idempotent
+  under overlap, so rapid toggles need a per-key queue (`helpers/keyed-queue.mjs`), and an e2e test
+  for a hook-driven effect must not `await` the sync it is trying to prove happens on its own, or it
+  tests the setter rather than the hook. Prove each piece by removing it from the installed copy
+  under `/root/foundry-data/Data/systems/sla-industries` and watching the matching test fail.
+- **`createEmbeddedDocuments` does not reliably return documents in input order, so destructuring
+  its result by position makes a flaky test.** Two different `regression-damage.spec.js` armor
+  tests failed intermittently during stage 3 of the effect-trigger work (`armorRes` read the
+  shield's 12 where the body armor's 10 was expected, and a body armor read 0). A probe that created
+  an armor + shield pair 40 times and compared `created[0]`/`created[1]` against the input order saw
+  swaps in 5 of 40 runs, and still did so with the new actor hooks disabled, so it is Foundry
+  behaviour and not the change under test. Look the created documents up by name (or by a marker
+  field) instead of by index in any test that builds more than one item in a single call.
+- **Merging an unknown key into a DataModel's data is silently discarded, so a "set the duration" feature
+  can ship dead for a whole Foundry version.** `SlaItem#_getDurationSeconds` fed
+  `foundry.utils.mergeObject(data.duration, { seconds })`, but Foundry v14's `ActiveEffectDuration`
+  schema is `value` / `units` / `expiry` / `expired`, so a drug's "2 hours" never reached the copied
+  effect and nothing in the suite noticed. A live probe (use a drug, read `effect.toObject().duration`
+  and `effect.isTemporary`) showed `value: null`. Check the persisted data against the current schema
+  (`effect.schema.fields.duration.fields`) after any upgrade of the Foundry compatibility line, and
+  assert on the stored result, not on the call.
+- **Hand-rolled effect math must honour `ActiveEffect#isSuppressed`, not just `disabled`.**
+  `computeActiveEffectFieldValue` mirrored `Actor#applyActiveEffects` but only skipped `disabled`
+  effects, while core also skips suppressed ones (an expired timed effect has `duration.expired`, so
+  `isSuppressed` and not `active`). With world time advanced past an effect's length, the effect showed
+  as expired on the sheet while its +2 STR still counted. `isEffectActive` now mirrors core's `active`.
+  Same rule as the #359 entry: when copying a core algorithm, copy its eligibility test too.
+- **World time is not a real-time clock.** Foundry's `game.time.worldTime` only changes when something
+  calls `game.time.advance` (a GM macro, a calendar module, or combat when `CONFIG.time.roundTime` /
+  `turnTime` is nonzero; both default to 0). Any feature built on real-time durations needs a decided
+  source for that clock, or its effects never expire in play. An e2e test for expiry has to advance the
+  clock itself, and restore it in a `finally`.
+- **A mutation check can show your own explanation was wrong.** Reverting the `delete data.start` line
+  did not fail the duration test: an effect authored on an item has no `start` for Foundry to reuse, so
+  the "copy would expire instantly" story I had written was unverified. The line stays as a safeguard,
+  with a comment that says only what was checked.
+- **Core treats an infinite remaining time as "reached", so a rounds effect with no round length ends at the
+  first clock tick.** I planned for a round-based effect used outside combat with `CONFIG.time.roundTime = 0`
+  to "never expire", reading `_prepareCombatBasedDuration` (no combat and no seconds gives `remaining: Infinity`).
+  The live test showed the opposite: `ActiveEffectRegistry#refresh` computes
+  `durationReached = remaining <= 0 || !Number.isFinite(remaining)`, so the effect expires on the next
+  `updateWorldTime`. Reading one half of a core flow and assuming the other half is how this gets missed; run
+  the case. The setting hint, `WORLD_SETTINGS.md` and the e2e test now state the real behaviour.
+- **A prepared `ActiveEffect#duration` is not the stored duration.** Outside combat with a round length set,
+  core reframes a rounds effect as time-based, so the live `effect.duration.units` reads `seconds` while
+  `effect.toObject().duration.units` is still `rounds`; `duration.value` reads `Infinity` for a non-temporary
+  effect where the stored value is `null`. Assert on `toObject()` for what was written and on the live
+  object for how it behaves.
+- **A scene-control tool is keyed by id and rendered as `button[data-action="tool"][data-tool=<name>]`.**
+  `getSceneControlButtons` receives an object (`controls.tokens.tools`), not an array; a `button: true` tool
+  resolves on click without becoming the active tool, and `visible: game.user.isGM` hides it from players.
+- **Foundry fills `duration.expiry` with `turnStart` for any effect created with a numeric duration, and
+  core then only expires it at its owner's next turn start in combat.** The user's "1 hour" drug stayed
+  active after the clock moved 8 hours because of it (probe: expiry `turnStart` stayed unexpired after +8h,
+  expired after `combat.nextTurn()`; the same effect with the duration typed in afterwards, expiry `null`,
+  expired on the first clock change). The schema default is `initial: d => typeof d?.duration?.value ===
+"number" ? "turnStart" : null`, so how an effect was created decides its behaviour. For clock-based
+  durations the system treats the default as "no event" (`effectiveExpiry`), normalises it away on copy, and
+  runs its own expiry pass. When a symptom depends on how a document was created, probe both creation paths.
+- **Foundry's world calendar is inconsistent with itself, so build date controls on what it displays.**
+  `timeToComponents` shows 29 February in years 7, 11, ... 2203 while `isLeapYear` and `componentsToTime`
+  assume 8, 12, ... 2204, so `timeToComponents(componentsToTime(date))` can land a day off, and a naive form
+  would offer 29 February in the wrong years. Probe a range of years against the live calendar before
+  trusting any date arithmetic, and verify with a round trip through the real UI. Also, month names in the
+  calendar config are localization keys, and `componentsToTime` takes a zero-based day-of-year, not a month and day.
+- **A live "is it overdue" check can hide a missing persistence step in a test.** The first version of the
+  "duration typed in after the time passed" test passed even with the recheck hooks disabled, because the
+  derived math zeroes an overdue bonus by itself and the test only read the STR total. Assert on the stored
+  flag (`toObject().duration.expired`) that the feature is responsible for, and run the mutation check:
+  it only means something once reverting the code makes the test fail.
+- **A mutation that does not apply proves nothing; check it landed.** Two of my mutation runs "passed"
+  because a `sed` pattern no longer matched the Prettier-formatted source. Print a count or the changed line
+  after each mutation (and `diff` the restored file) before reading the test result.
+- **`.sla-effect-meta` had no style at all**, so the remaining-time text inherited a dark colour on the dark
+  row and read as blank in the user's screenshot. When a screenshot shows "nothing there", check whether the
+  element exists and is merely unstyled before debugging data.
+- **Deleting an effect in the same tick as a clock change races Foundry's own expiry writes.** Advancing the clock
+  made core mark the affected effects expired with its own updates; our expiry pass deleted the orphaned copies of a
+  used-up drug at the same moment, so the server rejected core's updates with `undefined id [...] does not exist in
+the EmbeddedCollection collection` and the GM saw a red toast. The stack ended in `ServerDatabaseBackend._updateDocuments`
+  (a server-side rejection of an update for a vanished id), not in any of our code, which is why guarding our own
+  writes with `actor.effects.has(id)` alone did not help. A "drug with several timed effects" test passed on the
+  broken code; only the used-up-drug case (`regression-effect-expiry.spec.js`, "a used-up drug with several timed
+  effects") reproduced it. Rule: when the system deletes documents that core is also updating in response to the same
+  event, write the state core would write first and delete a moment later (`CORE_REFRESH_SETTLE_MS`); serialize our
+  own passes per owner (`createKeyedQueue`) and re-check ids against the live collection before each write. Capture the
+  console `error` stack in the e2e test (`page.on('console')`) to see which layer throws before guessing.

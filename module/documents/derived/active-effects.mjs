@@ -2,6 +2,8 @@
  * Pure active effect helpers for actor derived data (no document runtime).
  */
 
+import { isTimeDurationOverdue } from './effect-duration.mjs';
+
 /**
  * Active effect change rows (Foundry 14 may store under effect.system.changes).
  * @param {object} effect
@@ -12,6 +14,19 @@ export function effectChangeRows(effect) {
     if (Array.isArray(root) && root.length) return root;
     const nested = effect?.system?.changes;
     return Array.isArray(nested) ? nested : [];
+}
+
+/**
+ * Whether an effect currently applies: not disabled, not suppressed, and not a clock-based effect whose time has
+ * already run out. Foundry's own `ActiveEffect#isSuppressed` is true once a timed effect has been recorded as
+ * expired, so this mirrors core's `ActiveEffect#active`. The overdue check covers the gap before core records
+ * the expiry (it only does so when it next processes an event), so a derived-data pass in between cannot keep
+ * adding the bonus. Plain objects (test fixtures) without `isSuppressed` or `duration` count as live.
+ * @param {{ disabled?: boolean, isSuppressed?: boolean, duration?: object } | null | undefined} effect
+ * @returns {boolean}
+ */
+export function isEffectActive(effect) {
+    return !!effect && !effect.disabled && !effect.isSuppressed && !isTimeDurationOverdue(effect);
 }
 
 /**
@@ -94,8 +109,29 @@ export function applyActiveEffectChange(currentValue, changeType, value) {
     }
 }
 
+const CHANGE_TYPE_OPERATORS = {
+    add: '+',
+    subtract: '-',
+    multiply: '×',
+    downgrade: '≤',
+    upgrade: '≥',
+    override: '=',
+    custom: '?'
+};
+
 /**
- * Computes a derived numeric field by applying every enabled effect's change rows matching one
+ * One-line, human-readable summary of a change row for sheet display (e.g. `system.stats.str.bonus +2`,
+ * `system.rollModifier.bonus = 1`). Unrecognized change types fall back to `?`.
+ * @param {{ key?: unknown, type?: unknown, mode?: number, value?: unknown }} change
+ * @returns {string}
+ */
+export function summarizeActiveEffectChange(change) {
+    const op = CHANGE_TYPE_OPERATORS[resolveActiveEffectChangeType(change)] ?? '?';
+    return `${change?.key ?? ''} ${op}${change?.value ?? ''}`.trim();
+}
+
+/**
+ * Computes a derived numeric field by applying every active (enabled, unexpired) effect's change rows matching one
  * of `keys` to `baseValue`, in ascending priority order. Changes from ALL effects are pooled and
  * sorted together first, exactly like Foundry's own `Actor#applyActiveEffects` — not applied
  * per-effect. A row with no explicit `priority` falls back to its type's own default priority
@@ -109,7 +145,7 @@ export function applyActiveEffectChange(currentValue, changeType, value) {
 export function computeActiveEffectFieldValue(effects, keys, baseValue) {
     const rows = [];
     for (const effect of effects ?? []) {
-        if (effect.disabled) continue;
+        if (!isEffectActive(effect)) continue;
         for (const ch of effectChangeRows(effect)) {
             if (!keys.includes(ch.key)) continue;
             const changeType = resolveActiveEffectChangeType(ch);

@@ -11,6 +11,37 @@ section only in the PR that prepares the stable release. See
 
 ## [Unreleased]
 
+## [2.15.0] - 2026-10-09
+
+## [2.15.0] - 2026-10-09
+
+### Added
+
+- **The Game Clock asks whether to end a running combat** when you move the clock forward an hour or more from its window (a preset button or Set date). Keep combat leaves it alone; End combat ends it. Smaller steps, rewinds and the `game.sla.advanceTime` / `setDate` macros never ask.
+- **Set the game date and time** — the Game Clock window has a new **Set date and time** panel (day, month, year, hour, minute and a Set date button), and `game.sla.setDate({ year, month, day, hour, minute })` does the same from a macro. The window now also shows the current date, not just the time. Foundry's world calendar shows 29 February in different years than its own leap-year rule says; the control follows what the calendar displays.
+- **A GM game clock, and effect durations in rounds, turns and game time** — a new hourglass button in the scene controls (GM only) opens a **Game Clock** window showing the world time, with buttons to advance or rewind by 10 minutes, 1 hour, 8 hours or 1 day. `game.sla.advanceTime(seconds)` and `game.sla.openGameClock()` do the same from a macro. A drug's Duration can now be written as game time (`2 hours`), combat time (`3 rounds`, `2 turns`), or `Scene` / `End of combat`; the effect starts when the drug is used and expires on its own, and once all of a drug's effects have expired the drug switches itself off and drops them.
+- **New world setting, Seconds per Combat Round (default 5)** — each combat round now advances the game clock by this many seconds, and round-based effects used outside combat count down on the clock. The default is 5, the length of an SLA Industries round: change it if your table differs, or `0` to keep combat and the clock separate (a rounds-based effect outside combat then ends the next time the clock moves). **Existing worlds start advancing the clock during combat after upgrading.**
+- **Choose when each item effect applies** — on gear, weapons, armor, drugs and Ebb formulas, every row of the item's Effects tab has a "when this effect applies" dropdown (While equipped / While owned / While active / When applied), so one item can mix triggers. Items keep their old behaviour until you change it; types with only one possible trigger show no dropdown.
+- **Weapons and armor have an Effects tab again** — an Active Effect on a weapon or armor is copied onto the actor while the item is equipped (the same equip toggle Gear uses) and removed when it is unequipped. Explosives and magazines still have no tab.
+- **Item Effects tab shows each effect's changes and disabled state** — every row now lists its change rows (e.g. `system.stats.str.bonus +2`) and a dimmed "Disabled" badge for disabled effects, so you no longer have to open each effect to see what it does.
+
+### Fixed
+
+- **"id … does not exist in the EmbeddedCollection" error when advancing the clock.** When a drug's last dose was used and its timed effects ran out, the system deleted the leftover effect copies at the same moment Foundry was recording their expiry, so the server rejected Foundry's write and showed a red error. Expiry is now recorded first and the copies are removed a moment later; the expiry passes also run one at a time per actor.
+- **An hours-long effect used in combat never expired when its Expiry Event read Turn End** (or Round Start/End). For a game-clock duration those turn and round events are now ignored, so the effect expires as soon as the clock passes its length; only Combat Start/End is still waited for.
+- **Drug chat card showed "Duration: Unknown"** when the length was set on the effect's Duration tab rather than in the item's Duration text. The card now falls back to the effect's duration (e.g. `3 rounds`), and the drug sheet's Duration field shows it as its placeholder while the text is blank.
+- **Timed effects now expire when the game clock passes them, even in combat** — an effect created with a duration gets Foundry's default "Turn Start" expiry, so during a combat a drug set to 1 hour stayed active after the clock moved 8 hours, until its owner's next turn. The system now records expiry itself for clock-based durations (explicitly chosen expiry events such as Turn End are still respected), and also when a duration is typed in after the time has already passed. Moving the clock back brings an expired effect that is still on the actor back to life.
+- **Expired effects are now visible, and used-up drugs clean up** — on the actor Effects tab an expired effect is dimmed with an **Expired** badge and an hourglass instead of a green "on" toggle, its remaining-time line is readable (it was dark text on a dark row), and a permanent effect no longer shows "None". An effect copied from a drug that has been used up shows the drug's name instead of "Unknown" and is removed once it expires.
+- **Drug durations now actually apply, and expired effects stop counting** — a drug's Duration (e.g. "2 hours") was silently dropped when its effects were copied onto the actor, because the copy wrote a `duration.seconds` field that Foundry v14 no longer has, so every drug effect lasted until the drug was switched off. The copy now gets a real time-limited duration that starts when the drug is used. Separately, an effect that had expired (or was otherwise suppressed) still added its bonus to stats, rolls, HP and movement; the derived math now skips it, as disabled effects already were. A dice Duration such as "1d6 hours" is no longer misread as 1 hour. Note the world clock only moves when a GM advances it.
+- **Items created already equipped (or active) now get their Active Effects** — a macro, import or compendium drop that created an item with `system.equipped: true` previously skipped the effect copy, and so did a plain `item.update` of `system.equipped` / `system.active`. The actor now syncs effects on any such change, and rapid equip toggling can no longer leave duplicate effect copies.
+- **Deleting an equipped weapon, armor or Gear item now removes its Active Effects from the actor** — previously the copied effect stayed on the actor with no item left to unequip. Drugs are unaffected: a consumed dose's effect still outlasts the item.
+
+### Changed
+
+- **The Game Clock window now matches the other dialogs** — panels with header bars, outlined preset buttons and a single green action button, instead of a column of solid green buttons.
+- **Item→actor Active Effect copying now goes through one method, `SlaItem#syncEffects(actor, event)`** — replaces `applyItemEffectsToActor` and `_removeEffectsByOrigin` (internal, undocumented; macros that called `applyItemEffectsToActor(actor)` should use `syncEffects(actor, 'equip' | 'activate' | 'grant' | 'manual')` for the item's type). No behaviour change.
+- **Active Effects docs and item-sheet hint corrected** — the item Effects tab hint no longer claims native "transferable" behaviour (effects are copied onto the actor on equip/activate/grant), `DEVELOPER.md` no longer says "Add rows" only, and a supported-keys table was added to `DEVELOPER.md` and `item_setup.md`.
+
 ## [2.14.1] - 2026-10-06
 
 ### Fixed
@@ -1340,7 +1371,8 @@ quantity` (armor and weapon item sheets), and `system.typeNote` (generic item sh
 - Damage application targeting both selected token and target.
 - Degree of success display regression on weapon attacks.
 
-[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.10.0...HEAD
+[Unreleased]: https://github.com/VacantFanatic/sla-foundry/compare/2.15.0...HEAD
+[2.15.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.15.0
 [2.10.0]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.10.0
 [2.9.4]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.4
 [2.9.2]: https://github.com/VacantFanatic/sla-foundry/releases/tag/2.9.2

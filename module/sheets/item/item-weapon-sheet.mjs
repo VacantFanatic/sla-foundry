@@ -6,7 +6,7 @@ import { prepareFiringModes } from '../../helpers/item-sheet.mjs';
  * @extends {SlaItemSheet}
  */
 export class SlaWeaponItemSheet extends SlaItemSheet {
-    static useTwoTabs = true;
+    static useTwoTabs = false;
     static useCataloguePart = true;
 
     /** @override */
