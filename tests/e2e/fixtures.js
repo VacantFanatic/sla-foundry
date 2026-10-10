@@ -208,7 +208,14 @@ async function closeApplicationWindows(page) {
             await Promise.all(apps.map((app) => Promise.resolve(app.close?.()).catch(() => {})));
         })
         .catch(() => {});
-    await page.keyboard.press('Escape').catch(() => {});
+    // Escape is only a fallback for a window that is not registered in `instances`. With nothing
+    // open, Foundry treats Escape as "open the main menu", and that `dialog#menu` then intercepts
+    // every later click in a test that keeps going after this call (e.g. one that loops over item
+    // types), so only press it while a window is still on screen.
+    const windowStillOpen = await page
+        .evaluate(() => document.querySelector('.application.window-app') !== null)
+        .catch(() => false);
+    if (windowStillOpen) await page.keyboard.press('Escape').catch(() => {});
 }
 
 module.exports = {

@@ -793,3 +793,17 @@ the EmbeddedCollection collection` and the GM saw a red toast. The stack ended i
   `test:e2e:*` scripts. All 19 passed the first time they were run (about 11 minutes, the two set-date tests
   take 2 to 2.5 minutes each), so nothing had rotted yet. When adding a spec, add it to a script in the same
   change.
+- **Pressing Escape with no window open opens Foundry's main menu, and its `dialog#menu` then swallows every click.**
+  PR 415 made `closeApplicationWindows` await each `app.close()`; its trailing `Escape` then fired on an empty
+  screen, and `regression-item-sheets.spec.js` "when this effect applies selector" (which closes windows inside
+  a loop and keeps clicking) failed 3 of 3 on shard 2 with `<dialog id="menu"> ... intercepts pointer events`.
+  It reproduced locally 100% and passed after the fix: Escape is now pressed only while a
+  `.application.window-app` is still on screen. Tests that call the helper only at the end never noticed,
+  because the next test reloads the game. When a helper's timing changes, run a test that uses it mid-test,
+  not just end-of-test callers.
+- **Sharding results (first run on `main`, 2 shards): 60 min against 97 min, with the shared license fine.**
+  Both runners started Foundry with the same `FOUNDRY_LICENSE_KEY` at the same time and ran cleanly, so
+  concurrent CI runners on one license work. File-level shards were balanced (55.5 vs 56.3 min) but the
+  15-minute `regression-item-sheets` file caps how far file-level sharding can go. `fullyParallel: true` with
+  `workers: 1` makes `--shard` split individual tests, so the matrix can grow to 4. Keep `workers: 1`:
+  two Foundry instances on one 4-core box already caused timeouts, and tests share one world, login and clock.

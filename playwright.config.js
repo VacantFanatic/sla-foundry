@@ -14,7 +14,12 @@ const { defineConfig, devices } = require('@playwright/test');
  */
 module.exports = defineConfig({
     testDir: './tests/e2e',
-    fullyParallel: false,
+    // Parallelism comes from sharding across separate Foundry instances (see the CI `e2e` matrix),
+    // never from concurrent workers in one instance: tests share one world, one login and one
+    // game clock. `fullyParallel` only makes `--shard` split individual tests instead of whole
+    // files, so the 15-minute item-sheets file no longer bounds a shard; with `workers: 1`
+    // each Foundry still runs one test at a time and test order inside a file is unchanged.
+    fullyParallel: true,
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     workers: 1,

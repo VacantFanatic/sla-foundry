@@ -101,10 +101,11 @@ jobs:
     #
     # Sharded: each matrix job boots its own Foundry (own container, own world data, so the
     # one-login-per-user and shared-world-state constraints of a single instance don't apply)
-    # and runs a Playwright --shard slice of the regression suite. Shards split by test file
-    # (fullyParallel is off). The single-file operator and visual suites are pinned to one shard
-    # each so they run exactly once. All shards use the same FOUNDRY_LICENSE_KEY at the same time —
-    # watch the first runs for license errors (see .docs/LESSONS_LEARNED.md).
+    # and runs a Playwright --shard slice of the regression suite. playwright.config.js sets
+    # fullyParallel with workers: 1, so shards split individual tests (not whole files) while
+    # each Foundry still runs one test at a time. The single-file operator and visual suites
+    # are pinned to one shard each so they run exactly once. All shards use the same
+    # FOUNDRY_LICENSE_KEY at the same time; that has run cleanly (see .docs/LESSONS_LEARNED.md).
     e2e:
         name: e2e (shard ${{ matrix.shard }}/${{ matrix.shard_total }})
         needs: build
@@ -114,8 +115,8 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                shard: [1, 2]
-                shard_total: [2]
+                shard: [1, 2, 3, 4]
+                shard_total: [4]
         env:
             FOUNDRY_DATA_DIR: ${{ github.workspace }}/.foundry-data
             FOUNDRY_USER: ${{ secrets.FOUNDRY_USER }}
@@ -177,6 +178,6 @@ jobs:
               run: npm run test:e2e:operators
 
             - name: Run E2E visual regression suite (best-effort, needs committed baselines)
-              if: steps.creds.outputs.present == 'true' && matrix.shard == 2
+              if: steps.creds.outputs.present == 'true' && matrix.shard == 4
               continue-on-error: true
               run: npm run test:e2e:visual

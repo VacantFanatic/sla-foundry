@@ -301,11 +301,15 @@ E2E tests require:
 
 `test:e2e:regression`, `test:e2e:operators`, and `test:e2e:visual` all run as separate steps in
 `.github/workflows/main.yml`'s `e2e` job (gated on Foundry download credentials being configured —
-see that job's own comments). The job is a 2-shard matrix: each shard boots its own Foundry and runs
-`test:e2e:regression -- --shard=N/2` (Playwright splits by test file); `test:e2e:operators` runs only on
-shard 1 and `test:e2e:visual` only on shard 2, so each runs exactly once. Raise `shard`/`shard_total` in
-the matrix to add shards — the longest single spec file (about 15 minutes) bounds the benefit. `test:e2e:operators` stays a separate step because it's GM-only and
-silently skips for a non-GM user, which is easy to miss if folded into a larger bundle.
+see that job's own comments). The job is a 4-shard matrix: each shard boots its own Foundry and runs
+`test:e2e:regression -- --shard=N/4`; `test:e2e:operators` runs only on shard 1 and `test:e2e:visual` only
+on shard 4, so each runs exactly once. `playwright.config.js` sets `fullyParallel: true` with `workers: 1`:
+that makes `--shard` split individual tests rather than whole files (otherwise the 15-minute
+`regression-item-sheets` file bounds a shard), while each Foundry still runs one test at a time. Never raise
+`workers` above 1 — tests share one world, one login and one game clock. Specs therefore must not depend on
+state left by an earlier test in the same file, because the tests of a file can land on different shards.
+Raise `shard`/`shard_total` in the matrix to add shards. `test:e2e:operators` stays a separate step
+because it's GM-only and silently skips for a non-GM user, which is easy to miss if folded into a larger bundle.
 `test:e2e:visual` stays separate and keeps its own `continue-on-error: true` because it needs
 committed screenshot baselines and is prone to environment-specific pixel drift — see below.
 
