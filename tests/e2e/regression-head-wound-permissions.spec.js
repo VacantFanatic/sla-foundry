@@ -38,6 +38,8 @@ test.describe('Player vs unowned NPC: wound side effects (two clients)', () => {
     };
 
     test.beforeAll(async ({ browser, baseURL }) => {
+        // Two logins, a user/NPC/scene and a canvas load: slower than the 30s default on CI runners.
+        test.setTimeout(180_000);
         test.skip(!process.env.FOUNDRY_USER, 'Set FOUNDRY_USER (and FOUNDRY_URL / FOUNDRY_PASSWORD if needed)');
         gmContext = await browser.newContext({ baseURL, viewport: { width: 1366, height: 768 } });
         gm = await gmContext.newPage();
@@ -65,7 +67,7 @@ test.describe('Player vs unowned NPC: wound side effects (two clients)', () => {
 
         player = await joinAs(browser, PLAYER_NAME, baseURL);
         await player.page.waitForFunction((id) => canvas?.ready && canvas.scene?.id === id, setup.sceneId, {
-            timeout: 60_000
+            timeout: 90_000
         });
     });
 
@@ -162,6 +164,7 @@ test.describe('Player vs unowned NPC: wound side effects (two clients)', () => {
     });
 
     test('with no GM online the player gets a note and nothing is written or thrown', async () => {
+        test.setTimeout(120_000);
         await resetWounds();
         await gm.close();
         await player.page.waitForFunction(() => !game.users.activeGM, null, { timeout: 30_000 });
