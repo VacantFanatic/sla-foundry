@@ -301,7 +301,10 @@ E2E tests require:
 
 `test:e2e:regression`, `test:e2e:operators`, and `test:e2e:visual` all run as separate steps in
 `.github/workflows/main.yml`'s `e2e` job (gated on Foundry download credentials being configured —
-see that job's own comments). The job is a 4-shard matrix: each shard boots its own Foundry and runs
+see that job's own comments). The job runs on pushes to `main` and on same-repo pull requests, and is
+skipped when the change is documentation only (every changed file is `*.md`, under `.docs/`, or
+`LICENSE*`; the `changes` job decides). `build` still runs on docs-only PRs, because Prettier also checks the
+markdown. The job is `continue-on-error`, so it reports on the PR without blocking a merge. The job is a 4-shard matrix: each shard boots its own Foundry and runs
 `test:e2e:regression -- --shard=N/4`; `test:e2e:operators` runs only on shard 1 and `test:e2e:visual` only
 on shard 4, so each runs exactly once. `playwright.config.js` sets `fullyParallel: true` with `workers: 1`:
 that makes `--shard` split individual tests rather than whole files (otherwise the 15-minute

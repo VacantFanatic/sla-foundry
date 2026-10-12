@@ -807,3 +807,10 @@ the EmbeddedCollection collection` and the GM saw a red toast. The stack ended i
   15-minute `regression-item-sheets` file caps how far file-level sharding can go. `fullyParallel: true` with
   `workers: 1` makes `--shard` split individual tests, so the matrix can grow to 4. Keep `workers: 1`:
   two Foundry instances on one 4-core box already caused timeouts, and tests share one world, login and clock.
+- **A GitHub Actions job is skipped when anything upstream of it was skipped, unless its `if` has `always()`.**
+  The `e2e` job (`needs: build`) never ran on pull requests: `changes` was skipped on PRs, `build` survived
+  that with `always()`, but `e2e` had no status function, so it inherited the skip. Every PR run finished in about
+  30 seconds, and only pushes to `main` (an hour-plus run at the time) exercised the E2E suite. The tell was the
+  run duration and a skipped job whose name still showed the raw `${{ matrix.shard }}` placeholder. When a job
+  depends on a chain with a conditional job, give it `always()` plus an explicit `needs.<job>.result == 'success'`.
+  Fixed in `.github/workflows/main.yml`; docs-only changes are filtered by the `changes` job on both events.
