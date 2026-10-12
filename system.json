@@ -18,6 +18,7 @@
             "thumbnail": "systems/sla-industries/assets/sla-back.png"
         }
     ],
+    "socket": true,
     "esmodules": ["module/sla-industries.mjs"],
     "styles": ["css/sla-industries.css"],
     "languages": [

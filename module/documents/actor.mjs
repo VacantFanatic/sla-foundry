@@ -590,6 +590,11 @@ export class SlaActor extends Actor {
             console.error('SLA Industries | Error in super._onUpdate:', error);
         }
 
+        // _onUpdate runs on EVERY connected client. Everything below writes to this actor, so it
+        // must only run on the client of the user who made the update (players lack permission to
+        // create effects on actors they do not own, and several clients would race each other).
+        if (game.user.id !== userId) return;
+
         // Derived max can fall below stored HP (e.g. STR drop); clamp once without looping.
         if (!options.slaHpClamp) {
             const clamped = clampHpValue(this.system.hp?.value, this.system.hp?.max);

@@ -41,15 +41,63 @@ export function resolveCombatSkillRank(actor, skillInput) {
     return skillItem ? Number(skillItem.system.rank) || 0 : 0;
 }
 
+const HEADSHOT_SOCKET_EVENT = 'system.sla-industries';
+const HEADSHOT_SOCKET_ACTION = 'applyHeadWound';
+let headshotSocketRegistered = false;
+
+async function applyHeadWoundToActor(actor) {
+    if (!actor || actor.system?.wounds?.head) return false;
+    await actor.update({ 'system.wounds.head': true });
+    return true;
+}
+
+/**
+ * Active-GM side of the head-wound relay. Accepts only "set the head wound on this actor",
+ * never arbitrary data.
+ */
+async function handleHeadshotSocketMessage(data) {
+    if (data?.action !== HEADSHOT_SOCKET_ACTION) return;
+    if (!game.user.isActiveGM) return;
+    try {
+        const doc = await fromUuid(data.actorUuid);
+        await applyHeadWoundToActor(doc?.actor ?? doc);
+    } catch (err) {
+        console.error('SLA | Failed to apply relayed head wound', err);
+    }
+}
+
+function registerHeadshotSocket() {
+    if (headshotSocketRegistered || !game?.socket) return;
+    headshotSocketRegistered = true;
+    game.socket.on(HEADSHOT_SOCKET_EVENT, handleHeadshotSocketMessage);
+}
+
+if (typeof game !== 'undefined' && game?.ready) registerHeadshotSocket();
+else if (typeof Hooks !== 'undefined') Hooks.once('ready', registerHeadshotSocket);
+
 export async function applyHeadshotSideEffect(notes) {
     if (game.user.targets.size === 0) return;
 
     const target = game.user.targets.first();
     const targetActor = target?.actor;
-    if (targetActor && !targetActor.system.wounds.head) {
-        await targetActor.update({ 'system.wounds.head': true });
+    if (!targetActor || targetActor.system.wounds.head) return;
+
+    if (targetActor.canUserModify(game.user, 'update')) {
+        await applyHeadWoundToActor(targetActor);
         notes.push(`<span style="color:#ff5555">Head Wound Applied!</span>`);
+        return;
     }
+
+    // The attacker cannot modify the target: ask the active GM's client to apply it.
+    if (!game.users.activeGM) {
+        notes.push(`<span style="color:#ff5555">Head Wound not applied: no GM is online to apply it.</span>`);
+        return;
+    }
+    game.socket.emit(HEADSHOT_SOCKET_EVENT, {
+        action: HEADSHOT_SOCKET_ACTION,
+        actorUuid: targetActor.uuid
+    });
+    notes.push(`<span style="color:#ff5555">Head Wound Applied!</span>`);
 }
 
 export function buildSkillDiceResultsForSheet(params) {
