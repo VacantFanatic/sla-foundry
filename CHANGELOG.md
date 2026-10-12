@@ -17,8 +17,6 @@ section only in the PR that prepares the stable release. See
 
 ## [2.15.0] - 2026-10-09
 
-## [2.15.0] - 2026-10-09
-
 ### Added
 
 - **The Game Clock asks whether to end a running combat** when you move the clock forward an hour or more from its window (a preset button or Set date). Keep combat leaves it alone; End combat ends it. Smaller steps, rewinds and the `game.sla.advanceTime` / `setDate` macros never ask.
