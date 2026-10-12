@@ -218,8 +218,34 @@ async function closeApplicationWindows(page) {
     if (windowStillOpen) await page.keyboard.press('Escape').catch(() => {});
 }
 
+/**
+ * Join as a named user in a fresh browser context (a second, independent logged-in client).
+ * Collects console errors and uncaught page errors in `errors` so tests can assert a client stayed
+ * quiet. Callers own the returned context and must `await context.close()`.
+ * @param {import('@playwright/test').Browser} browser
+ * @param {string} name user name on /join (no password is filled; use a passwordless user)
+ * @param {string} baseURL
+ */
+async function joinAs(browser, name, baseURL) {
+    const context = await browser.newContext({ baseURL, viewport: { width: 1366, height: 768 } });
+    const page = await context.newPage();
+    const errors = [];
+    page.on('console', (msg) => {
+        if (msg.type() === 'error') errors.push(msg.text());
+    });
+    page.on('pageerror', (err) => errors.push(`PAGEERROR ${err.message}`));
+    await page.goto('/join');
+    await page.locator('input[name="username"]').fill(name);
+    await page.getByRole('button', { name: /join game session/i }).click();
+    await page.waitForURL(/\/game/, { timeout: 60_000 });
+    await waitForSLASystem(page);
+    await dismissFoundryNotifications(page);
+    return { context, page, errors };
+}
+
 module.exports = {
     joinGame,
+    joinAs,
     waitForSLASystem,
     dismissFoundryNotifications,
     createWorldItem,

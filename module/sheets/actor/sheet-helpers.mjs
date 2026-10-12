@@ -55,12 +55,16 @@ async function applyHeadWoundToActor(actor) {
  * Active-GM side of the head-wound relay. Accepts only "set the head wound on this actor",
  * never arbitrary data.
  */
-async function handleHeadshotSocketMessage(data) {
+export async function handleHeadshotSocketMessage(data) {
     if (data?.action !== HEADSHOT_SOCKET_ACTION) return;
     if (!game.user.isActiveGM) return;
+    if (typeof data.actorUuid !== 'string') return;
     try {
         const doc = await fromUuid(data.actorUuid);
-        await applyHeadWoundToActor(doc?.actor ?? doc);
+        // A token UUID resolves to a TokenDocument; unwrap it to its actor.
+        const actor = doc?.documentName === 'Token' ? doc.actor : doc;
+        if (actor?.documentName !== 'Actor') return;
+        await applyHeadWoundToActor(actor);
     } catch (err) {
         console.error('SLA | Failed to apply relayed head wound', err);
     }

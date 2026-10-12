@@ -822,5 +822,7 @@ the EmbeddedCollection collection` and the GM saw a red toast. The stack ended i
   straight to an unowned target (`applyHeadshotSideEffect`). Rule: guard every write inside a document lifecycle hook
   with `game.user.id !== userId`, and when a player must change a document they cannot modify, check
   `canUserModify` first and relay a narrow action (`{ action, actorUuid }`, never arbitrary data) over the system socket
-  (`"socket": true` in `system.json`) to the active GM. Unit tests pin both in `head-wound-permissions.test.mjs`; a real
-  player-vs-unowned-NPC run needs two logged-in users.
+  (`"socket": true` in `system.json`) to the active GM. Unit tests pin both in `head-wound-permissions.test.mjs`. A GM-only test cannot see this bug class (the
+  GM can write everywhere, so nothing fails on its client); `regression-head-wound-permissions.spec.js` logs in a
+  second, passwordless PLAYER client (`joinAs` in `fixtures.js`), covers all six wound locations, the relay and the
+  no-GM branch, and fails with the `_onUpdate` guard removed.

@@ -291,6 +291,8 @@ npm run test:e2e:operators    # Operative CRUD, weapon items, roll integration (
 npm run test:e2e:visual       # screenshot diffing for the three actor sheet types (needs committed baselines)
 npm run test:e2e:ui           # Playwright UI mode
 npm run test:e2e:headed       # headed browser run
+# Two-client specs (GM + a passwordless PLAYER created by the test, via `joinAs` in tests/e2e/fixtures.js)
+# live in the regression suite, e.g. regression-head-wound-permissions.spec.js; they need a GM FOUNDRY_USER.
 ```
 
 E2E tests require:
