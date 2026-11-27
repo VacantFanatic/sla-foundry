@@ -826,3 +826,18 @@ the EmbeddedCollection collection` and the GM saw a red toast. The stack ended i
   GM can write everywhere, so nothing fails on its client); `regression-head-wound-permissions.spec.js` logs in a
   second, passwordless PLAYER client (`joinAs` in `fixtures.js`), covers all six wound locations, the relay and the
   no-GM branch, and fails with the `_onUpdate` guard removed.
+- **A button-visibility rule written as a list of special cases silently misses the combinations nobody listed.**
+  Issue 421: `buildEbbDamageFormula` (`module/sheets/actor/roll-math.mjs`) showed the Remove Wounds button for
+  (Effect, no HP formula) and (Heal, `or` mode, with HP formula) only, so the rulebook's own Rank 1 Heal Wound
+  (Heal, no HP formula, 1 wound) rendered a card with no buttons, and the wound could not be removed. The existing
+  test covered only the Effect case, so it passed. Rule: when a control's visibility depends on several item
+  fields, write one test per real rulebook entry (see the Heal table in `EBB_SYSTEM.md`) instead of per branch of
+  the code, and check the matrix for any entry that produces zero controls. The unit tests prove the logic;
+  `regression-ebb-heal.spec.js` clicks the real rendered card, but it needs a live Foundry to run.
+- **This sandbox's Chromium (141) can no longer render Foundry v14 build 370's join page.** The `/join` form comes
+  up as an empty `<select>` instead of the `input[name="username"]` the fixtures and
+  `scripts/ensure-foundry-user.mjs` expect, so every authenticated e2e spec fails in `joinGame` before reaching the
+  test. This is the same failure `CLOUD_ENVIRONMENT.md` describes for `/setup`. Don't retry; run the unit tests and
+  say plainly that the e2e spec was not run. A throwaway Playwright config outside the repo
+  (`require` the repo config and set `launchOptions.executablePath` to `/opt/pw-browsers/chromium`) avoids having to
+  edit and then revert `playwright.config.js`.

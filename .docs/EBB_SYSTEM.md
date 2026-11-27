@@ -135,9 +135,22 @@ When **Wounds to Remove** is greater than 0 and the roll succeeds:
 
 - **Damage formulas:** Wound removal is bundled with the damage apply (both happen on one GM button click).
 - **Effect formulas (no HP change):** A **Remove wounds** button appears on the chat card. The target is the **selected** token (ally) or **targeted** token (enemy), following the formula's Target setting.
-- **Heal formulas:** Behavior depends on **Heal/Wound Mode**:
+- **Heal formulas with no HP formula** (empty or `0` damage, e.g. Rank 1 _Heal Wound_: "instantly remove 1 wound of their choice"): only a **Remove wounds** button appears, whatever the Heal/Wound Mode. (Issue #421: this case used to render no button at all.)
+- **Heal formulas with an HP formula:** Behavior depends on **Heal/Wound Mode**:
     - `and` — Both HP healing and wound removal happen on a single **Apply** click.
     - `or` — A **Remove wounds** button appears alongside the heal button. Once one is used, the other is disabled for all connected clients (state stored on the chat message via `flags.sla.ebbHealWoundPathUsed`).
+
+Rulebook mapping for the Heal discipline (button logic is pinned by `buildEbbDamageFormula` unit tests):
+
+| Ability                                    | Target | Effect | Damage | Wounds to Remove | Mode  |
+| ------------------------------------------ | ------ | ------ | ------ | ---------------- | ----- |
+| Rank 1: Heal Wound                         | self   | heal   | —      | 1                | —     |
+| Rank 1: Heal Injury                        | self   | heal   | 3      | 0                | —     |
+| Rank 2: Healing Touch (1 wound _or_ 3 HP)  | ally   | heal   | 3      | 1                | `or`  |
+| Rank 3: Advanced Heal (1 wound _and_ 6 HP) | ally   | heal   | 6      | 1                | `and` |
+| Rank 2: Poison Leech                       | any    | effect | —      | 0                | —     |
+
+The Ebb Medi-kit (+1 HP on Heal abilities that regain HP; Formulae Rating −1 on rank 3 and 4 Heal abilities) is **not automated** — apply it by hand. No Active Effect key can express either part.
 
 Wounds are cleared in a fixed anatomical order: **head → torso → left arm → right arm → left leg → right leg**. Only locations that are currently wounded are cleared; the count is consumed until exhausted.
 

@@ -13,6 +13,7 @@ section only in the PR that prepares the stable release. See
 
 ### Fixed
 
+- **Ebb "Heal Rank 1: Heal Wound" now shows the Remove Wounds button** on a successful cast. A Heal formula with **Wounds to Remove** set and no HP formula posted a card with no buttons, so the wound could not be removed. Heal Injury, Healing Touch (`or`), Advanced Heal (`and`) and wounds-only Effect formulas are unchanged.
 - **Player attacks that earn the automatic head wound no longer fail with "lacks permission" errors** when the target is a token the player does not own. The head wound is now relayed to the active GM's client when the attacker cannot modify the target (the manifest enables `socket`), and an actor's follow-up writes after an update (Stunned, Bleeding, HP clamp) run only on the client of the user who made the update instead of on every connected client.
 
 ## [2.15.0] - 2026-10-09

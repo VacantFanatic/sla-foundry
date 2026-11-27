@@ -474,6 +474,80 @@ describe('buildEbbDamageFormula', () => {
         assert.equal(r.showRemoveWoundsOnly, true);
         assert.equal(r.showHpRollButton, false);
     });
+
+    describe('Heal discipline configurations (rulebook)', () => {
+        const heal = (system) => ({ system: { ebbEffect: 'heal', ...system } });
+
+        test('Rank 1 Heal Wound (#421): heal, no HP formula, 1 wound shows Remove Wounds only', () => {
+            const r = buildEbbDamageFormula(
+                heal({ damage: '', removeWounds: 1, ebbTarget: 'self', ebbHealWoundMode: 'or' }),
+                true,
+                1
+            );
+            assert.equal(r.showRemoveWoundsOnly, true);
+            assert.equal(r.showHpRollButton, false);
+            assert.equal(r.removeWoundsBundledWithHpRoll, 0);
+        });
+
+        test('Heal Wound with damage "0" behaves like an empty HP formula', () => {
+            const r = buildEbbDamageFormula(heal({ damage: '0', removeWounds: 1 }), true, 1);
+            assert.equal(r.showRemoveWoundsOnly, true);
+            assert.equal(r.showHpRollButton, false);
+        });
+
+        test('Heal Wound shows no button on a failed roll', () => {
+            const r = buildEbbDamageFormula(heal({ damage: '', removeWounds: 1 }), false, 0);
+            assert.equal(r.showRemoveWoundsOnly, false);
+            assert.equal(r.showHpRollButton, false);
+        });
+
+        test('heal with no HP formula and no wounds to remove shows no buttons', () => {
+            const r = buildEbbDamageFormula(heal({ damage: '', removeWounds: 0 }), true, 1);
+            assert.equal(r.showRemoveWoundsOnly, false);
+            assert.equal(r.showHpRollButton, false);
+        });
+
+        test('Rank 1 Heal Injury: HP formula only shows the heal roll', () => {
+            const r = buildEbbDamageFormula(heal({ damage: '3', removeWounds: 0 }), true, 1);
+            assert.equal(r.showHpRollButton, true);
+            assert.equal(r.showRemoveWoundsOnly, false);
+            assert.equal(r.removeWoundsBundledWithHpRoll, 0);
+            assert.equal(r.finalDmgFormula, '3');
+        });
+
+        test('Rank 2 Healing Touch ("or"): both a heal roll and a separate Remove Wounds button', () => {
+            const r = buildEbbDamageFormula(
+                heal({ damage: '3', removeWounds: 1, ebbHealWoundMode: 'or', ebbTarget: 'ally' }),
+                true,
+                1
+            );
+            assert.equal(r.showHpRollButton, true);
+            assert.equal(r.showRemoveWoundsOnly, true);
+            assert.equal(r.removeWoundsBundledWithHpRoll, 0);
+        });
+
+        test('Rank 3 Advanced Heal ("and"): one heal roll that bundles the wound removal', () => {
+            const r = buildEbbDamageFormula(
+                heal({ damage: '6', removeWounds: 1, ebbHealWoundMode: 'and', ebbTarget: 'ally' }),
+                true,
+                1
+            );
+            assert.equal(r.showHpRollButton, true);
+            assert.equal(r.showRemoveWoundsOnly, false);
+            assert.equal(r.removeWoundsBundledWithHpRoll, 1);
+        });
+
+        test('heal formulas never add the MOS damage bonus', () => {
+            const r = buildEbbDamageFormula(heal({ damage: '6', removeWounds: 1 }), true, 3);
+            assert.equal(r.finalDmgFormula, '6');
+        });
+
+        test('Rank 2 Poison Leech (effect, no numbers) shows no HP or wound buttons', () => {
+            const r = buildEbbDamageFormula({ system: { ebbEffect: 'effect', damage: '', removeWounds: 0 } }, true, 1);
+            assert.equal(r.showHpRollButton, false);
+            assert.equal(r.showRemoveWoundsOnly, false);
+        });
+    });
 });
 
 describe('resolveWeaponMosOutcome', () => {

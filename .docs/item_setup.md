@@ -117,6 +117,8 @@ Drugs are consumed via the **Consume** button in the Inventory tab. Quantity dec
 
 Drug stat modifiers and damage reduction **must be configured as embedded Active Effects** on the drug item (the old `Mod 1`/`Mod 2` fields are removed). When the drug is toggled active or consumed as a syringe, those effects transfer to the actor. When the drug wears off, the effects are removed.
 
+Drugs cannot heal on use yet. A rule like Kick Start's "Regain 3 Hit Points and heal 1 wound" is instant, and no Active Effect key restores _current_ HP (`system.hp.bonus` only raises HP Max), so apply it by hand until [#423](https://github.com/VacantFanatic/sla-foundry/issues/423) lands. Detox effects such as Kick Start's "-1 STR, -2 Hit Points" can be modelled as Active Effects (`system.stats.str.bonus` −1, `system.hp.bonus` −2), but `Detox Effects` is a text field and nothing applies it automatically; the GM adds the effect when withdrawal starts.
+
 Fields on the drug item sheet:
 
 - **Addiction Rating / Addiction Dose:** Reference text; addiction tests are resolved manually at the table.
