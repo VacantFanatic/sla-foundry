@@ -59,6 +59,17 @@ making non-trivial changes. For anything release-related, also read
 describe conventions and mechanisms that aren't obvious from the code alone — reading them is
 cheaper than rediscovering the same bug or re-scanning the codebase to reconstruct the convention.
 
+## Releases: cut the RC from the PR branch BEFORE merging to `main`
+
+For a user-facing change, push the release candidate tag (`pre-X.Y.Z-rcN`) from the feature/fix PR
+branch and let the owner verify it **before** the PR is merged to `main`. Tag pushes trigger the
+pre-release workflow regardless of branch, so there is no need to land on `main` first. Bump
+`package.json`, `package-lock.json` and `system.json` to the target semver on the branch (leave
+`CHANGELOG.md` entries under `## [Unreleased]`), then tag the branch tip. Merge only after the RC
+checks out. CI-only or test-only PRs don't need an RC. Full steps:
+[.docs/RELEASE.md](.docs/RELEASE.md). If tag pushes are blocked in a cloud session, say so and hand
+over the exact `git tag` / `git push` command plus a locally built zip instead of merging first.
+
 ## Code style & TDD
 
 Follow [CONTRIBUTING.md](CONTRIBUTING.md) — code must pass `npm run format:check` (Prettier) and
