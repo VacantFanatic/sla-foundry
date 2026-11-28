@@ -66,11 +66,8 @@ async function acceptLicense(page) {
 }
 
 /**
- * Foundry v14's Join Game form is an autocomplete text input (`input[name="username"]`),
- * not the classic `<select name="userid">` dropdown earlier Foundry versions used — confirmed
- * directly from the served client source (JoinGameForm._prepareContext() in scripts/foundry.mjs
- * sets `context.users = game.users`). Read the live user list straight from the `game` global
- * instead of scraping DOM markup that no longer exists.
+ * Read the live user list from the `game` global rather than scraping the Join Game form, whose
+ * markup differs by Foundry v14 build (text input before 370, `<select name="userId">` from 370).
  */
 async function joinUserNames(page) {
     await page.waitForFunction(() => globalThis.game?.users != null, null, { timeout: 15_000 }).catch(() => {});
