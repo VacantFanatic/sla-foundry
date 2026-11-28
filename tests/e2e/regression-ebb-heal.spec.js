@@ -77,7 +77,11 @@ const readActor = (page, actorId) =>
 const cleanup = (page, actorId) => page.evaluate((id) => game.actors.get(id)?.delete(), actorId);
 
 async function openChatCard(page, messageId) {
-    await page.evaluate(() => ui.sidebar?.changeTab?.('chat', 'primary'));
+    // The sidebar starts collapsed; a card inside it is outside the viewport and cannot be clicked.
+    await page.evaluate(() => {
+        ui.sidebar?.expand?.();
+        ui.sidebar?.changeTab?.('chat', 'primary');
+    });
     const card = page.locator(`#chat .chat-message[data-message-id="${messageId}"]`);
     await expect(card).toBeVisible({ timeout: 15_000 });
     return card;

@@ -841,6 +841,6 @@ the EmbeddedCollection collection` and the GM saw a red toast. The stack ended i
   "Waiting for /join user list..." until timeout, so it is not a browser-version problem. The unpinned
   `felddy/foundryvtt:14` image picked up build 370, so the failure appeared with no repo change. Rule: when every
   authenticated spec fails at login at once, dump the live form (`page.evaluate(() => document.forms)`) before
-  blaming the environment, and pin the Foundry image tag in CI so a platform build can't change the login form
-  under an unrelated PR. A throwaway Playwright config outside the repo (`require` the repo config and set
+  blaming the environment, and consider pinning the Foundry image tag in CI so a platform build can't change the login form
+  under an unrelated PR. Fixed by handling both controls in `fixtures.js` and `ensure-foundry-user.mjs` (PR 426). A throwaway Playwright config outside the repo (`require` the repo config and set
   `launchOptions.executablePath` to `/opt/pw-browsers/chromium`) still avoids editing `playwright.config.js` here.
