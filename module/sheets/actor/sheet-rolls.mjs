@@ -1,5 +1,5 @@
-import { executeSkillRollFromItem } from './skill-rolls.mjs';
-import { executeStatRoll } from './stat-rolls.mjs';
+import { renderSkillRollDialog } from './skill-rolls.mjs';
+import { renderStatRollDialog } from './stat-rolls.mjs';
 import { triggerItemRoll } from './item-actions.mjs';
 
 /**
@@ -20,14 +20,14 @@ export async function handleSheetRoll(sheet, event, rollTarget) {
     }
 
     if (dataset.rollType === 'stat') {
-        await executeStatRoll(sheet, dataset.key);
+        await renderStatRollDialog(sheet, dataset.key);
         return;
     }
 
     if (dataset.rollType === 'skill') {
         const itemId = element.closest('.item')?.dataset.itemId;
         const item = itemId ? sheet.actor.items.get(itemId) : null;
-        if (item) await executeSkillRollFromItem(sheet, item);
+        if (item) await renderSkillRollDialog(sheet, item);
         return;
     }
 

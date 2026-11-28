@@ -11,6 +11,7 @@ import {
     buildExplosiveMods,
     buildSkillDiceResults,
     buildSkillRollFormula,
+    buildRollModifierNote,
     buildSkillRollModifierBreakdown,
     buildWeaponRollMods,
     calculateEbbModifier,
@@ -21,6 +22,7 @@ import {
     isStatCheckSuccess,
     computeWeaponSkillDiceCount,
     buildWeaponDamageFormula,
+    parseSituationalModifier,
     readExplosiveRollForm,
     readWeaponRollFormState,
     resolveEbbDisciplineName,
@@ -602,5 +604,63 @@ describe('applyWeaponAimAndConditionMods', () => {
         assert.equal(mods.allDice, -1);
         assert.equal(mods.successDie, 0);
         assert.equal(mods.autoSkillSuccesses, 0);
+    });
+});
+
+describe('situational modifier (skill and stat roll prompt)', () => {
+    const base = {
+        statValue: 3,
+        rank: 2,
+        prone: false,
+        stunned: false,
+        woundPenalty: 1,
+        applyWoundPenalties: true,
+        rollModifier: -1
+    };
+
+    test('computeSkillRollModifier adds a situational modifier on top of everything else', () => {
+        assert.equal(computeSkillRollModifier(base), 3);
+        assert.equal(computeSkillRollModifier({ ...base, situationalModifier: 2 }), 5);
+        assert.equal(computeSkillRollModifier({ ...base, situationalModifier: -4 }), -1);
+    });
+
+    test('the breakdown names the situational modifier and still sums to the computed total', () => {
+        const entries = buildSkillRollModifierBreakdown({ statLabel: 'DEX', ...base, situationalModifier: 2 });
+        assert.deepEqual(entries.at(-1), { label: 'Situational Modifier', value: 2 });
+        assert.equal(
+            entries.reduce((total, entry) => total + entry.value, 0),
+            computeSkillRollModifier({ ...base, situationalModifier: 2 })
+        );
+    });
+
+    test('the breakdown omits a zero situational modifier', () => {
+        const entries = buildSkillRollModifierBreakdown({ statLabel: 'DEX', ...base, situationalModifier: 0 });
+        assert.equal(
+            entries.some((entry) => entry.label === 'Situational Modifier'),
+            false
+        );
+    });
+
+    test('parseSituationalModifier coerces form input to a whole number', () => {
+        assert.equal(parseSituationalModifier('3'), 3);
+        assert.equal(parseSituationalModifier('-2'), -2);
+        assert.equal(parseSituationalModifier(' 4 '), 4);
+        assert.equal(parseSituationalModifier(2.7), 2);
+        assert.equal(parseSituationalModifier(-2.7), -2);
+        assert.equal(parseSituationalModifier(''), 0);
+        assert.equal(parseSituationalModifier('abc'), 0);
+        assert.equal(parseSituationalModifier(undefined), 0);
+        assert.equal(parseSituationalModifier(null), 0);
+    });
+
+    test('buildRollModifierNote matches the Ebb card wording and skips zero values', () => {
+        assert.equal(buildRollModifierNote({ rollModifier: 0, situationalModifier: 0 }), '');
+        assert.equal(buildRollModifierNote({ rollModifier: -2, situationalModifier: 0 }), 'Roll Modifier (-2)');
+        assert.equal(buildRollModifierNote({ rollModifier: 0, situationalModifier: 3 }), 'Situational Modifier (+3)');
+        assert.equal(
+            buildRollModifierNote({ rollModifier: 1, situationalModifier: -2 }),
+            'Roll Modifier (+1) Situational Modifier (-2)'
+        );
+        assert.equal(buildRollModifierNote({}), '');
     });
 });

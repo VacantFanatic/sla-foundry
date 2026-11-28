@@ -9,7 +9,7 @@
  * equip-toggle entry point).
  */
 const { test, expect } = require('@playwright/test');
-const { joinGame, waitForSLASystem } = require('./fixtures');
+const { confirmRollDialog, joinGame, waitForSLASystem } = require('./fixtures');
 
 const needsAuth = () => {
     test.skip(!process.env.FOUNDRY_USER, 'Set FOUNDRY_USER (and FOUNDRY_URL / FOUNDRY_PASSWORD if needed)');
@@ -39,24 +39,29 @@ test.describe('GM: rollOwnedItem (document API)', () => {
         expect(threw).toBe(false);
     });
 
-    test('resolves a real embedded skill item through a real ephemeral sheet and posts a roll', async ({ page }) => {
-        const result = await page.evaluate(async () => {
+    test('resolves a real embedded skill item through a real ephemeral sheet, prompts, and posts a roll once confirmed', async ({
+        page
+    }) => {
+        const actorId = await page.evaluate(async () => {
             const stamp = Date.now();
             const [actor] = await Actor.createDocuments([{ name: `E2E Hotbar Roll ${stamp}`, type: 'character' }]);
             const [skill] = await actor.createEmbeddedDocuments('Item', [
                 { name: `E2E Hotbar Skill ${stamp}`, type: 'skill', system: { rank: '1', stat: 'dex' } }
             ]);
 
-            const before = game.messages.size;
+            window.__e2eHotbarBefore = game.messages.size;
             const { rollOwnedItem } = await import('/systems/sla-industries/module/helpers/sla-hotbar.mjs');
             await rollOwnedItem(skill.uuid);
-            const after = game.messages.size;
-
-            await actor.delete();
-            return after > before;
+            return actor.id;
         });
 
-        expect(result).toBe(true);
+        // The macro opens the situational-modifier dialog; nothing rolls until it is confirmed.
+        await expect(page.locator('input[name="situationalModifier"]').last()).toBeVisible();
+        expect(await page.evaluate(() => game.messages.size === window.__e2eHotbarBefore)).toBe(true);
+
+        await confirmRollDialog(page);
+        await page.waitForFunction(() => game.messages.size > window.__e2eHotbarBefore);
+        await page.evaluate((id) => game.actors.get(id)?.delete(), actorId);
     });
 });
 

@@ -11,6 +11,10 @@ section only in the PR that prepares the stable release. See
 
 ## [Unreleased]
 
+### Added
+
+- **Skill rolls and stat checks now ask for a one-off Situational Modifier (+/-) before rolling** (issue #422), the same way Ebb casts and attacks already confirm first. Use it for good or bad conditions, GM-granted bonuses or choking instead of editing the actor's Roll Modifier or making a temporary Active Effect. The value is added on top of stat, rank, conditions, wounds and Roll Modifier, shows on the chat card as `Situational Modifier (+N)` when non-zero, and is kept in the roll so Luck re-rolls use the same total. The dialog opens from sheet rolls and from hotbar skill macros.
+
 ### Fixed
 
 - **Player attacks that earn the automatic head wound no longer fail with "lacks permission" errors** when the target is a token the player does not own. The head wound is now relayed to the active GM's client when the attacker cannot modify the target (the manifest enables `socket`), and an actor's follow-up writes after an update (Stunned, Bleeding, HP clamp) run only on the client of the user who made the update instead of on every connected client.

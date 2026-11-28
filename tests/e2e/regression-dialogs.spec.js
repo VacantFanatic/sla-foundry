@@ -12,7 +12,8 @@ const {
     openActorSheet,
     clickActorSheetTab,
     deleteTestActors,
-    closeApplicationWindows
+    closeApplicationWindows,
+    confirmRollDialog
 } = require('./fixtures');
 
 test.describe.configure({ timeout: 60_000 });
@@ -73,6 +74,7 @@ test.describe('SLA dialogs UI — regression', () => {
         const sheet = await openActorSheet(page, actorId);
 
         await sheet.locator('.stat-box a.rollable[data-roll-type="stat"][data-key="str"]:has(.fa-dice-d20)').click();
+        await confirmRollDialog(page);
         await expect
             .poll(
                 async () =>

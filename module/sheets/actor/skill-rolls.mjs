@@ -1,12 +1,20 @@
 import { calculateRollResult, generateDiceTooltip, createSLARoll } from '../../helpers/dice.mjs';
-import { buildSkillRollFormula, buildSkillRollModifierBreakdown, computeSkillRollModifier } from './roll-math.mjs';
+import {
+    buildRollModifierNote,
+    buildSkillRollFormula,
+    buildSkillRollModifierBreakdown,
+    computeSkillRollModifier
+} from './roll-math.mjs';
+import { renderSituationalRollDialog } from './situational-roll-dialog.mjs';
 
 /**
  * Execute a skill roll from an embedded skill item (shared by sheet and hotbar flows).
  * @param {import("../actor-sheet.mjs").SlaActorSheet} sheet
  * @param {Item} item
+ * @param {{ situationalModifier?: number }} [overrides] One-off modifier from the pre-roll dialog
  */
-export async function executeSkillRollFromItem(sheet, item) {
+export async function executeSkillRollFromItem(sheet, item, overrides = {}) {
+    const { situationalModifier = 0 } = overrides;
     if (!item || item.type !== 'skill') return;
 
     const actor = sheet.actor;
@@ -22,7 +30,8 @@ export async function executeSkillRollFromItem(sheet, item) {
         stunned: Boolean(actor.system.conditions?.stunned),
         woundPenalty: actor.system.wounds.penalty || 0,
         applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties'),
-        rollModifier: rollModifierTotal
+        rollModifier: rollModifierTotal,
+        situationalModifier
     };
     const baseModifier = computeSkillRollModifier(modifierParams);
     const modifierBreakdown = buildSkillRollModifierBreakdown({
@@ -36,8 +45,7 @@ export async function executeSkillRollFromItem(sheet, item) {
 
     const result = calculateRollResult(roll, baseModifier);
     const resultColor = result.isSuccess ? '#39ff14' : '#f55';
-    const rollModifierNote =
-        rollModifierTotal !== 0 ? `Roll Modifier (${rollModifierTotal > 0 ? '+' : ''}${rollModifierTotal})` : '';
+    const rollModifierNote = buildRollModifierNote({ rollModifier: rollModifierTotal, situationalModifier });
 
     const templateData = {
         borderColor: resultColor,
@@ -80,5 +88,22 @@ export async function executeSkillRollFromItem(sheet, item) {
                 }
             })
         }
+    });
+}
+
+/**
+ * Pre-roll confirmation dialog for a skill roll, with a one-off situational modifier.
+ * @param {import("../actor-sheet.mjs").SlaActorSheet} sheet
+ * @param {Item} item
+ */
+export async function renderSkillRollDialog(sheet, item) {
+    if (!item || item.type !== 'skill') return;
+    const statKey = item.system.stat || 'dex';
+    const rank = Number(item.system.rank) || 0;
+    await renderSituationalRollDialog({
+        title: `Roll: ${item.name}`,
+        summaryLabel: 'Skill',
+        summary: `${statKey.toUpperCase()} + Rank ${rank}`,
+        onConfirm: (situationalModifier) => executeSkillRollFromItem(sheet, item, { situationalModifier })
     });
 }

@@ -15,7 +15,7 @@ export function buildSkillRollFormula(rank) {
 }
 
 /**
- * @param {{ statValue: number, rank: number, prone: boolean, stunned: boolean, woundPenalty: number, applyWoundPenalties: boolean, rollModifier?: number }} params
+ * @param {{ statValue: number, rank: number, prone: boolean, stunned: boolean, woundPenalty: number, applyWoundPenalties: boolean, rollModifier?: number, situationalModifier?: number }} params
  * @returns {number}
  */
 export function computeSkillRollModifier({
@@ -25,13 +25,14 @@ export function computeSkillRollModifier({
     stunned,
     woundPenalty,
     applyWoundPenalties,
-    rollModifier = 0
+    rollModifier = 0,
+    situationalModifier = 0
 }) {
     let globalMod = 0;
     if (prone) globalMod -= 1;
     if (stunned) globalMod -= 1;
     const penalty = applyWoundPenalties ? woundPenalty : 0;
-    return statValue + rank + globalMod - penalty + rollModifier;
+    return statValue + rank + globalMod - penalty + rollModifier + situationalModifier;
 }
 
 /**
@@ -39,7 +40,7 @@ export function computeSkillRollModifier({
  * in a roll card (e.g. "Base 3 (STR 5, Stunned -1, Wound -1)") instead of an opaque total. Mirrors
  * that function's exact arithmetic — the returned entries always sum to
  * `computeSkillRollModifier`'s result for the same inputs.
- * @param {{ statLabel: string, statValue: number, rank: number, prone: boolean, stunned: boolean, woundPenalty: number, applyWoundPenalties: boolean, rollModifier?: number }} params
+ * @param {{ statLabel: string, statValue: number, rank: number, prone: boolean, stunned: boolean, woundPenalty: number, applyWoundPenalties: boolean, rollModifier?: number, situationalModifier?: number }} params
  * @returns {Array<{ label: string, value: number }>}
  */
 export function buildSkillRollModifierBreakdown({
@@ -50,7 +51,8 @@ export function buildSkillRollModifierBreakdown({
     stunned,
     woundPenalty,
     applyWoundPenalties,
-    rollModifier = 0
+    rollModifier = 0,
+    situationalModifier = 0
 }) {
     const entries = [];
     if (statValue !== 0) entries.push({ label: statLabel, value: statValue });
@@ -60,7 +62,35 @@ export function buildSkillRollModifierBreakdown({
     const penalty = applyWoundPenalties ? woundPenalty : 0;
     if (penalty !== 0) entries.push({ label: 'Wound Penalty', value: -penalty });
     if (rollModifier !== 0) entries.push({ label: 'Roll Modifier', value: rollModifier });
+    if (situationalModifier !== 0) entries.push({ label: 'Situational Modifier', value: situationalModifier });
     return entries;
+}
+
+/**
+ * Coerces a raw "Situational Modifier (+/-)" form value to a whole number. Blank, non-numeric and
+ * missing input all mean "no modifier" (0); fractions truncate toward zero.
+ * @param {unknown} raw
+ * @returns {number}
+ */
+export function parseSituationalModifier(raw) {
+    const value = Number(typeof raw === 'string' ? raw.trim() : raw);
+    return Number.isFinite(value) ? Math.trunc(value) : 0;
+}
+
+/**
+ * Chat-card note naming a roll's nonzero modifiers: "Roll Modifier (+1) Situational Modifier (-2)".
+ * Shared by skill, stat and Ebb rolls so every card words them the same way.
+ * @param {{ rollModifier?: number, situationalModifier?: number }} params
+ * @returns {string}
+ */
+export function buildRollModifierNote({ rollModifier = 0, situationalModifier = 0 }) {
+    const signed = (value) => `${value > 0 ? '+' : ''}${value}`;
+    return [
+        rollModifier !== 0 ? `Roll Modifier (${signed(rollModifier)})` : '',
+        situationalModifier !== 0 ? `Situational Modifier (${signed(situationalModifier)})` : ''
+    ]
+        .filter(Boolean)
+        .join(' ');
 }
 
 /**

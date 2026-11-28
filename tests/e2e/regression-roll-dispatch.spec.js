@@ -6,7 +6,7 @@
  * handleSheetRoll (sheet-rolls.mjs, the 4-way action dispatcher).
  */
 const { test, expect } = require('@playwright/test');
-const { joinGame, waitForSLASystem } = require('./fixtures');
+const { confirmRollDialog, joinGame, waitForSLASystem } = require('./fixtures');
 
 const needsAuth = () => {
     test.skip(!process.env.FOUNDRY_USER, 'Set FOUNDRY_USER (and FOUNDRY_URL / FOUNDRY_PASSWORD if needed)');
@@ -116,25 +116,29 @@ test.describe('GM: handleSheetRoll dispatch (document API)', () => {
         test.skip(!gm, 'Requires GM — use a Gamemaster account for FOUNDRY_USER');
     });
 
-    test('routes rollType="stat" to executeStatRoll and posts a chat message', async ({ page }) => {
-        const result = await page.evaluate(async () => {
-            const stamp = Date.now();
+    test('routes rollType="stat" to the roll dialog and posts a chat message once confirmed', async ({ page }) => {
+        const stamp = Date.now();
+        const actorId = await page.evaluate(async (stamp) => {
             const [actor] = await Actor.createDocuments([{ name: `E2E Sheet Roll Stat ${stamp}`, type: 'character' }]);
+            window.__e2eStatDispatchBefore = game.messages.size;
 
             const el = document.createElement('button');
             el.dataset.rollType = 'stat';
             el.dataset.key = 'str';
 
-            const before = game.messages.size;
             const { handleSheetRoll } = await import('/systems/sla-industries/module/sheets/actor/sheet-rolls.mjs');
             await handleSheetRoll({ actor }, { preventDefault: () => {}, currentTarget: el });
-            const after = game.messages.size;
+            return actor.id;
+        }, stamp);
 
-            await actor.delete();
-            return after > before;
-        });
+        // Opening the dialog must not roll on its own...
+        await expect(page.locator('input[name="situationalModifier"]').last()).toBeVisible();
+        expect(await page.evaluate(() => game.messages.size === window.__e2eStatDispatchBefore)).toBe(true);
 
-        expect(result).toBe(true);
+        // ...the roll posts only once the player confirms it.
+        await confirmRollDialog(page);
+        await page.waitForFunction(() => game.messages.size > window.__e2eStatDispatchBefore);
+        await page.evaluate((id) => game.actors.get(id)?.delete(), actorId);
     });
 
     test('does nothing for an unrecognized rollType', async ({ page }) => {

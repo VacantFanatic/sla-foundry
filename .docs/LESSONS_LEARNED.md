@@ -9,6 +9,26 @@ entries below: concrete, evidenced by a specific file/commit, and generalized in
 rule for next time. Do this even if the session's main task was something else — this file is
 only useful if it stays current.
 
+- **A new module or template isn't served to a running Foundry until `dist/` is rebuilt and
+  re-installed, and a missing file looks like a broken feature, not a stale install.** Issue
+  #422: the new `situational-roll-dialog.mjs` and `roll-modifier-dialog.hbs` returned HTTP 404
+  from the already-running Foundry (it serves the `dist/` copy installed at session start), so
+  every new e2e test failed with "dialog never appeared" — including ones that looked unrelated.
+  `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:30000/systems/sla-industries/<path>`
+  tells you immediately. Re-install with `FOUNDRY_DATA_DIR=/root/foundry-data bash
+scripts/cloud-foundry.sh prepare` (without the variable it installs into
+  `/home/ubuntu/foundry-data`, which the container doesn't mount). Related sandbox traps seen the
+  same day: the pulled Foundry v14 Build 370 renders `/join` as `<select name="userId">`, not the
+  `input[name="username"]` that `tests/e2e/fixtures.js` and `scripts/ensure-foundry-user.mjs`
+  expect, so login and user bootstrap fail until those are updated; and a failing test that
+  passes alone but fails in a batch usually means state leaked from the previous test.
+- **An e2e assertion on "a chat message matching X exists" can pass for the wrong reason.**
+  `regression-actor-sheets.spec.js`'s "stat roll posts to chat" polled `game.messages` for any
+  `STR CHECK` card and stayed green after stat rolls gained a confirm dialog and the test never
+  confirmed it — an earlier test in the same shared world had already posted a matching card.
+  When a roll's UX changes, assert on a message count taken immediately before the click (as
+  `regression-roll-dispatch.spec.js` does) rather than on message content that earlier tests may
+  have left behind.
 - **A template `name="system.xxx"` binding that doesn't match the schema fails silently, and it
   can happen more than once.** Issue #348: `templates/actor/parts/header-card.hbs`'s LAD checkbox
   was bound to `name="system.bio.lad"` / `{{checked system.bio.lad}}`, but `SlaCharacterData`

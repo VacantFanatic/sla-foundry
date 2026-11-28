@@ -243,7 +243,21 @@ async function joinAs(browser, name, baseURL) {
     return { context, page, errors };
 }
 
+/**
+ * Confirms the pre-roll "Situational Modifier" dialog that skill and stat rolls open from a sheet
+ * click (SlaSimpleContentDialog). Optionally fills the modifier first.
+ * @param {import('@playwright/test').Page} page
+ * @param {{ situationalModifier?: number }} [opts]
+ */
+async function confirmRollDialog(page, { situationalModifier } = {}) {
+    const input = page.locator('input[name="situationalModifier"]').last();
+    await input.waitFor({ state: 'visible', timeout: 15_000 });
+    if (situationalModifier !== undefined) await input.fill(String(situationalModifier));
+    await page.locator('[data-action="confirmDialog"]').last().click();
+}
+
 module.exports = {
+    confirmRollDialog,
     joinGame,
     joinAs,
     waitForSLASystem,

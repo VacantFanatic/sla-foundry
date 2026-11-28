@@ -1,12 +1,20 @@
 import { createSLARoll } from '../../helpers/dice.mjs';
-import { buildSkillRollModifierBreakdown, computeSkillRollModifier, isStatCheckSuccess } from './roll-math.mjs';
+import {
+    buildRollModifierNote,
+    buildSkillRollModifierBreakdown,
+    computeSkillRollModifier,
+    isStatCheckSuccess
+} from './roll-math.mjs';
+import { renderSituationalRollDialog } from './situational-roll-dialog.mjs';
 import { buildSlaRollFlags, generateSheetTooltip } from './sheet-helpers.mjs';
 
 /**
  * @param {import('../actor-sheet.mjs').SlaActorSheet} sheet
  * @param {string} statKey
+ * @param {{ situationalModifier?: number }} [overrides] One-off modifier from the pre-roll dialog
  */
-export async function executeStatRoll(sheet, statKey) {
+export async function executeStatRoll(sheet, statKey, overrides = {}) {
+    const { situationalModifier = 0 } = overrides;
     const actor = sheet.actor;
     const normalizedKey = statKey.toLowerCase();
     const statLabel = normalizedKey.toUpperCase();
@@ -20,7 +28,8 @@ export async function executeStatRoll(sheet, statKey) {
         stunned: Boolean(actor.system.conditions?.stunned),
         woundPenalty: actor.system.wounds.penalty || 0,
         applyWoundPenalties: game.settings.get('sla-industries', 'enableAutomaticWoundPenalties'),
-        rollModifier: rollModifierTotal
+        rollModifier: rollModifierTotal,
+        situationalModifier
     };
     const finalMod = computeSkillRollModifier(modifierParams);
     const modifierBreakdown = buildSkillRollModifierBreakdown({ statLabel, ...modifierParams });
@@ -31,8 +40,7 @@ export async function executeStatRoll(sheet, statKey) {
     const finalTotal = roll.terms[0].results[0].result + finalMod;
     const isSuccess = isStatCheckSuccess(finalTotal);
     const resultColor = isSuccess ? '#39ff14' : '#f55';
-    const rollModifierNote =
-        rollModifierTotal !== 0 ? `Roll Modifier (${rollModifierTotal > 0 ? '+' : ''}${rollModifierTotal})` : '';
+    const rollModifierNote = buildRollModifierNote({ rollModifier: rollModifierTotal, situationalModifier });
 
     const templateData = {
         borderColor: resultColor,
@@ -71,5 +79,20 @@ export async function executeStatRoll(sheet, statKey) {
                 tn: 10
             })
         }
+    });
+}
+
+/**
+ * Pre-roll confirmation dialog for a stat check, with a one-off situational modifier.
+ * @param {import('../actor-sheet.mjs').SlaActorSheet} sheet
+ * @param {string} statKey
+ */
+export async function renderStatRollDialog(sheet, statKey) {
+    const normalizedKey = statKey.toLowerCase();
+    await renderSituationalRollDialog({
+        title: `${normalizedKey.toUpperCase()} Check`,
+        summaryLabel: 'Stat check',
+        summary: normalizedKey.toUpperCase(),
+        onConfirm: (situationalModifier) => executeStatRoll(sheet, normalizedKey, { situationalModifier })
     });
 }

@@ -4,12 +4,14 @@ import { resolveEbbResourceLabel } from '../../helpers/ebb-resource-label.mjs';
 import { SlaSimpleContentDialog } from '../../apps/sla-simple-dialog.mjs';
 import {
     buildEbbDamageFormula,
+    buildRollModifierNote,
     buildSkillDiceResults,
     calculateEbbModifier,
     computeSuccessDieOutcome,
     resolveEbbDisciplineName,
     resolveEbbOutcomeText
 } from './roll-math.mjs';
+import { readSituationalModifier } from './situational-roll-dialog.mjs';
 
 function resolveEbbContext(sheet, item) {
     const formulaRating = item.system.formulaRating || 7;
@@ -144,13 +146,10 @@ export async function executeEbbRoll(sheet, item, overrides = {}) {
 
     const rank = Number(disciplineItem.system.rank) || 0;
     const rollModifierTotal = sheet.actor.system.rollModifier?.total ?? 0;
-    const rollModifierNotes = [
-        rollModifierTotal !== 0 ? `Roll Modifier (${rollModifierTotal > 0 ? '+' : ''}${rollModifierTotal})` : '',
-        situationalModifier !== 0
-            ? `Situational Modifier (${situationalModifier > 0 ? '+' : ''}${situationalModifier})`
-            : ''
-    ].filter(Boolean);
-    const rollModifierNote = rollModifierNotes.join(' ');
+    const rollModifierNote = buildRollModifierNote({
+        rollModifier: rollModifierTotal,
+        situationalModifier
+    });
     const modifier = calculateEbbModifier({
         statValue: sheet.actor.system.stats.conc?.total ?? sheet.actor.system.stats.conc?.value ?? 0,
         rank,
@@ -265,10 +264,7 @@ export async function executeEbbRoll(sheet, item, overrides = {}) {
  * @param {HTMLElement | HTMLFormElement | null} html
  */
 export async function confirmEbbCast(sheet, item, html) {
-    const root = html?.jquery ? html[0] : html;
-    const form = root instanceof HTMLFormElement ? root : root?.querySelector?.('form');
-    const situationalModifier = Number(form?.elements?.situationalModifier?.value) || 0;
-    await executeEbbRoll(sheet, item, { situationalModifier });
+    await executeEbbRoll(sheet, item, { situationalModifier: readSituationalModifier(html) });
 }
 
 /**

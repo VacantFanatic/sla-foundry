@@ -1,4 +1,5 @@
 import { describeDrugDuration } from '../../documents/derived/effect-duration.mjs';
+import { renderSkillRollDialog } from './skill-rolls.mjs';
 
 /**
  * @param {import('../actor-sheet.mjs').SlaActorSheet} sheet
@@ -57,7 +58,7 @@ export async function triggerItemRoll(sheet, item) {
     } else if (item.type === 'toxicant') {
         await item.rollInfectionTest();
     } else if (item.type === 'skill') {
-        await sheet._executeSkillRollFromItem(item);
+        await renderSkillRollDialog(sheet, item);
     } else {
         item.sheet?.render(true);
     }

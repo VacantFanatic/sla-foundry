@@ -29,7 +29,7 @@ import {
     shouldRedirectEbbTab,
     statPlayColorClass
 } from './actor/sheet-ux-pure.mjs';
-import { executeSkillRollFromItem } from './actor/skill-rolls.mjs';
+import { executeSkillRollFromItem, renderSkillRollDialog } from './actor/skill-rolls.mjs';
 import { renderEbbCastDialog } from './actor/ebb-rolls.mjs';
 import { processExplosiveRoll, renderExplosiveDialog } from './actor/explosive-rolls.mjs';
 import { processWeaponRoll, renderAttackDialog } from './actor/weapon-rolls.mjs';
@@ -752,7 +752,7 @@ export class SlaActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
         const itemId = element.closest('.item')?.dataset.itemId;
         const item = itemId ? this.actor.items.get(itemId) : null;
         if (!item) return;
-        await this._executeSkillRollFromItem(item);
+        await renderSkillRollDialog(this, item);
     }
 
     async _executeSkillRollFromItem(item) {

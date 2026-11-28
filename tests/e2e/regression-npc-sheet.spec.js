@@ -7,7 +7,8 @@ const {
     openActorSheet,
     clickActorSheetTab,
     deleteTestActors,
-    closeApplicationWindows
+    closeApplicationWindows,
+    confirmRollDialog
 } = require('./fixtures');
 
 test.describe.configure({ timeout: 60_000 });
@@ -59,6 +60,7 @@ test.describe('SLA NPC/Threat sheet UI — regression', () => {
         const sheet = await openActorSheet(page, actorId);
 
         await sheet.locator('a.rollable[data-roll-type="stat"][data-key="str"]').click();
+        await confirmRollDialog(page);
 
         await expect
             .poll(

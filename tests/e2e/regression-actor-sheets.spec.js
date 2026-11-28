@@ -7,7 +7,8 @@ const {
     openActorSheet,
     clickActorSheetTab,
     deleteTestActors,
-    closeApplicationWindows
+    closeApplicationWindows,
+    confirmRollDialog
 } = require('./fixtures');
 
 test.describe.configure({ timeout: 60_000 });
@@ -82,6 +83,7 @@ test.describe('SLA actor sheet UI — regression', () => {
         const sheet = await openActorSheet(page, actorId);
 
         await statRollDice(sheet, 'str').click();
+        await confirmRollDialog(page);
 
         await expect
             .poll(
@@ -102,6 +104,7 @@ test.describe('SLA actor sheet UI — regression', () => {
         const sheet = await openActorSheet(page, actorId);
 
         await sheet.locator('a.rollable.sla-stat-play-hit[data-key="str"]').click();
+        await confirmRollDialog(page);
 
         await expect
             .poll(
