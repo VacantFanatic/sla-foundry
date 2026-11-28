@@ -826,3 +826,21 @@ the EmbeddedCollection collection` and the GM saw a red toast. The stack ended i
   GM can write everywhere, so nothing fails on its client); `regression-head-wound-permissions.spec.js` logs in a
   second, passwordless PLAYER client (`joinAs` in `fixtures.js`), covers all six wound locations, the relay and the
   no-GM branch, and fails with the `_onUpdate` guard removed.
+- **A button-visibility rule written as a list of special cases silently misses the combinations nobody listed.**
+  Issue 421: `buildEbbDamageFormula` (`module/sheets/actor/roll-math.mjs`) showed the Remove Wounds button for
+  (Effect, no HP formula) and (Heal, `or` mode, with HP formula) only, so the rulebook's own Rank 1 Heal Wound
+  (Heal, no HP formula, 1 wound) rendered a card with no buttons, and the wound could not be removed. The existing
+  test covered only the Effect case, so it passed. Rule: when a control's visibility depends on several item
+  fields, write one test per real rulebook entry (see the Heal table in `EBB_SYSTEM.md`) instead of per branch of
+  the code, and check the matrix for any entry that produces zero controls. The unit tests prove the logic;
+  `regression-ebb-heal.spec.js` clicks the real rendered card, but it needs a live Foundry to run.
+- **Foundry v14 build 370 changed the Join Game form, which breaks every authenticated e2e spec at `joinGame`.**
+  The form is now `<select id="join-username" name="userId">` (option value = user id, text = name) plus
+  `input[name="password"]`; the fixtures and `scripts/ensure-foundry-user.mjs` still wait for the old
+  `input[name="username"]`. It fails the same way in CI (Playwright's own Chrome 147) and in this sandbox, with
+  "Waiting for /join user list..." until timeout, so it is not a browser-version problem. The unpinned
+  `felddy/foundryvtt:14` image picked up build 370, so the failure appeared with no repo change. Rule: when every
+  authenticated spec fails at login at once, dump the live form (`page.evaluate(() => document.forms)`) before
+  blaming the environment, and consider pinning the Foundry image tag in CI so a platform build can't change the login form
+  under an unrelated PR. Fixed by handling both controls in `fixtures.js` and `ensure-foundry-user.mjs` (PR 426). A throwaway Playwright config outside the repo (`require` the repo config and set
+  `launchOptions.executablePath` to `/opt/pw-browsers/chromium`) still avoids editing `playwright.config.js` here.

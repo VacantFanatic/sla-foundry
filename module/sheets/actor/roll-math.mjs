@@ -407,7 +407,10 @@ export function buildEbbDamageFormula(item, isSuccessful, skillSuccesses) {
     const showRemoveWoundsOnly = Boolean(
         isSuccessful &&
         removeWoundsCount > 0 &&
-        ((ebbEffect === 'effect' && !hasHpFormula) || (isHealEffect && healWoundMode === 'or' && hasHpFormula))
+        ((ebbEffect === 'effect' && !hasHpFormula) ||
+            // Heal with no HP formula (Heal Wound): the wound button is the only action available.
+            (isHealEffect && !hasHpFormula) ||
+            (isHealEffect && healWoundMode === 'or' && hasHpFormula))
     );
     const removeWoundsBundledWithHpRoll = Boolean(
         showHpRollButton && removeWoundsCount > 0 && !(isHealEffect && healWoundMode === 'or')
