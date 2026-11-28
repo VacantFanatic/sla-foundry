@@ -1,15 +1,30 @@
 /**
  * Shared helpers for Foundry E2E tests.
+ */
+
+/**
+ * Picks `name` on the Join Game form. Foundry v14 builds before 370 render an autocomplete text
+ * input (`input[name="username"]`); build 370 renders `<select id="join-username" name="userId">`
+ * whose option text is the user name. Waits for whichever form this build serves, then fills it.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} name
+ */
+async function selectJoinUser(page, name) {
+    const select = page.locator('select[name="userId"]');
+    const input = page.locator('input[name="username"]');
+    await select.or(input).first().waitFor({ timeout: 30_000 });
+    if (await select.count()) await select.selectOption({ label: name });
+    else await input.fill(name);
+}
+
+/**
  * @param {import('@playwright/test').Page} page
  */
 async function joinGame(page) {
     const user = process.env.FOUNDRY_USER;
     if (!user) throw new Error('FOUNDRY_USER is required');
     await page.goto('/join');
-    // Foundry v14's Join Game form is an autocomplete text input (`input[name="username"]`),
-    // not the classic `<select name="userid">` dropdown earlier Foundry versions used —
-    // confirmed directly from the served client source (JoinGameForm in scripts/foundry.mjs).
-    await page.locator('input[name="username"]').fill(user);
+    await selectJoinUser(page, user);
     const passwordField = page.locator('input[name="password"]');
     if (await passwordField.count()) await passwordField.fill(process.env.FOUNDRY_PASSWORD ?? '');
     await page.getByRole('button', { name: /join game session/i }).click();
@@ -235,7 +250,7 @@ async function joinAs(browser, name, baseURL) {
     });
     page.on('pageerror', (err) => errors.push(`PAGEERROR ${err.message}`));
     await page.goto('/join');
-    await page.locator('input[name="username"]').fill(name);
+    await selectJoinUser(page, name);
     await page.getByRole('button', { name: /join game session/i }).click();
     await page.waitForURL(/\/game/, { timeout: 60_000 });
     await waitForSLASystem(page);
